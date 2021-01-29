@@ -1,2 +1,2 @@
 # digi_leap
-Extract information from images of herarium specimens
+Extract information from images of herbarium specimens
