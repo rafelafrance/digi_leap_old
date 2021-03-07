@@ -46,16 +46,16 @@ def get_columns(headers):
     return columns
 
 
-def insert(zip_file, columns):
+def insert(zippy, zip_file, raw_db, batch_size, columns):
     """Insert data from the CSV file into an SQLite3 database."""
     table = zip_file.split('.')[0]
 
-    with sqlite3.connect(RAW_DB) as cxn:
-        with zipfile.ZipFile(ZIPPY) as zippy:
-            with zippy.open(zip_file) as in_file:
+    with sqlite3.connect(raw_db) as cxn:
+        with zipfile.ZipFile(zippy) as zipped:
+            with zipped.open(zip_file) as in_file:
 
                 reader = pd.read_csv(
-                    in_file, dtype=str, keep_default_na=False, chunksize=BATCH_SIZE)
+                    in_file, dtype=str, keep_default_na=False, chunksize=batch_size)
 
                 if_exists = 'replace'
 
@@ -67,12 +67,12 @@ def insert(zip_file, columns):
                     if_exists = 'append'
 
 
-def load_data(zippy, zip_file):
+def load_data(zippy, zip_file, raw_db, batch_size):
     """Load the data."""
     headers = get_headers(zippy, zip_file)
     columns = get_columns(headers)
-    insert(zip_file, columns)
+    insert(zippy, zip_file, raw_db, batch_size, columns)
 
 
 if __name__ == '__main__':
-    load_data(ZIPPY, ZIP_FILE)
+    load_data(ZIPPY, ZIP_FILE, RAW_DB, BATCH_SIZE)

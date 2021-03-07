@@ -3,6 +3,5 @@ tqdm>=4.56.2
 jupyter>=1.0.0
 Pillow>=8.1.0
 opencv-python>=4.5.1.48
-duckdb>=0.2.5.dev377
 qrcode>=6.1
 python-barcode>=0.13.1
