@@ -13,20 +13,10 @@ when we generate the labels. For instance some parts may use different fonts and
 others may have the text underlined etc. Also note that some of the parts may
 be empty. We might add labels.
 
-Some ext augmentation is done here because the OCR step, later on, needs to
-replicate the text. Text augmentation steps:
-- [X] Use symbols like: ♀ or ♂ and other ones that may appear on labels
-- [ ] Augment taxon names with data from ITIS
-- [ ] Augment location data from gazetteer data
-- [ ] Generate names dates and numbers
-- [ ] Replace some words with abbreviations
-- [ ] Add extra spaces
-
 Note that we are generating *"plausible looking"* labels not necessarily
 *realistic* labels.
 
 Also note that there are different kinds of labels.
-
 - The main label that describes the sample
 - Labels for species determination
 - Barcode and QR-Code labels
@@ -36,7 +26,7 @@ import sqlite3
 
 import pandas as pd
 
-from digi_leap.pylib.const import LABEL_DB, RAW_DATA_COUNT, RAW_DB, RAW_DATA
+from digi_leap.pylib.const import LABEL_DB, RAW_DATA, RAW_DATA_COUNT, RAW_DB
 
 # These column look good for label generation
 COLUMNS = """
@@ -147,27 +137,6 @@ def get_label_data(label_db):
     return df
 
 
-def augment_sex(df):
-    """Augment the sex field."""
-    sexes = {
-        'Male': 10_000,
-        'male': 10_000,
-        'Female': 10_000,
-        'female': 10_000,
-        'hermaphrodite': 10,
-        'bisexual': 10,
-        '♀': 5_000,
-        '♂': 5_000,
-        '⚥': 10,
-    }
-
-    for value, count in sexes.items():
-        rows = df.sample(n=count)
-        df.loc[rows.index, 'sex'] = value
-
-    return df
-
-
 def insert_data(df, label_db):
     """Write the data to the smaller database."""
     with sqlite3.connect(label_db) as cxn:
@@ -178,9 +147,6 @@ def build_label_data(raw_db, raw_data, raw_data_count, label_db, columns):
     """Create the label data table with augmented text data."""
     create_data_table(raw_db, raw_data, raw_data_count, label_db, columns)
     df = get_label_data(label_db)
-
-    df = augment_sex(df)
-
     insert_data(df, label_db)
 
 

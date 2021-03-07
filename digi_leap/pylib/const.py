@@ -17,7 +17,7 @@ TEMP_DIR = DATA_DIR / 'temp'
 RAW_DATA = 'occurrence_raw'
 
 RAW_DB = str(RAW_DIR / f'{RAW_DATA}_idigbio_2021-02.sqlite3.db')
-LABEL_DB = str(PROCESSED_DIR / f'{RAW_DATA}.sqlite3.db')
+LABEL_DB = str(PROCESSED_DIR / 'label_data.sqlite3.db')
 
 ZIPPY = str(RAW_DIR / 'iDigBio_snapshot_2021-02.zip')
 ZIP_FILE = f'{RAW_DATA}.csv'
