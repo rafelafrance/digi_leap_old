@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
-"""Given a CSV file of iDigBio records, download the images."""
+"""Given a CSV file of iDigBio records, download the images.
+
+This script was used to get images for the Notes from Nature expedition for
+finding labels. We will use the results from the expedition for training a
+neural net to find labels and identify the type(s) of writing on them.
+
+I originally got this list of images to download from a CSV file given
+to me from an external source. I would now use the iDigBio snapshot to
+do the same thing, and if we need more images I will. However, this will
+require a slight rewrite.
+"""
 
 import re
-from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
@@ -11,6 +20,9 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.pylib.const import DATA_DIR
+
+# Don't use this file in the future
+OLD_CSV = 'idb_image_url.csv'
 
 
 def download_idigbio(csv_path):
@@ -21,8 +33,8 @@ def download_idigbio(csv_path):
     images = df.loc[df[target].str.contains('http:')][target]
 
     for url in tqdm(images):
-        fields = urlparse(url)
-        name = f'{fields.netloc}_{fields.path}'
+        url_parts = urlparse(url)
+        name = f'{url_parts.netloc}_{url_parts.path}'
         name = re.sub(r'[^\w.]', '_', name)
         name = re.sub(r'__+', '_', name)
         name = re.sub(r'^_+|_+$', '', name)
@@ -36,20 +48,5 @@ def download_idigbio(csv_path):
             continue
 
 
-def fix_file_names(image_dir: Path):
-    """Fix up file names."""
-    paths = image_dir.glob('*')
-    for src in tqdm(paths):
-        dst = src.name
-        dst = re.sub(r'[^\w.]', '_', dst)
-        dst = re.sub(r'__+', '_', dst)
-        dst = re.sub(r'^_+|_+$', '', dst)
-        dst += '.jpg' if not dst.lower().endswith('.jpg') else ''
-        dst = image_dir / dst
-        if dst.name != src.name:
-            src.rename(dst)
-
-
 if __name__ == '__main__':
-    download_idigbio(DATA_DIR / 'idb_image_url.csv')
-    # fix_file_names(DATA_DIR / 'images')
+    download_idigbio(DATA_DIR / OLD_CSV)
