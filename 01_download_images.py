@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Given a CSV file of iDigBio records, download the images.
 
 This script was used to get images for the Notes from Nature expedition for

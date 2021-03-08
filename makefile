@@ -1,20 +1,27 @@
 DATE=`date +%Y-%m-%d`
 PROCESSED=./data/processed
 TEMP=./data/temp
-LABEL_DB=label_data.sqlite.db
-DB_NAME="$(PROCESSED)/$(LABEL_DB)"
-DB_BACKUP="$(PROCESSED)/$(basename $(LABEL_DB))_$(DATE).db"
+DB_NAME=label_data.sqlite.db
+LABEL_DB="$(PROCESSED)/$(LABEL_DB)"
+BACKUP_DB="$(PROCESSED)/$(basename $(DB_NAME))_$(DATE).db"
 PYTHON=python
 SRC=./digi_leap
 
-data:
-	$(PYTHON) $(SRC)/01_download_images.py
-	$(PYTHON) $(SRC)/02_load_idigbio_data.py
+label_text:
+	$(PYTHON) $(SRC)/05_generate_label_text.py
+
+label_data:
 	$(PYTHON) $(SRC)/03_generate_label_data.py
 	$(PYTHON) $(SRC)/04_augment_label_data.py
+
+idigbio_data:
+	$(PYTHON) $(SRC)/02_load_idigbio_data.py
+
+images:
+	$(PYTHON) $(SRC)/01_download_images.py
 
 clean:
 	rm ${TEMP}/*
 
 backup:
-	cp $(LABEL_DB) $(LABEL_DB)
+	cp $(LABEL_DB) $(BACKUP_DB)

@@ -12,7 +12,9 @@ import sqlite3
 
 import pandas as pd
 
-from digi_leap.pylib.const import LABEL_DB, RAW_DATA, RAW_DATA_COUNT, RAW_DB
+from digi_leap.pylib.const import LABEL_DB, RAW_DATA, RAW_DB
+
+RAW_DATA_COUNT = 1_000_000  # A pool of data to sample fields
 
 # These column look good for label generation
 COLUMNS = """
@@ -80,7 +82,7 @@ COLUMNS = """
     sex
     sampling_protocol
     type_status
-    
+
     record_entered_by
     record_number
     recorded_by
@@ -94,7 +96,7 @@ def create_data_table(raw_db, raw_data, raw_data_count, label_db, columns):
 
     sql = f"""
         CREATE TABLE IF NOT EXISTS aux.data AS
-            SELECT rowid AS id, {columns}
+            SELECT rowid AS data_id, {columns}
               FROM {raw_data}
              WHERE rowid IN (
                  SELECT rowid
@@ -107,19 +109,20 @@ def create_data_table(raw_db, raw_data, raw_data_count, label_db, columns):
 
     with sqlite3.connect(raw_db) as cxn:
         cxn.execute(f"ATTACH DATABASE '{label_db}' AS aux")
+        cxn.execute('DROP TABLE IF EXISTS aux.data')
         cxn.execute(sql)
 
-    # We will need this index
     with sqlite3.connect(label_db) as cxn:
         cxn.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS
-                data_id ON data (id)""")
+                data_data_id ON data (data_id)""")
 
 
 def get_label_data(label_db):
     """Get the data from the newly created label_data table."""
     with sqlite3.connect(label_db) as cxn:
         df = pd.read_sql('select * from data', cxn)
+    df = df.reindex(columns=['data_id'] + COLUMNS)    # An easier order to navigate
     return df
 
 

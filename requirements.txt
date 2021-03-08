@@ -5,3 +5,4 @@ Pillow>=8.1.0
 opencv-python>=4.5.1.48
 qrcode>=6.1
 python-barcode>=0.13.1
+duckdb>=0.2.5.dev377
