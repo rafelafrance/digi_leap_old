@@ -1,34 +1,9 @@
 #!/usr/bin/env python
 """
-Generate Label Text by Sampling iDigBio Data
+Augment the label data.
 
-Images can be generated (both clean and dirty) on the fly but we need to
-persist the text data so that it can be used in several steps further down
-the pipeline. This will create persistent data for the label text from the
-iDigBio database. I'm going to create a separate DB so that it can be easily
-used by other team members.
-
-The data will be in parts so that we can treat the different parts separately
-when we generate the labels. For instance some parts may use different fonts and
-others may have the text underlined etc. Also note that some of the parts may
-be empty. We might add labels.
-
-Some ext augmentation is done here because the OCR step, later on, needs to
-replicate the text. Text augmentation steps:
-- [X] Use symbols like: ♀ or ♂ and other ones that may appear on labels
-- [ ] Augment taxon names with data from ITIS
-- [ ] Augment location data from gazetteer data
-- [ ] Generate names dates and numbers
-- [ ] Replace some words with abbreviations
-- [ ] Add extra spaces
-
-Note that we are generating *"plausible looking"* labels not necessarily
-*realistic* labels.
-
-Also note that there are different kinds of labels.
-- The main label that describes the sample
-- Labels for species determination
-- Barcode and QR-Code labels
+This module augments the raw data for the labels. So far this is mostly
+filling null fields with data and not actually changing text.
 """
 
 import sqlite3

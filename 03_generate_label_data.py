@@ -2,24 +2,10 @@
 """
 Generate Label Text by Sampling iDigBio Data
 
-Images can be generated (both clean and dirty) on the fly but we need to
-persist the text data so that it can be used in several steps further down
-the pipeline. This will create persistent data for the label text from the
-iDigBio database. I'm going to create a separate DB so that it can be easily
-used by other team members.
-
-The data will be in parts so that we can treat the different parts separately
-when we generate the labels. For instance some parts may use different fonts and
-others may have the text underlined etc. Also note that some of the parts may
-be empty. We might add labels.
-
-Note that we are generating *"plausible looking"* labels not necessarily
-*realistic* labels.
-
-Also note that there are different kinds of labels.
-- The main label that describes the sample
-- Labels for species determination
-- Barcode and QR-Code labels
+This will create persistent data for the label that will be used for
+generating the labels. The entire table (or CSV) file containing the
+raw text is too large and cumbersome to work with, so we're going to
+trim it down to a manageable and easily sharable size.
 """
 
 import sqlite3
