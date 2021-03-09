@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 BATCH_SIZE = 1_000_000  # How many records to work with at a time
+LIMIT = 1_000_000
 
 ROOT_DIR = Path('..' if os.getcwd().endswith('notebooks') else '.')
 DATA_DIR = ROOT_DIR / 'data'
@@ -12,7 +13,7 @@ IMAGE_DIR = DATA_DIR / 'images'
 PROCESSED_DIR = DATA_DIR / 'processed'
 RAW_DIR = DATA_DIR / 'raw'
 TEMP_DIR = DATA_DIR / 'temp'
-AUG_DIR = DATA_DIR / 'augment'
+DEFAULT_DIR = DATA_DIR / 'default'
 
 RAW_DATA = 'occurrence_raw'
 
@@ -22,9 +23,12 @@ LABEL_DB = str(PROCESSED_DIR / 'label_data.sqlite3.db')
 ZIPPY = str(RAW_DIR / 'iDigBio_snapshot_2021-02.zip')
 ZIP_FILE = f'{RAW_DATA}.csv'
 
-
-AUG_FILES = {
-    'date': AUG_DIR / 'dates.txt',
-    'name': AUG_DIR / 'names.txt',
-    'sex': AUG_DIR / 'sexes.csv'
+# Default values
+DEFAULT_FILES = {
+    'columns': DEFAULT_DIR / 'columns.txt',
+    'date': DEFAULT_DIR / 'dates.txt',
+    'name': DEFAULT_DIR / 'names.txt',
+    'reject_value': DEFAULT_DIR / 'reject_values.txt',
+    'rights_holder': DEFAULT_DIR / 'rights_holder.txt',
+    'sex': DEFAULT_DIR / 'sexes.csv',
 }

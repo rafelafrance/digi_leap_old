@@ -13,6 +13,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.pylib.const import BATCH_SIZE, RAW_DB, ZIPPY, ZIP_FILE
+from digi_leap.pylib.util import ended, started
 
 
 def get_headers(zippy, zip_file):
@@ -75,4 +76,8 @@ def load_data(zippy, zip_file, raw_db, batch_size):
 
 
 if __name__ == '__main__':
+    started()
+
     load_data(ZIPPY, ZIP_FILE, RAW_DB, BATCH_SIZE)
+
+    ended()

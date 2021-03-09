@@ -1,0 +1,1346 @@
+"Information provided with the permission of the National Museum of Natural History, Smithsonian Institution, 10th and Constitution Ave. N.W., Washington, DC 20560-0193"
+-48,08
+-55,00
+1495
+37.72071, -97.29384
+4631
+467
+528
+ALCB - Herbário Alexandre Leal Costa
+ASE
+ASE - Herbário da Universidade Federal de Sergipe
+Aaron Currier
+Academy of Natural Sciences
+Adam Armstrong
+Albion Hodgdon Herbarium, University of New Hampshire
+American Museum of Natural History
+América do Sul
+Antony Avrithis
+Archbold Biological Station
+BHCB - Herbário da Universidade Federal de Minas Gerais
+BHCB-SL - Herbário UFMG - Samambaias e Licófitas
+BHZB - Herbário do Jardim Botânico da Fundação Zoo-Botânica de Belo Horizonte
+BLM
+BOTU - Herbário Irina Delanova Gemtchújnicov
+BOTUw - Xiloteca "Profa. Dra. Maria Aparecida Mourão Brasil"
+BR
+Bailey-Matthews National Shell Museum
+Bartlett Arboretum
+Beau McDaniel
+Bell Museum
+Benedictine College
+Bernice Pauahi Bishop Museum
+Bill Heim
+Black Rock Forest Consortium Herbarium
+Boise District Bureau of Land Management
+Boise State University, Snake River Plains Herbarium
+Boston University
+Botanical Research Institute of Texas
+Brock University
+Broward College
+Brown University
+Bureau of Indian Affairs
+Bureau of Land Management
+Bureau of Land Management, Medford District
+Bureau of Land Management, Vale District Office
+CEN
+CEN - Herbário da Embrapa Recursos Genéticos e Biotecnologia
+CEPEC
+CEPEC - Herbário do Centro de Pesquisas do Cacau
+CEPEC 134230
+CEPEC-Fungi - Coleção Micológica do CEPEC
+CESJ - Herbário Leopoldo Krieger
+CGMS - Herbário da Fundação Universidade Federal de Mato Grosso do Sul
+CNMT - Herbário Centro Norte Mato Grossense
+CPAP - Herbário CPAP
+CRI - Herbário Pe. Dr. Raulino Reitz
+CVRD
+CVRD - Herbário da Reserva Natural Vale
+CVRD 14250
+California State University, East Bay
+Canadian Museum of Nature
+Canadian Museum of Nature / Musée canadien de la nature
+Carnegie Museum of Natural History
+Central Connecticut State University
+Charles Bartlett
+Charlie Smith
+Chicago Academy of Sciences
+Christa Speights
+Cincinnati Museum Center
+Colgate University
+College of Idaho, Harold M. Tucker Herbarium
+Colorado College
+Colorado Mesa University
+Comisión Nacional para el Conocimiento y Uso de la Biodiversidad (CONABIO)
+Connecticut College
+Copyright © Canadian Museum of Nature / Musée canadien de la nature
+Cornell College
+Cornell Plant Pathology Herbarium
+Craters of the Moon National Monument
+DVPR - Herbário da Universidade Tecnológica Federal do Paraná - Dois Vizinhos
+Daniel Peters
+Danita Brandt
+David Hanes
+David Powers
+Davidson College
+Deaver Herbarium
+Delwin Glasner
+Denver Botanic Gardens
+Denver Museum of Nature & Science
+Department of Bioagricultural Sciences and Pest Management
+Department of Entomology, MSU
+Dickinson State University
+Dugway Proving Ground Natural History Collection
+EAC
+EAC - Herbário Prisco Bezerra
+EAFM - Herbário do Instituto Federal de Educação, Ciência e Tecnologia do Amazonas
+EAN
+EAN - Herbário Jaime Coelho de Moraes
+EFC - Herbário Escola de Florestas Curitiba
+ESA
+ESA - Herbário da Escola Superior de Agricultura Luiz de Queiroz
+ESA 123872
+Eastern Washington University
+Erich Rose
+Evergreen State College
+F
+FCAB - Herbário Friburguense
+FFAR
+FLOR - Herbário do Departamento de Botânica da Universidade Federal de Santa Catarina
+FNJV - Fonoteca Neotropical "Jacques Vielliard"
+FUEL - Herbário da Universidade Estadual de Londrina
+FURB - Herbário Dr. Roberto Miguel Klein
+Fort Hays Sternberg Museum
+Friday Harbor Laboratories
+Funed-Pol - Coleção de lâminas de grãos de pólen
+GFJP
+GFJP 2007
+GUA
+GUAcarapo 148
+GUAcarepo 174
+GUAcarpo  103
+GUAcarpo  107
+GUAcarpo  109
+GUAcarpo  112
+GUAcarpo  294
+GUAcarpo  4
+GUAcarpo  409
+GUAcarpo  425
+GUAcarpo  427
+GUAcarpo  466
+GUAcarpo  484
+GUAcarpo  51
+GUAcarpo  537
+GUAcarpo  67
+GUAcarpo  73
+GUAcarpo 1
+GUAcarpo 100
+GUAcarpo 101
+GUAcarpo 103
+GUAcarpo 105
+GUAcarpo 11
+GUAcarpo 111
+GUAcarpo 114
+GUAcarpo 115
+GUAcarpo 117
+GUAcarpo 118
+GUAcarpo 119
+GUAcarpo 12
+GUAcarpo 120
+GUAcarpo 121
+GUAcarpo 124
+GUAcarpo 125
+GUAcarpo 126
+GUAcarpo 128
+GUAcarpo 129
+GUAcarpo 13
+GUAcarpo 130
+GUAcarpo 131
+GUAcarpo 133
+GUAcarpo 134
+GUAcarpo 135
+GUAcarpo 137
+GUAcarpo 1387
+GUAcarpo 14
+GUAcarpo 140
+GUAcarpo 141
+GUAcarpo 142
+GUAcarpo 143
+GUAcarpo 144
+GUAcarpo 145
+GUAcarpo 149
+GUAcarpo 15
+GUAcarpo 150
+GUAcarpo 152
+GUAcarpo 153
+GUAcarpo 154
+GUAcarpo 155
+GUAcarpo 157
+GUAcarpo 158
+GUAcarpo 159
+GUAcarpo 160
+GUAcarpo 162
+GUAcarpo 163
+GUAcarpo 164
+GUAcarpo 1654
+GUAcarpo 166
+GUAcarpo 167
+GUAcarpo 168
+GUAcarpo 169
+GUAcarpo 17
+GUAcarpo 172
+GUAcarpo 173
+GUAcarpo 175
+GUAcarpo 176
+GUAcarpo 177
+GUAcarpo 178
+GUAcarpo 179
+GUAcarpo 18
+GUAcarpo 181
+GUAcarpo 199
+GUAcarpo 2
+GUAcarpo 20
+GUAcarpo 21
+GUAcarpo 22
+GUAcarpo 23
+GUAcarpo 24
+GUAcarpo 25
+GUAcarpo 26
+GUAcarpo 27
+GUAcarpo 28
+GUAcarpo 283
+GUAcarpo 284
+GUAcarpo 285
+GUAcarpo 287
+GUAcarpo 289
+GUAcarpo 29
+GUAcarpo 290
+GUAcarpo 291
+GUAcarpo 292
+GUAcarpo 293
+GUAcarpo 295
+GUAcarpo 296
+GUAcarpo 297
+GUAcarpo 298
+GUAcarpo 299
+GUAcarpo 3
+GUAcarpo 300
+GUAcarpo 301
+GUAcarpo 302
+GUAcarpo 303
+GUAcarpo 304
+GUAcarpo 307
+GUAcarpo 308
+GUAcarpo 309
+GUAcarpo 310
+GUAcarpo 311
+GUAcarpo 312
+GUAcarpo 313
+GUAcarpo 318
+GUAcarpo 319
+GUAcarpo 32
+GUAcarpo 320
+GUAcarpo 321
+GUAcarpo 322
+GUAcarpo 323
+GUAcarpo 324
+GUAcarpo 325
+GUAcarpo 327
+GUAcarpo 328
+GUAcarpo 329
+GUAcarpo 33
+GUAcarpo 330
+GUAcarpo 331
+GUAcarpo 332
+GUAcarpo 334
+GUAcarpo 335
+GUAcarpo 338
+GUAcarpo 339
+GUAcarpo 340
+GUAcarpo 341
+GUAcarpo 342
+GUAcarpo 343
+GUAcarpo 344
+GUAcarpo 345
+GUAcarpo 346
+GUAcarpo 347
+GUAcarpo 348
+GUAcarpo 349
+GUAcarpo 35
+GUAcarpo 350
+GUAcarpo 351
+GUAcarpo 352
+GUAcarpo 353
+GUAcarpo 354
+GUAcarpo 356
+GUAcarpo 358
+GUAcarpo 359
+GUAcarpo 36
+GUAcarpo 360
+GUAcarpo 361
+GUAcarpo 363
+GUAcarpo 364
+GUAcarpo 365
+GUAcarpo 367
+GUAcarpo 368
+GUAcarpo 370
+GUAcarpo 371
+GUAcarpo 372
+GUAcarpo 375
+GUAcarpo 377
+GUAcarpo 378
+GUAcarpo 379
+GUAcarpo 38
+GUAcarpo 380
+GUAcarpo 381
+GUAcarpo 383
+GUAcarpo 384
+GUAcarpo 385
+GUAcarpo 386
+GUAcarpo 387
+GUAcarpo 388
+GUAcarpo 389
+GUAcarpo 39
+GUAcarpo 390
+GUAcarpo 391
+GUAcarpo 393
+GUAcarpo 394
+GUAcarpo 395
+GUAcarpo 396
+GUAcarpo 397
+GUAcarpo 398
+GUAcarpo 399
+GUAcarpo 40
+GUAcarpo 401
+GUAcarpo 403
+GUAcarpo 404
+GUAcarpo 407
+GUAcarpo 408
+GUAcarpo 41
+GUAcarpo 410
+GUAcarpo 412
+GUAcarpo 413
+GUAcarpo 415
+GUAcarpo 416
+GUAcarpo 417
+GUAcarpo 418
+GUAcarpo 419
+GUAcarpo 42
+GUAcarpo 420
+GUAcarpo 421
+GUAcarpo 423
+GUAcarpo 424
+GUAcarpo 426
+GUAcarpo 428
+GUAcarpo 43
+GUAcarpo 432
+GUAcarpo 434
+GUAcarpo 435
+GUAcarpo 436
+GUAcarpo 437
+GUAcarpo 44
+GUAcarpo 440
+GUAcarpo 442
+GUAcarpo 448
+GUAcarpo 45
+GUAcarpo 450
+GUAcarpo 451
+GUAcarpo 452
+GUAcarpo 453
+GUAcarpo 457
+GUAcarpo 458
+GUAcarpo 461
+GUAcarpo 462
+GUAcarpo 463
+GUAcarpo 468
+GUAcarpo 469
+GUAcarpo 47
+GUAcarpo 470
+GUAcarpo 471
+GUAcarpo 477
+GUAcarpo 48
+GUAcarpo 481
+GUAcarpo 484
+GUAcarpo 485
+GUAcarpo 486
+GUAcarpo 488
+GUAcarpo 49
+GUAcarpo 491
+GUAcarpo 492
+GUAcarpo 494
+GUAcarpo 496
+GUAcarpo 497
+GUAcarpo 498
+GUAcarpo 499
+GUAcarpo 49993
+GUAcarpo 5
+GUAcarpo 50
+GUAcarpo 500
+GUAcarpo 501
+GUAcarpo 503
+GUAcarpo 505
+GUAcarpo 507
+GUAcarpo 508
+GUAcarpo 509
+GUAcarpo 512
+GUAcarpo 513
+GUAcarpo 514
+GUAcarpo 515
+GUAcarpo 517
+GUAcarpo 518
+GUAcarpo 520
+GUAcarpo 521
+GUAcarpo 522
+GUAcarpo 523
+GUAcarpo 524
+GUAcarpo 526
+GUAcarpo 527
+GUAcarpo 528
+GUAcarpo 529
+GUAcarpo 53
+GUAcarpo 530
+GUAcarpo 531
+GUAcarpo 533
+GUAcarpo 534
+GUAcarpo 535
+GUAcarpo 538
+GUAcarpo 539
+GUAcarpo 54
+GUAcarpo 540
+GUAcarpo 541
+GUAcarpo 542
+GUAcarpo 543
+GUAcarpo 544
+GUAcarpo 545
+GUAcarpo 546
+GUAcarpo 548
+GUAcarpo 549
+GUAcarpo 55
+GUAcarpo 550
+GUAcarpo 551
+GUAcarpo 552
+GUAcarpo 56
+GUAcarpo 57
+GUAcarpo 58
+GUAcarpo 59
+GUAcarpo 6
+GUAcarpo 60
+GUAcarpo 61
+GUAcarpo 62
+GUAcarpo 63
+GUAcarpo 64
+GUAcarpo 65
+GUAcarpo 66
+GUAcarpo 68
+GUAcarpo 69
+GUAcarpo 7
+GUAcarpo 74
+GUAcarpo 75
+GUAcarpo 77
+GUAcarpo 78
+GUAcarpo 8
+GUAcarpo 81
+GUAcarpo 82
+GUAcarpo 83
+GUAcarpo 84
+GUAcarpo 85
+GUAcarpo 88
+GUAcarpo 89
+GUAcarpo 9
+GUAcarpo 90
+GUAcarpo 91
+GUAcarpo 92
+GUAcarpo 93
+GUAcarpo 94
+GUAcarpo 95
+GUAcarpo 96
+GUAcarpo 97
+GUAcarpo 99
+GUAcrapo 444
+GUacarpo 30
+GUacarpo 357
+GUacarpo 46
+GUacarpo 536
+Georgia Museum of Natural History
+Gouvernement du Québec
+Gwen Kilian
+H.J. Andrews Experimental Forest
+HAMAB - Herbário Amapaense
+HAS - Herbário Alarich Rudolf Holger Schultz
+HAS-Algae - Coleção Ficológica do HAS
+HBRA - Herbário do Instituto de Estudos Costeiros da Universidade Federal do Pará
+HCDAL - Herbário Caririense Dárdano de Andrade-Lima
+HCF - Herbário da Universidade Tecnológica Federal do Paraná Campus Campo Mourão
+HDJF - Herbário Dendrológico Jeanine Felfili
+HDJF 4495
+HEPH - Herbário Ezechias Paulo Heringer
+HERBAM - Herbário da Amazônia Meridional
+HFSL - Herbário Dr. Ary Tupinambá Penna Pinheiro
+HFSL-Fungos - Herbário Dr. Ary Tupinambá Penna Pinheiro - Fungos
+HJ - Herbario Jataiense Prof. Germano Guarim Neto
+HPAN - Herbário do Pantanal "Vali Joana Pott"
+HPBR - Herbário Padre Balduino Rambo
+HPL - Herbário do Jardim Botânico Plantarum
+HRB
+HRCB
+HRCB - Herbário Rioclarense
+HST - Herbário Sérgio Tavares
+HTSA - Herbário do Trópico Semiárido
+HTSA-Carpoteca - Carpoteca do Trópico Semiárido
+HTSAw - Xiloteca do Trópico Semiárido
+HUCO - Herbário da Universidade Estadual do Centro-Oeste
+HUCPE - Herbário da Universidade Católica de Pernambuco
+HUCS - Herbário da Universidade de Caxias do Sul
+HUEFS
+HUEFS - Herbario da Universidade Estadual de Feira de Santana
+HUEG - Herbário da Universidade Estadual de Goiás
+HUEM - Herbário UEM
+HUENFcarpo 229
+HUESB - Herbário da Universidade Estadual do Sudoeste da Bahia
+HUESC
+HUFSJ - Herbário da Universidade Federal de São João Del Rei
+HUFU - Herbarium Uberlandense
+HURB
+HURB - Herbário do Recôncavo da Bahia
+HUSC - Herbário Unisanta
+HUTO - Herbário da Universidade de Tocantins
+HVASF - Herbário Vale do São Francisco
+HVAT - Herbário do Vale do Taquari
+Her Majesty the Queen in right of Canada, as represented by the Minister of Agriculture & Agri-Food
+Howard Payne University
+IAC - Herbário do Instituto Agronômico de Campinas
+IAC 46608
+IAC 51679
+IAN
+IAN 188627
+IBGE
+ICN - Herbário do Instituto de Ciências Naturais
+INPA
+INPA 239062
+IPA - Herbário - IPA Dárdano de Andrade Lima
+IRAI - Herbário do Parque da Ciência Newton Freire Maia
+ISE - Herbário ISE
+Idaho State University, Ray J. Davis Herbarium
+Instituto Nacional de Pesquisas da Amazônia (INPA)
+Instituto Nacional de Pesquisas da Amazônia (INPA)Instituto Nacional de Pesquisas da Amazônia (INPA)
+Iowa State University
+Isaac Fox
+J. F. Bell Museum of Natural History
+JB
+JOI - Herbário Joinvillea
+JOIw - Xiloteca Joinvillea
+JPB - Herbário Lauro Pires Xavier
+JPB 41573
+Jack Kallmeyer
+Jacob Beasecker
+Jacob Q. M. Polzin
+James Ellsworth
+Jennifer Bauer
+Jiang Yuan
+Jim Barkley
+John Christian
+John Nance
+Johnathan VonAllmen
+Joseph Dumont
+Judy Fisher
+Julie Niederkorn
+K
+Keene State College
+Kevin Kelly
+LABEV
+LPB
+LR
+LUSC - Herbário de Lages da Universidade do Estado de Santa Catarina
+Lee Cone
+Liam Getzloff
+Linda McCall
+Linfield College
+Luther College
+M. Andrew Johnston
+MAC - Herbário do Instituto do Meio Ambiente do Estado de Alagoas
+MAR - Herbário do Maranhão
+MBM - Herbário do Museu Botânico Municipal
+MBML
+MBML-Anfibios - Coleção de Anfíbios MBML
+MBML-Aves - Coleção de Aves MBML
+MBML-Herbario - Herbário Mello Leitão
+MBML-Mamiferos - Coleção de Mamíferos
+MBML-Peixes - Coleção de Peixes
+MBML-Repteis - Coleção de Répteis
+MFS - Herbário Profª. Drª. Marlene Freitas da Silva
+MOSS - Herbário Dárdano de Andrade Lima
+MPUC - Herbário do Museu da Pontifícia Universidade Católica do Rio Grande do Sul
+Martin Fowler
+Mason Hintermeister
+Matt Croxton
+Matthew Gramling
+McGill University
+Meredith Jones
+Michael Dillon
+Michael Reagin
+Milwaukee Public Museum, Inc.
+Mississippi Entomological Museum
+Missouri Botanical Garden
+Montana State University
+Montana State University - Northern
+Monte L. Bean Life Science Museum
+Museu Nacional, Universidade Federal do Rio de Janeiro (MNRJ)
+Museu Nacional/UFRJ
+Museu Paraense Emilio Goeldi (MPEG)
+Museu Paraense Emílio Goeldi (MPEG)
+Museum of Southwestern Biology
+Museum of Texas Tech University
+NAU
+NMSU
+NX - Herbário NX
+NY
+Nathan Newell
+National Park Service
+Natural History Museum of Utah
+Natural History Museum, University of Oslo, Norway
+Naturalis Biodiversity Center
+Nevada State Government
+Nirmal Rajah
+North Carolina Museum of Natural Sciences
+Noth Carolina Museum of Natural Sciences
+OUPR - Herbário "Professor José Badini"
+Oregon State University
+PACA-AGP - Herbarium Anchieta
+PACA-Fungi - Herbarium Anchieta - Fungi Rickiani
+PEUFR - Herbário Professor Vasconcelos Sobrinho
+PPRI
+PTH
+Pacific Lutheran University
+Patrick Hsieh
+Portland State University
+President and Fellows of Harvard College
+Public Domain
+Purdue University, Department of Entomology
+R
+R - Herbário do Museu Nacional
+R-Criptogamos - Herbário do Museu Nacional - Criptogamos
+R-Tipos - Herbário do Museu Nacional - Tipos
+RB
+RB  733662
+RB 113046
+RB 140092
+RB 142814
+RB 143917
+RB 161227
+RB 167706
+RB 175148
+RB 183553
+RB 19164
+RB 209837
+RB 21503
+RB 220900
+RB 230255
+RB 246453
+RB 251197
+RB 253780
+RB 254294
+RB 257230
+RB 276736
+RB 277146
+RB 277402
+RB 291361
+RB 293324
+RB 293420
+RB 293426
+RB 297348
+RB 298681
+RB 30137
+RB 301468
+RB 304178
+RB 305260
+RB 307138
+RB 307174
+RB 307188
+RB 307193
+RB 307286
+RB 307316
+RB 307327
+RB 307335
+RB 307343
+RB 307345
+RB 307661
+RB 307662
+RB 307672
+RB 307676
+RB 307682
+RB 307846
+RB 307847
+RB 307861
+RB 309115
+RB 309267
+RB 309269
+RB 309287
+RB 309288
+RB 309290
+RB 309343
+RB 309535
+RB 309594
+RB 311561
+RB 311565
+RB 312181
+RB 312182
+RB 312183
+RB 312184
+RB 312193
+RB 312194
+RB 318233
+RB 322932
+RB 327098
+RB 351755
+RB 354712
+RB 357714
+RB 358701
+RB 358847
+RB 361115
+RB 369881
+RB 37020
+RB 370212
+RB 370218
+RB 370221
+RB 372524
+RB 377189
+RB 378175
+RB 379857
+RB 380337
+RB 380338
+RB 380359
+RB 380360
+RB 381976
+RB 381977
+RB 383598
+RB 383832
+RB 387174
+RB 393273
+RB 393313
+RB 393844
+RB 398212
+RB 411144
+RB 411154
+RB 413266
+RB 415510
+RB 416100
+RB 424840
+RB 428146
+RB 428192
+RB 428198
+RB 428200
+RB 428206
+RB 428248
+RB 428286
+RB 428290
+RB 429389
+RB 429698
+RB 430101
+RB 430860
+RB 431174
+RB 431251
+RB 432495
+RB 432890
+RB 433906
+RB 433913
+RB 434013
+RB 434037
+RB 436427
+RB 437486
+RB 437639
+RB 437648
+RB 438266
+RB 438298
+RB 438890
+RB 438945
+RB 439034
+RB 439888
+RB 445357
+RB 446042
+RB 450595
+RB 456918
+RB 457025
+RB 457089
+RB 457180
+RB 457260
+RB 457517
+RB 457674
+RB 457731
+RB 457778
+RB 457792
+RB 458002
+RB 458821
+RB 459019
+RB 459205
+RB 459429
+RB 463848
+RB 464129
+RB 465541
+RB 466483
+RB 466509
+RB 467064
+RB 467088
+RB 469836
+RB 469968
+RB 469971
+RB 470021
+RB 470049
+RB 471107
+RB 471239
+RB 479655
+RB 486750
+RB 489139
+RB 499273
+RB 504046
+RB 505159
+RB 512872
+RB 512873
+RB 512880
+RB 518665
+RB 524096
+RB 524153
+RB 526047
+RB 528194
+RB 542788
+RB 547328
+RB 548926
+RB 549509
+RB 552011
+RB 557436
+RB 562447
+RB 562448
+RB 562629
+RB 562746
+RB 562797
+RB 562812
+RB 564988
+RB 567633
+RB 568688
+RB 579348
+RB 582899
+RB 582918
+RB 582925
+RB 585911
+RB 587313
+RB 589765
+RB 590324
+RB 592356
+RB 593519
+RB 594510
+RB 594511
+RB 596078
+RB 596206
+RB 596207
+RB 596208
+RB 596500
+RB 596548
+RB 597872
+RB 598957
+RB 601842
+RB 601848
+RB 605513
+RB 606218
+RB 606222
+RB 606223
+RB 606226
+RB 606331
+RB 606339
+RB 606341
+RB 606988
+RB 607263
+RB 607442
+RB 607444
+RB 607963
+RB 607965
+RB 608204
+RB 608552
+RB 608570
+RB 609240
+RB 609268
+RB 609285
+RB 609300
+RB 610344
+RB 610419
+RB 610485
+RB 612207
+RB 612234
+RB 612539
+RB 612541
+RB 612542
+RB 612545
+RB 612549
+RB 612550
+RB 612551
+RB 612554
+RB 612557
+RB 612559
+RB 612560
+RB 612564
+RB 612565
+RB 612572
+RB 612574
+RB 612576
+RB 612579
+RB 612582
+RB 612583
+RB 612584
+RB 612587
+RB 612588
+RB 612589
+RB 612590
+RB 612591
+RB 612594
+RB 612595
+RB 614557
+RB 614558
+RB 614559
+RB 614560
+RB 614561
+RB 614562
+RB 616318
+RB 616331
+RB 616343
+RB 619242
+RB 619248
+RB 619463
+RB 625306
+RB 625367
+RB 625520
+RB 626920
+RB 627288
+RB 627946
+RB 628021
+RB 628039
+RB 628725
+RB 629537
+RB 629543
+RB 629545
+RB 629553
+RB 630655
+RB 631137
+RB 631832
+RB 631901
+RB 632077
+RB 632106
+RB 632867
+RB 632870
+RB 632871
+RB 632887
+RB 633986
+RB 635434
+RB 637090
+RB 638506
+RB 639167
+RB 639179
+RB 639185
+RB 639895
+RB 640513
+RB 640584
+RB 640585
+RB 640586
+RB 640598
+RB 640844
+RB 642274
+RB 642282
+RB 642467
+RB 644557
+RB 644953
+RB 646390
+RB 646768
+RB 648125
+RB 648586
+RB 648655
+RB 648663
+RB 648751
+RB 648753
+RB 648754
+RB 650110
+RB 650137
+RB 652083
+RB 652150
+RB 652731
+RB 653195
+RB 653206
+RB 653207
+RB 654119
+RB 654155
+RB 654165
+RB 654174
+RB 654176
+RB 654341
+RB 654342
+RB 654344
+RB 654345
+RB 654558
+RB 654634
+RB 655741
+RB 656407
+RB 656408
+RB 656487
+RB 656505
+RB 656685
+RB 658777
+RB 659998
+RB 660027
+RB 660062
+RB 660063
+RB 660209
+RB 660364
+RB 660488
+RB 660505
+RB 662399
+RB 663608
+RB 663706
+RB 663847
+RB 664508
+RB 664527
+RB 665268
+RB 665919
+RB 667724
+RB 668093
+RB 668109
+RB 668187
+RB 668346
+RB 668943
+RB 670832
+RB 674230
+RB 674323
+RB 674595
+RB 674755
+RB 677764
+RB 681153
+RB 684234
+RB 684681
+RB 691756
+RB 691898
+RB 693600
+RB 706809
+RB 707009
+RB 710212
+RB 710213
+RB 712651
+RB 716863
+RB 718686
+RB 718754
+RB 718768
+RB 718785
+RB 718786
+RB 718789
+RB 718790
+RB 718791
+RB 72552
+RB 725672
+RB 726870
+RB 727427
+RB 727430
+RB 727459
+RB 727473
+RB 727476
+RB 727477
+RB 727478
+RB 727483
+RB 727485
+RB 727668
+RB 728142
+RB 728305
+RB 728397
+RB 729407
+RB 729409
+RB 731507
+RB 731539
+RB 732762
+RB 732766
+RB 734012
+RB 737450
+RB 738362
+RB 739442
+RB 739445
+RB 741013
+RB 742911
+RB 743168
+RB 743169
+RB 743177
+RB 743231
+RB 743322
+RB 743693
+RB 744607
+RB 745893
+RB 749269
+RB 750307
+RB 750308
+RB 750323
+RB 750892
+RB 752294
+RB 753500
+RB 753592
+RB 753593
+RB 753595
+RB 753599
+RB 753604
+RB 754294
+RB 755114
+RB 755699
+RB 756250
+RB 756502
+RB 756713
+RB 757700
+RB 757962
+RB 758567
+RB 758625
+RB 758782
+RB 758835
+RB 758855
+RB 758903
+RB 759056
+RB 759516
+RB 759733
+RB 760056
+RB 760089
+RB 760094
+RB 760262
+RB 760305
+RB 761020
+RB 761523
+RB 761539
+RB 762710
+RB 762852
+RB 762856
+RB 762919
+RB 763971
+RB 764171
+RB 764229
+RB 764236
+RB 764240
+RB 764482
+RB 768285
+RB 771280
+RB 771394
+RB 771403
+RB 771437
+RB 771821
+RB 772363
+RB 772368
+RB 772371
+RB 772855
+RB 773626
+RB 773766
+RB 773769
+RB 773774
+RB 773775
+RB 774617
+RB 7746335
+RB 774642
+RB 774643
+RB 774645
+RB 774805
+RB 774806
+RB 774807
+RB 775271
+RB 775645
+RB 776594
+RB 777275
+RB 777588
+RB 777809
+RB 777918
+RB 778424
+RB 780229
+RB 780240
+RB 780241
+RB 780242
+RB 780571
+RB 780572
+RB 781485
+RB 782903
+RB 783383
+RB 785473
+RB 786845
+RB 787249
+RB 787277
+RB 787278
+RB 787640
+RB 788496
+RB 788690
+RB 789552
+RB 789557
+RB 790509
+RB 790555
+RB 790593
+RB 791225
+RB 791573
+RB 791591
+RB 792463
+RB 792501
+RB 792722
+RB 793517
+RB 793519
+RB 793577
+RB 793581
+RB 793885
+RB 794036
+RB 794884
+RB 795034
+RB 795948
+RB 796036
+RB 796301
+RB 796872
+RB 797659
+RB 797924
+RB 798336
+RB 798406
+RB 798432
+RB 798533
+RB 798547
+RB 798549
+RB 800347
+RB 800878
+RB 801541
+RB 801976
+RB 802180
+RB 802570
+RB 802608
+RB 805732
+RB 806015
+RB 806056
+RB 806063
+RB 806567
+RB788691
+RBCarpo
+RBcarpo
+RBv
+RBv 214
+RBvv
+RBw
+RJ
+RON 10412
+RON 10680
+RON 11555
+RON 7132
+RON 7138
+RON 7160
+RON 7170
+RON 7243
+RUSU
+Rb
+Reed College
+Regents of the University of Minnesota
+Rio de Janeiro Botanical Garden
+Robert K. Godfrey Herbarium at Florida State University
+Rocky Mountain Research Station
+Royal Ontario Museum
+Royal Ontario Museum; ROM
+Rutgers University
+SAMES 2699
+SAMES 70
+SDSM, Museum of Geology
+SDSU Terrestrial Arthropods Collection
+SFP
+SING
+SJRP - Herbário de São José do Rio Preto
+SJRP-Algae - Herbário de algas de São José do Rio Preto
+SJRP-Bryophyta - Herbário de Bryophyta de São José do Rio Preto
+SJRP-Pteridophyta - Herbário de Pteridophyta de São José do Rio Preto
+SLUI - Herbário Rosa Mochel
+SMDB - Santa Maria Departamento de Biologia
+SORO - Herbário do Centro de Ciências e Tecnologias para a Sustentabilidade
+SP
+SP - Herbário do Estado "Maria Eneyda P. Kaufmann Fidalgo" - Coleção de Fanerógamas
+SP-Algae - Herbário do Estado "Maria Eneyda P. Kaufmann Fidalgo - Coleção de Algas
+SP-Bryophyta - Maria Eneyda P. Kauffman Fidalgo
+SP-Fungi - Maria Eneyda Pacheco Kauffmann Fidalgo
+SPF
+SPF - Herbário da Universidade de São Paulo
+SPF-Algae - Herbário da Universidade de São Paulo  Coleção de Algas
+SPFw - Xiloteca do Instituto de Biociências da Universidade de São Paulo
+SPSF - Herbário Dom Bento José Pickel
+Sam Noble Oklahoma Museum of Natural History
+San Diego Natural History Museum
+Santa Cruz Island Reserve
+Sean Moran
+South Dakota State University
+Southern Oregon University
+Southern Utah University
+Stillinger Herbarium, University of Idaho
+TEPB - Herbário Graziela Barroso
+Tall Timbers Research Station and Land Conservancy
+Tarleton State University
+Texas A&M University
+The Field Mueum of Natural History
+The Field Museum
+The Field Museum of Natural History
+The Florida State University
+The Italian Paleoguy
+The New York Botanical Garden
+The Trustees of Indiana University
+The University of Vermont
+Thijs Verbeke
+Tyler Christensen
+U
+UB
+UB - Herbário da Universidade de Brasília
+UEC - Herbário da Universidade Estadual de Campinas
+UESC - Herbário Universidade Estadual de Santa Cruz
+UFACPZ
+UFACPZ - Herbário da Universidade Federal do Acre
+UFG
+UFG - Herbário da Universidade Federal de Goiás
+UFMT - Herbário UFMT
+UFP
+UFP - Herbário UFP - Geraldo Mariz
+UFP 83025
+UFRN-Fungos - Herbário UFRN - Fungos
+UFRR 3079
+UFRR 3237
+UPCB - Herbário do Departamento de Botânica
+URM - Herbário Pe. Camille Torrand
+US Department of Defense
+US Fish and Wildlife Service
+US Forest Service
+USF Paleobiology
+UWFP
+Universidad de Sonora
+Universidade Federal do Paran· (UFPR )
+University of Alaska, Anchorage
+University of Alberta Museums
+University of Arizona
+University of California
+University of California, Santa Barbara
+University of Colorado
+University of Colorado Museum of Natural History: Paleontology Section
+University of Florida
+University of Guam,College of Natural and Applied Sciences
+University of Guelph
+University of Hawaii
+University of Hawaii Insect Museum
+University of Idaho William F. Barr Entomological Museum
+University of Kentucky
+University of Maine
+University of Montana
+University of Nevada, Reno, Museum of Natural History
+University of Northern Iowa
+University of Puget Sound
+University of Rhode Island
+University of Vermont
+University of Washington
+University of Washington Burke Museum
+Université Laval
+Université de Montréal
+Utah Department of Agriculture and Food
+Utah State University
+Utah Valley University
+VIC - Herbário da Universidade Federal de Viçosa
+VIES - Herbário Central da Universidade Federal do Espírito Santo VIES
+Valdosta State University Herbarium
+Victor Perez
+Virginia Tech, Department of Entomology
+Washington State University, Tri-Cities
+West Virginia Wesleyan College
+Western Connecticut State University
+Western Illinois University
+Western Washington University
+Westfield State University
+Whitman College
+Wiiliam Jewell College
+Wilton Garden Club
+Worcester Society of Natural History d.b.a. EcoTarium
+Yale Peabody Museum of Natural History
+© University of Massachusetts, Amherst

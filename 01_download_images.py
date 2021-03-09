@@ -20,6 +20,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.pylib.const import IMAGE_DIR, RAW_DIR
+from digi_leap.pylib.util import ended, started
 
 # Don't use this file in the future
 OLD_CSV = 'idb_image_url.csv'
@@ -49,5 +50,9 @@ def download_idigbio(csv_path, image_dir):
 
 
 if __name__ == '__main__':
+    started()
+
     CSV = RAW_DIR / 'idb_image_url.csv'
     download_idigbio(CSV, IMAGE_DIR)
+
+    ended()

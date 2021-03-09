@@ -33,65 +33,22 @@ Some fields we needed:
 - Column/horizontal order
 """
 
+import re
 import sqlite3
 import string
-from random import choices
+from random import choices, seed
 from textwrap import wrap
 
 import pandas as pd
 
 from digi_leap.pylib.const import LABEL_DB
+from digi_leap.pylib.util import ended, sample_defaults, started
 
 TYPES = 'typewritten handwritten both barcode qrcode'.split()
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
-REJECTS = {
-    'illeg',
-    'illegible text',
-    'illegible',
-    'locality illegible',
-    'location not specified',
-    'location undetermined',
-    'location unknown',
-    'location unspecified',
-    'n/a',
-    'na',
-    'no additional data',
-    'no additional information given',
-    'no country on label',
-    'no data',
-    'no desc',
-    'no details given',
-    'no disponible',
-    'no further data',
-    'no further locality',
-    'no information',
-    'no loc',
-    'no locality data',
-    'no locality given',
-    'no locality information provided on label',
-    'no locality information provided on the label',
-    'no locality information provided',
-    'no locality information',
-    'no locality or locality illegible',
-    'no locality provided',
-    'no locality',
-    'no location data on label',
-    'no precise loc',
-    'no specific locality on sheet',
-    'no specific locality recorded',
-    'none given',
-    'none',
-    'not listed',
-    'not on sheet',
-    'not reported',
-    'not seen',
-    'not specified',
-    'not stated',
-    'null',
-    'unknown',
-    'unspecified',
-    'without locality',
-}
+
+REJECTS = sample_defaults('reject_value', k=100_000)
+NAMES = sample_defaults('name', k=100_000)
 
 
 def fill_in_label(label_id: int, parts: list[list[str]]):
@@ -129,10 +86,33 @@ def split_line(text: str = '', label: str = '', len_: int = 40) -> list[list[str
 def clean_line(*text: str) -> list[list[str]]:
     """Cleanup the row of strings."""
     lines = []
+
+    # Handle the case where one field partially replicates the preceding one.
+    # This happens often with scientific_name and scientific_name_authorship fields.
     for ln in text:
         if not lines or lines[-1].find(ln) < 0:
             lines.append(ln)
+
     return [lines]
+
+
+def format_lat_long(lat_long):
+    """Put degree, minute, and seconds into a lat/long."""
+    frags = lat_long.split()
+
+    # Unused is sometimes reported as "99 99 99 N ; 99 99 99 E"
+    if len(frags) > 4:
+        return ''
+
+    # Add degree, minute, second symbols
+    if re.match(r'\d+ \d+ \d+(?:\.\d+)? [NnSsEeWw]]', lat_long):
+        deg, min_, sec, dir_ = frags
+        lat_long = f'[~]?{deg}°{min_}′{sec}″{dir_}'
+    elif re.match(r'\d+ \d+ [NnSsEeWw]]', lat_long):
+        deg, min_, dir_ = frags
+        lat_long = f'[~]?{deg}°{min_}′{dir_}'
+
+    return lat_long
 
 
 def main_label(label_id: int, row) -> list[dict]:
@@ -150,13 +130,25 @@ def main_label(label_id: int, row) -> list[dict]:
     parts += split_line(label='Condition', text=row['reproductive_condition'])
     parts += split_line(label='Coordinates', text=row['verbatim_coordinates'])
 
+    lat = format_lat_long(row['verbatim_latitude'])
+    long = format_lat_long(row['verbatim_longitude'])
+    parts += clean_line(lat, long)
+
     return fill_in_label(label_id, parts)
 
 
-# def det_label(label_id, row):
-#     """Generate a determination label."""
-#     parts = []
-#     return parts
+def get_name(row, preferred=''):
+    """Get a name to use for the field."""
+    name = row[preferred]
+    return name if name else choices(NAMES)
+
+
+def det_label(label_id, row):
+    """Generate a determination label."""
+    parts = clean_line(row['scientific_name'], row['scientific_name_authorship'])
+    parts += clean_line('Det. by', get_name(row, 'identified_by'))
+    parts += clean_line(row['owner_'])
+    return fill_in_label(label_id, parts)
 
 
 # def gibberish_label(label_id, row):
@@ -227,11 +219,8 @@ def generate_labels(label_db):
     # for _ in range(3):
     for _, row in df.iterrows():
         label_id += 1
-        action = choices([main_label, main_label], cum_weights=[0.5, 0.5])[0]
+        action = choices([main_label, main_label], cum_weights=[0.5, 0.1])[0]
         recs = action(label_id, row)
-        from pprint import pp
-        pp(recs)
-        print()
         labels += recs
         if label_id >= 10:
             break
@@ -240,4 +229,9 @@ def generate_labels(label_db):
 
 
 if __name__ == '__main__':
+    started()
+
+    seed(123)
     generate_labels(LABEL_DB)
+
+    ended()
