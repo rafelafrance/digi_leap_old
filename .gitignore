@@ -24,8 +24,11 @@ venv/
 
 # data
 output/
-data/
-!data/augment
+data/backup/
+data/images/
+data/processed/
+data/raw/
+data/temp/
 
 # Temp files
 temp/
