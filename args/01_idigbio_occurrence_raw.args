@@ -1,8 +1,9 @@
 --zip-file=data/raw/iDigBio_snapshot_2021-02.zip
 --database=data/processed/occurrence_raw_2021-02.sqlite3.db
---filter=plant@dwc:phylum
+--filter=plant@dwc:kingdom
 --filter=.@dwc:scientificName
 --keep=dwc:scientificName
+--keep=dwc:kingdom
 --keep=dwc:phylum
 --keep=dwc:class
 --keep=dwc:order

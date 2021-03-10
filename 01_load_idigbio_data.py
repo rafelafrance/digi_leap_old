@@ -67,14 +67,18 @@ def insert(args, renames, drops):
                 if_exists = 'append' if args.append_table else 'replace'
 
                 for df in tqdm(reader):
+                    if args.filter:
+                        for f, filter_ in enumerate(args.filter):
+                            rx, col = filter_.split('@')
+                            mask = df[col].str.contains(rx, regex=True, case=False)
+                            if not f:
+                                masks = mask
+                            else:
+                                masks &= mask
+                        df = df.loc[masks, :]
+
                     if drops:
                         df = df.drop(columns=drops)
-
-                    for filter_ in args.filter:
-                        rx, col = filter_.split('@')
-                        print(rx)
-                        mask = df[col].str.contains(rx, case=False, regex=True)
-                        df = df.loc[mask, :]
 
                     df = df.rename(columns=renames)
                     df = df.reindex(columns=renames.values())
@@ -82,7 +86,6 @@ def insert(args, renames, drops):
                     df.to_sql(args.table_name, cxn, if_exists=if_exists, index=False)
 
                     if_exists = 'append'
-                    break
 
 
 def load_data(args):
@@ -93,8 +96,8 @@ def load_data(args):
     renames = sort_columns(args, renames)
 
     if args.column_names:
-        for key in renames.keys():
-            print(key)
+        for head in headers:
+            print(head)
         return
 
     insert(args, renames, drops)
@@ -146,9 +149,11 @@ def parse_args():
         '--filter', action='append',
         help="""Records must contain this value in the given field. You may use
             this argument more than once. The format is regex@column. For example
-            --filter=plant@dwc:phylum will only choose records that have 'plant'
-            somewhere in the 'dwc:phylum' field and --filter=.@dwc:scientificName
-            will look for a non-blank 'dwc:scientificName' field.""")
+            --filter=plant@dwc:kingdom will only choose records that have 'plant'
+            somewhere in the 'dwc:kingdom' field and --filter=.@dwc:scientificName
+            will look for a non-blank 'dwc:scientificName' field. Filters happen
+            before any columns are dropped so you can filter on columns not in
+            the --keep set.""")
 
     arg_parser.add_argument(
         '--append-table', '-a', action='store_true',
