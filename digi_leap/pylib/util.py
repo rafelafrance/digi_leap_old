@@ -1,6 +1,6 @@
 """Common utilities for the project."""
 
-import csv
+import sqlite3
 import sys
 from os.path import basename, splitext
 from contextlib import contextmanager
@@ -8,8 +8,6 @@ from datetime import datetime
 from random import sample, choices
 
 import duckdb
-
-from digi_leap.pylib.const import DEFAULT_FILES, LIMIT
 
 
 class DotDict(dict):
@@ -36,31 +34,23 @@ def dict_factory(cursor, row):
     return {c[0]: row[i] for i, c in enumerate(cursor.description)}
 
 
-def sample_defaults(key, k=LIMIT):
-    """Get a sample of default values."""
-    values = []
-    weights = []
-    with open(DEFAULT_FILES[key]) as in_file:
-        reader = csv.DictReader(in_file)
-        for row in reader:
-            values.append(row['value'].strip())
-            weights.append(int(row['weight']))
+def choose_values(db, table, k):
+    """Get a sample of imputations given a set of values and weights."""
+    with sqlite3.connect(db) as cxn:
+        cursor = cxn.execute(f'select * from {table}')
+        rows = cursor.fetchall()
+        values = [r[0].strip() for r in rows]
+        weights = [int(r[1]) for r in rows]
     return choices(values, weights, k=k)
 
 
-def choose_defaults(key, k=LIMIT):
-    """Choose defaults given values and a weights."""
-    with open(DEFAULT_FILES[key]) as in_file:
-        defaults = [v for ln in in_file.readlines() if (v := ln.strip())]
+def sample_values(db, table, k):
+    """Choose imputations given values."""
+    with sqlite3.connect(db) as cxn:
+        cursor = cxn.execute(f'select * from {table}')
+        defaults = [v[0] for v in cursor.fetchall()]
     k = k if k < len(defaults) else len(defaults)
     return sample(defaults, k)
-
-
-def read_lines(key):
-    """Read all lines from a default file."""
-    with open(DEFAULT_FILES[key]) as in_file:
-        defaults = [v for ln in in_file.readlines() if (v := ln.strip())]
-    return defaults
 
 
 def log(msg: str) -> None:

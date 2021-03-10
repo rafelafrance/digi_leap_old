@@ -5,10 +5,9 @@ import string
 from random import choice
 from textwrap import wrap
 
-from digi_leap.pylib.util import read_lines
+from digi_leap.pylib.const import REJECTS
 
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
-REJECTS = read_lines('reject_values')
 
 
 def fill_in_label(label_id: int, parts: list[list[str]]):

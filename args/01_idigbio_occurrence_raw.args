@@ -44,7 +44,7 @@
 --keep=dwc:eventRemarks
 --keep=dwc:VerbatimEventDate
 --keep=dwc:verbatimEventDate
---keep=dwc:rightsHolder
+--keep=dcterms:rightsHolder
 --keep=dwc:ownerInstitutionCode
 --keep=dwc:catalogNumber
 --keep=dwc:collectionCode
@@ -54,6 +54,7 @@
 --keep=dwc:habitat
 --keep=dwc:lifeStage
 --keep=dwc:occurrenceID
+--keep=dwc:occurrenceRemarks
 --keep=dwc:organismRemarks
 --keep=dwc:preparations
 --keep=dwc:reproductiveCondition

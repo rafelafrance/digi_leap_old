@@ -1,19 +1,9 @@
 #!/usr/bin/env python
-"""Given a CSV file of iDigBio records, download the images.
-
-This script was used to get images for the Notes from Nature expedition for
-finding labels. We will use the results from the expedition for training a
-neural net to find labels and identify the type(s) of writing on them.
-
-I originally got this list of images to download from a CSV file given
-to me from an external source. I would now use the iDigBio snapshot to
-do the same thing, and if we need more images I will. However, this will
-require a rewrite.
-"""
+"""Given a CSV file of iDigBio records, download the images."""
 
 import argparse
-import textwrap
 import re
+import textwrap
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
@@ -21,7 +11,7 @@ from urllib.request import urlretrieve
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.pylib.const import IMAGE_DIR, RAW_DIR
+from digi_leap.pylib.const import RAW_DIR
 from digi_leap.pylib.util import ended, started
 
 # Don't use this file in the future
@@ -56,9 +46,10 @@ def parse_args():
     description = """
     Use iDigBio records to download images.
 
-    This script was used to get images for the Notes from Nature expedition for
+    This script was used to get images for Notes from Nature expeditions for
     finding labels. We will use the results from the expedition for training a
-    neural net to find labels and identify the type(s) of printing on them.
+    neural net to find labels and identify the type(s) of printing on them. You
+    should extract an iDigBio media file from a snapshot (step 01) before running this.
     """
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars='@')
@@ -75,6 +66,8 @@ if __name__ == '__main__':
     started()
 
     CSV = RAW_DIR / 'idb_image_url.csv'
-    download_idigbio(CSV, IMAGE_DIR)
+
+    # TODO: Use either a database from step 01 xor a CSV file
+    # download_idigbio(CSV, IMAGE_DIR)
 
     ended()

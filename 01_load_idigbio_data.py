@@ -9,15 +9,15 @@ import zipfile
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.pylib.const import BATCH_SIZE, ZIP_FILE
+from digi_leap.pylib.const import BATCH_SIZE, CSV_FILE
 from digi_leap.pylib.util import ended, started
 
 
 def get_csv_headers(args):
     """Get the headers from the CSV file in the zipped snapshot."""
-    with zipfile.ZipFile(args.zip_file) as zippy:
-        with zippy.open(args.csv_file) as in_file:
-            headers = in_file.readline()
+    with zipfile.ZipFile(args.zip_file) as zip_file:
+        with zip_file.open(args.csv_file) as csv_file:
+            headers = csv_file.readline()
     return [h.decode().strip() for h in sorted(headers.split(b','))]
 
 
@@ -67,8 +67,8 @@ def insert(args, renames, drops):
                 if_exists = 'append' if args.append_table else 'replace'
 
                 for df in tqdm(reader):
-                    if drops:
-                        df = df.drop(columns=drops)
+                    # TODO: This slows things down, not doing it gives us a memory leak
+                    df = df.copy()
 
                     if args.filter:
                         for filter_ in args.filter:
@@ -76,10 +76,15 @@ def insert(args, renames, drops):
                             mask = df[col].str.contains(rx, regex=True, case=False)
                             df = df.loc[mask, :]
 
+                    if drops:
+                        df = df.drop(columns=drops)
+
                     df = df.rename(columns=renames)
                     df = df.reindex(columns=renames.values())
 
                     df.to_sql(args.table_name, cxn, if_exists=if_exists, index=False)
+
+                    del df  # More memory leak protection but not enough on its own
 
                     if_exists = 'append'
 
@@ -93,7 +98,7 @@ def load_data(args):
 
     if args.column_names:
         for head in headers:
-            print(head)
+            print(f'[{head}]')
         return
 
     insert(args, renames, drops)
@@ -121,7 +126,7 @@ def parse_args():
         '--zip-file', '-z', required=True,
         help="""The zip file containing the iDigBio snapshot.""")
 
-    default = ZIP_FILE
+    default = CSV_FILE
     arg_parser.add_argument(
         '--csv-file', '-v', default=default,
         help=f"""The --zip-file itself contains several files. This is the file we
@@ -147,7 +152,8 @@ def parse_args():
             this argument more than once. The format is regex@column. For example
             --filter=plant@dwc:kingdom will only choose records that have 'plant'
             somewhere in the 'dwc:kingdom' field and --filter=.@dwc:scientificName
-            will look for a non-blank 'dwc:scientificName' field.""")
+            will look for a non-blank 'dwc:scientificName' field. You may filter
+            upon columns that will not be in the output table.""")
 
     arg_parser.add_argument(
         '--append-table', '-a', action='store_true',
