@@ -11,6 +11,8 @@ do the same thing, and if we need more images I will. However, this will
 require a rewrite.
 """
 
+import argparse
+import textwrap
 import re
 from urllib.error import HTTPError
 from urllib.parse import urlparse
@@ -47,6 +49,26 @@ def download_idigbio(csv_path, image_dir):
             urlretrieve(url, path)
         except HTTPError:
             continue
+
+
+def parse_args():
+    """Process command-line arguments."""
+    description = """
+    Use iDigBio records to download images.
+
+    This script was used to get images for the Notes from Nature expedition for
+    finding labels. We will use the results from the expedition for training a
+    neural net to find labels and identify the type(s) of printing on them.
+    """
+    arg_parser = argparse.ArgumentParser(
+        description=textwrap.dedent(description), fromfile_prefix_chars='@')
+
+    arg_parser.add_argument(
+        '--database', '-d', required=True,
+        help="""Path to the database.""")
+
+    args = arg_parser.parse_args()
+    return args
 
 
 if __name__ == '__main__':

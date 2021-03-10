@@ -26,9 +26,9 @@ ZIP_FILE = f'{RAW_DATA}.csv'
 # Default values
 DEFAULT_FILES = {
     'columns': DEFAULT_DIR / 'columns.txt',
-    'date': DEFAULT_DIR / 'dates.txt',
-    'name': DEFAULT_DIR / 'names.txt',
-    'reject_value': DEFAULT_DIR / 'reject_values.txt',
-    'rights_holder': DEFAULT_DIR / 'rights_holder.txt',
+    'dates': DEFAULT_DIR / 'dates.txt',
+    'names': DEFAULT_DIR / 'names.txt',
+    'reject_values': DEFAULT_DIR / 'reject_values.txt',
+    'rights_holders': DEFAULT_DIR / 'rights_holder.txt',
     'sex': DEFAULT_DIR / 'sexes.csv',
 }

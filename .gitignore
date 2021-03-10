@@ -34,8 +34,5 @@ data/temp/
 temp/
 junk*
 
-# Other code
-args/
-
 # Experiments
 pilot/
