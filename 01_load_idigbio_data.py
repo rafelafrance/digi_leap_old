@@ -67,18 +67,14 @@ def insert(args, renames, drops):
                 if_exists = 'append' if args.append_table else 'replace'
 
                 for df in tqdm(reader):
-                    if args.filter:
-                        for f, filter_ in enumerate(args.filter):
-                            rx, col = filter_.split('@')
-                            mask = df[col].str.contains(rx, regex=True, case=False)
-                            if not f:
-                                masks = mask
-                            else:
-                                masks &= mask
-                        df = df.loc[masks, :]
-
                     if drops:
                         df = df.drop(columns=drops)
+
+                    if args.filter:
+                        for filter_ in args.filter:
+                            rx, col = filter_.split('@')
+                            mask = df[col].str.contains(rx, regex=True, case=False)
+                            df = df.loc[mask, :]
 
                     df = df.rename(columns=renames)
                     df = df.reindex(columns=renames.values())
@@ -151,9 +147,7 @@ def parse_args():
             this argument more than once. The format is regex@column. For example
             --filter=plant@dwc:kingdom will only choose records that have 'plant'
             somewhere in the 'dwc:kingdom' field and --filter=.@dwc:scientificName
-            will look for a non-blank 'dwc:scientificName' field. Filters happen
-            before any columns are dropped so you can filter on columns not in
-            the --keep set.""")
+            will look for a non-blank 'dwc:scientificName' field.""")
 
     arg_parser.add_argument(
         '--append-table', '-a', action='store_true',
