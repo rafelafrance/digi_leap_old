@@ -9,14 +9,16 @@ from random import choices
 import pandas as pd
 
 from digi_leap.pylib.label_util import (
-    clean_line, fill_in_label, format_lat_long, get_value, split_line)
+    clean_line, fill_in_label, format_lat_long, get_value, split_line, format_sci_name)
 from digi_leap.pylib.util import ended, log, sample_values, started
 
 
 def main_label(label_id, row, _) -> list[dict]:
     """Generate a plausible main label."""
     parts = clean_line('Plants of', row['dwc:stateProvince'])
-    parts += clean_line(row['dwc:scientificName'], row['dwc:scientificNameAuthorship'])
+
+    parts += format_sci_name(
+        row['dwc:scientificName'], row['dwc:scientificNameAuthorship'])
     parts += split_line(label='Notes', text=row['dwc:fieldNotes'])
     parts += split_line(label='Remarks', text=row['dwc:eventRemarks'])
     parts += split_line(label='Locality', text=row['dwc:locality'])
@@ -77,18 +79,22 @@ def insert_data(args, labels):
     """Write the data to the smaller database."""
     log('Writing labels')
     sql = f"""
-        CREATE INDEX IF NOT EXISTS labels_label_id ON {args.output_table} (label_id);
-        CREATE INDEX IF NOT EXISTS labels_row_col ON {args.output_table} (row, col);
+        CREATE INDEX IF NOT EXISTS labels_row_col
+            ON {args.output_table} (label_id, row, col);
     """
-    if_exists = 'replace' if args.clear_labels else 'append'
+    from pprint import pp
+    pp(labels)
     df = pd.DataFrame(labels)
     with sqlite3.connect(args.database) as cxn:
-        df.to_sql(args.output_table, cxn, if_exists=if_exists, index=False)
+        df.to_sql(args.output_table, cxn, if_exists='append', index=False)
         cxn.executescript(sql)
 
 
 def max_label_id(args):
     """Get the max label ID so that we can add labels."""
+    if args.clear_labels:
+        return 0
+
     with sqlite3.connect(args.database) as cxn:
         try:
             cursor = cxn.execute(f"""
@@ -108,8 +114,6 @@ def generate_labels(args):
     }
 
     df = get_label_data(args)
-    for col in df.columns:
-        print(col)
     labels = []
 
     label_id = max_label_id(args)
@@ -166,7 +170,7 @@ def parse_args():
     default = 100_000
     arg_parser.add_argument(
         '--limit', '-l', type=int, default=default,
-        help=f"""Limit the number of generated labels to this.
+        help=f"""Limit the number of generated labels to make.
             The default is {default}.""")
 
     args = arg_parser.parse_args()

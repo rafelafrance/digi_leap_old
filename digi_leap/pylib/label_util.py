@@ -5,52 +5,69 @@ import string
 from random import choice
 from textwrap import wrap
 
-from digi_leap.pylib.const import REJECTS
+from digi_leap.pylib.const import DISALLOWED
+from digi_leap.pylib.util import DotDict
 
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
 
 
-def fill_in_label(label_id: int, parts: list[list[str]]):
+def fill_in_label(label_id: int, parts: list[list[DotDict]]):
     """Add label fields needed by the database."""
     recs = []
     for r, row in enumerate(parts):
         for c, field in enumerate(row):
             if field:
-                recs.append({
+                recs.append(DotDict({
                     'label_id': label_id,
-                    'field_type': 'typewritten',
+                    'font': 'typewritten',
+                    'use': field.use,
                     'row': r,
                     'col': c,
-                    'field': field,
-                })
+                    'text': field.text,
+                }))
     return recs
 
 
-def split_line(text: str = '', label: str = '', len_: int = 40) -> list[list[str]]:
+def split_line(
+        text: str = '', label: str = '', len_: int = 40, use: str = 'text'
+) -> list[list[DotDict]]:
     """Split text into an array of lines."""
     lines = []
 
     if label:
         split = len_ - len(label)
         first, text = text[:split], text[split:].lstrip()
-        if first.lower().translate(REMOVE_PUNCT) not in REJECTS:
-            lines.append([label, first])
+        if is_valid_value(first):
+            lines.append([
+                DotDict({'use': 'label', 'text': label}),
+                DotDict({'use': use, 'text': first}),
+            ])
 
-    lines += [[t] for t in wrap(text, len_)
-              if t and t.lower().translate(REMOVE_PUNCT) not in REJECTS]
+    lines += [[DotDict({'use': use, 'text': t})] for t in wrap(text, len_)
+              if is_valid_value(t)]
 
     return lines
 
 
-def clean_line(*text: str) -> list[list[str]]:
+def is_valid_value(value):
+    """Check if the given value is empty or is disallowed."""
+    return value and value.lower().translate(REMOVE_PUNCT) not in DISALLOWED
+
+
+def clean_line(*text: str, use: str = 'text') -> list[list[DotDict]]:
     """Cleanup the row of strings."""
+    line = [{'use': use, 'text': c} for c in text if c]
+    return [[DotDict(c) for c in line]]
+
+
+def format_sci_name(*text: str, use: str = 'sci_name') -> list[list[DotDict]]:
+    """Build a scientific name and authority row."""
     lines = []
 
     # Handle the case where one field partially replicates the preceding one.
-    # This happens often with scientific_name and scientific_name_authorship fields.
     for ln in text:
-        if not lines or lines[-1].find(ln) < 0:
-            lines.append(ln)
+        if not lines or lines[-1].text.find(ln) < 0:
+            lines.append(DotDict({'use': use, 'text': ln}))
 
     return [lines]
 

@@ -31,7 +31,7 @@ def duckdb_connect(db=':memory:'):
 
 def dict_factory(cursor, row):
     """Convert an SQLite3 query from a tuple to a dict."""
-    return {c[0]: row[i] for i, c in enumerate(cursor.description)}
+    return DotDict({c[0]: row[i] for i, c in enumerate(cursor.description)})
 
 
 def choose_values(db, table, k):

@@ -7,7 +7,7 @@ import textwrap
 
 import pandas as pd
 
-from digi_leap.pylib.const import REJECT_VALUES
+from digi_leap.pylib.const import DISALLOWED_VALUES
 from digi_leap.pylib.util import ended, log, started
 
 
@@ -45,7 +45,7 @@ def name_values(args):
             union select distinct `symbiota:recordEnteredBy` from {args.input_table}
         )
         select name from agg
-        where lower(name) not in ({REJECT_VALUES})
+        where lower(name) not in ({DISALLOWED_VALUES})
         order by random()
         limit {args.limit}
     """
@@ -67,7 +67,7 @@ def date_values(args):
             union select distinct `dwc:verbatimEventDate_1` from {args.input_table}
         )
         select `date` from agg
-        where lower(`date`) not in ({REJECT_VALUES})
+        where lower(`date`) not in ({DISALLOWED_VALUES})
         order by random()
         limit {args.limit}
      """
@@ -87,7 +87,7 @@ def right_holder_values(args):
               from {args.input_table}
         )
         select rights_holder from agg
-        where lower(rights_holder) not in ({REJECT_VALUES})
+        where lower(rights_holder) not in ({DISALLOWED_VALUES})
         order by random()
         limit {args.limit}
     """
