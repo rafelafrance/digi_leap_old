@@ -7,7 +7,8 @@ import textwrap
 from collections import defaultdict
 from random import sample, seed
 
-from digi_leap.pylib.util import ended, started, dict_factory
+from digi_leap.pylib.const import SEED
+from digi_leap.pylib.util import finished, started, dict_factory
 
 
 def get_labels(args):
@@ -82,16 +83,13 @@ def parse_args():
         '--database', '-d', required=True,
         help="""Path to the database.""")
 
-    default = 'labels'
     arg_parser.add_argument(
-        '--input-table', '-i', default=default,
-        help=f"""Get data from this table. The default is {default}.""")
+        '--input-table', '-i', default='labels',
+        help=f"""Get data from this table. (default: %(default)s)""")
 
-    default = 100_000
     arg_parser.add_argument(
-        '--count', '-c', type=int, default=default,
-        help=f"""The number of label images to generate.
-            The default is {default}.""")
+        '--count', '-c', type=int, default=100_000,
+        help=f"""The number of label images to generate. (default: %(default)s)""")
 
     arg_parser.add_argument(
         '--no-augmented-labels', action='store_true',
@@ -106,11 +104,10 @@ def parse_args():
         help="""Save augmented labels to this directory. Use this to save augmented
             label images.""")
 
-    default = 1209
     arg_parser.add_argument(
-        '--seed', '-S', type=int, default=default,
+        '--seed', '-S', type=int, default=SEED,
         help="""Create a random seed for the python. Note: SQLite3 does not
-            use seeds.""")
+            use seeds. (default: %(default)s)""")
 
     args = arg_parser.parse_args()
     return args
@@ -122,4 +119,4 @@ if __name__ == '__main__':
     ARGS = parse_args()
     generate_images(ARGS)
 
-    ended()
+    finished()

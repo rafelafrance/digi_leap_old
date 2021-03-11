@@ -10,7 +10,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.pylib.const import BATCH_SIZE, CSV_FILE
-from digi_leap.pylib.util import ended, started
+from digi_leap.pylib.util import finished, started
 
 
 def get_csv_headers(args):
@@ -126,11 +126,10 @@ def parse_args():
         '--zip-file', '-z', required=True,
         help="""The zip file containing the iDigBio snapshot.""")
 
-    default = CSV_FILE
     arg_parser.add_argument(
-        '--csv-file', '-v', default=default,
+        '--csv-file', '-v', default=CSV_FILE,
         help=f"""The --zip-file itself contains several files. This is the file we
-            are extracting for data. The default is {default}.""")
+            are extracting for data. (default: %(default)s)""")
 
     arg_parser.add_argument(
         '--column-names', '-n', action='store_true',
@@ -160,12 +159,11 @@ def parse_args():
         help="""Are we appending to the table or creating a new one. The default is
             to create a new table.""")
 
-    default = BATCH_SIZE
     arg_parser.add_argument(
-        '--batch-size', '-b', type=int, default=default,
-        help=f"""The number of lines we read from the CSV file at a time.
-            The default is {default}. This is mostly used to shorten iterations for
-            debugging.""")
+        '--batch-size', '-b', type=int, default=BATCH_SIZE,
+        help=f"""The number of lines we read from the CSV file at a time. This 
+            is mostly used to shorten iterations for debugging.
+            (default: %(default)s)""")
 
     args = arg_parser.parse_args()
 
@@ -183,4 +181,4 @@ if __name__ == '__main__':
     ARGS = parse_args()
     load_data(ARGS)
 
-    ended()
+    finished()

@@ -12,7 +12,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.pylib.const import RAW_DIR
-from digi_leap.pylib.util import ended, started
+from digi_leap.pylib.util import finished, started
 
 # Don't use this file in the future
 OLD_CSV = 'idb_image_url.csv'
@@ -70,4 +70,4 @@ if __name__ == '__main__':
     # TODO: Use either a database from step 01 xor a CSV file
     # download_idigbio(CSV, IMAGE_DIR)
 
-    ended()
+    finished()

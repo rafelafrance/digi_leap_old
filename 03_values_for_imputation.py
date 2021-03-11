@@ -2,18 +2,19 @@
 """Get data we can use for imputation."""
 
 import argparse
+import logging
 import sqlite3
 import textwrap
 
 import pandas as pd
 
 from digi_leap.pylib.const import DISALLOWED_VALUES
-from digi_leap.pylib.util import ended, log, started
+from digi_leap.pylib.util import finished, started
 
 
 def sex_values(args):
     """Setup default sexes."""
-    log('Getting sex values')
+    logging.info('Getting sex values')
 
     recs = [
         {'sex': 'Female', 'count': 100},
@@ -34,7 +35,7 @@ def sex_values(args):
 
 def name_values(args):
     """Setup reasonable defaults for names by using existing names."""
-    log('Getting name values')
+    logging.info('Getting name values')
 
     sql = f"""
         create table if not exists names as
@@ -56,7 +57,7 @@ def name_values(args):
 
 def date_values(args):
     """Get dates we can use for generating labels."""
-    log('Getting date values')
+    logging.info('Getting date values')
 
     sql = f"""
         create table if not exists dates as
@@ -78,7 +79,7 @@ def date_values(args):
 
 def right_holder_values(args):
     """Get rights holders we can use for generating labels."""
-    log('Getting rights_holder values')
+    logging.info('Getting rights_holder values')
 
     sql = f"""
         create table rights_holders as
@@ -112,11 +113,10 @@ def parse_args():
         help=f"""Draw the data from various (currently hard-coded) fields in 
             this table.""")
 
-    default = 1_000_000
     arg_parser.add_argument(
-        '--limit', '-l', type=int, default=default,
+        '--limit', '-l', type=int, default=1_000_000,
         help=f"""Limit the number of values in the generated tables to this.
-            The default is {default}.""")
+            (default: %(default)s)""")
 
     args = arg_parser.parse_args()
 
@@ -137,4 +137,4 @@ if __name__ == '__main__':
     ARGS = parse_args()
     imputable_values(ARGS)
 
-    ended()
+    finished()

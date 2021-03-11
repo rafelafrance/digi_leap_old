@@ -2,6 +2,7 @@
 """Generate label text from the saved label data."""
 
 import argparse
+import logging
 import sqlite3
 import textwrap
 from random import choices
@@ -10,7 +11,7 @@ import pandas as pd
 
 from digi_leap.pylib.label_util import (
     clean_line, fill_in_label, format_lat_long, get_value, split_line, format_sci_name)
-from digi_leap.pylib.util import ended, log, sample_values, started
+from digi_leap.pylib.util import finished, sample_values, started
 
 
 def main_label(label_id, row, _) -> list[dict]:
@@ -66,7 +67,7 @@ def det_label(label_id, row, impute: dict[str, list[str]]):
 
 def get_label_data(args):
     """Get the data from the newly created label_data table."""
-    log('Getting label data')
+    logging.info('Getting label data')
     with sqlite3.connect(args.database) as cxn:
         df = pd.read_sql(f"""
             select * from {args.input_table}
@@ -77,7 +78,7 @@ def get_label_data(args):
 
 def insert_data(args, labels):
     """Write the data to the smaller database."""
-    log('Writing labels')
+    logging.info('Writing labels')
     sql = f"""
         CREATE INDEX IF NOT EXISTS labels_row_col
             ON {args.output_table} (label_id, row, col);
@@ -118,7 +119,7 @@ def generate_labels(args):
 
     label_id = max_label_id(args)
 
-    log('Building labels')
+    logging.info('Building labels')
     for _, row in df.iterrows():
         label_id += 1
         action = choices([main_label, det_label], weights=[10, 10])[0]
@@ -140,7 +141,7 @@ def parse_args():
 
     Each row in the label text can be used to generate several types of labels as
     well as modifying the text itself. The text will be saved in parts so that
-    image augmentation can be done on each section of text separately.
+    image augmentation can be finished on each section of text separately.
 
     Note that we are generating fake labels not necessarily realistic labels.
 
@@ -153,25 +154,21 @@ def parse_args():
         '--database', '-d', required=True,
         help="""Path to the database.""")
 
-    default = 'occurrence_raw'
     arg_parser.add_argument(
-        '--input-table', '-i', default=default,
-        help=f"""Get data from this table. The default is {default}.""")
+        '--input-table', '-i', default='occurrence_raw',
+        help=f"""Get data from this table. (default: %(default))""")
 
-    default = 'labels'
     arg_parser.add_argument(
-        '--output-table', '-o', default=default,
-        help=f"""Write the output to this table. The default is {default}.""")
+        '--output-table', '-o', default='labels',
+        help=f"""Write the output to this table. (default: %(default))""")
 
     arg_parser.add_argument(
         '--clear-labels', '-c', action='store_true',
         help="""Drop the labels table before starting.""")
 
-    default = 100_000
     arg_parser.add_argument(
-        '--limit', '-l', type=int, default=default,
-        help=f"""Limit the number of generated labels to make.
-            The default is {default}.""")
+        '--limit', '-l', type=int, default=100_000,
+        help=f"""Limit the number of generated labels to make.(default: %(default))""")
 
     args = arg_parser.parse_args()
     return args
@@ -183,4 +180,4 @@ if __name__ == '__main__':
     ARGS = parse_args()
     generate_labels(ARGS)
 
-    ended()
+    finished()

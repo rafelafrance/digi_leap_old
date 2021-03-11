@@ -1,11 +1,11 @@
 """Common utilities for the project."""
 
+import logging
 import sqlite3
 import sys
-from os.path import basename, splitext
 from contextlib import contextmanager
-from datetime import datetime
-from random import sample, choices
+from os.path import basename, splitext
+from random import choices, sample
 
 import duckdb
 
@@ -53,19 +53,13 @@ def sample_values(db, table, k):
     return sample(defaults, k)
 
 
-def log(msg: str) -> None:
-    """Log a status message."""
-    print(f'{now()} {msg}')
-
-
-def now() -> str:
-    """Generate a timestamp."""
-    return datetime.now().isoformat(sep=' ', timespec='seconds')
-
-
-def today() -> str:
-    """Get today's date."""
-    return now()[:10]   # No day or month for time spec
+def setup_logger():
+    """Setup the logger."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
 
 
 def module_name() -> str:
@@ -75,10 +69,11 @@ def module_name() -> str:
 
 def started() -> None:
     """Log the program start time."""
-    log('=' * 80)
-    log(f'{module_name()} started')
+    setup_logger()
+    logging.info('=' * 80)
+    logging.info(f'{module_name()} started')
 
 
-def ended() -> None:
+def finished() -> None:
     """Log the program end time."""
-    log(f'{module_name()} ended')
+    logging.info(f'{module_name()} finished')

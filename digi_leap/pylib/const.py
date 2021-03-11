@@ -6,6 +6,8 @@ from pathlib import Path
 BATCH_SIZE = 1_000_000  # How many records to work with at a time
 LIMIT = 1_000_000
 
+SEED = 9973
+
 ROOT_DIR = Path('..' if os.getcwd().endswith('notebooks') else '.')
 DATA_DIR = ROOT_DIR / 'data'
 
