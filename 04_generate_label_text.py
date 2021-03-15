@@ -8,44 +8,43 @@ import textwrap
 from random import choices
 
 import pandas as pd
+from tqdm import tqdm
 
-from digi_leap.pylib.label_util import (
-    clean_line, fill_in_label, format_lat_long, get_value, split_line, format_sci_name)
 from digi_leap.pylib.util import finished, sample_values, started
+from digi_leap.pylib.label_text import LabelText
 
 
-def main_label(label_id, row, _) -> list[dict]:
+def main_label(row, _):
     """Generate a plausible main label."""
-    parts = clean_line('Plants of', row['dwc:stateProvince'])
+    label = LabelText(row)
 
-    parts += format_sci_name(
-        row['dwc:scientificName'], row['dwc:scientificNameAuthorship'])
-    parts += split_line(label='Notes', text=row['dwc:fieldNotes'])
-    parts += split_line(label='Remarks', text=row['dwc:eventRemarks'])
-    parts += split_line(label='Locality', text=row['dwc:locality'])
-    parts += split_line(label='Location', text=row['dwc:locationRemarks'])
-    parts += split_line(label='Occurrence', text=row['dwc:occurrenceRemarks'])
-    parts += split_line(label='Preparations', text=row['dwc:preparations'])
-    parts += split_line(label='Life Stage', text=row['dwc:lifeStage'])
-    parts += split_line(label='Sex', text=row['dwc:sex'])
-    parts += split_line(label='Condition', text=row['dwc:reproductiveCondition'])
-    parts += split_line(label='Coordinates', text=row['dwc:verbatimCoordinates'])
+    label.add_title()
+    label.add_sci_name()
+    label.split_text(row.get('dwc:fieldNotes'))
+    label.split_text(row.get('dwc:eventRemarks'))
+    label.split_text(row.get('dwc:locality'))
+    label.split_text(row.get('dwc:locationRemarks'))
+    label.split_text(row.get('dwc:occurrenceRemarks'))
+    label.split_text(row.get('dwc:preparations'))
+    label.split_text(row.get('dwc:lifeStage'))
+    label.split_text(row.get('dwc:sex'))
+    label.split_text(row.get('dwc:reproductiveCondition'))
+    label.add_lat_long()
 
-    lat = format_lat_long(row['dwc:verbatimLatitude'])
-    long = format_lat_long(row['dwc:verbatimLongitude'])
-    parts += clean_line(lat, long)
-
-    return fill_in_label(label_id, parts)
+    return label.build_records()
 
 
-def det_label(label_id, row, impute: dict[str, list[str]]):
-    """Generate a determination label."""
-    parts = clean_line(row['dwc:scientificName'], row['dwc:scientificNameAuthorship'])
-    parts += clean_line('Det. by', get_value(row, 'dwc:identifiedBy', impute['name']))
-    parts += clean_line(get_value(row, 'dwc:dateIdentified', impute['date']))
-    parts += clean_line(get_value(row, 'dcterms:rightsHolder', impute['rights_holder']))
-    return fill_in_label(label_id, parts)
+def det_label(row, impute):
+    """Generate a plausible determination label."""
+    label = LabelText(row)
 
+    label.add_sci_name()
+    label.impute_text(
+        row.get('dwc:identifiedBy'), impute['name'], field_label='Det. by')
+    label.impute_text(row.get('dwc:dateIdentified'), impute['date'])
+    label.impute_text(row.get('dcterms:rightsHolder'), impute['rights_holder'])
+
+    return label.build_records()
 
 # def gibberish_label(label_id, row):
 #     """Generate a determination label."""
@@ -79,30 +78,19 @@ def get_label_data(args):
 def insert_data(args, labels):
     """Write the data to the smaller database."""
     logging.info('Writing labels')
+
+    if_exists = 'replace' if args.clear_labels else 'append'
+
     sql = f"""
         CREATE INDEX IF NOT EXISTS labels_row_col
             ON {args.output_table} (label_id, row, col);
     """
-    from pprint import pp
-    pp(labels)
+
     df = pd.DataFrame(labels)
+
     with sqlite3.connect(args.database) as cxn:
-        df.to_sql(args.output_table, cxn, if_exists='append', index=False)
+        df.to_sql(args.output_table, cxn, if_exists=if_exists, index=False)
         cxn.executescript(sql)
-
-
-def max_label_id(args):
-    """Get the max label ID so that we can add labels."""
-    if args.clear_labels:
-        return 0
-
-    with sqlite3.connect(args.database) as cxn:
-        try:
-            cursor = cxn.execute(f"""
-                select coalesce(max(label_id), 0) from {args.output_table}""")
-            return cursor.fetchone()[0]
-        except sqlite3.OperationalError:
-            return 0
 
 
 def generate_labels(args):
@@ -117,13 +105,10 @@ def generate_labels(args):
     df = get_label_data(args)
     labels = []
 
-    label_id = max_label_id(args)
-
     logging.info('Building labels')
-    for _, row in df.iterrows():
-        label_id += 1
+    for _, row in tqdm(df.iterrows()):
         action = choices([main_label, det_label], weights=[10, 10])[0]
-        recs = action(label_id, row, impute)
+        recs = action(row, impute)
         labels += recs
 
     insert_data(args, labels)

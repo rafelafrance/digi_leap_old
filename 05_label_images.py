@@ -97,17 +97,16 @@ def parse_args():
 
     arg_parser.add_argument(
         '--save-labels', '-s',
-        help="""Save labels to this directory. Use this to save label images.""")
+        help="""Save labels to this directory.""")
 
     arg_parser.add_argument(
         '--save-augmented', '-a',
-        help="""Save augmented labels to this directory. Use this to save augmented
-            label images.""")
+        help="""Save augmented labels to this directory.""")
 
     arg_parser.add_argument(
         '--seed', '-S', type=int, default=SEED,
-        help="""Create a random seed for the python. Note: SQLite3 does not
-            use seeds. (default: %(default)s)""")
+        help="""Create a random seed for the python. (default: %(default)s)
+            Note: SQLite3 does not have a seed function.""")
 
     args = arg_parser.parse_args()
     return args
