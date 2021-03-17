@@ -2,70 +2,35 @@
 """Generate label images from the saved label text."""
 
 import argparse
-import sqlite3
 import textwrap
-from collections import defaultdict
-from random import sample, seed
+from random import seed
 
-from digi_leap.pylib.const import SEED
-from digi_leap.pylib.util import finished, started, dict_factory
+from digi_leap.db import get_labels
+from digi_leap.font import choose_label_fonts
+from digi_leap.label_image import LabelImage
+from digi_leap.log import finished, started
 
 
-def get_labels(args):
-    """Sample the label data so that we can update"""
-    sql = f"""
-        with chosen as (
-            select distinct label_id
-              from {args.input_table}
-          order by random()
-             limit {args.count}
-        )
-        select * from {args.input_table}
-         where label_id in (select label_id from chosen)
-      order by label_id, row, col
-    """
-    labels = defaultdict(list)
-    with sqlite3.connect(args.database) as cxn:
-        cxn.row_factory = dict_factory
-        for row in cxn.execute(sql).fetchall():
-            labels[row.label_id].append(row)
-    return labels
+def layout(label):
+    """Build the entire label from the text fragments."""
+    label.layout()
 
 
 def ransom_note(label):
     """Generate a label."""
-    print('-' * 80)
-    for row in label:
-        for col in row:
-            print(col)
-        print()
+    choose_label_fonts(label)
+    layout(label)
 
 
-def organize_text(label):
-    """Organize text into rows and columns."""
-    rows = []
-    cols = []
-    prev = -1
-    for rec in label:
-        if rec.row != prev:
-            prev = rec.row
-            if cols:
-                rows.append(cols)
-                cols = []
-        cols.append(rec)
-
-    return rows
-
-
-def generate_images(args):
+def main(args):
     """Generate images."""
-    seed(args.seed)
+    if args.seed:
+        seed(args.seed)
 
-    labels = get_labels(args)
-    keys = sample(list(labels.keys()), len(labels))
-    for key in keys:
-        label = labels[key]
-        label = organize_text(label)
+    labels = get_labels(args.database, args.input_table, args.count)
+
+    for key in labels.keys():
+        label = LabelImage(labels[key])
         ransom_note(label)
 
 
@@ -88,7 +53,7 @@ def parse_args():
         help=f"""Get data from this table. (default: %(default)s)""")
 
     arg_parser.add_argument(
-        '--count', '-c', type=int, default=100_000,
+        '--count', '-C', type=int, default=100_000,
         help=f"""The number of label images to generate. (default: %(default)s)""")
 
     arg_parser.add_argument(
@@ -104,9 +69,8 @@ def parse_args():
         help="""Save augmented labels to this directory.""")
 
     arg_parser.add_argument(
-        '--seed', '-S', type=int, default=SEED,
-        help="""Create a random seed for the python. (default: %(default)s)
-            Note: SQLite3 does not have a seed function.""")
+        '--seed', '-S', type=int,
+        help="""Create a random seed for python. (default: %(default)s)""")
 
     args = arg_parser.parse_args()
     return args
@@ -116,6 +80,6 @@ if __name__ == '__main__':
     started()
 
     ARGS = parse_args()
-    generate_images(ARGS)
+    main(ARGS)
 
     finished()

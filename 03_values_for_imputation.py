@@ -5,11 +5,23 @@ import argparse
 import logging
 import sqlite3
 import textwrap
+from random import choices, seed
 
 import pandas as pd
 
-from digi_leap.pylib.const import DISALLOWED_VALUES
-from digi_leap.pylib.util import finished, started
+from digi_leap.label_text import DISALLOWED_VALUES
+from digi_leap.log import finished, started
+
+
+def imputable_values(args):
+    """Create the values used for imputation."""
+    if args.seed:
+        seed(args.seed)
+
+    sex_values(args)
+    right_holder_values(args)
+    date_values(args)
+    name_values(args)
 
 
 def sex_values(args):
@@ -38,7 +50,6 @@ def name_values(args):
     logging.info('Getting name values')
 
     sql = f"""
-        create table if not exists names as
         with agg as (
             select distinct `dwc:recordedBy` as name from {args.input_table}
             union select distinct `dwc:nameAccordingTo` from {args.input_table}
@@ -47,12 +58,15 @@ def name_values(args):
         )
         select name from agg
         where lower(name) not in ({DISALLOWED_VALUES})
-        order by random()
-        limit {args.limit}
     """
 
     with sqlite3.connect(args.database) as cxn:
-        cxn.execute(sql)
+        values = [n[0] for n in cxn.execute(sql).fetchall()]
+        count = args.count if args.count <= len(values) else len(values)
+        values = choices(values, count)
+
+        df = pd.DataFrame({'name': values})
+        df.to_sql('names', cxn, index=False)
 
 
 def date_values(args):
@@ -60,7 +74,6 @@ def date_values(args):
     logging.info('Getting date values')
 
     sql = f"""
-        create table if not exists dates as
         with agg as (
             select distinct `dwc:eventDate` as `date` from {args.input_table}
             union select distinct `dwc:dateIdentified` from {args.input_table}
@@ -69,12 +82,15 @@ def date_values(args):
         )
         select `date` from agg
         where lower(`date`) not in ({DISALLOWED_VALUES})
-        order by random()
-        limit {args.limit}
      """
 
     with sqlite3.connect(args.database) as cxn:
-        cxn.execute(sql)
+        values = [n[0] for n in cxn.execute(sql).fetchall()]
+        count = args.count if args.count <= len(values) else len(values)
+        values = choices(values, count)
+
+        df = pd.DataFrame({'date': values})
+        df.to_sql('dates', cxn, index=False)
 
 
 def right_holder_values(args):
@@ -82,19 +98,21 @@ def right_holder_values(args):
     logging.info('Getting rights_holder values')
 
     sql = f"""
-        create table rights_holders as
         with agg as (
             select distinct `dcterms:rightsHolder` as rights_holder 
               from {args.input_table}
         )
         select rights_holder from agg
         where lower(rights_holder) not in ({DISALLOWED_VALUES})
-        order by random()
-        limit {args.limit}
     """
 
     with sqlite3.connect(args.database) as cxn:
-        cxn.execute(sql)
+        values = [n[0] for n in cxn.execute(sql).fetchall()]
+        count = args.count if args.count <= len(values) else len(values)
+        values = choices(values, count)
+
+        df = pd.DataFrame({'rights_holder': values})
+        df.to_sql('rights_holders', cxn, index=False)
 
 
 def parse_args():
@@ -114,21 +132,17 @@ def parse_args():
             this table.""")
 
     arg_parser.add_argument(
-        '--limit', '-l', type=int, default=1_000_000,
+        '--count', '-C', type=int, default=1_000_000,
         help=f"""Limit the number of values in the generated tables to this.
             (default: %(default)s)""")
+
+    arg_parser.add_argument(
+        '--seed', '-S', type=int,
+        help="""Create a random seed for python. (default: %(default)s)""")
 
     args = arg_parser.parse_args()
 
     return args
-
-
-def imputable_values(args):
-    """Create the values used for imputation."""
-    sex_values(args)
-    right_holder_values(args)
-    date_values(args)
-    name_values(args)
 
 
 if __name__ == '__main__':

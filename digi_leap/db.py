@@ -1,21 +1,12 @@
-"""Common utilities for the project."""
-
-import logging
+"""Common database functions."""
 import sqlite3
-import sys
+from collections import defaultdict
 from contextlib import contextmanager
-from os.path import basename, splitext
 from random import choices, sample
 
 import duckdb
 
-
-class DotDict(dict):
-    """Allow dot.notation access to dictionary items."""
-
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
+from digi_leap.util import DotDict
 
 
 @contextmanager
@@ -32,6 +23,27 @@ def duckdb_connect(db=':memory:'):
 def dict_factory(cursor, row):
     """Convert an SQLite3 query from a tuple to a dict."""
     return DotDict({c[0]: row[i] for i, c in enumerate(cursor.description)})
+
+
+def get_labels(db, table, count):
+    """Sample the label data so that we can update"""
+    sql = f""" select * from {table} """
+
+    with sqlite3.connect(db) as cxn:
+        cxn.row_factory = dict_factory
+        rows = [r for r in cxn.execute(sql).fetchall()]
+
+    label_ids = list({r['label_id'] for r in rows})
+    limit = count if count <= len(label_ids) else len(label_ids)
+    label_ids = set(sample(label_ids, limit))
+
+    labels = defaultdict(list)
+
+    for row in rows:
+        if row.label_id in label_ids:
+            labels[row.label_id].append(row)
+
+    return labels
 
 
 def choose_values(db, table, k):
@@ -51,29 +63,3 @@ def sample_values(db, table, k):
         defaults = [v[0] for v in cursor.fetchall()]
     k = k if k < len(defaults) else len(defaults)
     return sample(defaults, k)
-
-
-def setup_logger():
-    """Setup the logger."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-
-
-def module_name() -> str:
-    """Get the current module name."""
-    return splitext(basename(sys.argv[0]))[0]
-
-
-def started() -> None:
-    """Log the program start time."""
-    setup_logger()
-    logging.info('=' * 80)
-    logging.info(f'{module_name()} started')
-
-
-def finished() -> None:
-    """Log the program end time."""
-    logging.info(f'{module_name()} finished')

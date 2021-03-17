@@ -9,8 +9,8 @@ import zipfile
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.pylib.const import BATCH_SIZE, CSV_FILE
-from digi_leap.pylib.util import finished, started
+from digi_leap.const import BATCH_SIZE, CSV_FILE
+from digi_leap.log import finished, started
 
 
 def get_csv_headers(args):
@@ -67,7 +67,7 @@ def insert(args, renames, drops):
                 if_exists = 'append' if args.append_table else 'replace'
 
                 for df in tqdm(reader):
-                    # TODO: This slows things down, not doing it gives us a memory leak
+                    # TODO: This slows things down but not doing it yields a memory leak
                     df = df.copy()
 
                     if args.filter:

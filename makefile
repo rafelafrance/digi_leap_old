@@ -8,8 +8,11 @@ LABEL_DB="$(PROCESSED_DIR)/$(LABEL_DB)"
 BACKUP_DB="$(PROCESSED_DIR)/$(basename $(DB_NAME))_$(DATE).db"
 PYTHON=python
 
+label_images:
+	$(PYTHON) $(SCRIPT_DIR)/05_label_images.py @$(ARGS_DIR)/05_label_images.args
+
 label_text:
-	$(PYTHON) $(SCRIPT_DIR)/04_generate_label_text.py
+	$(PYTHON) $(SCRIPT_DIR)/04_generate_label_text.py @$(ARGS_DIR)/04_generate_label_data.args
 
 idigbio_data:
 	$(PYTHON) $(SCRIPT_DIR)/01_load_idigbio_data.py @$(ARGS_DIR)/01_idigbio_occurrence_raw.args

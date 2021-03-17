@@ -11,8 +11,8 @@ from urllib.request import urlretrieve
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.pylib.const import RAW_DIR
-from digi_leap.pylib.util import finished, started
+from digi_leap.const import RAW_DIR
+from digi_leap.log import finished, started
 
 # Don't use this file in the future
 OLD_CSV = 'idb_image_url.csv'

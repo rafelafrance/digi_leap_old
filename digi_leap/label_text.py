@@ -8,14 +8,24 @@ ragged 2-dimensional array of dicts.
 import re
 import string
 import uuid
+import warnings
 from itertools import zip_longest
 from random import choice, random
 from textwrap import wrap
 
-from digi_leap.pylib.const import DISALLOWED
-from digi_leap.pylib.util import DotDict
+from digi_leap.const import DATA_DIR
 
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
+
+with open(DATA_DIR / 'disallowed_values.txt') as in_file:
+    DISALLOWED = [v.strip() for v in in_file.readlines() if v] + ['']
+DISALLOWED_VALUES = [f"'{v}'" for v in DISALLOWED]
+DISALLOWED_VALUES = ', '.join(DISALLOWED_VALUES)
+
+# Types of uses for label fields
+USES = set(""" auth date field_label lat_long name rights_holder sci_name
+               text title
+           """.split())
 
 
 class LabelText:
@@ -30,38 +40,46 @@ class LabelText:
     def build_records(self):
         """Fill in the rest of the label data."""
         records = []
+        first_use_warning = True
         for r, row in enumerate(self.label):
             for c, col in enumerate(row):
+
+                use = col.get('use', '')
+
+                if use not in USES:
+                    if first_use_warning:
+                        warnings.warn('Use types: ' + ', '.join(USES))
+                        first_use_warning = False
+                    warnings.warn(f'"{use}" is not a known use. Changing to "text".')
+                    use = 'text'
+
                 records.append({
                     'label_id': self.label_id,
-                    'font': 'typewritten',
+                    'writing': col.get('writing', 'typewritten'),
                     'row': r,
                     'col': c,
-                    'text': col.text,
-                    'use': col.use,
+                    'text': col['text'],
+                    'use': use,
                 })
         return records
 
     def add_row(self, *cols):
         """Add a row to the label."""
-        cols = [c for c in cols if c.text]
+        cols = [c for c in cols if c['text']]
         if cols:
             self.label.append(cols)
 
     @staticmethod
     def col(text='', use='text'):
         """Add a segment/column of text to the label row."""
-        return DotDict({
-            'text': text,
-            'use': use,
-        })
+        return {'text': text, 'use': use}
 
     @staticmethod
     def is_valid_value(value):
         """Check if the given value is empty or is disallowed."""
         return value and value.lower().translate(REMOVE_PUNCT) not in DISALLOWED
 
-    def impute_text(self, text, defaults, use='', field_label=''):
+    def impute_text(self, text, defaults, use='text', field_label=''):
         """Get a value using a set of defaults if it is not found."""
         text = text if text else choice(defaults)
         self.split_text(text, use=use, field_label=field_label)
@@ -74,8 +92,8 @@ class LabelText:
             if self.is_valid_value(first):
                 self.add_row(
                     self.col(text, 'field_label'),
-                    self.col(first, use),
-                )
+                    self.col(first, use))
+
         for frag in wrap(text):
             if self.is_valid_value(frag):
                 col = self.col(frag, use)

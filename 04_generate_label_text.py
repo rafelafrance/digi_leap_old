@@ -5,13 +5,14 @@ import argparse
 import logging
 import sqlite3
 import textwrap
-from random import choices
+from random import choices, randint, seed
 
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.pylib.util import finished, sample_values, started
-from digi_leap.pylib.label_text import LabelText
+from digi_leap.db import sample_values
+from digi_leap.label_text import LabelText
+from digi_leap.log import finished, started
 
 
 def main_label(row, _):
@@ -39,12 +40,25 @@ def det_label(row, impute):
     label = LabelText(row)
 
     label.add_sci_name()
+
     label.impute_text(
-        row.get('dwc:identifiedBy'), impute['name'], field_label='Det. by')
-    label.impute_text(row.get('dwc:dateIdentified'), impute['date'])
-    label.impute_text(row.get('dcterms:rightsHolder'), impute['rights_holder'])
+        row.get('dwc:identifiedBy'),
+        impute['name'],
+        field_label='Det. by',
+        use='name')
+
+    label.impute_text(
+        row.get('dwc:dateIdentified'),
+        impute['date'],
+        use='date')
+
+    label.impute_text(
+        row.get('dcterms:rightsHolder'),
+        impute['rights_holder'],
+        use='rights_holder')
 
     return label.build_records()
+
 
 # def gibberish_label(label_id, row):
 #     """Generate a determination label."""
@@ -68,10 +82,12 @@ def get_label_data(args):
     """Get the data from the newly created label_data table."""
     logging.info('Getting label data')
     with sqlite3.connect(args.database) as cxn:
+        last = cxn.execute(f'select count(*) from {args.input_table}').fetchone()[0]
+        offset = randint(0, last - args.count - 1)
         df = pd.read_sql(f"""
             select * from {args.input_table}
-            order by random()
-            limit {args.limit}""", cxn)
+            limit {args.count}
+            offset {offset}""", cxn)
     return df
 
 
@@ -95,11 +111,13 @@ def insert_data(args, labels):
 
 def generate_labels(args):
     """Create the label data table with augmented text data."""
-    k = 100_000
+    if args.seed:
+        seed(args.seed)
+
     impute = {
-        'name': sample_values(args.database, 'names', k=k),
-        'date': sample_values(args.database, 'dates', k=k),
-        'rights_holder': sample_values(args.database, 'rights_holders', k=k),
+        'name': sample_values(args.database, 'names', k=args.count),
+        'date': sample_values(args.database, 'dates', k=args.count),
+        'rights_holder': sample_values(args.database, 'rights_holders', k=args.count),
     }
 
     df = get_label_data(args)
@@ -152,8 +170,12 @@ def parse_args():
         help="""Drop the labels table before starting.""")
 
     arg_parser.add_argument(
-        '--limit', '-l', type=int, default=100_000,
-        help=f"""Limit the number of generated labels to make.(default: %(default))""")
+        '--count', '-C', type=int, default=100_000,
+        help=f"""The number of labels to generate. (default: %(default)s)""")
+
+    arg_parser.add_argument(
+        '--seed', '-S', type=int,
+        help="""Create a random seed for python. (default: %(default)s)""")
 
     args = arg_parser.parse_args()
     return args

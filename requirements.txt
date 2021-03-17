@@ -6,4 +6,3 @@ opencv-python>=4.5.1.48
 qrcode>=6.1
 python-barcode>=0.13.1
 duckdb>=0.2.5.dev377
-torch>=1.8.0+cu111
