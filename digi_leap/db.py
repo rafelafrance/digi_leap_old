@@ -1,23 +1,9 @@
 """Common database functions."""
 import sqlite3
 from collections import defaultdict
-from contextlib import contextmanager
 from random import choices, sample
 
-import duckdb
-
 from digi_leap.util import DotDict
-
-
-@contextmanager
-def duckdb_connect(db=':memory:'):
-    """A context manager for a duck DB connection."""
-    db = str(db)
-    cxn = duckdb.connect(db)
-    try:
-        yield cxn
-    finally:
-        cxn.close()
 
 
 def dict_factory(cursor, row):
@@ -31,19 +17,19 @@ def get_labels(db, table, count):
 
     with sqlite3.connect(db) as cxn:
         cxn.row_factory = dict_factory
-        rows = [r for r in cxn.execute(sql).fetchall()]
+        recs = [r for r in cxn.execute(sql).fetchall()]
 
-    label_ids = list({r['label_id'] for r in rows})
+    label_ids = list({r.label_id for r in recs})
     limit = count if count <= len(label_ids) else len(label_ids)
     label_ids = set(sample(label_ids, limit))
 
     labels = defaultdict(list)
 
-    for row in rows:
-        if row.label_id in label_ids:
-            labels[row.label_id].append(row)
+    for rec in recs:
+        if rec.label_id in label_ids:
+            labels[rec.label_id].append(rec)
 
-    return labels
+    return list(labels.values())
 
 
 def choose_values(db, table, k):

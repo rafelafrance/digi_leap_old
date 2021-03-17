@@ -8,12 +8,12 @@ ragged 2-dimensional array of dicts.
 import re
 import string
 import uuid
-import warnings
 from itertools import zip_longest
 from random import choice, random
 from textwrap import wrap
 
 from digi_leap.const import DATA_DIR
+from digi_leap.label_fragment import LabelFragment, Use, Writing
 
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
 
@@ -21,11 +21,6 @@ with open(DATA_DIR / 'disallowed_values.txt') as in_file:
     DISALLOWED = [v.strip() for v in in_file.readlines() if v] + ['']
 DISALLOWED_VALUES = [f"'{v}'" for v in DISALLOWED]
 DISALLOWED_VALUES = ', '.join(DISALLOWED_VALUES)
-
-# Types of uses for label fields
-USES = set(""" auth date field_label lat_long name rights_holder sci_name
-               text title
-           """.split())
 
 
 class LabelText:
@@ -40,27 +35,16 @@ class LabelText:
     def build_records(self):
         """Fill in the rest of the label data."""
         records = []
-        first_use_warning = True
         for r, row in enumerate(self.label):
             for c, col in enumerate(row):
-
-                use = col.get('use', '')
-
-                if use not in USES:
-                    if first_use_warning:
-                        warnings.warn('Use types: ' + ', '.join(USES))
-                        first_use_warning = False
-                    warnings.warn(f'"{use}" is not a known use. Changing to "text".')
-                    use = 'text'
-
-                records.append({
-                    'label_id': self.label_id,
-                    'writing': col.get('writing', 'typewritten'),
-                    'row': r,
-                    'col': c,
-                    'text': col['text'],
-                    'use': use,
-                })
+                records.append(LabelFragment(
+                    label_id=self.label_id,
+                    writing=col.get('writing', Writing.typewritten),
+                    row=r,
+                    col=c,
+                    text=col['text'],
+                    use=col['use'],
+                ))
         return records
 
     def add_row(self, *cols):
@@ -70,7 +54,7 @@ class LabelText:
             self.label.append(cols)
 
     @staticmethod
-    def col(text='', use='text'):
+    def col(text='', use=Use.text):
         """Add a segment/column of text to the label row."""
         return {'text': text, 'use': use}
 
@@ -79,12 +63,12 @@ class LabelText:
         """Check if the given value is empty or is disallowed."""
         return value and value.lower().translate(REMOVE_PUNCT) not in DISALLOWED
 
-    def impute_text(self, text, defaults, use='text', field_label=''):
+    def impute_text(self, text, defaults, use=Use.text, field_label=''):
         """Get a value using a set of defaults if it is not found."""
         text = text if text else choice(defaults)
         self.split_text(text, use=use, field_label=field_label)
 
-    def split_text(self, text='', use='text', field_label=''):
+    def split_text(self, text='', use=Use.text, field_label=''):
         """Split longer text into multiple rows of text."""
         if field_label:
             split = self.max_row_len - len(field_label)
@@ -99,14 +83,16 @@ class LabelText:
                 col = self.col(frag, use)
                 self.add_row(col)
 
-    def split_columns(self, *text, uses=None):
+    def split_fields(self, *text, uses=None):
         """If the total text length > max row length then split the text."""
-        uses = uses if uses else 'text'
+        uses = uses if uses else Use.text
         uses = uses if isinstance(uses, list) else [uses]
 
-        cols = [self.col(t, u) for t, u in zip_longest(text, uses, fillvalue=uses[-1])]
+        cols = [self.col(t, u) for t, u in zip_longest(text, uses, fillvalue=uses[-1])
+                if t]
 
-        if sum(len(t) for t in text) < self.max_row_len - len(text) + 1:
+        # Check length of text + the spaces between the text with the max row length
+        if sum((len(t) + 1) for t in text) < self.max_row_len:
             self.add_row(*cols)
         else:
             _ = [self.add_row(c) for c in cols]
@@ -114,19 +100,19 @@ class LabelText:
     # ########################################################################
     # Specific row types
 
-    def add_sci_name(self, use='sci_name', auth_use='auth'):
+    def add_sci_name(self):
         """Add a scientific name row."""
         name = self.record['dwc:scientificName']
         auth = self.record['dwc:scientificNameAuthorship']
         if name.find(auth) > -1:
             auth = ''
-        self.split_columns(name, auth, uses=[use, auth_use])
+        self.split_fields(name, auth, uses=[Use.sci_name, Use.auth])
 
     def add_lat_long(self):
         """Add a latitude and longitude to the label."""
         lat = self._add_dms(self.record['dwc:verbatimLatitude'])
         long = self._add_dms(self.record['dwc:verbatimLongitude'])
-        self.split_columns(lat, long, 'lat_long')
+        self.split_fields(lat, long, Use.lat_long)
 
     @staticmethod
     def _add_dms(lat_long):
@@ -155,4 +141,4 @@ class LabelText:
                 title = self.record['dwc:datasetName'] + ' Collection'
 
         if title:
-            self.add_row(self.col(title, 'title'))
+            self.add_row(self.col(title, Use.title))

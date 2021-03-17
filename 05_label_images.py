@@ -11,6 +11,12 @@ from digi_leap.label_image import LabelImage
 from digi_leap.log import finished, started
 
 
+def init_label_images(args) -> list[LabelImage]:
+    """Get labels and format them."""
+    labels = get_labels(args.database, args.input_table, args.count)
+    return [LabelImage(recs) for recs in labels]
+
+
 def layout(label):
     """Build the entire label from the text fragments."""
     label.layout()
@@ -27,10 +33,9 @@ def main(args):
     if args.seed:
         seed(args.seed)
 
-    labels = get_labels(args.database, args.input_table, args.count)
+    labels = init_label_images(args)
 
-    for key in labels.keys():
-        label = LabelImage(labels[key])
+    for label in labels:
         ransom_note(label)
 
 

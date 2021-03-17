@@ -11,6 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.db import sample_values
+from digi_leap.label_fragment import Use
 from digi_leap.label_text import LabelText
 from digi_leap.log import finished, started
 
@@ -45,17 +46,17 @@ def det_label(row, impute):
         row.get('dwc:identifiedBy'),
         impute['name'],
         field_label='Det. by',
-        use='name')
+        use=Use.name)
 
     label.impute_text(
         row.get('dwc:dateIdentified'),
         impute['date'],
-        use='date')
+        use=Use.date)
 
     label.impute_text(
         row.get('dcterms:rightsHolder'),
         impute['rights_holder'],
-        use='rights_holder')
+        use=Use.rights_holder)
 
     return label.build_records()
 
@@ -101,6 +102,11 @@ def insert_data(args, labels):
         CREATE INDEX IF NOT EXISTS labels_row_col
             ON {args.output_table} (label_id, row, col);
     """
+
+    # Enums to strings
+    for label in labels:
+        label['use'] = label['use'].name
+        label['writing'] = label['writing'].name
 
     df = pd.DataFrame(labels)
 
