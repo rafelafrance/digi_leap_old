@@ -29,6 +29,7 @@ data/images/
 data/processed/
 data/raw/
 data/temp/
+data/clean
 
 # Temp files
 temp/

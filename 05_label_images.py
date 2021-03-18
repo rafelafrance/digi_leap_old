@@ -3,7 +3,10 @@
 
 import argparse
 import textwrap
+from os.path import join
 from random import seed
+
+from tqdm import tqdm
 
 from digi_leap.db import get_labels
 from digi_leap.font import choose_label_fonts
@@ -35,8 +38,12 @@ def main(args):
 
     labels = init_label_images(args)
 
-    for label in labels:
+    for label in tqdm(labels):
         ransom_note(label)
+
+        if args.unaugmented:
+            name = join(args.unaugmented, f'{label.label_id}.jpg')
+            label.image.save(name, 'JPEG')
 
 
 def parse_args():
@@ -66,16 +73,16 @@ def parse_args():
         help=f"""Do not generate any augmented labels.""")
 
     arg_parser.add_argument(
-        '--save-labels', '-s',
-        help="""Save labels to this directory.""")
-
-    arg_parser.add_argument(
-        '--save-augmented', '-a',
-        help="""Save augmented labels to this directory.""")
-
-    arg_parser.add_argument(
         '--seed', '-S', type=int,
         help="""Create a random seed for python. (default: %(default)s)""")
+
+    arg_parser.add_argument(
+        '--unaugmented', '-u',
+        help="""Save un-augmented labels to this directory. For debugging images.""")
+
+    arg_parser.add_argument(
+        '--augmented', '-a',
+        help="""Save augmented labels to this directory. For debugging images.""")
 
     args = arg_parser.parse_args()
     return args
