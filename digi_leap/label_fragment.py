@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Optional
 
 Use = Enum('Use', """auth date field_label lat_long name rights_holder sci_name
                      text title""")
@@ -19,9 +19,9 @@ class LabelFragment:
     col: int
     text: str
     use: Use
+    line: int = 0
     font: Optional[str] = None
     text_size: Optional[tuple[int, int]] = None
-    text_image: Optional[Any] = None
 
 
 def db2fragment(db_rec: dict) -> LabelFragment:
@@ -33,4 +33,5 @@ def db2fragment(db_rec: dict) -> LabelFragment:
         col=db_rec['col'],
         text=db_rec['text'],
         use=Use[db_rec['use']],
+        line=db_rec['line'],
     )

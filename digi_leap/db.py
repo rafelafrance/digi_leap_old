@@ -19,7 +19,7 @@ def get_labels(db, table, count):
         cxn.row_factory = dict_factory
         recs = [r for r in cxn.execute(sql).fetchall()]
 
-    label_ids = list({r.label_id for r in recs})
+    label_ids = sorted({r.label_id for r in recs})  # Sets do not use random.seed()
     limit = count if count <= len(label_ids) else len(label_ids)
     label_ids = set(sample(label_ids, limit))
 

@@ -43,6 +43,7 @@ class LabelText:
                     row=r,
                     col=c,
                     text=col['text'],
+                    line=col.get('line', 0),
                     use=col['use'],
                 ))
         return records
@@ -54,9 +55,9 @@ class LabelText:
             self.label.append(cols)
 
     @staticmethod
-    def col(text='', use=Use.text):
+    def col(text='', use=Use.text, line=0):
         """Add a segment/column of text to the label row."""
-        return {'text': text, 'use': use}
+        return {'text': text, 'use': use, 'line': line}
 
     @staticmethod
     def is_valid_value(value):
@@ -70,18 +71,22 @@ class LabelText:
 
     def split_text(self, text='', use=Use.text, field_label=''):
         """Split longer text into multiple rows of text."""
+        line = 0
+
         if field_label:
             split = self.max_row_len - len(field_label)
             first, text = text[:split], text[split:].lstrip()
             if self.is_valid_value(first):
                 self.add_row(
-                    self.col(text, 'field_label'),
+                    self.col(text, Use.field_label),
                     self.col(first, use))
+                line = 1
 
         for frag in wrap(text):
             if self.is_valid_value(frag):
-                col = self.col(frag, use)
+                col = self.col(frag, use, line)
                 self.add_row(col)
+                line += 1
 
     def split_fields(self, *text, uses=None):
         """If the total text length > max row length then split the text."""
@@ -95,7 +100,18 @@ class LabelText:
         if sum((len(t) + 1) for t in text) < self.max_row_len:
             self.add_row(*cols)
         else:
-            _ = [self.add_row(c) for c in cols]
+            line = 0
+            prev_use = ''
+            for col in cols:
+                if prev_use != col['use']:
+                    line = 0
+
+                col['line'] = line
+
+                self.add_row(col)
+
+                prev_use = col['use']
+                line += 1
 
     # ########################################################################
     # Specific row types
@@ -112,7 +128,7 @@ class LabelText:
         """Add a latitude and longitude to the label."""
         lat = self._add_dms(self.record['dwc:verbatimLatitude'])
         long = self._add_dms(self.record['dwc:verbatimLongitude'])
-        self.split_fields(lat, long, Use.lat_long)
+        self.split_fields(lat, long, uses=Use.lat_long)
 
     @staticmethod
     def _add_dms(lat_long):

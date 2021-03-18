@@ -18,7 +18,8 @@ from digi_leap.log import finished, started
 
 def main_label(row, _):
     """Generate a plausible main label."""
-    label = LabelText(row)
+    width = randint(56, 80)
+    label = LabelText(row, max_row_len=width)
 
     label.add_title()
     label.add_sci_name()
@@ -38,7 +39,8 @@ def main_label(row, _):
 
 def det_label(row, impute):
     """Generate a plausible determination label."""
-    label = LabelText(row)
+    width = randint(40, 60)
+    label = LabelText(row, max_row_len=width)
 
     label.add_sci_name()
 
@@ -105,10 +107,11 @@ def insert_data(args, labels):
 
     # Enums to strings
     for label in labels:
-        label['use'] = label['use'].name
-        label['writing'] = label['writing'].name
+        label.use = label.use.name
+        label.writing = label.writing.name
 
     df = pd.DataFrame(labels)
+    df = df.drop(columns=['font', 'text_size'])
 
     with sqlite3.connect(args.database) as cxn:
         df.to_sql(args.output_table, cxn, if_exists=if_exists, index=False)

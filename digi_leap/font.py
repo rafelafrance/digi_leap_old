@@ -31,7 +31,7 @@ def choose_label_fonts(label):
 
         elif use in (Use.field_label, Use.rights_holder, Use.title):
             font = choice(BOLD_FONTS)
-            size = randrange(24, 33, 2)
+            size = randrange(18, 25, 2)
         else:
             font = choice(NORMAL_FONTS)
             size = randrange(16, 25, 2)

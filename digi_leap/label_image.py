@@ -27,8 +27,9 @@ class Margin:
 class LabelImage:
     """An object for generating label images from label text."""
 
-    def __init__(self, label_recs):
+    def __init__(self, label_recs, pad=0):
         # Store records by row to simplify calculations
+        self.row_pad = pad
         self.recs = sorted(label_recs, key=lambda f: (f.row, f.col))
         self.frags = [db2fragment(r) for r in self.recs]
         self.rows = self.fragments_by_row()
@@ -52,41 +53,53 @@ class LabelImage:
         for row in self.rows:
             for frag in row:
                 if frag.use == use and frag.writing == writing:
-                    frag.text_size = font_.getsize(frag.text)
-                    frag.text_image = Image.new(
-                        'RGB', size=frag.text_size, color='white')
                     frag.font = font_
+                    frag.text_size = font_.getsize(frag.text)
 
-    @property
     def image_size(self):
         """Calculate the size of the entire image."""
         # Calculate each row's width & height
+        self.row_heights = []
         widths = []
-        for row in self.rows:
-            width = (len(row) - 1) * self.gutter.col
+
+        for r, row in enumerate(self.rows):
+            width = sum(r.text_size[0] for r in row)
+            width += (len(row) - 1) * self.gutter.col
             width += self.margin.left + self.margin.right
-            width += sum(r.text_size[0] for r in row)
             widths.append(width)
 
-            self.row_heights.append(max(r.text_size[1] for r in row))
+            row_height = max(r.text_size[1] for r in row)
+            gutter_above = r != 0 and max(rec.line for rec in row) == 0
+            gutter_above = int(gutter_above) * self.gutter.row
+            self.row_heights.append((row_height + self.row_pad, gutter_above))
 
-        # Final calculations
-        height = (len(self.row_heights) - 1) * self.gutter.row
+        # Calculate pate height
+        height = sum(h[0] + h[1] for h in self.row_heights)
         height += self.margin.top + self.margin.bottom
-        height += sum(self.row_heights)
 
         return max(widths), height
 
     def layout(self):
         """Layout the text images on the label."""
-        self.image = Image.new('RGB', self.image_size, color='white')
+        self.image = Image.new(mode='RGB', size=self.image_size(), color='skyblue')
 
-        x, y = self.margin.top, self.margin.left
+        y = self.margin.top
 
         for r, row in enumerate(self.rows):
+            row_height, gutter_above = self.row_heights[r]
+
+            x = self.margin.left
+            y += gutter_above
+
             for frag in row:
-                draw = ImageDraw.Draw(frag.text_image)
-                draw.text((x, y), frag.text, font=frag.font, fill='black')
-                self.image.paste(frag.text_image, (x, y))
-                x += frag.text_size[0] + self.gutter.row
-            y += self.row_heights[r] + self.gutter.col
+                size = frag.text_size
+
+                txt = Image.new(mode='RGB', size=size, color='white')
+                draw = ImageDraw.Draw(txt)
+                draw.text((0, 0), frag.text, font=frag.font, fill='black')
+
+                self.image.paste(txt, (x, y, x + size[0], y + size[1]))
+
+                x += frag.text_size[0] + self.gutter.col
+
+            y += row_height
