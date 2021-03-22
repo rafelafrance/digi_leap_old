@@ -5,7 +5,7 @@ import argparse
 import logging
 import sqlite3
 import textwrap
-from random import choices, seed
+from random import sample, seed
 
 import pandas as pd
 
@@ -19,9 +19,10 @@ def imputable_values(args):
         seed(args.seed)
 
     sex_values(args)
-    right_holder_values(args)
     date_values(args)
     name_values(args)
+    catalog_numbers(args)
+    right_holder_values(args)
 
 
 def sex_values(args):
@@ -63,7 +64,7 @@ def name_values(args):
     with sqlite3.connect(args.database) as cxn:
         values = [n[0] for n in cxn.execute(sql).fetchall()]
         count = args.count if args.count <= len(values) else len(values)
-        values = choices(values, count)
+        values = sample(values, count)
 
         df = pd.DataFrame({'name': values})
         df.to_sql('names', cxn, index=False)
@@ -87,7 +88,7 @@ def date_values(args):
     with sqlite3.connect(args.database) as cxn:
         values = [n[0] for n in cxn.execute(sql).fetchall()]
         count = args.count if args.count <= len(values) else len(values)
-        values = choices(values, count)
+        values = sample(values, count)
 
         df = pd.DataFrame({'date': values})
         df.to_sql('dates', cxn, index=False)
@@ -109,10 +110,32 @@ def right_holder_values(args):
     with sqlite3.connect(args.database) as cxn:
         values = [n[0] for n in cxn.execute(sql).fetchall()]
         count = args.count if args.count <= len(values) else len(values)
-        values = choices(values, count)
+        values = sample(values, count)
 
         df = pd.DataFrame({'rights_holder': values})
         df.to_sql('rights_holders', cxn, index=False)
+
+
+def catalog_numbers(args):
+    """Insert default catalog numbers."""
+    logging.info('Getting catalog numbers')
+
+    sql = f"""
+        with agg as (
+            select distinct `dwc:catalogNumber` as catalog_number
+              from {args.input_table}
+        )
+        select catalog_number from agg
+        where lower(catalog_number) not in ({DISALLOWED_VALUES})
+    """
+
+    with sqlite3.connect(args.database) as cxn:
+        values = [n[0] for n in cxn.execute(sql).fetchall()]
+        count = args.count if args.count <= len(values) else len(values)
+        values = sample(values, count)
+
+        df = pd.DataFrame({'catalog_number': values})
+        df.to_sql('catalog_numbers', cxn, index=False)
 
 
 def parse_args():

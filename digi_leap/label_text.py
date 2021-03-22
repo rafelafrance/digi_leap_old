@@ -39,12 +39,11 @@ class LabelText:
             for c, col in enumerate(row):
                 records.append(LabelFragment(
                     label_id=self.label_id,
-                    writing=col.get('writing', Writing.typewritten),
+                    writing=col.get('writing', Writing.typewritten).name,
                     row=r,
                     col=c,
                     text=col['text'],
-                    line=col.get('line', 0),
-                    use=col['use'],
+                    use=col['use'].name,
                 ))
         return records
 
@@ -55,22 +54,40 @@ class LabelText:
             self.label.append(cols)
 
     @staticmethod
-    def col(text='', use=Use.text, line=0):
+    def col(text='', use=Use.text, line=0, writing=Writing.typewritten):
         """Add a segment/column of text to the label row."""
-        return {'text': text, 'use': use, 'line': line}
+        return {'text': text, 'use': use, 'line': line, 'writing': writing}
 
     @staticmethod
     def is_valid_value(value):
         """Check if the given value is empty or is disallowed."""
         return value and value.lower().translate(REMOVE_PUNCT) not in DISALLOWED
 
-    def impute_text(self, text, defaults, use=Use.text, field_label=''):
+    def update_by_use(self, use, field, value):
+        """Set all record fields with the given use to the value."""
+        for row in self.label:
+            for col in row:
+                if col['use'] == use:
+                    col[field] = value
+
+    def text(self, text, use=Use.text, writing=Writing.typewritten):
+        """Add text as is to the label."""
+        self.add_row(self.col(text, use, writing=writing))
+
+    def impute_text(
+            self,
+            text,
+            defaults,
+            use=Use.text,
+            field_label='',
+            writing=Writing.typewritten):
         """Get a value using a set of defaults if it is not found."""
         text = text if text else choice(defaults)
-        self.split_text(text, use=use, field_label=field_label)
+        self.long_text(text, use=use, field_label=field_label, writing=writing)
 
-    def split_text(self, text='', use=Use.text, field_label=''):
-        """Split longer text into multiple rows of text."""
+    def long_text(
+            self, text='', use=Use.text, field_label='', writing=Writing.typewritten):
+        """Split long text into multiple rows of text."""
         line = 0
 
         if field_label:
@@ -79,17 +96,17 @@ class LabelText:
             if self.is_valid_value(first):
                 self.add_row(
                     self.col(text, Use.field_label),
-                    self.col(first, use))
+                    self.col(first, use, writing=writing))
                 line = 1
 
         for frag in wrap(text):
             if self.is_valid_value(frag):
-                col = self.col(frag, use, line)
+                col = self.col(frag, use, line, writing=writing)
                 self.add_row(col)
                 line += 1
 
-    def split_fields(self, *text, uses=None):
-        """If the total text length > max row length then split the text."""
+    def layout_by_field(self, *text, uses=None, writing=Writing.typewritten):
+        """Layout text so that long lines are split on the field."""
         uses = uses if uses else Use.text
         uses = uses if isinstance(uses, list) else [uses]
 
@@ -107,6 +124,7 @@ class LabelText:
                     line = 0
 
                 col['line'] = line
+                col['writing'] = writing
 
                 self.add_row(col)
 
@@ -114,35 +132,35 @@ class LabelText:
                 line += 1
 
     # ########################################################################
-    # Specific row types
+    # Generate text for specific types of data
 
-    def add_sci_name(self):
+    def sci_name(self):
         """Add a scientific name row."""
         name = self.record['dwc:scientificName']
         auth = self.record['dwc:scientificNameAuthorship']
         if name.find(auth) > -1:
             auth = ''
-        self.split_fields(name, auth, uses=[Use.sci_name, Use.auth])
+        self.layout_by_field(name, auth, uses=[Use.sci_name, Use.auth])
 
-    def add_lat_long(self):
+    def lat_long(self):
         """Add a latitude and longitude to the label."""
-        lat = self._add_dms(self.record['dwc:verbatimLatitude'])
-        long = self._add_dms(self.record['dwc:verbatimLongitude'])
-        self.split_fields(lat, long, uses=Use.lat_long)
+        lat = self._dms(self.record['dwc:verbatimLatitude'])
+        long = self._dms(self.record['dwc:verbatimLongitude'])
+        self.layout_by_field(lat, long, uses=Use.lat_long)
 
     @staticmethod
-    def _add_dms(lat_long):
-        """Add degree, minute, second symbols"""
-        frags = lat_long.split()
-        if re.match(r'\d+ \d+ \d+(?:\.\d+)? [NnSsEeWw]]', lat_long):
+    def _dms(lat_lng):
+        """Add degree, minute, second symbols."""
+        frags = lat_lng.split()
+        if re.match(r'\d+ \d+ \d+(?:\.\d+)? [NnSsEeWw]]', lat_lng):
             deg, min_, sec, dir_ = frags
-            lat_long = f'[~]?{deg}°{min_}′{sec}″{dir_}'
-        elif re.match(r'\d+ \d+ [NnSsEeWw]]', lat_long):
+            lat_lng = f'[~]?{deg}°{min_}′{sec}″{dir_}'
+        elif re.match(r'\d+ \d+ [NnSsEeWw]]', lat_lng):
             deg, min_, dir_ = frags
-            lat_long = f'[~]?{deg}°{min_}′{dir_}'
-        return lat_long
+            lat_lng = f'[~]?{deg}°{min_}′{dir_}'
+        return lat_lng
 
-    def add_title(self):
+    def title(self):
         """Add title to the label."""
         title = ''
         if self.record['dwc:stateProvince']:

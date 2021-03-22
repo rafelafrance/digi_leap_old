@@ -3,10 +3,10 @@
 from collections import namedtuple
 from dataclasses import dataclass
 from enum import Enum
-from typing import NamedTuple, Optional
+from typing import Optional
 
-Use = Enum('Use', """auth date field_label lat_long name rights_holder sci_name
-                     text title""")
+Use = Enum('Use', """auth catalog_number date field_label lat_long name rights_holder
+    sci_name text title verbatim""")
 Writing = Enum('Writing', """typewritten handwritten barcode qrcode""")
 
 Size = namedtuple('TextSize', 'width height')
@@ -23,7 +23,7 @@ class LabelFragment:
     use: Use
     line: int = 0
     font: Optional[str] = None
-    text_size: Optional[NamedTuple] = None
+    text_size: Optional[Size] = None
 
 
 def db2fragment(db_rec: dict) -> LabelFragment:

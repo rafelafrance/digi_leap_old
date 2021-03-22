@@ -10,29 +10,54 @@ from random import choices, randint, seed
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.db import sample_values
-from digi_leap.label_fragment import Use
+from digi_leap.db import samples
+from digi_leap.label_fragment import Use, Writing
 from digi_leap.label_text import LabelText
 from digi_leap.log import finished, started
 
 
-def main_label(row, _):
+def main_label(row, impute):
     """Generate a plausible main label."""
     width = randint(56, 80)
     label = LabelText(row, max_row_len=width)
 
-    label.add_title()
-    label.add_sci_name()
-    label.split_text(row.get('dwc:fieldNotes'))
-    label.split_text(row.get('dwc:eventRemarks'))
-    label.split_text(row.get('dwc:locality'))
-    label.split_text(row.get('dwc:locationRemarks'))
-    label.split_text(row.get('dwc:occurrenceRemarks'))
-    label.split_text(row.get('dwc:preparations'))
-    label.split_text(row.get('dwc:lifeStage'))
-    label.split_text(row.get('dwc:sex'))
-    label.split_text(row.get('dwc:reproductiveCondition'))
-    label.add_lat_long()
+    label.title()
+    label.sci_name()
+
+    label.text(row.get('dwc:verbatimTaxonRank'), use=Use.verbatim)
+    label.text(row.get('symbiota:verbatimScientificName'), use=Use.verbatim)
+
+    # Body of label
+    label.long_text(row.get('dwc:fieldNotes'))
+    label.long_text(row.get('dwc:eventRemarks'))
+    label.long_text(row.get('dwc:locality'))
+    label.long_text(row.get('dwc:locationRemarks'))
+    label.long_text(row.get('dwc:occurrenceRemarks'))
+    label.long_text(row.get('dwc:preparations'))
+    label.long_text(row.get('dwc:lifeStage'))
+    label.long_text(row.get('dwc:sex'))
+    label.long_text(row.get('dwc:reproductiveCondition'))
+
+    label.long_text(row.get('dwc:verbatimCoordinates'), use=Use.verbatim)
+    label.long_text(row.get('dwc:verbatimDepth'), use=Use.verbatim)
+    label.long_text(row.get('dwc:verbatimElevation'), use=Use.verbatim)
+    label.long_text(row.get('dwc:verbatimLatitude'), use=Use.verbatim)
+    label.long_text(row.get('dwc:verbatimLongitude'), use=Use.verbatim)
+    label.long_text(row.get('dwc:verbatimEventDate_1'), use=Use.verbatim)
+
+    label.lat_long()
+
+    # Collected
+    label.impute_text(None, impute['name'], field_label='Coll. by', use=Use.name)
+    label.impute_text(None, impute['date'], use=Use.date)
+
+    # Footer
+    label.impute_text(
+        row.get('dcterms:rightsHolder'),
+        impute['rights_holder'],
+        use=Use.rights_holder)
+
+    label.update_by_use(Use.verbatim, 'writing', Writing.handwritten)
 
     return label.build_records()
 
@@ -42,7 +67,7 @@ def det_label(row, impute):
     width = randint(40, 60)
     label = LabelText(row, max_row_len=width)
 
-    label.add_sci_name()
+    label.sci_name()
 
     label.impute_text(
         row.get('dwc:identifiedBy'),
@@ -63,22 +88,29 @@ def det_label(row, impute):
     return label.build_records()
 
 
-# def gibberish_label(label_id, row):
-#     """Generate a determination label."""
-#     parts = []
-#     return parts
+def barcode_label(row, impute):
+    """Generate a barcode label."""
+    label = LabelText(row)
+
+    label.impute_text(
+        row.get('dwc:catalogNumber'),
+        impute['catalog_number'],
+        use=Use.catalog_number)
+
+    return label.build_records()
 
 
-# def barcode_label(label_id, row):
-#     """Generate a determination label."""
-#     parts = []
-#     return parts
+def qrcode_label(row, impute):
+    """Generate a QR-code label."""
+    label = LabelText(row)
 
+    label.text(row.get('dwc:collectionCode'), use=Use.title)
+    label.impute_text(
+        row.get('dwc:catalogNumber'),
+        impute['catalog_number'],
+        use=Use.catalog_number)
 
-# def qrcode_label(label_id, row):
-#     """Generate a determination label."""
-#     parts = []
-#     return parts
+    return label.build_records()
 
 
 def get_label_data(args):
@@ -105,11 +137,6 @@ def insert_data(args, labels):
             ON {args.output_table} (label_id, row, col);
     """
 
-    # Enums to strings
-    for label in labels:
-        label.use = label.use.name
-        label.writing = label.writing.name
-
     df = pd.DataFrame(labels)
     df = df.drop(columns=['font', 'text_size'])
 
@@ -124,9 +151,10 @@ def generate_labels(args):
         seed(args.seed)
 
     impute = {
-        'name': sample_values(args.database, 'names', k=args.count),
-        'date': sample_values(args.database, 'dates', k=args.count),
-        'rights_holder': sample_values(args.database, 'rights_holders', k=args.count),
+        'name': samples(args.database, 'names', k=args.count),
+        'date': samples(args.database, 'dates', k=args.count),
+        'rights_holder': samples(args.database, 'rights_holders', k=args.count),
+        'catalog_number': samples(args.database, 'catalog_numbers', k=args.count),
     }
 
     df = get_label_data(args)
@@ -134,7 +162,10 @@ def generate_labels(args):
 
     logging.info('Building labels')
     for _, row in tqdm(df.iterrows()):
-        action = choices([main_label, det_label], weights=[10, 10])[0]
+        action = choices(
+            [main_label, det_label, barcode_label, qrcode_label],
+            weights=[50, 50, 1, 1])
+        action = action[0]
         recs = action(row, impute)
         labels += recs
 
@@ -146,14 +177,13 @@ def parse_args():
     description = """
     Generate label text from the saved label data.
 
-    Images can be generated (both clean and dirty) on the fly but we need to
-    persist the text data so that it can be used in several steps further down
-    the pipeline. This module creates persistent data for the label text from the
-    iDigBio database.
+    Images can be generated and then used on the fly but we need to persist the
+    text data so that it can be used in several steps further down the pipeline.
+    This module creates persistent data for the label text from the iDigBio database.
 
     Each row in the label text can be used to generate several types of labels as
     well as modifying the text itself. The text will be saved in parts so that
-    image augmentation can be finished on each section of text separately.
+    image augmentation can be performed on each section of text separately.
 
     Note that we are generating fake labels not necessarily realistic labels.
 

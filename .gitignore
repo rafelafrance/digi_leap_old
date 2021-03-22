@@ -29,7 +29,8 @@ data/images/
 data/processed/
 data/raw/
 data/temp/
-data/clean
+data/X
+data/Y
 
 # Temp files
 temp/

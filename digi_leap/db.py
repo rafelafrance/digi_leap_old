@@ -1,7 +1,7 @@
 """Common database functions."""
 import sqlite3
 from collections import defaultdict
-from random import choices, sample
+from random import sample
 
 from digi_leap.util import DotDict
 
@@ -32,17 +32,7 @@ def get_labels(db, table, count):
     return list(labels.values())
 
 
-def choose_values(db, table, k):
-    """Get a sample of imputations given a set of values and weights."""
-    with sqlite3.connect(db) as cxn:
-        cursor = cxn.execute(f'select * from {table}')
-        rows = cursor.fetchall()
-        values = [r[0].strip() for r in rows]
-        weights = [int(r[1]) for r in rows]
-    return choices(values, weights, k=k)
-
-
-def sample_values(db, table, k):
+def samples(db, table, k):
     """Choose imputations given values."""
     with sqlite3.connect(db) as cxn:
         cursor = cxn.execute(f'select * from {table}')
