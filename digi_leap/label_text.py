@@ -162,17 +162,23 @@ class LabelText:
 
     def title(self):
         """Add title to the label."""
-        title = ''
-        if self.record['dwc:stateProvince']:
-            if random() < 0.5:
-                title = 'Plants of ' + self.record['dwc:stateProvince']
-            else:
-                title = self.record['dwc:stateProvince'] + ' Plants'
-        elif self.record['dwc:datasetName']:
-            if random() < 0.5:
-                title = 'Collection of ' + self.record['dwc:datasetName']
-            else:
-                title = self.record['dwc:datasetName'] + ' Collection'
+        if self.record['dwc:order'] and random() < 0.2:
+            title = 'Plants of ' + self.record['dwc:order']
+
+        elif self.record['dwc:family'] and random() < 0.2:
+            title = 'Plants of ' + self.record['dwc:family']
+
+        elif self.record['dwc:stateProvince'] and random() < 0.2:
+            title = self.record['dwc:stateProvince'] + ' Plants'
+
+        elif self.record['dwc:stateProvince'] and random() < 0.2:
+            title = 'Plants of ' + self.record['dwc:stateProvince']
+
+        elif self.record['dwc:datasetName'] and random() < 0.2:
+            title = 'Collection of ' + self.record['dwc:datasetName']
+
+        else:
+            title = self.record['dwc:datasetName'] + ' Collection'
 
         if title:
             self.add_row(self.col(title, Use.title))

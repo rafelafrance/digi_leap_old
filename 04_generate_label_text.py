@@ -5,7 +5,7 @@ import argparse
 import logging
 import sqlite3
 import textwrap
-from random import choices, randint, seed
+from random import choices, randint, seed, random
 
 import pandas as pd
 from tqdm import tqdm
@@ -24,8 +24,9 @@ def main_label(row, impute):
     label.title()
     label.sci_name()
 
-    label.text(row.get('dwc:verbatimTaxonRank'), use=Use.verbatim)
-    label.text(row.get('symbiota:verbatimScientificName'), use=Use.verbatim)
+    if random() < 0.2:
+        label.text(row.get('dwc:verbatimTaxonRank'), use=Use.verbatim)
+        label.text(row.get('symbiota:verbatimScientificName'), use=Use.verbatim)
 
     # Body of label
     label.long_text(row.get('dwc:fieldNotes'))
@@ -38,24 +39,27 @@ def main_label(row, impute):
     label.long_text(row.get('dwc:sex'))
     label.long_text(row.get('dwc:reproductiveCondition'))
 
-    label.long_text(row.get('dwc:verbatimCoordinates'), use=Use.verbatim)
-    label.long_text(row.get('dwc:verbatimDepth'), use=Use.verbatim)
-    label.long_text(row.get('dwc:verbatimElevation'), use=Use.verbatim)
-    label.long_text(row.get('dwc:verbatimLatitude'), use=Use.verbatim)
-    label.long_text(row.get('dwc:verbatimLongitude'), use=Use.verbatim)
-    label.long_text(row.get('dwc:verbatimEventDate_1'), use=Use.verbatim)
+    if random() < 0.5:
+        label.long_text(row.get('dwc:verbatimCoordinates'), use=Use.verbatim)
+        label.long_text(row.get('dwc:verbatimDepth'), use=Use.verbatim)
+        label.long_text(row.get('dwc:verbatimElevation'), use=Use.verbatim)
+        label.long_text(row.get('dwc:verbatimEventDate_1'), use=Use.verbatim)
 
     label.lat_long()
 
     # Collected
-    label.impute_text(None, impute['name'], field_label='Coll. by', use=Use.name)
-    label.impute_text(None, impute['date'], use=Use.date)
+    field_label = None if random() < 0.8 else 'Coll. by:'
+    label.impute_text(None, impute['name'], field_label=field_label, use=Use.name)
+
+    field_label = None if random() < 0.95 else 'Collected:'
+    label.impute_text(None, impute['date'], field_label=field_label, use=Use.date)
 
     # Footer
-    label.impute_text(
-        row.get('dcterms:rightsHolder'),
-        impute['rights_holder'],
-        use=Use.rights_holder)
+    if random() < 0.5:
+        label.impute_text(
+            row.get('dcterms:rightsHolder'),
+            impute['rights_holder'],
+            use=Use.rights_holder)
 
     label.update_by_use(Use.verbatim, 'writing', Writing.handwritten)
 
@@ -69,21 +73,27 @@ def det_label(row, impute):
 
     label.sci_name()
 
+    field_label = None if random() < 0.5 else 'Det. by:'
+    field_label = field_label if random() < 0.5 else 'Determiner:'
+    field_label = field_label if random() < 0.5 else 'Det.'
     label.impute_text(
         row.get('dwc:identifiedBy'),
         impute['name'],
-        field_label='Det. by',
+        field_label=field_label,
         use=Use.name)
 
+    field_label = None if random() < 0.75 else 'Date:'
     label.impute_text(
         row.get('dwc:dateIdentified'),
         impute['date'],
+        field_label=field_label,
         use=Use.date)
 
-    label.impute_text(
-        row.get('dcterms:rightsHolder'),
-        impute['rights_holder'],
-        use=Use.rights_holder)
+    if random() < 0.5:
+        label.impute_text(
+            row.get('dcterms:rightsHolder'),
+            impute['rights_holder'],
+            use=Use.rights_holder)
 
     return label.build_records()
 
