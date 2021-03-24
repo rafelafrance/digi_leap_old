@@ -14,17 +14,18 @@ Margin = namedtuple('Margin', 'left top right bottom')
 class LabelImage:
     """An object for generating label images from label text."""
 
-    def __init__(self, label_recs, pad=0):
+    def __init__(self, label_recs):
         # Store records by row to simplify calculations
-        self.row_pad = pad
         self.recs = sorted(label_recs, key=lambda f: (f.row, f.col))
         self.frags = [db2fragment(r) for r in self.recs]
         self.rows = self.fragments_by_row()
+        self.label_type = self.frags[0].label_type
         self.label_id = self.frags[0].label_id
+        self.row_pad = 0
         self.gutter = Gutter(8, 8)
         self.margin = Margin(16, 16, 16, 16)
         self.fonts = {}
-        self.image = None
+        self.image_y = None
         self.row_heights = []
 
     def fragments_by_row(self):
@@ -71,9 +72,9 @@ class LabelImage:
     def layout(self):
         """Layout the text images on the label."""
         image_size = self.image_size()
-        self.image = Image.new(mode='RGB', size=image_size, color='white')
+        self.image_y = Image.new(mode='RGB', size=image_size, color='white')
 
-        draw = ImageDraw.Draw(self.image)
+        draw = ImageDraw.Draw(self.image_y)
         m = self.margin
         l, t, r, b = m.left // 2, m.top // 2, m.right // 2, m.bottom // 2
         draw.rectangle(
@@ -95,9 +96,9 @@ class LabelImage:
 
                 if frag.use == Use.title:
                     new_x = (image_size.width - frag.text_size.width) // 2
-                    self.image.paste(txt, (new_x, y))
+                    self.image_y.paste(txt, (new_x, y))
                 else:
-                    self.image.paste(txt, (x, y))
+                    self.image_y.paste(txt, (x, y))
 
                 x += frag.text_size.width + self.gutter.col
 

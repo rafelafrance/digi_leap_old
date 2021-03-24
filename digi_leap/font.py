@@ -28,7 +28,6 @@ def choose_label_fonts(label):
         #     pass
         # elif writing == Writing.qrcode:
         #     pass
-
         elif use in (Use.field_label, Use.rights_holder, Use.title):
             font = choice(BOLD_FONTS)
             size = randrange(18, 25, 2)

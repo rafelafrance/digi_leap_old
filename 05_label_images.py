@@ -41,9 +41,8 @@ def main(args):
     for label in tqdm(labels):
         ransom_note(label)
 
-        if args.unaugmented:
-            name = join(args.unaugmented, f'{label.label_id}.jpg')
-            label.image.save(name, 'JPEG')
+        name = join(args.y_dir, f'{label.label_id}.jpg')
+        label.image_y.save(name, 'JPEG')
 
 
 def parse_args():
@@ -69,20 +68,16 @@ def parse_args():
         help=f"""The number of label images to generate. (default: %(default)s)""")
 
     arg_parser.add_argument(
-        '--no-augmented-labels', action='store_true',
-        help=f"""Do not generate any augmented labels.""")
-
-    arg_parser.add_argument(
         '--seed', '-S', type=int,
         help="""Create a random seed for python. (default: %(default)s)""")
 
     arg_parser.add_argument(
-        '--unaugmented', '-u',
-        help="""Save un-augmented labels to this directory. For debugging images.""")
+        '--x-dir', '-X',
+        help="""Save un-augmented labels (Y) to this directory.""")
 
     arg_parser.add_argument(
-        '--augmented', '-a',
-        help="""Save augmented labels to this directory. For debugging images.""")
+        '--y-dir', '-Y',
+        help="""Save augmented labels (X) to this directory.""")
 
     args = arg_parser.parse_args()
     return args

@@ -24,13 +24,8 @@ venv/
 
 # data
 output/
-data/backup/
-data/images/
-data/processed/
-data/raw/
-data/temp/
-data/X
-data/Y
+data/
+~data/disallowed_values.txt
 
 # Temp files
 temp/

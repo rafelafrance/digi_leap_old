@@ -13,7 +13,7 @@ from random import choice, random
 from textwrap import wrap
 
 from digi_leap.const import DATA_DIR
-from digi_leap.label_fragment import LabelFragment, Use, Writing
+from digi_leap.label_fragment import LabelFragment, Use, Writing, LabelType
 
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
 
@@ -26,8 +26,9 @@ DISALLOWED_VALUES = ', '.join(DISALLOWED_VALUES)
 class LabelText:
     """Build label text from DB data."""
 
-    def __init__(self, record, max_row_len=40):
+    def __init__(self, record, max_row_len=40, label_type=LabelType.main):
         self.label_id = str(uuid.uuid4())
+        self.label_type = label_type
         self.record = record
         self.max_row_len = max_row_len
         self.label = []
@@ -39,6 +40,7 @@ class LabelText:
             for c, col in enumerate(row):
                 records.append(LabelFragment(
                     label_id=self.label_id,
+                    label_type=self.label_type.name,
                     writing=col.get('writing', Writing.typewritten).name,
                     row=r,
                     col=c,
