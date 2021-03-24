@@ -33,7 +33,7 @@ The next desired step is to extract the text on the labels using OCR. However, o
 
 ![Figure 2: Label with underlines](assets/label_with_underlines.jpg)
 
-The training strategy for this step is to generate a bunch of fake labels and use them to train the models. The labels need to be "plausible looking" and don't have to be realistic.
+The training strategy for this step is to generate a bunch of fake labels and use them to train the models. The labels need to be "plausible looking" and don't have to be realistic. The advantages of this approach are that we always know what the ground truth (Y) is, and we can generate as many images as we need. The disadvantage is that we may generate augmented labels (X) that are not close enough to real ones to be useful. I.e. we may train for the wrong thing.
 
 This itself involves a few steps:
 
@@ -50,8 +50,6 @@ This itself involves a few steps:
    1. At least once to generate [test](args/05_test_images.args) data. This is commonly called the holdout set.
 1. We then use **TBD** to randomly augment images to make it look closer to a real label (X). This will include (but is not limited to) adding a color or gradient to the background, underlining some text, adding smudges, rotating the image, and adding stray marks, etc.
 1. Finally, we can train the model to remove as many of the augmentations from above as possible.
-
-The advantages of this approach are that we always know what the ground truth (Y), and we can generate as many images as we need. The disadvantage is that we may generate augmented labels that are not close enough to real ones to be useful. I.e. we may train for the wrong thing.
 
 *Note that we may also need to train separate models to do things like rotate the text to get it into a proper orientation for OCR etc.*
 
