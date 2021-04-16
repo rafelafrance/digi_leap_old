@@ -5,7 +5,7 @@ from pathlib import Path
 
 BATCH_SIZE = 1_000_000  # How many records to work with at a time
 
-ROOT_DIR = Path('..' if os.getcwd().endswith('notebooks') else '.')
+ROOT_DIR = Path('..' if os.getcwd().endswith('scratch') else '.')
 DATA_DIR = ROOT_DIR / 'data'
 
 IMAGE_DIR = DATA_DIR / 'images'

@@ -67,7 +67,7 @@ def insert(args, renames, drops):
                 if_exists = 'append' if args.append_table else 'replace'
 
                 for df in tqdm(reader):
-                    # TODO: This slows things down but not doing it yields a memory leak
+                    # TODO: Slows things down but not doing it causes a memory leak
                     df = df.copy()
 
                     if args.filter:
@@ -110,9 +110,9 @@ def parse_args():
         Load iDigBio Data.
 
         The files in the iDigBio snapshot is too big to work with easily on a laptop.
-        So, we extract one CSV file from them at a time and then create a database
-        table from that CSV. Later on we will sample this data several times before
-        eventually deleting it.
+        So, we extract one CSV file from them and then create a database table from
+        that CSV. Later on we will sample this data several times before eventually
+        deleting it.
     """
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars='@')
@@ -152,7 +152,7 @@ def parse_args():
             --filter=plant@dwc:kingdom will only choose records that have 'plant'
             somewhere in the 'dwc:kingdom' field and --filter=.@dwc:scientificName
             will look for a non-blank 'dwc:scientificName' field. You may filter
-            upon columns that will not be in the output table.""")
+            on columns that will not be in the output table.""")
 
     arg_parser.add_argument(
         '--append-table', '-a', action='store_true',

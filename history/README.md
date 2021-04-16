@@ -52,12 +52,12 @@ The training strategy is to generate a bunch of fake labels and use them to trai
    - We use [01_load_idigbio_data.py](load_idigbio_data.py) with these [arguments](args/load_idigbio_data.args) to load data that into a database.
 1. Generate text for the images, mark where on the label that text appears, and what kind of text it is (typewritten, handwritten, barcode, etc.).
    - [03_values_for_imputation.py](values_for_imputation.py) with these [arguments](args/values_for_imputation.args) samples the data from iDigBio so that we can impute certain label fields.
-    - We then generate label text with [04_generate_label_text.py](history/generate_label_text.py) and these [arguments](history/args/generate_label_text.args).
+    - We then generate label text with [04_generate_label_text.py](generate_label_text.py) and these [arguments](args/generate_label_text.args).
 1. We save that information to a database so that we can use it later for the OCR and OCR cleanup steps below.
-1. We use [05_label_images.py](history/label_images.py) to generate both pristine versions of labels to use as targets for training the model (Y), and augmented versions of labels to use as model input (X). The Y dataset contains labels free of marks and underlines etc. We run this script at least 3 times:
-   1. At least once to generate [training](history/args/train_images.args) data.
-   1. At least once to generate [validation](history/args/valid_images.args) data. Validation data is used at the end of each epoch to test the progress of the training.
-   1. At least once to generate [test](history/args/test_images.args) data. This is commonly called the holdout set.
+1. We use [05_label_images.py](label_images.py) to generate both pristine versions of labels to use as targets for training the model (Y), and augmented versions of labels to use as model input (X). The Y dataset contains labels free of marks and underlines etc. We run this script at least 3 times:
+   1. At least once to generate [training](args/train_images.args) data.
+   1. At least once to generate [validation](args/valid_images.args) data. Validation data is used at the end of each epoch to test the progress of the training.
+   1. At least once to generate [test](args/test_images.args) data. This is commonly called the holdout set.
 1. We then use **TBD** to randomly augment images to make it look closer to a real label (X). This will include (but is not limited to) adding a color or gradient to the background, underlining some text, adding smudges, rotating the image, and adding stray marks, etc.
 1. Next, we can train the model to remove as many of the augmentations from above as possible.
 1. Finally, we examine how well the cleanup worked on both the generated fake labels and, more importantly, on real labels cut out from the actual herbarium sheets.
