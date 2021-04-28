@@ -9,8 +9,8 @@ from random import seed
 from tqdm import tqdm
 
 from digi_leap.db import get_labels
-from digi_leap.font import choose_label_fonts
-from digi_leap.label_image import LabelImage
+from history.digi_leap.font import choose_label_fonts
+from history.digi_leap.label_image import LabelImage
 from digi_leap.log import finished, started
 
 

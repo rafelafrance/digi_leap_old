@@ -13,7 +13,7 @@ from random import choice, random
 from textwrap import wrap
 
 from digi_leap.const import DATA_DIR
-from digi_leap.label_fragment import LabelFragment, Use, Writing, LabelType
+from history.digi_leap.label_fragment import LabelFragment, Use, Writing, LabelType
 
 REMOVE_PUNCT = str.maketrans('', '', string.punctuation)
 

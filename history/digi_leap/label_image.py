@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-from digi_leap.label_fragment import Size, Use, Writing, db2fragment
+from history.digi_leap.label_fragment import Size, Use, Writing, db2fragment
 
 Gutter = namedtuple('Gutter', 'row col')
 Margin = namedtuple('Margin', 'left top right bottom')

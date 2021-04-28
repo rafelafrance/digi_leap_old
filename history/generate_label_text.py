@@ -11,8 +11,8 @@ import pandas as pd
 from tqdm import tqdm
 
 from digi_leap.db import samples
-from digi_leap.label_fragment import Use, Writing
-from digi_leap.label_text import LabelText
+from history.digi_leap.label_fragment import Use, Writing
+from history.digi_leap.label_text import LabelText
 from digi_leap.log import finished, started
 
 

@@ -3,7 +3,7 @@ import sqlite3
 from collections import defaultdict
 from random import sample
 
-from digi_leap.util import DotDict
+from junk.line import DotDict
 
 
 def dict_factory(cursor, row):

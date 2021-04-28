@@ -2,7 +2,7 @@
 from random import choice, randrange
 
 from digi_leap.const import ROOT_DIR
-from digi_leap.label_fragment import Use, Writing
+from history.digi_leap.label_fragment import Use, Writing
 
 FONT_DIR = ROOT_DIR / 'fonts'
 

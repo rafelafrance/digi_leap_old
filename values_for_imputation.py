@@ -9,7 +9,7 @@ from random import sample, seed
 
 import pandas as pd
 
-from digi_leap.label_text import DISALLOWED_VALUES
+from history.digi_leap.label_text import DISALLOWED_VALUES
 from digi_leap.log import finished, started
 
 
