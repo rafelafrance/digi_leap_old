@@ -35,9 +35,6 @@ class Label:
         self._binarized = False
         self._background = WHITE
 
-    def pipeline(self):
-        """Process the label though the pipeline."""
-
     @property
     def background(self):
         """Treat the background as a property."""
@@ -60,18 +57,24 @@ class Label:
         self.data = self.data > threshold
         self._binarized = True
 
-    def ocr(self):
+    def ocr_text(self):
         """OCR the image."""
         self.background = WHITE
         text = pytesseract.image_to_string(self.data, config=self.config)
         return text
+
+    def ocr_data(self):
+        """OCR the image."""
+        self.background = WHITE
+        boxes = pytesseract.image_to_data(self.data)
+        return boxes
 
     def find_horizontal_lines(self, line_length=100, line_gap=6):
         """Find horizontal lines (underlines, edges, etc.) on the label."""
         return self.find_lines(
             self.near_horiz, line_length=line_length, line_gap=line_gap)
 
-    def find_vertical_lines(self, line_length=50, line_gap=6):
+    def find_vertical_lines(self, line_length=100, line_gap=6):
         """Find vertical lines (mostly edges) on the label."""
         return self.find_lines(
             self.near_vert, line_length=line_length, line_gap=line_gap)
