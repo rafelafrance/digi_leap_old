@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """OCR  a set of labels."""
 
-import logging
 import textwrap
 from argparse import ArgumentParser, Namespace
 from os import makedirs
 from pathlib import Path
+from typing import Optional
+
+from tqdm import tqdm
 
 from digi_leap.label import Label
 from digi_leap.log import finished, started
@@ -16,16 +18,40 @@ def ocr_labels(args: Namespace) -> None:
     make_dirs(args)
 
     label_paths = sorted(args.label_dir.glob('*'))
-    for label_path in label_paths:
-        logging.info(f'{label_path.stem}')
-
-        label = prepare_image(label_path)
-
-        output_label(label, args.data_dir, 'tsv')
-        output_label(label, args.text_dir, 'txt')
+    for image_path in tqdm(label_paths):
+        label = None
+        label = output_label(args, image_path, label, '.tsv')
+        output_label(args, image_path, label, '.txt')
 
 
-def prepare_image(path):
+def output_label(
+        args: Namespace,
+        image_path: Path,
+        label: Optional[Label],
+        suffix: str,
+) -> Optional[Label]:
+    """Output data in the specified format."""
+    dir_ = args.data_dir if suffix == '.tsv' else args.text_dir
+    if not dir_:
+        return label
+
+    path = dir_ / f'{image_path.stem}{suffix}'
+    if path.exists() and not args.restart:
+        return label
+
+    if not label:
+        label = prepare_image(image_path)
+
+    info = label.ocr_data() if suffix == '.tsv' else label.ocr_text()
+    info = info.strip()
+    with open(path, 'w') as out_file:
+        out_file.write(info)
+        out_file.write('\n')
+
+    return label
+
+
+def prepare_image(path: Path) -> Label:
     """Turn an image of a label into text."""
     label = Label(path)
     label.deskew()
@@ -40,17 +66,7 @@ def prepare_image(path):
     return label
 
 
-def output_label(label, dir_, suffix):
-    """Output data."""
-    if dir_:
-        info = label.ocr_data() if suffix == 'tsv' else label.ocr_text()
-        path = dir_ / f'{label.path.stem}.{suffix}'
-        with open(path, 'w') as out_file:
-            out_file.write(info)
-            out_file.write('\n')
-
-
-def make_dirs(args):
+def make_dirs(args: Namespace) -> None:
     """Create output directories."""
     if args.data_dir:
         makedirs(args.data_dir, exist_ok=True)
@@ -82,6 +98,10 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         '--data-dir', '-d', type=Path,
         help="""The directory to output OCR data.""")
+
+    arg_parser.add_argument(
+        '--restart', action='store_true',
+        help="""If selected this will overwrite existing output files.""")
 
     args = arg_parser.parse_args()
     return args

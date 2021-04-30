@@ -89,19 +89,6 @@ class Label:
             theta=thetas)
         return lines
 
-    def remove_vert_lines(self, lines, line_width=6, window=10, threshold=6):
-        """Remove vertical lines from the label."""
-        rad, win = line_width // 2, window // 2
-        for line in lines:
-            (c0, r0), (c1, r1) = line
-            rr, cc = draw.line(r0, c0, r1, c1)
-
-            for row, col in zip(rr, cc):
-                outside = self.data[row, col-win:col+win].sum()
-                inside = self.data[row, col-rad:col+rad].sum()
-                if inside != 0 and (outside - inside) < threshold:
-                    self.data[row, col-rad:col+rad] = 0
-
     def remove_horiz_lines(self, lines, line_width=6, window=10, threshold=1):
         """Remove horizontal lines from the label."""
         rad, win = line_width // 2, window // 2
@@ -114,6 +101,19 @@ class Label:
                 outside = self.data[row-win:row+win, col].sum()
                 if inside != 0 and (outside - inside) < threshold:
                     self.data[row-rad:row+rad, col] = 0
+
+    def remove_vert_lines(self, lines, line_width=6, window=10, threshold=6):
+        """Remove vertical lines from the label."""
+        rad, win = line_width // 2, window // 2
+        for line in lines:
+            (c0, r0), (c1, r1) = line
+            rr, cc = draw.line(r0, c0, r1, c1)
+
+            for row, col in zip(rr, cc):
+                outside = self.data[row, col-win:col+win].sum()
+                inside = self.data[row, col-rad:col+rad].sum()
+                if inside != 0 and (outside - inside) < threshold:
+                    self.data[row, col-rad:col+rad] = 0
 
     def deskew(self, threshold=0.4):
         """Try to straighten the image."""
