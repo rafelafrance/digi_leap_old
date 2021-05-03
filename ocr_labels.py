@@ -9,7 +9,7 @@ from typing import Optional
 
 from tqdm import tqdm
 
-from digi_leap.label import Label
+from digi_leap.label_image import Label
 from digi_leap.log import finished, started
 
 
