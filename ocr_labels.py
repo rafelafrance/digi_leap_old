@@ -7,9 +7,10 @@ from os import makedirs
 from pathlib import Path
 from typing import Optional
 
+import numpy.typing as npt
 from tqdm import tqdm
+from skimage import io, color
 
-from digi_leap.label_image import Label
 from digi_leap.log import finished, started
 
 
@@ -19,17 +20,26 @@ def ocr_labels(args: Namespace) -> None:
 
     label_paths = sorted(args.label_dir.glob('*'))
     for image_path in tqdm(label_paths):
-        label = None
-        label = output_label(args, image_path, label, '.tsv')
-        output_label(args, image_path, label, '.txt')
+        ...
+        # Get label
+        # Does OCR just work?
+        # Will a simple spell correct fix things?
+        # Is the label too small?
+        # Do we need to orient the label?
+        # Should we segment the label ourselves?
+        # Is the contrast too low?
+        # Are lines interfering with the OCR?
+        # Will blurring help?
+        # Remove other noise?
+        # Will skew correction help?
 
 
 def output_label(
         args: Namespace,
         image_path: Path,
-        label: Optional[Label],
+        label: Optional[npt.ArrayLike],
         suffix: str,
-) -> Optional[Label]:
+) -> Optional[npt.ArrayLike]:
     """Output data in the specified format."""
     dir_ = args.data_dir if suffix == '.tsv' else args.text_dir
     if not dir_:
@@ -51,17 +61,18 @@ def output_label(
     return label
 
 
-def prepare_image(path: Path) -> Label:
+def prepare_image(path: Path) -> npt.ArrayLike:
     """Turn an image of a label into text."""
-    label = Label(path)
-    label.deskew()
-    label.binarize()
-
-    if lines := label.find_horizontal_lines(line_gap=5):
-        label.remove_horiz_lines(lines, window=20, threshold=2)
-
-    if lines := label.find_vertical_lines(line_gap=5):
-        label.remove_vert_lines(lines, window=20, threshold=2)
+    label = io.imread(str(path))
+    label = color.rgb2gray(label)
+    # label.deskew()
+    # label.binarize()
+    #
+    # if lines := label.find_horizontal_lines(line_gap=5):
+    #     label.remove_horiz_lines(lines, window=20, threshold=2)
+    #
+    # if lines := label.find_vertical_lines(line_gap=5):
+    #     label.remove_vert_lines(lines, window=20, threshold=2)
 
     return label
 
