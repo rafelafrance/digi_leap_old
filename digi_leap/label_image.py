@@ -4,15 +4,14 @@ from collections import namedtuple
 
 import numpy as np
 import numpy.typing as npt
-import pytesseract
 from PIL import Image
 from scipy.ndimage import interpolation as inter
-from skimage import draw
-from skimage.filters import threshold_sauvola
+from skimage import draw, filters
 from skimage.transform import probabilistic_hough_line
 
 Pair = namedtuple('Pair', 'start end')
-Where = namedtuple('Where', 'pos parity')
+
+# TODO: DO not use hardcoded parameters like these constants
 
 PADDING = 2  # How many pixels to pad a line or word
 INSIDE_ROW = 2  # Only merge rows if they are this close
@@ -20,7 +19,7 @@ OUTSIDE_ROW = 100  # Only merge rows if they do not make a row this fat
 
 TESS_CONFIG = ' '.join([
     '-l eng',
-    "-c tessedit_char_blacklist='€«¢»£®§{}'",
+    "-c tessedit_char_blacklist='€«¢»£®§{}©|'",
 ])
 
 # In the order we want to scan
@@ -50,46 +49,29 @@ def find_skew(label: Image) -> float:
     return best
 
 
-# def rotate_image(label: Image, angle: float) -> Image:
-#     """Rotate the image by a fractional degree."""
-#     theta = np.deg2rad(angle)
-#     cos, sin = np.cos(theta), np.sin(theta)
-#     data = (cos, sin, 0.0, -sin, cos, 0.0)
-#     rotated = image.transform(image.size, Image.AFFINE, data, fillcolor='black')
-#     return rotated
-
-
 def to_pil(label: npt.ArrayLike) -> Image:
     """Convert the label into a PIL image"""
+    if len(label.shape) == 3:
+        label = label[:, :, 0]
     if label.dtype == 'float64':
         return Image.fromarray(label * 255.0).convert('L')
     return Image.fromarray(label)
 
 
+# TODO: Calculate: window_size, k
 def binarize(
         label: Image,
         window_size: int = 11,
         k: float = 0.032,
 ) -> np.ndarray:
     """Convert the label into a binary threshold form."""
-    data = np.asarray(label).copy()
-    threshold = threshold_sauvola(data, window_size=window_size, k=k)
+    data: np.ndarray = np.asarray(label).copy()
+    threshold = filters.threshold_sauvola(data, window_size=window_size, k=k)
     data = data < threshold
     return data
 
 
-def ocr_text(label: npt.ArrayLike):
-    """OCR the label and return text."""
-    text = pytesseract.image_to_string(label, config=TESS_CONFIG)
-    return text
-
-
-def ocr_data(label: npt.ArrayLike):
-    """OCR the label and return tesseract data."""
-    data = pytesseract.image_to_data(label)
-    return data
-
-
+# TODO: Calculate: line_length, line_gap
 def find_lines(label: npt.ArrayLike, thetas, line_length=50, line_gap=6) -> list[tuple]:
     """Find lines on the label using the Hough Transform."""
     lines = probabilistic_hough_line(
@@ -100,6 +82,7 @@ def find_lines(label: npt.ArrayLike, thetas, line_length=50, line_gap=6) -> list
     return lines
 
 
+# TODO: Calculate: line_width, window, threshold
 def remove_horiz_lines(
         label: npt.ArrayLike, lines, line_width=6, window=8, threshold=1
 ):
@@ -116,6 +99,7 @@ def remove_horiz_lines(
                 label[row - rad:row + rad, col] = False
 
 
+# TODO: Calculate: line_width, window, threshold
 def remove_vert_lines(
         label: npt.ArrayLike, lines, line_width=6, window=10, threshold=6
 ):
@@ -132,72 +116,34 @@ def remove_vert_lines(
                 label[row, col - rad:col + rad] = False
 
 
-def profile_projection(
-        bin_section: Image,
-        threshold: int = 20,
-        axis: int = 1,
-        padding: int = PADDING,
-) -> list[Pair]:
+def profile_projection(bin_section, axis: int = 1) -> list[Pair]:
     """Look for lines and words in the image via a profile projection.
 
-    Look for blank rows or columns of pixels that delimit lines of text or a word.
+    The image should be binarized because we are looking for blank rows (or columns)
+    that delimit text.
     """
     data = np.array(bin_section).astype(np.int8)
 
     proj = data.sum(axis=axis)
-    proj = proj > threshold
-    proj = proj.astype(int)
 
-    prev = np.insert(proj[:-1], 0, 0)
-    curr = np.insert(proj[1:], 0, 0)
-    wheres = np.where(curr != prev)[0]
-    wheres = wheres.tolist()
+    # This is a simple attempt to remove the threshold input argument
+    # It should not work but it does... so far
+    ordered = np.sort(proj)
+    threshold = ordered[ordered.size // 2]
 
-    splits = np.array_split(proj, wheres)
+    mask = proj > threshold
+    proj[mask] = 1
+    proj[~mask] = 0
 
-    wheres = wheres if wheres[0] == 0 else ([0] + wheres)
-    wheres = [Where(w, s[0]) for w, s in zip(wheres, splits)]
-
-    starts = [w.pos - padding for w in wheres if w.parity == 1]
-    ends = [w.pos + padding for w in wheres if w.parity == 0][1:]
-    pairs = [Pair(t - padding, b + padding) for t, b in zip(starts, ends)]
+    pairs = []
+    prev = 0
+    top = 0
+    for i, v in enumerate(proj):
+        if v != prev:
+            if v == 1:
+                top = i
+            else:
+                pairs.append(Pair(top, i))
+            prev = v
 
     return pairs
-
-
-def overlapping_rows(old_rows: list[Pair]) -> list[Pair]:
-    """Fix overlapping rows."""
-    rows = [old_rows[0]]
-    for row in old_rows[1:]:
-        top, bottom = row
-        prev_top, prev_bottom = rows[-1]
-        if top < prev_bottom:
-            mid = (top + prev_bottom) // 2
-            rows.pop()
-            rows.append(Pair(prev_top, mid))
-            rows.append(Pair(mid, bottom))
-        else:
-            rows.append(row)
-    return rows
-
-
-def merge_rows(
-        rows: list[Pair],
-        *,
-        inside_row: int = INSIDE_ROW,
-        outside_row: int = OUTSIDE_ROW,
-) -> list[Pair]:
-    """Merge thin rows."""
-    new_rows: list[Pair] = [rows[0]]
-
-    for row in rows[1:]:
-        top, bottom = row
-        prev_top, prev_bottom = new_rows[-1]
-
-        if (top - prev_bottom) <= inside_row and (bottom - prev_top) <= outside_row:
-            new_rows.pop()
-            new_rows.append(Pair(prev_top, bottom))
-        else:
-            new_rows.append(row)
-
-    return new_rows
