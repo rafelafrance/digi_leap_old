@@ -9,6 +9,8 @@ from scipy.ndimage import interpolation as inter
 from skimage import draw, filters
 from skimage.transform import probabilistic_hough_line
 
+from digi_leap.const import CHAR_BLACKLIST
+
 Pair = namedtuple('Pair', 'start end')
 
 # TODO: DO not use hardcoded parameters like these constants
@@ -19,7 +21,7 @@ OUTSIDE_ROW = 100  # Only merge rows if they do not make a row this fat
 
 TESS_CONFIG = ' '.join([
     '-l eng',
-    "-c tessedit_char_blacklist='€«¢»£®§{}©|'",
+    f"-c tessedit_char_blacklist='{CHAR_BLACKLIST}'",
 ])
 
 # In the order we want to scan

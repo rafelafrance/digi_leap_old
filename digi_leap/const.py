@@ -15,3 +15,5 @@ TEMP_DIR = DATA_DIR / 'temp'
 
 CSV_FILE = 'occurrence_raw.csv'
 DB = PROCESSED_DIR / 'occurrence_raw_2021-02.sqlite3.db'
+
+CHAR_BLACKLIST = '€«¢»£®§{}©|'
