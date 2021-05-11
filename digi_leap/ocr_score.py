@@ -1,9 +1,8 @@
 """Handle OCR scores."""
 import re
 import string
-
-from dataclasses import dataclass, field
 import textwrap
+from dataclasses import dataclass, field
 
 import enchant
 import pytesseract
@@ -11,30 +10,16 @@ import pytesseract
 from digi_leap import label_image as li
 from digi_leap.const import DATA_DIR
 
-OK = 90.0
-BAD = 20.0
-
-# How many words should be in a label
-MIN_WORDS = 20
-
+OK = 90.0  # 90% words spelled correctly is considered good enough
+MIN_WORDS = 20  # At least this many correctly spelled words should be in a label
 
 PUNCT = re.escape(string.punctuation)
 SPLIT = re.compile(rf'([\s{PUNCT}]+)')
+
 ALLOW = {'.)', '.]'}
 LANG = 'en_US'
 EXTRA_VOCAB = DATA_DIR / 'custom_vocab.txt'
-
-
-def spell_checker(lang, extra_vocab=''):
-    """Setup the spell checker."""
-    if extra_vocab:
-        vocab = enchant.DictWithPWL(lang, str(extra_vocab))
-    else:
-        vocab = enchant.Dict(lang)
-    return vocab
-
-
-VOCAB = spell_checker(LANG, EXTRA_VOCAB)
+VOCAB = enchant.DictWithPWL(LANG, str(EXTRA_VOCAB))
 
 
 @dataclass(order=True)
