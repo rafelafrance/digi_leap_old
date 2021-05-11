@@ -13,8 +13,7 @@ from digi_leap.const import CHAR_BLACKLIST
 
 Pair = namedtuple('Pair', 'start end')
 
-# TODO: DO not use hardcoded parameters like these constants
-
+# TODO: DO not use hardcoded parameters like these 3 constants
 PADDING = 2  # How many pixels to pad a line or word
 INSIDE_ROW = 2  # Only merge rows if they are this close
 OUTSIDE_ROW = 100  # Only merge rows if they do not make a row this fat

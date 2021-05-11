@@ -129,10 +129,13 @@ def ocr_label(path: Path):
             return score.update(path, action)
 
     # ################################################################
-    # Try to correct skew
+    # Try dissecting the label
 
     # ################################################################
-    # Try to remove horizontal lines
+    # Try to correct skew on each label part
+
+    # ################################################################
+    # Try to remove horizontal lines on each label part
 
     # ################################################################
     # Nothing worked
