@@ -1,6 +1,29 @@
 """Common utilities."""
 
 import numpy as np
+from PIL import Image
+from numpy import typing as npt
+from scipy.ndimage import interpolation as interp
+from skimage.transform import probabilistic_hough_line
+
+from digi_leap.const import HORIZ_ANGLES
+
+
+def to_pil(label: npt.ArrayLike) -> Image:
+    """Convert the label into a PIL image"""
+    if len(label.shape) == 3:
+        label = label[:, :, 0]
+    if label.dtype == 'float64':
+        return Image.fromarray(label * 255.0).convert('L')
+    return Image.fromarray(label)
+
+
+def to_opencv(image):
+    """Convert the image into a format opencv can handle."""
+    image = np.asarray(image)
+    if image.dtype == 'bool':
+        return (image * 255).astype('uint8')
+    return image
 
 
 def iou(box1, box2):
@@ -56,3 +79,31 @@ def nms(boxes, threshold=0.3, scores=None):
         idx = np.delete(idx, delete)
 
     return boxes[non_overlapping].astype('int')
+
+
+def find_skew(label: Image) -> float:
+    """Find the skew of the label.
+
+    This method is looking for sharp breaks between the characters and spaces.
+    It will work best with binary images.
+    """
+    label = np.array(label).astype(np.int8)
+    scores = []
+    for angle in HORIZ_ANGLES:
+        rotated = interp.rotate(label, angle, reshape=False, order=0)
+        proj = np.sum(rotated, axis=1)
+        score = np.sum((proj[1:] - proj[:-1]) ** 2)
+        scores.append(score)
+    best = max(scores)
+    best = HORIZ_ANGLES[scores.index(best)]
+    return best
+
+
+def find_lines(label: npt.ArrayLike, thetas, line_length=50, line_gap=6) -> list[tuple]:
+    """Find lines on the label using the Hough Transform."""
+    lines = probabilistic_hough_line(
+        label,
+        theta=thetas,
+        line_length=line_length,
+        line_gap=line_gap)
+    return lines

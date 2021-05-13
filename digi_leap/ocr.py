@@ -1,143 +1,205 @@
 """OCR images."""
 
 import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
+import numpy.typing as npt
 import pytesseract
 from PIL import Image, ImageOps
 from scipy import ndimage
-from skimage import filters, morphology as morph
+from skimage import exposure as ex, filters, morphology as morph
 
-from digi_leap import label_image as li
-from digi_leap.ocr_score import ocr_score
-
-# TODO: Constants like this should get calculated
-# For threshold_sauvola
-WINDOW_SIZE = 11
-K = 0.032
-
-# For remove_small_objects
-MIN_SIZE = 64
-
-# For ImageOps.scale
-MIN_DIM = 512
-FACTOR = 2.0
+import digi_leap.util
+from digi_leap.ocr_score import OCRScore, score_tesseract
 
 
-def ocr_label(path: Path):
-    """Try to OCR the image."""
+@dataclass
+class ImageScore:
+    """Hold image parameters."""
+    image: npt.ArrayLike
+    score: OCRScore
+
+
+class AdjustImage(ABC):
+    """Organize image adjustments using a variant of the strategy pattern."""
+
+    def __init__(self, scorer: Callable, label: str = ''):
+        self.scorer = scorer
+        self.label = label
+
+    @abstractmethod
+    def __call__(self, best: ImageScore) -> ImageScore:
+        """Adjust the image."""
+        pass
+
+    def score(self, best: ImageScore, adjusted: Image) -> ImageScore:
+        """Score the OCR results and handle a better score."""
+        image = digi_leap.util.to_pil(adjusted)
+        score_ = self.scorer(image)
+        if score_ > best.score:
+            method = best.score.method
+            best = ImageScore(adjusted, score_)
+            best.score.method = method
+            best.score.log(self.label)
+        return best
+
+
+class Nothing(AdjustImage):
+    """Just score the image without any adjustments."""
+
+    def __init__(self, scorer: Callable, label='nothing'):
+        super().__init__(scorer, label)
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        return self.score(best, best.image)
+
+
+class Scale(AdjustImage):
+    """Try a bigger label."""
+
+    def __init__(
+            self, scorer: Callable,
+            label: str = '',
+            factor: float = 2.0,
+            min_dim: int = 512,
+    ):
+        label = label if label else f'scaled by: {factor}'
+        super().__init__(scorer, label)
+        self.factor = factor
+        self.min_dim = min_dim
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        bigger = ImageOps.scale(best.image, self.factor)
+        best = self.score(best, bigger)
+        if best.image.width < self.min_dim or best.image.height < self.min_dim:
+            best.image = bigger
+            best.score.log(self.label)
+        return best
+
+
+class Rotate(AdjustImage):
+    """Try adjusting the rotation of the image."""
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        osd = pytesseract.image_to_osd(best.image)
+        angle = int(re.search(r'degrees:\s*(\d+)', osd).group(1))
+        if angle != 0:
+            self.label = f'rotated by: {angle}'
+            data = np.asarray(best.image).copy()
+            rotated = ndimage.rotate(data, angle, mode='nearest')
+            best = self.score(best, rotated)
+        return best
+
+
+class RankModal(AdjustImage):
+    """Filter the image using a modal filter."""
+
+    def __init__(self, scorer: Callable, label: str = '', selem: npt.ArrayLike = None):
+        label = label if label else f'rank modal: disk(2)'
+        super().__init__(scorer, label)
+        self.selem = selem if selem else morph.disk(2)
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        ranked = filters.rank.modal(best.image, selem=self.selem)
+        best = self.score(best, ranked)
+        return best
+
+
+class Exposure(AdjustImage):
+    """Filter the image using a modal filter."""
+
+    def __init__(self, scorer: Callable, label: str = '', gamma: float = 2.0):
+        label = label if label else f'adjust exposure: gamma = {gamma}'
+        super().__init__(scorer, label)
+        self.gamma = gamma
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        adjusted = ex.adjust_gamma(best.image, gamma=self.gamma)
+        adjusted = ex.rescale_intensity(adjusted)
+        best = self.score(best, adjusted)
+        return best
+
+
+class Binarize(AdjustImage):
+    """Binarize the image."""
+
+    def __init__(
+            self,
+            scorer: Callable,
+            label: str = '',
+            window_size: int = 11,
+            k: float = 0.032,
+    ):
+        if not label:
+            label = f'sauvola threshold: window size = {window_size} K = {k}'
+        super().__init__(scorer, label)
+        self.window_size = window_size
+        self.k = k
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        binary = np.asarray(best.image).copy()
+        threshold = filters.threshold_sauvola(
+            binary, window_size=self.window_size, k=self.k)
+        binary = binary < threshold
+        best = self.score(best, binary)
+        return best
+
+
+class RemoveSmallObjects(AdjustImage):
+    """Filter the image using a modal filter."""
+
+    def __init__(self, scorer: Callable, label: str = '', min_size: int = 64):
+        label = label if label else f'removed small objects: min_size = {min_size}'
+        super().__init__(scorer, label)
+        self.min_size = min_size
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        cleaned = morph.remove_small_objects(best.image, min_size=self.min_size)
+        best = self.score(best, cleaned)
+        return best
+
+
+class BinaryOpening(AdjustImage):
+    """Filter the image using a modal filter."""
+
+    def __init__(self, scorer: Callable, label: str = '', selem: npt.ArrayLike = None):
+        label = label if label else f'binary opening: selem=cross'
+        super().__init__(scorer, label)
+        self.selem = selem
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        cleaned = morph.binary_opening(best.image, selem=self.selem)
+        best = self.score(best, cleaned)
+        return best
+
+
+def ocr_label(path: Path, scorer=score_tesseract) -> ImageScore:
+    """Try to OCR the image.
+
+    Adjust the image with greedy heuristics. Stop as soon as things are "good enough".
+    """
+    adjustments = [
+        Nothing(scorer),
+        Scale(scorer),
+        Rotate(scorer),
+        RankModal(scorer),
+        Exposure(scorer),
+        Binarize(scorer),
+        RemoveSmallObjects(scorer),
+        BinaryOpening(scorer),
+    ]
+
     image = Image.open(path).convert('L')
+    score = OCRScore(found=-1)
+    best = ImageScore(np.asarray(image), score)
 
-    # ################################################################
-    # Try the unmodified label
+    for adjust in adjustments:
+        best = adjust(best)
+        if best.score.is_ok:
+            return best
 
-    action = 'did nothing'
-
-    best = ocr_score(image)
-
-    if best.is_ok:
-        return best.update(path, action)
-
-    # ################################################################
-    # Try a bigger label
-
-    action = f'scaled by: {FACTOR}'
-
-    bigger = ImageOps.scale(image, FACTOR)
-    score = ocr_score(bigger)
-
-    if image.width < MIN_DIM or image.height < MIN_DIM:
-        image = bigger
-        best.log(action)
-
-    if score > best:
-        image = bigger
-        best = score
-        best.log(action)
-        if best.is_ok:
-            return best.update(path, action)
-
-    # ################################################################
-    # Try to orient the label
-
-    osd = pytesseract.image_to_osd(image)
-    angle = int(re.search(r'degrees:\s*(\d+)', osd).group(1))
-
-    action = f'rotated by: {angle}'
-
-    data = np.asarray(image).copy()
-
-    if angle != 0:
-        rotated = ndimage.rotate(data, int(angle), mode='nearest')
-        rotated = li.to_pil(rotated)
-        score = ocr_score(rotated)
-
-        if score > best:
-            image = rotated
-            best = score
-            best.log(action)
-            if best.is_ok:
-                return best.update(path, action)
-
-    # ################################################################
-    # Try converting the image to binary
-
-    action = f'sauvola threshold window size = {WINDOW_SIZE} K = {K}'
-
-    binary = np.asarray(image).copy()
-    threshold = filters.threshold_sauvola(binary, window_size=WINDOW_SIZE, k=K)
-    binary = binary < threshold
-
-    temp = li.to_pil(binary)
-    score = ocr_score(temp)
-
-    if score > best:
-        best = score
-        score.log(action)
-        if score.is_ok:
-            return score.update(path, action)
-
-    # ################################################################
-    # Try to remove small objects
-
-    action = f'removed small objects min_size = {MIN_SIZE}'
-
-    cleaned = morph.remove_small_objects(binary, min_size=MIN_SIZE)
-    score = ocr_score(li.to_pil(cleaned))
-
-    if score > best:
-        binary = cleaned
-        best = score
-        score.log(action)
-        if score.is_ok:
-            return score.update(path, action)
-
-    # ################################################################
-    # Try opening holes
-
-    action = f'binary opening'
-
-    cleaned = morph.binary_opening(binary)
-    score = ocr_score(li.to_pil(cleaned))
-
-    if score > best:
-        # binary = cleaned
-        best = score
-        score.log(action)
-        if score.is_ok:
-            return score.update(path, action)
-
-    # ################################################################
-    # Try dissecting the label
-
-    # ################################################################
-    # Try to correct skew on each label part
-
-    # ################################################################
-    # Try to remove horizontal lines on each label part
-
-    # ################################################################
-    # Nothing worked
-
-    return best.update(path, 'fail')
+    return best

@@ -6,15 +6,15 @@ from dataclasses import dataclass, field
 
 import easyocr
 import enchant
-import numpy as np
 import pytesseract
 
-from digi_leap import label_image as li
-from digi_leap.const import DATA_DIR, CHAR_BLACKLIST
+import digi_leap.const
+from digi_leap.const import CHAR_BLACKLIST, DATA_DIR
+from digi_leap.util import to_opencv
 
-OK = 80.0  # If this percent of words are spelled correctly is considered good enough
 MIN_WORDS = 20  # At least this many correctly spelled words should be in a label
-MIN_LEN = 4  # Shorter words have a higher probability of being randomly generated
+OK = 60.0  # If this percent of words are spelled correctly it's considered good enough
+MIN_LEN = 3  # Shorter words have a higher probability of being randomly generated
 
 PUNCT = re.escape(string.punctuation)
 SPLIT = re.compile(rf'([\s{PUNCT}]+)')
@@ -81,16 +81,8 @@ class OCRScore:
 
 def score_tesseract(image):
     """Score the results of using the tesseract OCR engine."""
-    text = pytesseract.image_to_string(image, config=li.TESS_CONFIG)
+    text = pytesseract.image_to_string(image, config=digi_leap.const.TESS_CONFIG)
     return score_text(text, 'tesseract')
-
-
-def to_opencv(image):
-    """Convert the image into a format opencv can handle."""
-    image = np.asarray(image)
-    if image.dtype == 'bool':
-        return (image * 255).astype('uint8')
-    return image
 
 
 def score_easyocr(image):
@@ -118,10 +110,3 @@ def score_text(text, engine):
         engine=engine,
         text=text,
     )
-
-
-def ocr_score(image):
-    """Score OCR results using the spell checker as a proxy for quality."""
-    tess = score_tesseract(image)
-    easy = score_easyocr(image)
-    return tess if tess > easy else easy
