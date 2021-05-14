@@ -13,7 +13,7 @@ from PIL import Image, ImageOps
 from scipy import ndimage
 from skimage import exposure as ex, filters, morphology as morph
 
-import digi_leap.util
+import digi_leap.util as util
 from digi_leap.ocr_score import OCRScore, score_tesseract
 
 
@@ -38,7 +38,7 @@ class AdjustImage(ABC):
 
     def score(self, best: ImageScore, adjusted: Image) -> ImageScore:
         """Score the OCR results and handle a better score."""
-        image = digi_leap.util.to_pil(adjusted)
+        image = util.to_pil(adjusted)
         score_ = self.scorer(image)
         if score_ > best.score:
             method = best.score.method
@@ -73,9 +73,10 @@ class Scale(AdjustImage):
         self.min_dim = min_dim
 
     def __call__(self, best: ImageScore) -> ImageScore:
-        bigger = ImageOps.scale(best.image, self.factor)
-        best = self.score(best, bigger)
-        if best.image.width < self.min_dim or best.image.height < self.min_dim:
+        bigger = util.to_pil(best.image)
+        bigger = ImageOps.scale(bigger, self.factor)
+        best = self.score(best, np.asarray(bigger))
+        if best.image.shape[0] < self.min_dim or best.image.shape[1] < self.min_dim:
             best.image = bigger
             best.score.log(self.label)
         return best
@@ -104,7 +105,7 @@ class RankModal(AdjustImage):
         self.selem = selem if selem else morph.disk(2)
 
     def __call__(self, best: ImageScore) -> ImageScore:
-        ranked = filters.rank.modal(best.image, selem=self.selem)
+        ranked = filters.rank.modal(best.image.copy(), selem=self.selem)
         best = self.score(best, ranked)
         return best
 
@@ -193,7 +194,7 @@ def ocr_label(path: Path, scorer=score_tesseract) -> ImageScore:
         BinaryOpening(scorer),
     ]
 
-    image = Image.open(path).convert('L')
+    image = Image.open(path).convert('L').copy()
     score = OCRScore(found=-1)
     best = ImageScore(np.asarray(image), score)
 
