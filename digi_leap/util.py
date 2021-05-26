@@ -9,7 +9,7 @@ from skimage.transform import probabilistic_hough_line
 from digi_leap.const import HORIZ_ANGLES
 
 
-def to_pil(label: npt.ArrayLike) -> Image:
+def to_pil(label) -> Image:
     """Convert the label into a PIL image"""
     if len(label.shape) == 3:
         label = label[:, :, 0]
@@ -18,7 +18,7 @@ def to_pil(label: npt.ArrayLike) -> Image:
     return Image.fromarray(label)
 
 
-def to_opencv(image):
+def to_opencv(image) -> Image:
     """Convert the image into a format opencv can handle."""
     image = np.asarray(image)
     if image.dtype == 'bool':
@@ -38,14 +38,18 @@ def iou(box1, box2):
     return inter / (area1 + area2 - inter)
 
 
-def nms(boxes, threshold=0.3, scores=None):
-    """Remove overlapping boxes via non-maximum suppression.
+def _find_overlapping(boxes, threshold=0.3, scores=None):
+    """Find overlapping sets of bounding boxes.
 
-    Modified from Matlab code:
+    Groups are by abs() where the positive value indicates the "best" box in the
+    group and negative values indicate all other boxes in the group. I know that
+    value flags are considered bad but it's more efficient here. Defensive much?
+
+    Based on this MATLAB code:
     https://www.computervisionblog.com/2011/08/blazing-fast-nmsm-from-exemplar-svm.html
     """
     if len(boxes) == 0:
-        return []
+        return np.array([])
 
     if boxes.dtype.kind == 'i':
         boxes = boxes.astype('float64')
@@ -56,12 +60,14 @@ def nms(boxes, threshold=0.3, scores=None):
     area = (x1 - x0 + 1) * (y1 - y0 + 1)
 
     idx = scores if scores else area
-    idx = np.argsort(idx)
+    idx = idx.argsort()
 
-    non_overlapping = []
+    overlapping = np.zeros_like(idx)
+    group = 0
     while len(idx) > 0:
+        group += 1
         curr = idx[-1]  # Work with end of list so slice indexing will work as is
-        non_overlapping.insert(0, curr)  # Preserve order
+        overlapping[curr] = group
 
         # Get interior (overlap) coordinates
         xx0 = np.maximum(x0[curr], x0[idx[:-1]])
@@ -71,14 +77,30 @@ def nms(boxes, threshold=0.3, scores=None):
 
         # Get the intersection
         overlap = np.maximum(0, xx1 - xx0 + 1) * np.maximum(0, yy1 - yy0 + 1)
-        overlap = overlap / area[idx[:-1]]
+        overlap /= area[idx[:-1]]
 
-        # Find intersections larger than threshold & remove them
-        overlap = np.where(overlap > threshold)[0]
+        # Find intersections larger than threshold & group them
+        overlap = np.where(overlap >= threshold)[0]
+        overlapping[idx[overlap]] = -group
+
+        # Remove indices in an overlap group
         delete = np.concatenate(([-1], overlap))
         idx = np.delete(idx, delete)
 
-    return boxes[non_overlapping].astype('int')
+    return overlapping
+
+
+def overlapping_boxes(boxes, threshold=0.3, scores=None):
+    """Group overlapping boxes."""
+    groups = _find_overlapping(boxes, threshold=threshold, scores=scores)
+    return np.abs(groups)
+
+
+def nms(boxes, threshold=0.3, scores=None):
+    """Remove overlapping boxes via non-maximum suppression."""
+    groups = _find_overlapping(boxes, threshold=threshold, scores=scores)
+    reduced = np.argwhere(groups > 0).squeeze(1)
+    return boxes[reduced]
 
 
 def find_skew(label: Image) -> float:

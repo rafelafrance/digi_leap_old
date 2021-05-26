@@ -84,7 +84,8 @@ def parse_args() -> Namespace:
         help="""How many images to sample. (default: %(default)s)""")
 
     arg_parser.add_argument(
-        '--seed', '-S', type=int, help="""Seed for the random number generator.""")
+        '--seed', '-S', type=int,
+        help="""Seed for the random number generator.""")
 
     args = arg_parser.parse_args()
 

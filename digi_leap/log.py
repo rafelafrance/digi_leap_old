@@ -1,9 +1,11 @@
+"""Logging functions."""
+
 import logging
 import sys
 from os.path import basename, splitext
 
 
-def setup_logger():
+def setup_logger() -> None:
     """Setup the logger."""
     logging.basicConfig(
         level=logging.INFO,
