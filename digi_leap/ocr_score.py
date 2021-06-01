@@ -6,6 +6,7 @@ import textwrap
 from dataclasses import dataclass, field
 from io import StringIO
 from pathlib import Path
+from typing import Optional
 
 import easyocr
 import enchant
@@ -41,7 +42,7 @@ class OCRScore:
     method: list[str] = field(default_factory=list)
     engine: str = ''
     text: str = ''
-    data: list[dict] = None
+    data: Optional[list[dict]] = None
 
     @property
     def score(self) -> tuple[int, float]:
@@ -88,11 +89,15 @@ def score_tesseract(image: Image) -> OCRScore:
     raw = pytesseract.image_to_data(image, config=TESS_CONFIG)
     data = []
     with StringIO(raw) as in_file:
-        reader = csv.DictReader(in_file, delimiter='\t')
-        for row in reader:
+        rows = [r for r in csv.DictReader(in_file, delimiter='\t')]
+#         if len(rows) < 5:
+#             return score_text([], 'tesseract')
+        for row in rows:
             conf = float(row['conf'])
-            if conf < 0:
+            if conf < 0:  # Is an outer box that surrounds inner boxes
                 continue
+#             if row['text'].find('\n') > -1:
+#                 continue
             left = int(row['left'])
             top = int(row['top'])
             data.append({

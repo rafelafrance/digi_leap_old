@@ -38,7 +38,7 @@ def iou(box1, box2):
     return inter / (area1 + area2 - inter)
 
 
-def _find_overlapping(boxes, threshold=0.3, scores=None):
+def find_box_groups(boxes, threshold=0.3, scores=None):
     """Find overlapping sets of bounding boxes.
 
     Groups are by abs() where the positive value indicates the "best" box in the
@@ -83,7 +83,7 @@ def _find_overlapping(boxes, threshold=0.3, scores=None):
         overlap = np.where(overlap >= threshold)[0]
         overlapping[idx[overlap]] = -group
 
-        # Remove indices in an overlap group
+        # Remove all indices in an overlap group
         delete = np.concatenate(([-1], overlap))
         idx = np.delete(idx, delete)
 
@@ -92,13 +92,13 @@ def _find_overlapping(boxes, threshold=0.3, scores=None):
 
 def overlapping_boxes(boxes, threshold=0.3, scores=None):
     """Group overlapping boxes."""
-    groups = _find_overlapping(boxes, threshold=threshold, scores=scores)
+    groups = find_box_groups(boxes, threshold=threshold, scores=scores)
     return np.abs(groups)
 
 
 def nms(boxes, threshold=0.3, scores=None):
     """Remove overlapping boxes via non-maximum suppression."""
-    groups = _find_overlapping(boxes, threshold=threshold, scores=scores)
+    groups = find_box_groups(boxes, threshold=threshold, scores=scores)
     reduced = np.argwhere(groups > 0).squeeze(1)
     return boxes[reduced]
 

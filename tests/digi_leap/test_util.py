@@ -9,7 +9,7 @@ import digi_leap.util as util
 
 
 class TestUtil(unittest.TestCase):
-    """Test functions in util.oy."""
+    """Test functions in util.py."""
 
     def test_iou_01(self):
         """It handles disjoint boxes."""
