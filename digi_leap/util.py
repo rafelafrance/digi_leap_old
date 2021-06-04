@@ -11,11 +11,11 @@ from digi_leap.const import HORIZ_ANGLES
 
 def to_pil(label) -> Image:
     """Convert the label into a PIL image"""
-    if len(label.shape) == 3:
+    if hasattr(label, 'shape') and len(label.shape) == 3:
         label = label[:, :, 0]
-    if label.dtype == 'float64':
-        return Image.fromarray(label * 255.0).convert('L')
-    return Image.fromarray(label)
+    if hasattr(label, 'dtype') and label.dtype == 'float64':
+        return Image.fromarray(label * 255.0, 'L').convert('L')
+    return Image.fromarray(label, 'L')
 
 
 def to_opencv(image) -> Image:
@@ -41,12 +41,13 @@ def iou(box1, box2):
 def find_box_groups(boxes, threshold=0.3, scores=None):
     """Find overlapping sets of bounding boxes.
 
+    Note: This is primarily designed to work with non-maximum supression. Which
+    means that it will find larger boxes first and attach lesser boxes to it.
+    It does not chain overlapping boxes.
+
     Groups are by abs() where the positive value indicates the "best" box in the
     group and negative values indicate all other boxes in the group. I know that
     value flags are considered bad but it's more efficient here. Defensive much?
-
-    Based on this MATLAB code:
-    https://www.computervisionblog.com/2011/08/blazing-fast-nmsm-from-exemplar-svm.html
     """
     if len(boxes) == 0:
         return np.array([])
@@ -75,19 +76,68 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
         xx1 = np.minimum(x1[curr], x1[idx[:-1]])
         yy1 = np.minimum(y1[curr], y1[idx[:-1]])
 
-        # Get the intersection
-        overlap = np.maximum(0, xx1 - xx0 + 1) * np.maximum(0, yy1 - yy0 + 1)
-        overlap /= area[idx[:-1]]
+        # Get the intersection over the union (IOU) with the current box
+        iou = np.maximum(0, xx1 - xx0 + 1) * np.maximum(0, yy1 - yy0 + 1)  # intersect
+        iou /= area[idx[:-1]] + area[curr] - iou  # over union
 
-        # Find intersections larger than threshold & group them
-        overlap = np.where(overlap >= threshold)[0]
-        overlapping[idx[overlap]] = -group
+        # Find IOUs larger than threshold & group them
+        iou = np.where(iou >= threshold)[0]
+        overlapping[idx[iou]] = -group
 
-        # Remove all indices in an overlap group
-        delete = np.concatenate(([-1], overlap))
+        # Remove all indices in an IOU group
+        delete = np.concatenate(([-1], iou))
         idx = np.delete(idx, delete)
 
     return overlapping
+
+
+def intersections(boxes, func=None):
+    """Find the intersection over union (IOU) of every box with every other box."""
+    if len(boxes) == 0:
+        return np.array([])
+
+    if boxes.dtype.kind == 'i':
+        boxes = boxes.astype('float64')
+
+    # Simplify access to box components
+    x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+    n = len(boxes)
+
+    area = (x1 - x0 + 1) * (y1 - y0 + 1)
+    inters = np.empty([n, n], dtype='float64')
+
+    for i in range(n):
+        # Get interior (overlap) coordinates
+        xx0 = np.maximum(x0[i], x0)
+        yy0 = np.maximum(y0[i], y0)
+        xx1 = np.minimum(x1[i], x1)
+        yy1 = np.minimum(y1[i], y1)
+
+        # Get the intersection over union (IOU) with current box
+        inter = np.maximum(0, xx1 - xx0 + 1) * np.maximum(0, yy1 - yy0 + 1)
+
+        if func:
+            inter = func(inter, area, i)
+
+        inters[i] = inter
+
+    return inters
+
+
+def all_iou(boxes):
+    """Find the intersection over union (IOU) of every box with every other box."""
+    def func(inter, area, i):
+        return area[i] + area - inter
+
+    return intersections(boxes, func)
+
+
+def all_fractions(boxes):
+    """Find the fraction of the smaller box that is covered by the bigger box."""
+    def func(inter, area, i):
+        return np.maximum(inter / area, inter / area[i])
+
+    return intersections(boxes, func)
 
 
 def overlapping_boxes(boxes, threshold=0.3, scores=None):

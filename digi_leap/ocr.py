@@ -77,13 +77,16 @@ class Scale(AdjustImage):
         bigger = ImageOps.scale(bigger, self.factor)
         best = self.score(best, np.asarray(bigger))
         if best.image.shape[0] < self.min_dim or best.image.shape[1] < self.min_dim:
-            best.image = bigger
+            best.image = np.asarray(bigger)
             best.score.log(self.label)
         return best
 
 
 class Rotate(AdjustImage):
     """Try adjusting the rotation of the image."""
+
+    def __init__(self, scorer: Callable, label='rotated by:'):
+        super().__init__(scorer, label)
 
     def __call__(self, best: ImageScore) -> ImageScore:
         osd = pytesseract.image_to_osd(best.image)
@@ -96,11 +99,28 @@ class Rotate(AdjustImage):
         return best
 
 
+class Deskew(AdjustImage):
+    """Try adjusting the rotation of the image."""
+
+    def __init__(self, scorer: Callable, label='deskewed by:'):
+        super().__init__(scorer, label)
+
+    def __call__(self, best: ImageScore) -> ImageScore:
+        angle = util.find_skew(best.image)
+        if angle != 0.0:
+            print(angle)
+            self.label = f'deskewed by: {angle}'
+            data = np.asarray(best.image).copy()
+            rotated = ndimage.rotate(data, angle, mode='nearest')
+            best = self.score(best, rotated)
+        return best
+
+
 class RankModal(AdjustImage):
     """Filter the image using a modal filter."""
 
     def __init__(self, scorer: Callable, label: str = '', selem: npt.ArrayLike = None):
-        label = label if label else f'rank modal: disk(2)'
+        label = label if label else 'rank modal: disk(2)'
         super().__init__(scorer, label)
         self.selem = selem if selem else morph.disk(2)
 
@@ -168,7 +188,7 @@ class BinaryOpening(AdjustImage):
     """Filter the image using a modal filter."""
 
     def __init__(self, scorer: Callable, label: str = '', selem: npt.ArrayLike = None):
-        label = label if label else f'binary opening: selem=cross'
+        label = label if label else 'binary opening: selem=cross'
         super().__init__(scorer, label)
         self.selem = selem
 
@@ -187,6 +207,7 @@ def ocr_label(path: Path, scorer=score_tesseract) -> ImageScore:
         Nothing(scorer),
         Scale(scorer),
         Rotate(scorer),
+        Deskew(scorer),
         RankModal(scorer),
         Exposure(scorer),
         Binarize(scorer),

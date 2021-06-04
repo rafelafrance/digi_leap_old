@@ -35,7 +35,7 @@ md"""# Display Reconciled Bounding Boxes"""
 # Pkg.add("JSON")
 
 # ╔═╡ 46e1eb9d-19fc-4176-86fe-f57a4e37579d
-md"""## File locatations"""
+md"""## File locations"""
 
 # ╔═╡ be57fa62-073c-4d68-ba7a-f030409b1fab
 begin

@@ -11,6 +11,12 @@ import digi_leap.util as util
 class TestUtil(unittest.TestCase):
     """Test functions in util.py."""
 
+    # def test_iou_00(self):
+    #     """It handles disjoint boxes."""
+    #     box1 = [0, 0, 1, 1]
+    #     box2 = [1, 1, 1, 1]
+    #     print(util.iou(box1, box2))
+
     def test_iou_01(self):
         """It handles disjoint boxes."""
         box1 = [10, 10, 20, 20]
@@ -89,16 +95,16 @@ class TestUtil(unittest.TestCase):
     def test_overlap_groups_03(self):
         """It handles overlap above the threshold."""
         boxes = np.array([
-            [100, 100, 400, 400],
-            [110, 110, 410, 410],
+            [0, 0, 1, 2],
+            [0, 1, 2, 3],
         ])
         npt.assert_array_equal(util.overlapping_boxes(boxes), [1, 1])
 
     def test_overlap_groups_04(self):
         """It handles overlap below the threshold."""
         boxes = np.array([
-            [100, 100, 400, 400],  # Bigger
-            [399, 399, 500, 500],  # Smaller
+            [0, 0, 1, 2],  # Bigger
+            [1, 2, 2, 3],  # Smaller
         ])
         npt.assert_array_equal(util.overlapping_boxes(boxes), [1, 2])
 
@@ -117,3 +123,14 @@ class TestUtil(unittest.TestCase):
         """It handles an empty array."""
         boxes = np.array([])
         npt.assert_array_equal(util.overlapping_boxes(boxes), [])
+
+    def test_all_box_overlaps_01(self):
+        """It calulates the overlaps."""
+        boxes = np.array([
+            [0, 0, 1, 1],
+            [0, 1, 1, 2],
+        ])
+        npt.assert_array_equal(
+            util.all_iou(boxes),
+            [[1.0, 1.0 / 3.0],
+             [1.0 / 3.0, 1.0]])
