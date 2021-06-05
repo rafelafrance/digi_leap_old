@@ -41,7 +41,7 @@ def iou(box1, box2):
 def find_box_groups(boxes, threshold=0.3, scores=None):
     """Find overlapping sets of bounding boxes.
 
-    Note: This is primarily designed to work with non-maximum supression. Which
+    Note: This is primarily designed to work with non-maximum suppression. Which
     means that it will find larger boxes first and attach lesser boxes to it.
     It does not chain overlapping boxes.
 
@@ -127,7 +127,7 @@ def intersections(boxes, func=None):
 def all_iou(boxes):
     """Find the intersection over union (IOU) of every box with every other box."""
     def func(inter, area, i):
-        return area[i] + area - inter
+        return inter / (area[i] + area - inter)
 
     return intersections(boxes, func)
 

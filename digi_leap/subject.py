@@ -73,17 +73,22 @@ class Subject:
             self._merge_boxes()
 
     def _remove_multi_labels(self):
-        """Remove bounding boxes that contain multiple labels."""
+        """Remove bounding boxes that contain multiple labels.
+
+        Sometime people draw a bounding box around more than one label, this function
+        tries to correct that by removing the outer bounding box and seeing if that
+        breaks the remaining boxes into separate groups.
+        """
         removes = np.array([], dtype=int)
-        groups = util.find_box_groups(self.boxes)
+        groups = util.find_box_groups(self.boxes, threshold=0.1)
 
         # Look for boxes that contain more than one label
-        # Group all subboxes and count the subgroups
+        # Group all sub-boxes and count the subgroups
         # If the subgroup count > 1 then there are multiple labels
         max_group = np.max(groups)
         for g in range(1, max_group + 1):
-            subboxes = self.boxes[groups == -g]
-            subgroups = util.overlapping_boxes(subboxes)
+            sub_boxes = self.boxes[groups == -g]
+            subgroups = util.overlapping_boxes(sub_boxes)
             if len(subgroups) > 0 and subgroups.max() > 1:
                 idx = np.argwhere(groups == g).flatten()
                 removes = np.hstack((removes, idx))

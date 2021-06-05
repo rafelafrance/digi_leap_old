@@ -15,9 +15,9 @@ class TestSubject(unittest.TestCase):
         """It removes a box with multiple labels."""
         subject = Subject()
         boxes = np.array([
-            [10, 10, 100, 100],
-            [30, 30, 40, 40],
-            [50, 50, 60, 60],
+            [0, 0, 100, 100],
+            [5, 5, 90, 45],
+            [5, 55, 90, 95],
         ])
         types = np.array(['a', 'a', 'a'], dtype=str)
         subject.types = types
@@ -41,7 +41,7 @@ class TestSubject(unittest.TestCase):
             [124, 3920, 517, 4065],
             [106, 3893, 579, 4095],
         ])
-        types = np.array([['a'] * 7], dtype=str)
+        types = np.array(['a'] * 7, dtype=str)
         subject.types = types
         subject.boxes = boxes
         subject._remove_multi_labels()
