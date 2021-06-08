@@ -1,14 +1,14 @@
-"""A utility class to calulate average subject boxes."""
+"""A utility class to calculate average subject boxes."""
 
 import json
 
 import numpy as np
 
-import digi_leap.util as util
+import digi_leap.box_calc as calc
 
 
 class Subject:
-    """A utility class used to calulate merging subject boxes."""
+    """A utility class used to calculate merging subject boxes."""
 
     def __init__(self):
         self.subject_id: str = ''
@@ -68,7 +68,7 @@ class Subject:
         """Merge box groups into a single bounding box per group."""
         if len(self.boxes) > 0:
             self._remove_multi_labels()
-            self.groups = util.overlapping_boxes(self.boxes)
+            self.groups = calc.overlapping_boxes(self.boxes)
             self._sort_by_group()
             self._merge_boxes()
 
@@ -80,7 +80,7 @@ class Subject:
         breaks the remaining boxes into separate groups.
         """
         removes = np.array([], dtype=int)
-        groups = util.find_box_groups(self.boxes, threshold=0.1)
+        groups = calc.find_box_groups(self.boxes, threshold=0.1)
 
         # Look for boxes that contain more than one label
         # Group all sub-boxes and count the subgroups
@@ -88,7 +88,7 @@ class Subject:
         max_group = np.max(groups)
         for g in range(1, max_group + 1):
             sub_boxes = self.boxes[groups == -g]
-            subgroups = util.overlapping_boxes(sub_boxes)
+            subgroups = calc.overlapping_boxes(sub_boxes)
             if len(subgroups) > 0 and subgroups.max() > 1:
                 idx = np.argwhere(groups == g).flatten()
                 removes = np.hstack((removes, idx))

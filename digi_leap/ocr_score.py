@@ -5,7 +5,6 @@ import string
 import textwrap
 from dataclasses import dataclass, field
 from io import StringIO
-from pathlib import Path
 from typing import Optional
 
 import easyocr
@@ -44,14 +43,17 @@ class BBox:
 
     @property
     def empty(self):
+        """Check if it is empty."""
         return self.right != -1
 
     @property
     def height(self):
+        """Get the height."""
         return self.bottom - self.top + 1
 
     @property
     def width(self):
+        """Get the width"""
         return self.right - self.left + 1
 
     def as_list(self):
@@ -68,9 +70,19 @@ class OCRScore:
     file: str = ''
     stem: str = ''
     method: list[str] = field(default_factory=list)
-    engine: str = ''
+    engine: list[str] = field(default_factory=list)
     text: str = ''
     data: Optional[list[BBox]] = None
+
+    def carry_over(self, other, method: str, engine: str):
+        """Carry data over from another score."""
+        self.method = other.method + [method]
+        self.engine = other.engine + [engine]
+
+    def log(self, action: str) -> None:
+        """Log the OCR action."""
+        if not self.method or action != self.method[-1]:
+            self.method.append(action)
 
     @property
     def score(self) -> tuple[int, float]:
@@ -99,18 +111,6 @@ class OCRScore:
         {self.engine=}
         """)
 
-    def update(self, path: Path, method) -> 'OCRScore':
-        """Update the score."""
-        self.file = str(path)
-        self.stem = path.stem
-        self.log(method)
-        return self
-
-    def log(self, action: str) -> None:
-        """Log the OCR action."""
-        if not self.method or action != self.method[-1]:
-            self.method.append(action)
-
 
 def score_tesseract(image: Image) -> OCRScore:
     """Score the results of using the tesseract OCR engine."""
@@ -119,7 +119,7 @@ def score_tesseract(image: Image) -> OCRScore:
     with StringIO(raw) as in_file:
         rows = [r for r in csv.DictReader(in_file, delimiter='\t')]
         if len(rows) < 5:
-            return score_text([], 'tesseract')
+            return score_text([])
         for row in rows:
             conf = float(row['conf'])
             if conf < 0:  # Is an outer box that surrounds inner boxes
@@ -136,7 +136,7 @@ def score_tesseract(image: Image) -> OCRScore:
                 right=left + int(row['width']) - 1,
                 bottom=top + int(row['height']) - 1,
             ))
-    return score_text(data, 'tesseract')
+    return score_text(data)
 
 
 def score_easyocr(image) -> OCRScore:
@@ -154,10 +154,10 @@ def score_easyocr(image) -> OCRScore:
             right=pos[1][0],
             bottom=pos[2][1],
         ))
-    return score_text(data, 'easyocr')
+    return score_text(data)
 
 
-def score_text(data: list[dict], engine: str) -> OCRScore:
+def score_text(data: list[BBox]) -> OCRScore:
     """Score the output from the OCR."""
     text = ' '.join(d.text for d in data)
     words = [x for w in SPLIT.split(text) if (x := w.strip())]
@@ -165,7 +165,6 @@ def score_text(data: list[dict], engine: str) -> OCRScore:
     return OCRScore(
         total=len(words),
         found=found,
-        engine=engine,
         text=text,
         data=data,
     )

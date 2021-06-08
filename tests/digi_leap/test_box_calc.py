@@ -1,15 +1,15 @@
-"""Test utilities."""
+"""Test box calculations."""
 
 import unittest
 
 import numpy as np
 import numpy.testing as npt
 
-import digi_leap.util as util
+import digi_leap.box_calc as util
 
 
-class TestUtil(unittest.TestCase):
-    """Test functions in util.py."""
+class TestBoxCalc(unittest.TestCase):
+    """Test box calculations."""
 
     # def test_iou_00(self):
     #     """It handles disjoint boxes."""
@@ -123,14 +123,3 @@ class TestUtil(unittest.TestCase):
         """It handles an empty array."""
         boxes = np.array([])
         npt.assert_array_equal(util.overlapping_boxes(boxes), [])
-
-    def test_all_box_overlaps_01(self):
-        """It calulates the overlaps."""
-        boxes = np.array([
-            [0, 0, 1, 1],
-            [0, 1, 1, 2],
-        ])
-        npt.assert_array_equal(
-            util.all_iou(boxes),
-            [[1.0, 1.0 / 3.0],
-             [1.0 / 3.0, 1.0]])
