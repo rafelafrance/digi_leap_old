@@ -1,12 +1,17 @@
 """A utility class to calculate average subject boxes."""
 
 import json
+from collections import namedtuple
 
 import numpy as np
 
 import digi_leap.box_calc as calc
 
+# Used for training data
+SubjectTrainData = namedtuple('SubjectTrainData', 'path boxes labels')
 
+
+# Used when merging bounding boxes
 class Subject:
     """A utility class used to calculate merging subject boxes."""
 
@@ -68,14 +73,35 @@ class Subject:
         """Merge box groups into a single bounding box per group."""
         if len(self.boxes) > 0:
             self._remove_multi_labels()
+            self._remove_unlabeled()
             self.groups = calc.overlapping_boxes(self.boxes)
             self._sort_by_group()
             self._merge_boxes()
 
+    def _remove_unlabeled(self):
+        """Remove solo boxes that have no labels.
+
+        Sometimes people draw a box around the wrong thing like a plant part or an
+        empty part of the sheet etc. This function tries to remove those boxes. It is
+        unlikely that two people will do the same random box and it is also unlikely
+        (I hope) that the box will be given a box type.
+        """
+        removes = np.array([], dtype=int)
+        groups = calc.overlapping_boxes(self.boxes, threshold=0.1)
+        max_group = np.max(groups)
+        for g in range(1, max_group + 1):
+            group = self.boxes[groups == g]
+            types = self.types[groups == g]
+            if len(group) == 1 and not types[0]:
+                idx = np.argwhere(groups == g).flatten()
+                removes = np.hstack((removes, idx))
+
+        self._remove_boxes(groups, removes)
+
     def _remove_multi_labels(self):
         """Remove bounding boxes that contain multiple labels.
 
-        Sometime people draw a bounding box around more than one label, this function
+        Sometimes people draw a bounding box around more than one label, this function
         tries to correct that by removing the outer bounding box and seeing if that
         breaks the remaining boxes into separate groups.
         """
@@ -93,7 +119,10 @@ class Subject:
                 idx = np.argwhere(groups == g).flatten()
                 removes = np.hstack((removes, idx))
 
-        # Remove boxes that contain more than one label
+        self._remove_boxes(groups, removes)
+
+    def _remove_boxes(self, groups, removes):
+        """Remove boxes."""
         if len(removes) > 0:
             mask = np.zeros_like(groups, dtype=bool)
             mask[removes] = True

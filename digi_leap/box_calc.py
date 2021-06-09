@@ -1,12 +1,6 @@
 """Common functions for bounding boxes."""
 
 import numpy as np
-from PIL import Image
-from numpy import typing as npt
-from scipy.ndimage import interpolation as interp
-from skimage.transform import probabilistic_hough_line
-
-from digi_leap.const import HORIZ_ANGLES
 
 
 def iou(box1, box2):
