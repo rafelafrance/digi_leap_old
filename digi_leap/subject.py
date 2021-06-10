@@ -7,8 +7,32 @@ import numpy as np
 
 import digi_leap.box_calc as calc
 
+
+TYPE_CLASSES = {0: 'None', 1: 'Barcode', 2: 'Both', 3: 'Handwritten', 4: 'Typewritten'}
+TYPE = {v: k for k, v in TYPE_CLASSES.items()}
+
+RECONCILE_TYPES = {
+    '': TYPE['None'],
+    'Barcode': TYPE['Barcode'],
+    'Barcode_Both': TYPE['Barcode'],
+    'Barcode_Both_Handwritten': TYPE['Barcode'],
+    'Barcode_Both_Handwritten_Typewritten': TYPE['Barcode'],
+    'Barcode_Both_Typewritten': TYPE['Barcode'],
+    'Barcode_Handwritten': TYPE['Barcode'],
+    'Barcode_Handwritten_Typewritten': TYPE['Barcode'],
+    'Barcode_Typewritten': TYPE['Barcode'],
+    'Both': TYPE['Both'],
+    'Both_Handwritten': TYPE['Both'],
+    'Both_Handwritten_Typewritten': TYPE['Both'],
+    'Both_Typewritten': TYPE['Both'],
+    'Handwritten': TYPE['Handwritten'],
+    'Handwritten_Typewritten': TYPE['Both'],
+    'Typewritten': TYPE['Typewritten'],
+}
+
+
 # Used for training data
-SubjectTrainData = namedtuple('SubjectTrainData', 'path boxes labels')
+SubjectTrainData = namedtuple('SubjectTrainData', 'id path boxes labels')
 
 
 # Used when merging bounding boxes

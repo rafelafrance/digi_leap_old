@@ -8,35 +8,15 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 import digi_leap.detection.transforms as T
-from digi_leap.subject import SubjectTrainData
+from digi_leap.subject import RECONCILE_TYPES, SubjectTrainData
 
 
 class FasterRcnnData(Dataset):
     """Generate augmented training data."""
 
-    reconcile = {
-        '': '',
-        'Barcode': 'Barcode',
-        'Barcode_Both': 'Barcode',
-        'Barcode_Both_Handwritten': 'Barcode',
-        'Barcode_Both_Handwritten_Typewritten': 'Barcode',
-        'Barcode_Both_Typewritten': 'Barcode',
-        'Barcode_Handwritten': 'Barcode',
-        'Barcode_Handwritten_Typewritten': 'Barcode',
-        'Barcode_Typewritten': 'Barcode',
-        'Both': 'Both',
-        'Both_Handwritten': 'Both',
-        'Both_Handwritten_Typewritten': 'Both',
-        'Both_Typewritten': 'Both',
-        'Handwritten': 'Handwritten',
-        'Handwritten_Typewritten': 'Both',
-        'Typewritten': 'Typewritten',
-    }
-    classes = len(set(reconcile.values()))
-
-    def __init__(self, csv_file, image_dir, train):
-        self.subjects = [self.subject_data(r, image_dir)
-                         for r in self.read_subjects(csv_file)]
+    def __init__(self, subjects, train, size=(600, 400)):
+        self.subjects = subjects
+        self.size = size
         self.transforms = self.get_transforms(train)
 
     def __len__(self):
@@ -44,28 +24,42 @@ class FasterRcnnData(Dataset):
 
     def __getitem__(self, idx):
         subject = self.subjects[idx]
+        image = Image.open(subject.path)
 
-        boxes = subject.boxes
+        boxes = torch.as_tensor(subject.boxes, dtype=torch.float32)
+        # boxes = boxes.squeeze(0)
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
         target = {
             'boxes': boxes,
-            'labels': subject.labels,
-            'image_id': torch.tensor([idx]),
+            'labels': torch.as_tensor(subject.labels, dtype=torch.int64),
+            'image_id': torch.as_tensor(subject.id, dtype=torch.int64),
             'area': area,
-            'iscrowd': torch.zeros((1,), dtype=torch.int64),
+            'iscrowd': torch.zeros((len(subject.labels),), dtype=torch.int64),
         }
-
-        image = Image.open(subject.path)
 
         if self.transforms is not None:
             image, target = self.transforms(image, target)
 
         return image, target
 
-    def subject_data(self, row, image_dir):
+    def normalize_image(self, image, subject):
+        """Make images the same size."""
+
+    @classmethod
+    def read_subjects(cls, csv_file, image_dir):
+        """Read the subjects from a reconciled CSV file."""
+        with open(csv_file) as in_file:
+            reader = csv.DictReader(in_file)
+            subjects = [s for s in reader]
+        subjects = [s for r in subjects if (s := cls.subject_data(r, image_dir))]
+        return subjects
+
+    @staticmethod
+    def subject_data(row, image_dir):
         """Create a subject row record."""
         path = image_dir / row['subject_file_name']
+        id_ = int(row['subject_id'])
 
         boxes = []
         for box in [v for k, v in row.items() if k.startswith('merged_box_') and v]:
@@ -74,26 +68,20 @@ class FasterRcnnData(Dataset):
 
         labels = []
         for type_ in [v for k, v in row.items() if k.startswith('merged_type_') and v]:
-            labels.append(self.reconcile[type_])
+            type_ = type_.strip('_')
+            labels.append(RECONCILE_TYPES[type_])
 
-        return SubjectTrainData(path=path, boxes=boxes, labels=labels)
+        if not boxes or not labels:
+            print(path)
+            return None
 
-    @staticmethod
-    def read_subjects(csv_file):
-        """Read the subjects from a reconciled CSV file."""
-        with open(csv_file) as in_file:
-            reader = csv.DictReader(in_file)
-            subjects = [s for s in reader]
-        return subjects
+        return SubjectTrainData(id=id_, path=path, boxes=boxes, labels=labels)
 
-    @staticmethod
-    def get_transforms(train):
+    def get_transforms(self, train):
         """Build transforms based on the type of dataset."""
-        transforms = [T.ToTensor()]
+        transforms = [T.ToTensor(), T.Resize(self.size)]
         if train:
-            transforms.append(T.RandomHorizontalFlip(0.25))
-            transforms.append(T.RandomVerticalFlip(0.25))
-            transforms.append(T.RandomIoUCrop())
-            transforms.append(T.RandomZoomOut())
-            transforms.append(T.RandomPhotometricDistort())
+            transforms.append(T.RandomHorizontalFlip())
+            transforms.append(T.RandomVerticalFlip())
+            transforms.append(T.ColorJitter())
         return T.Compose(transforms)

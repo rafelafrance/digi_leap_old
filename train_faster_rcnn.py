@@ -11,12 +11,14 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
+from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from digi_leap.detection.engine import evaluate, train_one_epoch
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
+from digi_leap.subject import TYPE_CLASSES
 
 
 def train(args):
@@ -43,8 +45,11 @@ def train(args):
 
 def get_loaders(args):
     """Get the data loaders."""
-    train_dataset = FasterRcnnData(args.train_size)
-    score_dataset = FasterRcnnData(args.score_size)
+    subjects = FasterRcnnData.read_subjects(args.csv_file, args.image_dir)
+    train_subjects, score_subjects = train_test_split(
+        subjects, test_size=args.split, random_state=args.seed)
+    train_dataset = FasterRcnnData(train_subjects, True)
+    score_dataset = FasterRcnnData(score_subjects, False)
 
     train_loader = DataLoader(
         train_dataset,
@@ -68,8 +73,6 @@ def make_dirs(args):
     """Create output directories."""
     if args.model_dir:
         makedirs(args.model_dir, exist_ok=True)
-    # if args.runs_dir:
-    #     makedirs(args.runs_dir, exist_ok=True)
 
 
 def continue_training(model_dir, trained_model, model):
@@ -95,24 +98,28 @@ def get_model():
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(
-        in_features, FasterRcnnData.classes)
+        in_features, len(TYPE_CLASSES))
     return model
 
 
 def parse_args():
     """Process command-line arguments."""
-    description = """Train a model to recognize characters on allometry sheets."""
+    description = """Train a model to find labels on herbarium sheets."""
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description),
         fromfile_prefix_chars='@')
 
     arg_parser.add_argument(
-        '--train-size', type=int, default=4096,
-        help="""Train this many characters per epoch. (default: %(default)s)""")
+        '--csv-file', required=True, type=Path,
+        help="""The CSV file containing reconciled data.""")
 
     arg_parser.add_argument(
-        '--score-size', type=int, default=512,
-        help="""Train this many characters per epoch. (default: %(default)s)""")
+        '--image-dir', required=True, type=Path,
+        help="""Read training images from this directory.""")
+
+    arg_parser.add_argument(
+        '--split', type=float, default=0.25,
+        help="""Fraction of subjects in the score dataset. (default: %(default)s)""")
 
     arg_parser.add_argument(
         '--model-dir', type=Path, help="""Save models to this directory.""")
@@ -142,7 +149,7 @@ def parse_args():
         help="""Initial learning rate. (default: %(default)s)""")
 
     arg_parser.add_argument(
-        '--batch-size', type=int, default=16,
+        '--batch-size', type=int, default=8,
         help="""Input batch size. (default: %(default)s)""")
 
     arg_parser.add_argument(

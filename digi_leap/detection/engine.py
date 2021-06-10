@@ -5,9 +5,9 @@ import torch
 
 import torchvision.models.detection.mask_rcnn
 
-from coco_utils import get_coco_api_from_dataset
-from coco_eval import CocoEvaluator
-import utils
+from .coco_utils import get_coco_api_from_dataset
+from .coco_eval import CocoEvaluator
+from . import utils
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
@@ -25,7 +25,8 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
 
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         images = list(image.to(device) for image in images)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        # targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        targets = [{k: v.squeeze(0).to(device) for k, v in targets.items()}]
 
         loss_dict = model(images, targets)
 
