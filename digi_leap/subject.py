@@ -8,11 +8,10 @@ import numpy as np
 import digi_leap.box_calc as calc
 
 
-TYPE_CLASSES = {0: 'None', 1: 'Barcode', 2: 'Both', 3: 'Handwritten', 4: 'Typewritten'}
+TYPE_CLASSES = {0: 'Barcode', 1: 'Both', 2: 'Handwritten', 3: 'Typewritten'}
 TYPE = {v: k for k, v in TYPE_CLASSES.items()}
 
 RECONCILE_TYPES = {
-    '': TYPE['None'],
     'Barcode': TYPE['Barcode'],
     'Barcode_Both': TYPE['Barcode'],
     'Barcode_Both_Handwritten': TYPE['Barcode'],
