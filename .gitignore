@@ -28,7 +28,6 @@ venv/
 # data
 output/
 data/
-~data/disallowed_values.txt
 
 # Temp files
 temp/
@@ -36,3 +35,6 @@ junk*
 
 # Experiments
 pilot/
+
+# yolo
+yolov5/

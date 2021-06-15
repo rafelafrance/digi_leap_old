@@ -2,16 +2,20 @@
 
 import json
 from collections import namedtuple
+from typing import Union
 
 import numpy as np
+import numpy.typing as npt
 
 import digi_leap.box_calc as calc
 
+ClipType = Union[list[int], tuple[int], None]
 
-TYPE_CLASSES = {0: 'Barcode', 1: 'Both', 2: 'Handwritten', 3: 'Typewritten'}
+TYPE_CLASSES = {0: 'None', 1: 'Barcode', 2: 'Both', 3: 'Handwritten', 4: 'Typewritten'}
 TYPE = {v: k for k, v in TYPE_CLASSES.items()}
 
 RECONCILE_TYPES = {
+    '': TYPE['None'],
     'Barcode': TYPE['Barcode'],
     'Barcode_Both': TYPE['Barcode'],
     'Barcode_Both_Handwritten': TYPE['Barcode'],
@@ -29,7 +33,6 @@ RECONCILE_TYPES = {
     'Typewritten': TYPE['Typewritten'],
 }
 
-
 # Used for training data
 SubjectTrainData = namedtuple('SubjectTrainData', 'id path boxes labels')
 
@@ -40,7 +43,7 @@ class Subject:
 
     def __init__(self):
         self.subject_id: str = ''
-        self.subject_file_name: str = ''
+        self.image_file: str = ''
         self.types: np.ndarray = np.array([], dtype=str)
         self.boxes: np.ndarray = np.empty((0, 4))
         self.groups: np.ndarray = np.array([])
@@ -53,7 +56,7 @@ class Subject:
         """Convert this object to a dictionary."""
         as_dict = {
             'subject_id': self.subject_id,
-            'subject_file_name': self.subject_file_name,
+            'image_file': self.image_file,
         }
 
         zippy = zip(self.merged_boxes, self.merged_types)
@@ -87,10 +90,14 @@ class Subject:
         return json.dumps(as_dict)
 
     @staticmethod
-    def bbox_from_json(coords: str) -> np.ndarray:
+    def bbox_from_json(coords: str, clip: ClipType = None) -> npt.ArrayLike:
         """Convert a JSON box into a numpy array."""
         jj = json.loads(coords)
-        return np.array([jj['left'], jj['top'], jj['right'], jj['bottom']])
+        box = np.array([jj['left'], jj['top'], jj['right'], jj['bottom']])
+        if clip:
+            box[[0, 2]] = np.clip(box[[0, 2]], 0, clip[0])
+            box[[1, 3]] = np.clip(box[[1, 3]], 0, clip[1])
+        return box
 
     def merge_box_groups(self) -> None:
         """Merge box groups into a single bounding box per group."""

@@ -4,11 +4,12 @@ import csv
 import json
 import logging
 
+import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
-import digi_leap.detection.transforms as T
+import digi_leap.detection.transforms_old as T
 from digi_leap.subject import RECONCILE_TYPES, SubjectTrainData
 
 
@@ -26,15 +27,22 @@ class FasterRcnnData(Dataset):
     def __getitem__(self, idx):
         subject = self.subjects[idx]
         image = Image.open(subject.path)
+        width, height = image.size
 
-        boxes = torch.as_tensor(subject.boxes, dtype=torch.float32)
-        # boxes = boxes.squeeze(0)
+        boxes = np.array(subject.boxes, dtype=np.float32)
+        boxes[:, [0, 2]] = np.minimum(boxes[:, [0, 2]], width - 1)
+        boxes[:, [1, 3]] = np.minimum(boxes[:, [1, 3]], height - 1)
+
+        boxes = torch.from_numpy(boxes)
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        labels = np.array(subject.labels, dtype=np.int64)
+        labels = torch.from_numpy(labels)
 
         target = {
             'boxes': boxes,
-            'labels': torch.as_tensor(subject.labels, dtype=torch.int64),
-            'image_id': torch.as_tensor(subject.id, dtype=torch.int64),
+            'labels': labels,
+            'image_id': torch.tensor([subject.id], dtype=torch.int64),
             'area': area,
             'iscrowd': torch.zeros((len(subject.labels),), dtype=torch.int64),
         }
@@ -43,9 +51,6 @@ class FasterRcnnData(Dataset):
             image, target = self.transforms(image, target)
 
         return image, target
-
-    def normalize_image(self, image, subject):
-        """Make images the same size."""
 
     @classmethod
     def read_subjects(cls, csv_file, image_dir):
@@ -59,7 +64,7 @@ class FasterRcnnData(Dataset):
     @staticmethod
     def subject_data(row, image_dir):
         """Create a subject row record."""
-        path = image_dir / row['subject_file_name']
+        path = image_dir / row['image_file']
         id_ = int(row['subject_id'])
 
         # Make sure we have a valid file
@@ -95,9 +100,10 @@ class FasterRcnnData(Dataset):
 
     def get_transforms(self, train):
         """Build transforms based on the type of dataset."""
-        transforms = [T.ToTensor(), T.Resize(self.size)]
-        if train:
-            transforms.append(T.RandomHorizontalFlip())
-            transforms.append(T.RandomVerticalFlip())
-            transforms.append(T.ColorJitter())
+        # transforms = [T.ToTensor(), T.Resize(self.size)]
+        transforms = [T.ToTensor()]
+        # if train:
+        #     transforms.append(T.RandomHorizontalFlip())
+        #     transforms.append(T.RandomVerticalFlip())
+        #     transforms.append(T.ColorJitter())
         return T.Compose(transforms)

@@ -19,6 +19,7 @@ from digi_leap.detection.engine import evaluate, train_one_epoch
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
 from digi_leap.subject import TYPE_CLASSES
+import digi_leap.detection.utils as utils
 
 
 def train(args):
@@ -34,12 +35,19 @@ def train(args):
 
     train_loader, score_loader = get_loaders(args)
 
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.SGD(
+        params, lr=0.005, momentum=0.9, weight_decay=0.0005)
+
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=3, gamma=0.1)
 
     for epoch in range(epoch_start, epoch_end):
         np.random.seed(args.seed + epoch)
 
         train_one_epoch(model, optimizer, train_loader, device, epoch, print_freq=100)
+        lr_scheduler.step()
         evaluate(model, score_loader, device=device)
 
 
@@ -56,6 +64,7 @@ def get_loaders(args):
         shuffle=True,
         batch_size=args.batch_size,
         num_workers=args.workers,
+        collate_fn=utils.collate_fn,
         worker_init_fn=lambda w: np.random.seed(np.random.get_state()[1][0] + w),
     )
 
@@ -63,6 +72,7 @@ def get_loaders(args):
         score_dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
+        collate_fn=utils.collate_fn,
         worker_init_fn=lambda w: np.random.seed(np.random.get_state()[1][0] + w),
     )
 

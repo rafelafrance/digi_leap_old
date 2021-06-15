@@ -9,7 +9,7 @@ import torchvision
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
-from . import transforms as T
+from . import transforms_old as T
 
 
 class FilterAndRemapCocoCategories(object):
@@ -145,8 +145,7 @@ def _coco_remove_images_without_annotations(dataset, cat_list=None):
 
 def convert_to_coco_api(ds):
     coco_ds = COCO()
-    # annotation IDs need to start at 1, not 0, see torchvision issue #1530
-    ann_id = 1
+    ann_id = 0
     dataset = {'images': [], 'categories': [], 'annotations': []}
     categories = set()
     for img_idx in range(len(ds)):
@@ -196,7 +195,7 @@ def convert_to_coco_api(ds):
 
 
 def get_coco_api_from_dataset(dataset):
-    for _ in range(10):
+    for i in range(10):
         if isinstance(dataset, torchvision.datasets.CocoDetection):
             break
         if isinstance(dataset, torch.utils.data.Subset):

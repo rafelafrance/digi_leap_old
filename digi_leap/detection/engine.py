@@ -26,7 +26,6 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        # targets = [{k: v.squeeze(0).to(device) for k, v in targets.items()}]
 
         loss_dict = model(images, targets)
 
@@ -52,8 +51,6 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
 
         metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
-
-    return metric_logger
 
 
 def _get_iou_types(model):
@@ -82,18 +79,17 @@ def evaluate(model, data_loader, device):
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
 
-    for images, targets in metric_logger.log_every(data_loader, 100, header):
-        images = list(img.to(device) for img in images)
+    for image, targets in metric_logger.log_every(data_loader, 100, header):
+        image = list(img.to(device) for img in image)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
+        torch.cuda.synchronize()
         model_time = time.time()
-        outputs = model(images)
+        outputs = model(image)
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         model_time = time.time() - model_time
 
-        # targets = [targets]
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
         evaluator_time = time.time()
         coco_evaluator.update(res)

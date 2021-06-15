@@ -8,8 +8,6 @@ import textwrap
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-# import enchant
-# from enchant.checker import SpellChecker
 import pandas as pd
 
 from digi_leap.log import finished, started
