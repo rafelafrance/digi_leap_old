@@ -1,4 +1,0 @@
---database=data/processed/occurrence_raw_2021-02.sqlite3.db
---x-dir=data/train/X
---seed=3341
---count=10

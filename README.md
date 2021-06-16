@@ -12,7 +12,7 @@ We want to:
    1. [Cleanup the OCR text so that we can run NLP on it.](#Clean-OCR-Text)
 1. [Use NLP to extract information from the clean OCR text.](#Extract-Information)
 
-We are going to treat this as a pipeline of Machine Learning (ML) models with swappable steps. This means that each step may be independently trained and implemented so that appropriate models may be used for any particular dataset. A general strategy for the pipeline is to use, as much as possible, existing open source libraries for each step and keep the computing requirements low enough so that everything can be run on a "moderately sized" desktop. I am currently developing this using a laptop that has 32 GB of memory, an 8 GB GPU, and a 4 GHz CPU that can run 12 processes.
+We are going to treat this as a pipeline of Machine Learning (ML) models with swappable steps. This means that each step can be trained independently and implemented so that you can use appropriate models for any particular dataset.
 
 ## Find Labels
 
@@ -22,13 +22,13 @@ In production, providers will upload the herbarium sheets of interest. However, 
 
 #### What is a label?
 
-We are currently considering a label as a separate piece of paper affixed to the herbarium sheet. So the stamp in the upper right corner or at the center near the bottom are not considered labels. We are also excluding rulers and color guides like the one at the bottom of the image. Other things not considered labels are envelopes containing plant parts, and any tags attached by string to the specimen. In this image, the labels are clustered at the bottom right and include typewritten labels, handwritten labels, barcodes, and a QR-code.
+We are currently considering a label as a separate piece of paper affixed to the herbarium sheet. Therefore, the stamp in the upper right corner or at the center near the bottom are not labels. We are also excluding rulers and color guides like the one at the bottom of the image. Other things not considered labels are envelopes containing plant parts, and any tags attached by string to the specimen. In this image, the labels are at the bottom right and include typewritten labels, handwritten labels, barcodes, and a QR-code.
 
 Labels will be roughly aligned to the edges of the herbarium sheet itself.
 
 #### Model training for finding labels
 
-The strategy we are using for training this model is to download some herbarium sheets and have volunteers (citizen scientists) identify where the labels are on the sheet and what type of writing is on them. We are using [Notes from Nature](https://www.zooniverse.org/organizations/md68135/notes-from-nature) to organize the data collection. Notes from Nature is a part of the [Zooniverse](https://www.zooniverse.org/).
+The strategy we are using for training this model is to download some herbarium sheets and have volunteers (citizen scientists) identify where the labels are and what type of writing they contain. We are using [Notes from Nature](https://www.zooniverse.org/organizations/md68135/notes-from-nature) to organize the data collection. Notes from Nature is a part of the [Zooniverse](https://www.zooniverse.org/).
 
 We use [download_images.py](download_images.py) (**TODO rewrite this script**) to download images for Notes from Nature "expeditions".
 
