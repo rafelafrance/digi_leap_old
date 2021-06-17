@@ -10,11 +10,16 @@ from digi_leap.const import HORIZ_ANGLES
 
 
 def to_pil(label) -> Image:
-    """Convert the label into a PIL image"""
-    if hasattr(label, 'shape') and len(label.shape) == 3:
-        label = label[:, :, 0]
+    """Convert the label data into a PIL image"""
+    # if hasattr(label, 'shape') and len(label.shape) == 3:
+    #     label = label[:, :, 0]
     if hasattr(label, 'dtype') and label.dtype == 'float64':
-        return Image.fromarray(label * 255.0, 'L').convert('L')
+        mode = 'L' if len(label.shape) < 3 else 'RGB'
+        return Image.fromarray(label * 255.0, mode)
+    if hasattr(label, 'dtype') and label.dtype == 'bool':
+        image = (label * 255).astype('uint8')
+        mode = 'L' if len(label.shape) < 3 else 'RGB'
+        return Image.fromarray(image, mode)
     return Image.fromarray(label, 'L')
 
 

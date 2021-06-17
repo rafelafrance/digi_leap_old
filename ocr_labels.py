@@ -1,27 +1,5 @@
 #!/usr/bin/env python
-"""OCR  a set of labels.
-
-Things to try:
-    - Get label
-    - Does OCR just work?
-    - Will a simple spell correct fix things?
-    - Is the label too small?
-    - Do we need to orient the label? (90, 180, 270) (Use a simple CNN?)
-    - Should we segment the label ourselves?
-    - Are lines interfering with the OCR?
-    - Is the contrast too low?
-    - Will blurring help? or Sharpness?
-    - Remove other noise? Blob removal
-    - Will skew correction help?
-    - Will binarizing help? sauvola otsu
-    - Ensemble?
-
-Methods for detecting text (ensemble):
-    - Direct OCR?
-    - Haar cascade?
-    - HOG?
-    - A simple CNN?
-"""
+"""OCR  a set of labels."""
 
 import textwrap
 from argparse import ArgumentParser, Namespace
