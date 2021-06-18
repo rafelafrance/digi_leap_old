@@ -91,7 +91,7 @@ rmtree(IMAGE_TEST_DIR, ignore_errors=True)
 rmtree(IMAGE_VAL_DIR, ignore_errors=True)
 
 rmtree(LABEL_TRAIN_DIR, ignore_errors=True)
-rmtree(LABEL_TEST_DIR, ignore_errors=True)    
+rmtree(LABEL_TEST_DIR, ignore_errors=True)
 rmtree(LABEL_VAL_DIR, ignore_errors=True)
 
 
@@ -139,7 +139,7 @@ def write_resized(row, image_dir):
     size = json.loads(row['image_size'])
     row['image_size'] = [size['width'], size['height']]
     row['resized'] = [IMAGE_SIZE, IMAGE_SIZE]
-    
+
     src = SHEETS_2_DIR / row['image_file']
     dst = image_dir / row['image_file']
     image = Image.open(src)
@@ -150,7 +150,7 @@ def write_resized(row, image_dir):
 # In[16]:
 
 
-for row in tqdm(train_rows):  
+for row in tqdm(train_rows):
     write_resized(row, IMAGE_TRAIN_DIR)
 
 for row in tqdm(val_rows):
@@ -317,14 +317,14 @@ for row in tqdm(test_rows):
 def show_resized(idx):
     row = train_rows[idx]
 
-    image = Image.open(IMAGE_TRAIN / row['image_file'])
+    image = Image.open(IMAGE_TRAIN_DIR / row['image_file'])
     draw = ImageDraw.Draw(image)
 
     boxes = [v for k, v in row.items() if k.startswith('resized_')]
     for box in boxes:
         draw.rectangle(box, outline='red', width=2)
 
-    display(image)
+    # display(image)
 
 
 # show_resized(0)
@@ -340,7 +340,7 @@ def show_yolo(idx):
 
     width, height = row['image_size']
 
-    image = Image.open(SHEETS_2 / row['image_file'])
+    image = Image.open(SHEETS_2_DIR / row['image_file'])
     draw = ImageDraw.Draw(image)
 
     boxes = [v for k, v in row.items() if k.startswith('merged_box_') and len(v)]
@@ -360,7 +360,7 @@ def show_yolo(idx):
         y1 = int(box[1] * height + radius_y)
         draw.rectangle((x0, y0, x1, y1), outline='red', width=2)
 
-    display(image)
+    # display(image)
 
 
 # show_yolo(0)
