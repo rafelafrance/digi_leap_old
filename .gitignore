@@ -35,8 +35,8 @@ junk*
 
 # Experiments
 pilot/
-junk/history/
 scratch/
+old/
 
 # yolo
 yolov5/

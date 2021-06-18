@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Train a model to recognize digits on allometry sheets."""
 
 import argparse
@@ -9,17 +9,16 @@ from random import randint
 
 import numpy as np
 import torch
-import torch.optim as optim
 import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
+import digi_leap.detection.utils as utils
 from digi_leap.detection.engine import evaluate, train_one_epoch
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
 from digi_leap.subject import TYPE_CLASSES
-import digi_leap.detection.utils as utils
 
 
 def train(args):
@@ -40,8 +39,7 @@ def train(args):
     optimizer = torch.optim.SGD(
         params, lr=0.005, momentum=0.9, weight_decay=0.0005)
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, step_size=3, gamma=0.1)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3)
 
     for epoch in range(epoch_start, epoch_end):
         np.random.seed(args.seed + epoch)

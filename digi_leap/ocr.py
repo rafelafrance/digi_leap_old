@@ -5,9 +5,9 @@ from typing import Callable
 
 from PIL import Image
 
-from digi_leap.label_transforms import (Binarize, BinaryOpening, BinaryRemoveSmallHoles,
-                                        BinaryThin, Deskew, LabelTransform,
-                                        RankMean, Rotate, Scale)
+from digi_leap.label_transforms import (
+    Binarize, BinaryOpening, BinaryRemoveSmallHoles, BinaryThin, Deskew,
+    LabelTransform, RankMean, Rotate, Scale)
 from digi_leap.ocr_score import OCRScore, score_easyocr, score_tesseract
 
 SCORERS = {'tesseract': score_tesseract, 'easyocr': score_easyocr}
