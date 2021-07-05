@@ -18,34 +18,34 @@ def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
     make_dirs(args)
 
-    label_paths = sorted(args.label_dir.glob('*'))
+    label_paths = sorted(args.label_dir.glob("*"))
     for image_path in tqdm(label_paths):
         ...
 
 
 def output_label(
-        args: Namespace,
-        image_path: Path,
-        label: Optional[npt.ArrayLike],
-        suffix: str,
+    args: Namespace,
+    image_path: Path,
+    label: Optional[npt.ArrayLike],
+    suffix: str,
 ) -> Optional[npt.ArrayLike]:
     """Output data in the specified format."""
-    dir_ = args.data_dir if suffix == '.tsv' else args.text_dir
+    dir_ = args.data_dir if suffix == ".tsv" else args.text_dir
     if not dir_:
         return label
 
-    path = dir_ / f'{image_path.stem}{suffix}'
+    path = dir_ / f"{image_path.stem}{suffix}"
     if path.exists() and not args.restart:
         return label
 
     if not label:
         label = prepare_image(image_path)
 
-    info = label.ocr_data() if suffix == '.tsv' else label.ocr_text()
+    info = label.ocr_data() if suffix == ".tsv" else label.ocr_text()
     info = info.strip()
-    with open(path, 'w') as out_file:
+    with open(path, "w") as out_file:
         out_file.write(info)
-        out_file.write('\n')
+        out_file.write("\n")
 
     return label
 
@@ -85,29 +85,36 @@ def parse_args() -> Namespace:
     be cut out of the images of the specimens first.
     """
     arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars='@')
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
 
     arg_parser.add_argument(
-        '--label-dir', '-l', required=True, type=Path,
-        help="""The directory containing input labels.""")
+        "--label-dir",
+        "-l",
+        required=True,
+        type=Path,
+        help="""The directory containing input labels.""",
+    )
 
     arg_parser.add_argument(
-        '--text-dir', '-t', type=Path,
-        help="""The directory to output OCR text.""")
+        "--text-dir", "-t", type=Path, help="""The directory to output OCR text."""
+    )
 
     arg_parser.add_argument(
-        '--data-dir', '-d', type=Path,
-        help="""The directory to output OCR data.""")
+        "--data-dir", "-d", type=Path, help="""The directory to output OCR data."""
+    )
 
     arg_parser.add_argument(
-        '--restart', action='store_true',
-        help="""If selected this will overwrite existing output files.""")
+        "--restart",
+        action="store_true",
+        help="""If selected this will overwrite existing output files.""",
+    )
 
     args = arg_parser.parse_args()
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     started()
 
     ARGS = parse_args()

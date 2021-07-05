@@ -29,8 +29,8 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
     if len(boxes) == 0:
         return np.array([])
 
-    if boxes.dtype.kind == 'i':
-        boxes = boxes.astype('float64')
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float64")
 
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
@@ -86,15 +86,15 @@ def all_fractions(boxes):
     if len(boxes) == 0:
         return np.array([])
 
-    if boxes.dtype.kind == 'i':
-        boxes = boxes.astype('float64')
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float64")
 
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
     n = len(boxes)
 
     area = (x1 - x0 + 1) * (y1 - y0 + 1)
-    inters = np.empty([n, n], dtype='float64')
+    inters = np.empty([n, n], dtype="float64")
 
     for i in range(n):
         # Get interior (overlap) coordinates

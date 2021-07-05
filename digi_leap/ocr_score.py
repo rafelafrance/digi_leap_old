@@ -20,26 +20,26 @@ OK = 60.0  # If this percent of words are spelled correctly it's considered good
 MIN_LEN = 3  # Shorter words have a higher probability of being randomly generated
 
 PUNCT = re.escape(string.punctuation)
-SPLIT = re.compile(rf'([\s{PUNCT}]+)')
+SPLIT = re.compile(rf"([\s{PUNCT}]+)")
 
-ALLOW = {'.)', '.]'}
-LANG = 'en_US'
-EXTRA_VOCAB = DATA_DIR / 'custom_vocab.txt'
+ALLOW = {".)", ".]"}
+LANG = "en_US"
+EXTRA_VOCAB = DATA_DIR / "custom_vocab.txt"
 VOCAB = enchant.DictWithPWL(LANG, str(EXTRA_VOCAB))
 
-EASY_OCR = easyocr.Reader(['en'])
+EASY_OCR = easyocr.Reader(["en"])
 
 
 class BBox:
     """A bounding box for an OCR area."""
 
     def __init__(self, **kwargs):
-        self.left: int = kwargs.get('left', 999999)
-        self.top: int = kwargs.get('top', 999999)
-        self.right: int = kwargs.get('right', -1)
-        self.bottom: int = kwargs.get('bottom', -1)
-        self.text: str = kwargs.get('text', '')
-        self.conf: float = kwargs.get('conf', 0.0)
+        self.left: int = kwargs.get("left", 999999)
+        self.top: int = kwargs.get("top", 999999)
+        self.right: int = kwargs.get("right", -1)
+        self.bottom: int = kwargs.get("bottom", -1)
+        self.text: str = kwargs.get("text", "")
+        self.conf: float = kwargs.get("conf", 0.0)
 
     @property
     def empty(self):
@@ -67,11 +67,11 @@ class OCRScore:
 
     found: int = 0
     total: int = 0
-    file: str = ''
-    stem: str = ''
+    file: str = ""
+    stem: str = ""
     method: list[str] = field(default_factory=list)
     engine: list[str] = field(default_factory=list)
-    text: str = ''
+    text: str = ""
     data: Optional[list[BBox]] = None
 
     def carry_over(self, other, method: str, engine: str):
@@ -101,15 +101,17 @@ class OCRScore:
         return round(per * 100.0, 2)
 
     def __str__(self) -> str:
-        return textwrap.dedent(f"""
-        {self.score=}
-        {self.found=}
-        {self.percent=}
-        {self.total=}
-        {self.stem=}
-        {self.method=}
-        {self.engine=}
-        """)
+        return textwrap.dedent(
+            f"""
+                {self.score=}
+                {self.found=}
+                {self.percent=}
+                {self.total=}
+                {self.stem=}
+                {self.method=}
+                {self.engine=}
+            """
+        )
 
 
 def score_tesseract(image: Image) -> OCRScore:
@@ -117,25 +119,27 @@ def score_tesseract(image: Image) -> OCRScore:
     raw = pytesseract.image_to_data(image, config=TESS_CONFIG)
     data = []
     with StringIO(raw) as in_file:
-        rows = [r for r in csv.DictReader(in_file, delimiter='\t')]
+        rows = [r for r in csv.DictReader(in_file, delimiter="\t")]
         if len(rows) < 5:
             return score_text([])
         for row in rows:
-            conf = float(row['conf'])
+            conf = float(row["conf"])
             if conf < 0:  # Is an outer box that surrounds inner boxes
                 continue
-            if row['text'].find('\n') > -1:
+            if row["text"].find("\n") > -1:
                 continue
-            left = int(row['left'])
-            top = int(row['top'])
-            data.append(BBox(
-                text=row['text'],
-                conf=conf / 100.0,
-                left=left,
-                top=top,
-                right=left + int(row['width']) - 1,
-                bottom=top + int(row['height']) - 1,
-            ))
+            left = int(row["left"])
+            top = int(row["top"])
+            data.append(
+                BBox(
+                    text=row["text"],
+                    conf=conf / 100.0,
+                    left=left,
+                    top=top,
+                    right=left + int(row["width"]) - 1,
+                    bottom=top + int(row["height"]) - 1,
+                )
+            )
     return score_text(data)
 
 
@@ -146,20 +150,22 @@ def score_easyocr(image) -> OCRScore:
     data = []
     for item in raw:
         pos = item[0]
-        data.append(BBox(
-            text=item[1],
-            conf=item[2],
-            left=pos[0][0],
-            top=pos[0][1],
-            right=pos[1][0],
-            bottom=pos[2][1],
-        ))
+        data.append(
+            BBox(
+                text=item[1],
+                conf=item[2],
+                left=pos[0][0],
+                top=pos[0][1],
+                right=pos[1][0],
+                bottom=pos[2][1],
+            )
+        )
     return score_text(data)
 
 
 def score_text(data: list[BBox]) -> OCRScore:
     """Score the output from the OCR."""
-    text = ' '.join(d.text for d in data)
+    text = " ".join(d.text for d in data)
     words = [x for w in SPLIT.split(text) if (x := w.strip())]
     found = sum(1 for w in words if len(w) >= MIN_LEN and VOCAB.check(w))
     return OCRScore(

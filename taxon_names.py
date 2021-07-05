@@ -14,7 +14,7 @@ from digi_leap.log import finished, started
 
 NAMES = """ var subvar sp ssp subf """.split()
 PUNCT = re.escape(string.punctuation)
-SPLIT = re.compile(rf'[\s{PUNCT}]+')
+SPLIT = re.compile(rf"[\s{PUNCT}]+")
 
 
 def get_itis_data(args):
@@ -37,12 +37,13 @@ def people_names(itis_db: Path) -> set[str]:
         """
     with sqlite3.connect(itis_db) as cxn:
         df = pd.read_sql(sql, cxn)
-    names = df['name'].str.lower().unique()
+    names = df["name"].str.lower().unique()
 
     parts = set()
     for name in names:
-        parts |= {x for w in SPLIT.split(name)
-                  if (x := w.strip()) and not re.search(r'\d', x)}
+        parts |= {
+            x for w in SPLIT.split(name) if (x := w.strip()) and not re.search(r"\d", x)
+        }
 
     return parts
 
@@ -57,9 +58,9 @@ def taxonomic_names(itis_db: Path) -> set[str]:
     """
     with sqlite3.connect(itis_db) as cxn:
         df = pd.read_sql(sql, cxn)
-    df['name'] = df['name'].str.lower()
+    df["name"] = df["name"].str.lower()
 
-    names = {x for w in df['name'] if (x := w.strip())}
+    names = {x for w in df["name"] if (x := w.strip())}
     return names
 
 
@@ -78,21 +79,29 @@ def parse_args() -> Namespace:
     Create a vocabulary file of all plant taxon names.
     """
     arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars='@')
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
 
     arg_parser.add_argument(
-        '--itis-db', '-i', required=True, type=Path,
-        help="""The ITIS SQLite3 database.""")
+        "--itis-db",
+        "-i",
+        required=True,
+        type=Path,
+        help="""The ITIS SQLite3 database.""",
+    )
 
     arg_parser.add_argument(
-        '--lang', '-l', default='en_US',
-        help="""Which language to use. (default: %(default)s)""")
+        "--lang",
+        "-l",
+        default="en_US",
+        help="""Which language to use. (default: %(default)s)""",
+    )
 
     args = arg_parser.parse_args()
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     started()
 
     ARGS = parse_args()

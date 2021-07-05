@@ -36,8 +36,7 @@ def train(args):
 
     # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(
-        params, lr=0.005, momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3)
 
@@ -53,7 +52,8 @@ def get_loaders(args):
     """Get the data loaders."""
     subjects = FasterRcnnData.read_subjects(args.csv_file, args.image_dir)
     train_subjects, score_subjects = train_test_split(
-        subjects, test_size=args.split, random_state=args.seed)
+        subjects, test_size=args.split, random_state=args.seed
+    )
     train_dataset = FasterRcnnData(train_subjects, True)
     score_dataset = FasterRcnnData(score_subjects, False)
 
@@ -96,8 +96,8 @@ def load_model_state(trained_model, model):
     if trained_model:
         state = torch.load(trained_model)
         model.load_state_dict(state)
-        if model.state_dict().get('epoch'):
-            start = model.state_dict()['epoch'] + 1
+        if model.state_dict().get("epoch"):
+            start = model.state_dict()["epoch"] + 1
     return start
 
 
@@ -105,8 +105,7 @@ def get_model():
     """Get the model to use."""
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(
-        in_features, len(TYPE_CLASSES))
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(TYPE_CLASSES))
     return model
 
 
@@ -114,58 +113,83 @@ def parse_args():
     """Process command-line arguments."""
     description = """Train a model to find labels on herbarium sheets."""
     arg_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(description),
-        fromfile_prefix_chars='@')
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
 
     arg_parser.add_argument(
-        '--csv-file', required=True, type=Path,
-        help="""The CSV file containing reconciled data.""")
+        "--csv-file",
+        required=True,
+        type=Path,
+        help="""The CSV file containing reconciled data.""",
+    )
 
     arg_parser.add_argument(
-        '--image-dir', required=True, type=Path,
-        help="""Read training images from this directory.""")
+        "--image-dir",
+        required=True,
+        type=Path,
+        help="""Read training images from this directory.""",
+    )
 
     arg_parser.add_argument(
-        '--split', type=float, default=0.25,
-        help="""Fraction of subjects in the score dataset. (default: %(default)s)""")
+        "--split",
+        type=float,
+        default=0.25,
+        help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
+    )
 
     arg_parser.add_argument(
-        '--model-dir', type=Path, help="""Save models to this directory.""")
+        "--model-dir", type=Path, help="""Save models to this directory."""
+    )
 
     arg_parser.add_argument(
-        '--trained-model',
+        "--trained-model",
         help="""Load this model state to continue training the model. The file must
-            be in the --model-dir.""")
+            be in the --model-dir.""",
+    )
 
     arg_parser.add_argument(
-        '--suffix',
+        "--suffix",
         help="""Add this to the saved model name to differentiate it from
-            other runs.""")
+            other runs.""",
+    )
 
-    default = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    default = "cuda:0" if torch.cuda.is_available() else "cpu"
     arg_parser.add_argument(
-        '--device', default=default,
+        "--device",
+        default=default,
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
-            (default: %(default)s)""")
+            (default: %(default)s)""",
+    )
 
     arg_parser.add_argument(
-        '--epochs', type=int, default=100,
-        help="""How many epochs to train. (default: %(default)s)""")
+        "--epochs",
+        type=int,
+        default=100,
+        help="""How many epochs to train. (default: %(default)s)""",
+    )
 
     arg_parser.add_argument(
-        '--learning-rate', type=float, default=0.0001,
-        help="""Initial learning rate. (default: %(default)s)""")
+        "--learning-rate",
+        type=float,
+        default=0.0001,
+        help="""Initial learning rate. (default: %(default)s)""",
+    )
 
     arg_parser.add_argument(
-        '--batch-size', type=int, default=8,
-        help="""Input batch size. (default: %(default)s)""")
+        "--batch-size",
+        type=int,
+        default=8,
+        help="""Input batch size. (default: %(default)s)""",
+    )
 
     arg_parser.add_argument(
-        '--workers', type=int, default=4,
-        help="""Number of workers for loading data. (default: %(default)s)""")
+        "--workers",
+        type=int,
+        default=4,
+        help="""Number of workers for loading data. (default: %(default)s)""",
+    )
 
-    arg_parser.add_argument(
-        '--seed', type=int, help="""Create a random seed.""")
+    arg_parser.add_argument("--seed", type=int, help="""Create a random seed.""")
 
     # arg_parser.add_argument(
     #     '--runs-dir', help="""Save tensor board logs to this directory.""")
@@ -178,7 +202,7 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     started()
 
     ARGS = parse_args()

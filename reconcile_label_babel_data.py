@@ -59,7 +59,7 @@ def group_by_subject(classifications):
 
 
 def merge_boxes(subjects):
-    """Merge all boxes in each group of boxes into a single bound box.
+    """Merge all boxes in each group of boxes into a single bounding box.
 
     There is a slight wrinkle here in that when labels are next to each other
     on the herbarium sheet some people lumped them into one large bounding
@@ -97,6 +97,7 @@ def write_csv(args, rows):
     """Create the data frame for output."""
     df = pd.DataFrame(rows).fillna('')
 
+    # Sort columns
     columns = """ subject_id  image_file image_size """.split()
 
     boxes = [k for k in df.columns if k.startswith('merged_box_')]
@@ -114,6 +115,7 @@ def write_csv(args, rows):
 
     df = df[columns]
 
+    # Write reconciled output along with training and test partitions of the data
     df.to_csv(args.reconciled, index=False)
 
     train_df, test_df = train_test_split(

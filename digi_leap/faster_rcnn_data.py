@@ -40,11 +40,11 @@ class FasterRcnnData(Dataset):
         labels = torch.from_numpy(labels)
 
         target = {
-            'boxes': boxes,
-            'labels': labels,
-            'image_id': torch.tensor([subject.id], dtype=torch.int64),
-            'area': area,
-            'iscrowd': torch.zeros((len(subject.labels),), dtype=torch.int64),
+            "boxes": boxes,
+            "labels": labels,
+            "image_id": torch.tensor([subject.id], dtype=torch.int64),
+            "area": area,
+            "iscrowd": torch.zeros((len(subject.labels),), dtype=torch.int64),
         }
 
         if self.transforms is not None:
@@ -64,36 +64,36 @@ class FasterRcnnData(Dataset):
     @staticmethod
     def subject_data(row, image_dir):
         """Create a subject row record."""
-        path = image_dir / row['image_file']
-        id_ = int(row['subject_id'])
+        path = image_dir / row["image_file"]
+        id_ = int(row["subject_id"])
 
         # Make sure we have a valid file
         try:
             with Image.open(path) as image:
                 image.verify()
         except Image.UnidentifiedImageError:
-            logging.info(f'Bad image for subject ID: {id_}')
+            logging.info(f"Bad image for subject ID: {id_}")
             return None
 
         boxes = []
         labels = []
 
-        box_cols = [v for k, v in row.items() if k.startswith('merged_box_')]
-        type_cols = [v for k, v in row.items() if k.startswith('merged_type_')]
+        box_cols = [v for k, v in row.items() if k.startswith("merged_box_")]
+        type_cols = [v for k, v in row.items() if k.startswith("merged_type_")]
 
         for box, type_ in zip(box_cols, type_cols):
             if box and type_:
                 box = json.loads(box)
                 box = [int(v) for v in box.values()]
-                type_ = type_.strip('_')
+                type_ = type_.strip("_")
                 boxes.append(box)
                 labels.append(RECONCILE_TYPES[type_])
             elif box and not type_:
-                logging.info(f'Box missing a label for subject ID: {id_}')
+                logging.info(f"Box missing a label for subject ID: {id_}")
 
         # Empty subjects are a problem
         if not boxes or not labels:
-            logging.info(f'Empty boxes or empty labels for subject ID: {id_}')
+            logging.info(f"Empty boxes or empty labels for subject ID: {id_}")
             return None
 
         return SubjectTrainData(id=id_, path=path, boxes=boxes, labels=labels)

@@ -14,16 +14,16 @@ from tqdm import tqdm
 from digi_leap.log import finished, started
 
 PUNCT = re.escape(string.punctuation)
-SPLIT = re.compile(rf'([\s{PUNCT}]+)')
+SPLIT = re.compile(rf"([\s{PUNCT}]+)")
 
-ALLOW = {'.)', '.]'}
+ALLOW = {".)", ".]"}
 
 
 def score_results(args):
     """Score the OCR results as best we can."""
     results = []
     vocab = spell_checker(args)
-    paths = sorted(args.text_dir.glob('*.txt'))
+    paths = sorted(args.text_dir.glob("*.txt"))
     # tokenizer = get_tokenizer(args.lang)
     for path in tqdm(paths):
         with open(path) as in_file:
@@ -42,14 +42,16 @@ def score_results(args):
         missing = total - found
         percent = round(missing / total * 100.0, 2) if total != 0.0 else 100.0
 
-        results.append({
-            'file': str(path),
-            'stem': path.stem,
-            'total': total,
-            'found': found,
-            'missing': missing,
-            'missing percent': percent,
-        })
+        results.append(
+            {
+                "file": str(path),
+                "stem": path.stem,
+                "total": total,
+                "found": found,
+                "missing": missing,
+                "missing percent": percent,
+            }
+        )
 
     df = pd.DataFrame(results)
     df.to_csv(args.scores, index=False)
@@ -68,29 +70,41 @@ def parse_args() -> Namespace:
     """Process command-line arguments."""
     description = """Score OCR results."""
     arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars='@')
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
 
     arg_parser.add_argument(
-        '--text-dir', '-t', type=Path, required=True,
-        help="""The directory where the OCR results are.""")
+        "--text-dir",
+        "-t",
+        type=Path,
+        required=True,
+        help="""The directory where the OCR results are.""",
+    )
 
     arg_parser.add_argument(
-        '--scores', '-s', type=Path, required=True,
-        help="""Output the scores to this CSV file.""")
+        "--scores",
+        "-s",
+        type=Path,
+        required=True,
+        help="""Output the scores to this CSV file.""",
+    )
 
     arg_parser.add_argument(
-        '--extra-vocab', '-v', type=Path,
-        help="""An extra vocabulary file.""")
+        "--extra-vocab", "-v", type=Path, help="""An extra vocabulary file."""
+    )
 
     arg_parser.add_argument(
-        '--lang', '-l', default='en_US',
-        help="""Which language to use. (default: %(default)s)""")
+        "--lang",
+        "-l",
+        default="en_US",
+        help="""Which language to use. (default: %(default)s)""",
+    )
 
     args = arg_parser.parse_args()
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     started()
 
     ARGS = parse_args()

@@ -6,11 +6,19 @@ from typing import Callable
 from PIL import Image
 
 from digi_leap.label_transforms import (
-    Binarize, BinaryOpening, BinaryRemoveSmallHoles, BinaryThin, Deskew,
-    LabelTransform, RankMean, Rotate, Scale)
+    Binarize,
+    BinaryOpening,
+    BinaryRemoveSmallHoles,
+    BinaryThin,
+    Deskew,
+    LabelTransform,
+    RankMean,
+    Rotate,
+    Scale,
+)
 from digi_leap.ocr_score import OCRScore, score_easyocr, score_tesseract
 
-SCORERS = {'tesseract': score_tesseract, 'easyocr': score_easyocr}
+SCORERS = {"tesseract": score_tesseract, "easyocr": score_easyocr}
 TRANSFORMS: list[Callable] = [
     Scale(),
     Rotate(),
@@ -26,19 +34,17 @@ TRANSFORMS: list[Callable] = [
 @dataclass
 class ImageScore:
     """Hold image parameters."""
+
     image: Image
     score: OCRScore
 
 
 def ocr_label(image: Image) -> ImageScore:
-    """Try to OCR the image.
-
-    Adjust the image with greedy heuristics. Stop as soon as things are "good enough".
-    """
+    """Try to OCR the image."""
     image = LabelTransform.as_array(image)
 
-    for xform in TRANSFORMS:
-        image = xform(image)
+    for transform in TRANSFORMS:
+        image = transform(image)
 
     image = LabelTransform.to_pil(image)
 

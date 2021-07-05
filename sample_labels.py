@@ -20,7 +20,7 @@ def sample_images(args):
     """Sample the images and output the OCR results."""
     make_dirs(args)
 
-    paths = sorted(args.label_dir.glob('*.jpg'))
+    paths = sorted(args.label_dir.glob("*.jpg"))
     samples = sample(paths, args.sample_size)
     for path in tqdm(samples):
         with Image.open(path) as image:
@@ -29,10 +29,10 @@ def sample_images(args):
             score = tess if tess.score > easy.score else easy
 
             fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(24, 10))
-            fig.set_facecolor('white')
+            fig.set_facecolor("white")
 
-            ax1.axis('off')
-            ax1.set_anchor('NE')
+            ax1.axis("off")
+            ax1.set_anchor("NE")
             ax1.imshow(image)
 
             # text = Image.new('RGB', image.size, color='white')
@@ -43,13 +43,14 @@ def sample_images(args):
             #         (item['left'], item['top']),
             #         item['text'], font=font, fill='black')
 
-            ax2.axis('off')
-            ax1.set_anchor('NW')
+            ax2.axis("off")
+            ax1.set_anchor("NW")
             ax2.text(
-                0.0, 1.0,
+                0.0,
+                1.0,
                 score.score.text,
-                verticalalignment='top',
-                color='black',
+                verticalalignment="top",
+                color="black",
                 fontsize=16,
             )
             out_path = args.image_dir / path.name
@@ -69,30 +70,43 @@ def parse_args() -> Namespace:
     and its OCRed text.
     """
     arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars='@')
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
 
     arg_parser.add_argument(
-        '--label-dir', '-l', required=True, type=Path,
-        help="""The directory containing input labels.""")
+        "--label-dir",
+        "-l",
+        required=True,
+        type=Path,
+        help="""The directory containing input labels.""",
+    )
 
     arg_parser.add_argument(
-        '--image-dir', '-i', required=True, type=Path,
-        help="""Output the 2-up images to this directory.""")
+        "--image-dir",
+        "-i",
+        required=True,
+        type=Path,
+        help="""Output the 2-up images to this directory.""",
+    )
 
     arg_parser.add_argument(
-        '--sample-size', '-s', type=int, default=100,
-        help="""How many images to sample. (default: %(default)s)""")
+        "--sample-size",
+        "-s",
+        type=int,
+        default=100,
+        help="""How many images to sample. (default: %(default)s)""",
+    )
 
     arg_parser.add_argument(
-        '--seed', '-S', type=int,
-        help="""Seed for the random number generator.""")
+        "--seed", "-S", type=int, help="""Seed for the random number generator."""
+    )
 
     args = arg_parser.parse_args()
 
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     started()
 
     ARGS = parse_args()

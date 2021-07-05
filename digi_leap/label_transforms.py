@@ -5,10 +5,13 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pytesseract
-from PIL import Image
 from numpy import typing as npt
+from PIL import Image
 from scipy import ndimage
-from skimage import exposure as ex, filters, morphology as morph, util as sk_util
+from skimage import exposure as ex
+from skimage import filters
+from skimage import morphology as morph
+from skimage import util as sk_util
 
 from digi_leap import util as util
 
@@ -23,7 +26,7 @@ class LabelTransform(ABC):
     @staticmethod
     def as_array(image: Image) -> npt.ArrayLike:
         """Convert a PIL image to a numpy array."""
-        image = image.convert('L')
+        image = image.convert("L")
         return np.asarray(image).copy()
 
     @staticmethod
@@ -52,10 +55,10 @@ class Rotate(LabelTransform):
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
         """Perform the image adjustment."""
         osd = pytesseract.image_to_osd(image)
-        angle = int(re.search(r'degrees:\s*(\d+)', osd).group(1))
+        angle = int(re.search(r"degrees:\s*(\d+)", osd).group(1))
 
         if angle != 0:
-            image = ndimage.rotate(image, angle, mode='nearest')
+            image = ndimage.rotate(image, angle, mode="nearest")
 
         return image
 
@@ -68,7 +71,7 @@ class Deskew(LabelTransform):
         angle = util.find_skew(image)
 
         if angle != 0.0:
-            image = ndimage.rotate(image, angle, mode='nearest')
+            image = ndimage.rotate(image, angle, mode="nearest")
 
         return image
 
@@ -138,7 +141,8 @@ class Binarize(LabelTransform):
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
         """Perform the image adjustment."""
         threshold = filters.threshold_sauvola(
-            image, window_size=self.window_size, k=self.k)
+            image, window_size=self.window_size, k=self.k
+        )
         image = image > threshold
         return image
 
