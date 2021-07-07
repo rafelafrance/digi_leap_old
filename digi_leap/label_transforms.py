@@ -2,6 +2,7 @@
 
 import re
 from abc import ABC, abstractmethod
+from typing import Callable
 
 import numpy as np
 import pytesseract
@@ -16,16 +17,17 @@ from skimage import util as sk_util
 from digi_leap import util as util
 
 
+# TODO: Cleanly handle gray scale vs binary images in the chain of transformations
 class LabelTransform(ABC):
-    """Organize image adjustments using a variant of the strategy pattern."""
+    """Base class for image transforms for labels."""
 
     @abstractmethod
     def __call__(self, image: Image) -> npt.ArrayLike:
-        """Adjust the image."""
+        """Perform a transformation of the label image."""
 
     @staticmethod
     def as_array(image: Image) -> npt.ArrayLike:
-        """Convert a PIL image to a numpy array."""
+        """Convert a PIL image to a gray scale numpy array."""
         image = image.convert("L")
         return np.asarray(image).copy()
 
@@ -43,7 +45,6 @@ class Scale(LabelTransform):
         self.min_dim = min_dim
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         if image.shape[0] < self.min_dim or image.shape[1] < self.min_dim:
             image = ndimage.zoom(image, self.factor)
         return image
@@ -53,7 +54,6 @@ class Rotate(LabelTransform):
     """Adjust the orientation of the image."""
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         osd = pytesseract.image_to_osd(image)
         angle = int(re.search(r"degrees:\s*(\d+)", osd).group(1))
 
@@ -67,26 +67,12 @@ class Deskew(LabelTransform):
     """Tweak the rotation of the image."""
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
+        """Perform the image transform."""
         angle = util.find_skew(image)
 
         if angle != 0.0:
             image = ndimage.rotate(image, angle, mode="nearest")
 
-        return image
-
-
-class RankModal(LabelTransform):
-    """Filter the image using a modal filter."""
-
-    def __init__(self, selem2d: npt.ArrayLike = None, selem3d: npt.ArrayLike = None):
-        self.selem2d = selem2d if selem2d else morph.disk(2)
-        self.selem3d = selem3d if selem3d else morph.ball(3)
-
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
-        selem = self.selem2d if len(image.shape) == 2 else self.selem3d
-        image = filters.rank.modal(image, selem=selem)
         return image
 
 
@@ -98,9 +84,34 @@ class RankMean(LabelTransform):
         self.selem3d = selem3d if selem3d else morph.ball(3)
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         selem = self.selem2d if len(image.shape) == 2 else self.selem3d
         image = filters.rank.mean(image, selem=selem)
+        return image
+
+
+class RankMedian(LabelTransform):
+    """Filter the image using a mean filter."""
+
+    def __init__(self, selem2d: npt.ArrayLike = None, selem3d: npt.ArrayLike = None):
+        self.selem2d = selem2d if selem2d else morph.disk(2)
+        self.selem3d = selem3d if selem3d else morph.ball(3)
+
+    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+        selem = self.selem2d if len(image.shape) == 2 else self.selem3d
+        image = filters.rank.median(image, selem=selem)
+        return image
+
+
+class RankModal(LabelTransform):
+    """Filter the image using a modal filter."""
+
+    def __init__(self, selem2d: npt.ArrayLike = None, selem3d: npt.ArrayLike = None):
+        self.selem2d = selem2d if selem2d else morph.disk(2)
+        self.selem3d = selem3d if selem3d else morph.ball(3)
+
+    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+        selem = self.selem2d if len(image.shape) == 2 else self.selem3d
+        image = filters.rank.modal(image, selem=selem)
         return image
 
 
@@ -111,7 +122,6 @@ class Blur(LabelTransform):
         self.sigma = sigma
 
     def __call__(self, image: npt.ArrayLike, sigma: int = None) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         sigma = sigma if sigma else self.sigma
         multichannel = len(image.shape) > 2
         image = filters.gaussian(image, sigma=sigma, multichannel=multichannel)
@@ -125,13 +135,12 @@ class Exposure(LabelTransform):
         self.gamma = gamma
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         image = ex.adjust_gamma(image, gamma=self.gamma)
         image = ex.rescale_intensity(image)
         return image
 
 
-class Binarize(LabelTransform):
+class BinarizeSauvola(LabelTransform):
     """Binarize the image."""
 
     def __init__(self, window_size: int = 11, k: float = 0.032):
@@ -139,7 +148,6 @@ class Binarize(LabelTransform):
         self.k = k
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         threshold = filters.threshold_sauvola(
             image, window_size=self.window_size, k=self.k
         )
@@ -148,25 +156,23 @@ class Binarize(LabelTransform):
 
 
 class BinaryRemoveSmallHoles(LabelTransform):
-    """Remove contiguous holes smaller than the specified size on a binary image."""
+    """Remove contiguous holes smaller than the specified size in a binary image."""
 
     def __init__(self, area_threshold: int = 64):
         self.area_threshold = area_threshold
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         image = morph.remove_small_holes(image, area_threshold=self.area_threshold)
         return image
 
 
 class BinaryOpening(LabelTransform):
-    """Fast binary morphological opening of an image."""
+    """Fast binary morphological opening of a binary image."""
 
     def __init__(self, selem: npt.ArrayLike = None):
         self.selem = selem
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         image = morph.binary_opening(image, selem=self.selem)
         return image
 
@@ -178,8 +184,30 @@ class BinaryThin(LabelTransform):
         self.max_iter = max_iter
 
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        """Perform the image adjustment."""
         image = sk_util.invert(image)
         image = morph.thin(image, max_iter=self.max_iter)
         image = sk_util.invert(image)
         return image
+
+
+TRANSFORMS: list[Callable] = [
+    Scale(),
+    Rotate(),
+    Deskew(),
+    RankMedian(),
+    BinarizeSauvola(),
+    BinaryRemoveSmallHoles(area_threshold=24),
+    BinaryThin(max_iter=2),
+    BinaryOpening(),
+]
+
+
+def transform_label(image: Image) -> Image:
+    """Try to OCR the image."""
+    image = LabelTransform.as_array(image)
+
+    for transform in TRANSFORMS:
+        image = transform(image)
+
+    image = LabelTransform.to_pil(image)
+    return image

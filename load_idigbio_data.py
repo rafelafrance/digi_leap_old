@@ -128,7 +128,7 @@ def parse_args():
 
     arg_parser.add_argument(
         '--csv-file', '-v', default=CSV_FILE,
-        help=f"""The --zip-file itself contains several files. This is the file we
+        help="""The --zip-file itself contains several files. This is the file we
             are extracting for data. (default: %(default)s)""")
 
     arg_parser.add_argument(
@@ -137,12 +137,12 @@ def parse_args():
 
     arg_parser.add_argument(
         '--table-name', '-t',
-        help=f"""Write the output to this table. The default is use the same name
+        help="""Write the output to this table. The default is use the same name
             as the --csv-file minus the file extension.""")
 
     arg_parser.add_argument(
         '--keep', '-k', action='append',
-        help=f"""Columns to keep from the CSV file. You may use this argument more
+        help="""Columns to keep from the CSV file. You may use this argument more
             than once.""")
 
     arg_parser.add_argument(
@@ -161,7 +161,7 @@ def parse_args():
 
     arg_parser.add_argument(
         '--batch-size', '-b', type=int, default=BATCH_SIZE,
-        help=f"""The number of lines we read from the CSV file at a time. This 
+        help="""The number of lines we read from the CSV file at a time. This
             is mostly used to shorten iterations for debugging.
             (default: %(default)s)""")
 
