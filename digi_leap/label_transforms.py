@@ -17,14 +17,14 @@ from skimage import util as sk_util
 from digi_leap import util as util
 
 
-# TODO: Cleanly handle gray scale vs binary images in the chain of transformations
+# TODO: Cleanly handle gray scale vs binary images in transformation pipeline
 
 
 class LabelTransform(ABC):
     """Base class for image transforms for labels."""
 
     @abstractmethod
-    def __call__(self, image: Image) -> npt.ArrayLike:
+    def __call__(self, image: Image) -> tuple[npt.ArrayLike, str]:
         """Perform a transformation of the label image."""
 
     @staticmethod
@@ -38,9 +38,6 @@ class LabelTransform(ABC):
         """Convert a numpy array to a PIL image."""
         return util.to_pil(image)
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}()"
-
 
 class Scale(LabelTransform):
     """Enlarge an image if it is too small."""
@@ -49,20 +46,20 @@ class Scale(LabelTransform):
         self.factor = factor
         self.min_dim = min_dim
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         if image.shape[0] < self.min_dim or image.shape[1] < self.min_dim:
             image = ndimage.zoom(image, self.factor)
         return image
 
     def __repr__(self):
         name = self.__class__.__name__
-        return f"{name}({self.factor=}, {self.min_dist=})"
+        return f"{name}({self.factor=}, {self.min_dim=})"
 
 
 class Rotate(LabelTransform):
     """Adjust the orientation of the image."""
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         osd = pytesseract.image_to_osd(image)
         angle = int(re.search(r"degrees:\s*(\d+)", osd).group(1))
 
@@ -79,7 +76,7 @@ class Rotate(LabelTransform):
 class Deskew(LabelTransform):
     """Tweak the rotation of the image."""
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         """Perform the image transform."""
         angle = util.find_skew(image)
 
@@ -96,52 +93,49 @@ class Deskew(LabelTransform):
 class RankMean(LabelTransform):
     """Filter the image using a mean filter."""
 
-    def __init__(self, selem2d: npt.ArrayLike = None, selem3d: npt.ArrayLike = None):
-        self.selem2d = selem2d if selem2d else morph.disk(2)
-        self.selem3d = selem3d if selem3d else morph.ball(3)
+    def __init__(self, selem: npt.ArrayLike = None):
+        self.selem = selem if selem else morph.disk(2)
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        selem = self.selem2d if len(image.shape) == 2 else self.selem3d
-        image = filters.rank.mean(image, selem=selem)
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
+        image = filters.rank.mean(image, selem=self.selem)
         return image
 
     def __repr__(self):
         name = self.__class__.__name__
-        return f"{name}({self.selem2d=}, {self.selem3d=})"
+        selem = str(self.selem).replace("\n", ",")
+        return f"{name}({selem=})"
 
 
 class RankMedian(LabelTransform):
     """Filter the image using a mean filter."""
 
-    def __init__(self, selem2d: npt.ArrayLike = None, selem3d: npt.ArrayLike = None):
-        self.selem2d = selem2d if selem2d else morph.disk(2)
-        self.selem3d = selem3d if selem3d else morph.ball(3)
+    def __init__(self, selem: npt.ArrayLike = None):
+        self.selem = selem if selem else morph.disk(2)
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        selem = self.selem2d if len(image.shape) == 2 else self.selem3d
-        image = filters.rank.median(image, selem=selem)
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
+        image = filters.rank.median(image, selem=self.selem)
         return image
 
     def __repr__(self):
         name = self.__class__.__name__
-        return f"{name}({self.selem2d=}, {self.selem3d=})"
+        selem = str(self.selem).replace("\n", ",")
+        return f"{name}({selem=})"
 
 
 class RankModal(LabelTransform):
     """Filter the image using a modal filter."""
 
-    def __init__(self, selem2d: npt.ArrayLike = None, selem3d: npt.ArrayLike = None):
-        self.selem2d = selem2d if selem2d else morph.disk(2)
-        self.selem3d = selem3d if selem3d else morph.ball(3)
+    def __init__(self, selem: npt.ArrayLike = None):
+        self.selem = selem if selem else morph.disk(2)
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
-        selem = self.selem2d if len(image.shape) == 2 else self.selem3d
-        image = filters.rank.modal(image, selem=selem)
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
+        image = filters.rank.median(image, selem=self.selem)
         return image
 
     def __repr__(self):
         name = self.__class__.__name__
-        return f"{name}({self.selem2d=}, {self.selem3d=})"
+        selem = str(self.selem).replace("\n", ",")
+        return f"{name}({selem=})"
 
 
 class Blur(LabelTransform):
@@ -150,7 +144,9 @@ class Blur(LabelTransform):
     def __init__(self, sigma: int = 1):
         self.sigma = sigma
 
-    def __call__(self, image: npt.ArrayLike, sigma: int = None) -> npt.ArrayLike:
+    def __call__(
+        self, image: npt.ArrayLike, sigma: int = None
+    ) -> tuple[npt.ArrayLike, str]:
         sigma = sigma if sigma else self.sigma
         multichannel = len(image.shape) > 2
         image = filters.gaussian(image, sigma=sigma, multichannel=multichannel)
@@ -167,7 +163,7 @@ class Exposure(LabelTransform):
     def __init__(self, gamma: float = 2.0):
         self.gamma = gamma
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = ex.adjust_gamma(image, gamma=self.gamma)
         image = ex.rescale_intensity(image)
         return image
@@ -184,7 +180,7 @@ class BinarizeSauvola(LabelTransform):
         self.window_size = window_size
         self.k = k
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         threshold = filters.threshold_sauvola(
             image, window_size=self.window_size, k=self.k
         )
@@ -202,7 +198,7 @@ class BinaryRemoveSmallHoles(LabelTransform):
     def __init__(self, area_threshold: int = 64):
         self.area_threshold = area_threshold
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = morph.remove_small_holes(image, area_threshold=self.area_threshold)
         return image
 
@@ -217,7 +213,7 @@ class BinaryOpening(LabelTransform):
     def __init__(self, selem: npt.ArrayLike = None):
         self.selem = selem
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = morph.binary_opening(image, selem=self.selem)
         return image
 
@@ -232,7 +228,7 @@ class BinaryThin(LabelTransform):
     def __init__(self, max_iter: int = None):
         self.max_iter = max_iter
 
-    def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = sk_util.invert(image)
         image = morph.thin(image, max_iter=self.max_iter)
         image = sk_util.invert(image)
@@ -243,7 +239,8 @@ class BinaryThin(LabelTransform):
         return f"{name}({self.max_iter=})"
 
 
-TRANSFORMS: list[Callable] = [
+# A default label transform pipeline
+DEFAULT_PIPELINE: list[Callable] = [
     Scale(),
     Rotate(),
     Deskew(),
@@ -255,16 +252,14 @@ TRANSFORMS: list[Callable] = [
 ]
 
 
-def transform_label(image: Image) -> Image:
-    """Try to OCR the image."""
+def transform_label(transforms: list[Callable], image: Image) -> Image:
+    """Transform the label to improve OCR results."""
     image = LabelTransform.as_array(image)
 
-    for transform in TRANSFORMS:
-        image = transform(image)
+    actions = []
+    for func in transforms:
+        image, action = func(image)
+        actions.append(action)
 
     image = LabelTransform.to_pil(image)
-    return image
-
-
-def get_script():
-    return ', '.join(repr(t) for t in TRANSFORMS)
+    return image, actions

@@ -19,16 +19,24 @@ def tesseract_engine(image: Image) -> list[dict]:
     raw = pytesseract.image_to_data(image, config=TESS_CONFIG)
     with StringIO(raw) as in_file:
         rows = [r for r in csv.DictReader(in_file, delimiter="\t")]
+
         if len(rows) < 5:   # OCR returned nothing
             return []
+
         for row in rows:
             conf = float(row["conf"])
+
             if conf < 0:  # Is an outer box that surrounds inner boxes
                 continue
+
+            if not (text := row["text"].strip()):
+                continue
+
             left = int(row["left"])
             top = int(row["top"])
+
             results.append({
-                "text": row["text"],
+                "text": text,
                 "conf": conf / 100.0,
                 "left": left,
                 "top": top,
@@ -53,13 +61,4 @@ def easyocr_engine(image: Image) -> list[dict]:
             "right": pos[1][0],
             "bottom": pos[2][1],
         })
-    return results
-
-
-def ocr_label(image: Image) -> dict:
-    """OCR the image."""
-    results = {
-        "tesseract": tesseract_engine(image),
-        "easyocr": easyocr_engine(image),
-    }
     return results

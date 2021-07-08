@@ -8,46 +8,105 @@ import textwrap
 from argparse import ArgumentParser, Namespace
 from os import makedirs
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from PIL import Image
 
-from digi_leap.label_transforms import get_script, transform_label
+from digi_leap.label_transforms import DEFAULT_PIPELINE, transform_label
 from digi_leap.log import finished, started
-from digi_leap.ocr import ocr_label
+from digi_leap.ocr import easyocr_engine, tesseract_engine
 
 BATCH_SIZE = 100
+PIPELINE = DEFAULT_PIPELINE
 
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
     makedirs(args.output_dir, exist_ok=True)
 
-    paths = [str(p) for p in sorted(args.label_dir.glob("*"))]
-    batches = [paths[i:i + BATCH_SIZE] for i in range(0, len(paths), BATCH_SIZE)]
+    labels = filter_labels(args)
 
+    batches = [labels[i:i + BATCH_SIZE] for i in range(0, len(labels), BATCH_SIZE)]
+
+    with TemporaryDirectory() as temp_dir:
+        transform_labels(batches, args, temp_dir)
+        labels = ocr_tesseract(batches, args, temp_dir)
+        labels = ocr_easyocr(batches, args, temp_dir)
+
+
+def filter_labels(args):
+    """Filter labels that do not meet argument criteria."""
+    paths = sorted(args.label_dir.glob(args.image_filter))
+    paths = [{"path": str(p), "json": f"{p.stem}.json"} for p in paths]
+    paths = [p for p in paths if not p["json"].exists or args.restart]
+    paths = paths[: args.limit] if args.limit else paths
+    return paths
+
+
+def transform_labels(batches, args, temp_dir):
+    """Perform the label transformations before the OCR step(s)."""
     with multiprocessing.Pool(processes=args.cpus) as pool:
-        results = [pool.apply_async(process_batch, (b, vars(args))) for b in batches]
+        _ = [
+            pool.apply_async(transform_batch, (b, vars(args), temp_dir))
+            for b in batches
+        ]
+
+
+def transform_batch(batch, args, temp_dir):
+    """Perform the label transformations on a batch of labels."""
+    for label in batch:
+        image = Image.open(label["path"])
+        image, actions = transform_label(PIPELINE, image)
+
+        label["actions"] = actions
+
+        temp_image = Path(temp_dir) / label["path"].name
+        image.save(temp_image)
+
+
+def ocr_tesseract(batches, args, temp_dir):
+    """OCR the labels with tesseract."""
+    with multiprocessing.Pool(processes=args.cpus) as pool:
+        results = [
+            pool.apply_async(tesseract_batch, (b, vars(args), temp_dir))
+            for b in batches
+        ]
         results = [r.get() for r in results]
 
+    labels = []
+    for result in labels:
+        labels += result
 
-def process_batch(batch, args):
-    """OCR a batch of labels."""
+    return labels
 
-    script = get_script()
-    for path in batch:
-        in_path = Path(path)
-        out_path = args["output_dir"] / f"{in_path.stem}.json"
 
-        if out_path.exists() and not args["restart"]:
-            continue
+def tesseract_batch(batch, args, temp_dir):
+    """OCR one set of labels with tesseract."""
+    results = []
+    for label in batch:
+        image = Path(temp_dir) / label["path"].name
+        label["tesseract"] = tesseract_engine(image)
+        results.append(label)
+    return results
 
-        image = Image.load(in_path)
-        image = transform_label(image)
-        results = ocr_label(image)
-        results["script"] = script
 
-        with open(out_path, "w") as out_file:
-            json.dump(results, out_file, indent=True)
+def ocr_easyocr(labels, args, temp_dir):
+    """OCR the label with easyocr."""
+    results = []
+    for label in labels:
+        image = Path(temp_dir) / label["path"].name
+        label["easyocr"] = easyocr_engine(image)
+        results.append(label)
+    return results
+
+
+def output_ocr_results(labels, args):
+    """OCR the label with easyocr."""
+    for label in labels:
+        in_path = Path(label['path'])
+        json_path = args.output_dir / f"{in_path.stem}.json"
+        with open(json_path, "w") as json_file:
+            json.dump(label, json_file, indent=True)
 
 
 def parse_args() -> Namespace:
@@ -90,6 +149,19 @@ def parse_args() -> Namespace:
         type=int,
         default=cpus,
         help="""How many CPUs to use. (default %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many label images.""",
+    )
+
+    arg_parser.add_argument(
+        "--image-filter",
+        type=str,
+        default="*.jpg",
+        help="""Filter files in the --label-dir with this. (default %(default)s)""",
     )
 
     args = arg_parser.parse_args()
