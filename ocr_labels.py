@@ -6,6 +6,7 @@ import multiprocessing
 import os
 import textwrap
 from argparse import ArgumentParser, Namespace
+from itertools import chain
 from os import makedirs
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -31,7 +32,8 @@ def ocr_labels(args: Namespace) -> None:
     with TemporaryDirectory() as temp_dir:
         transform_labels(batches, args, temp_dir)
         labels = ocr_tesseract(batches, args, temp_dir)
-        labels = ocr_easyocr(batches, args, temp_dir)
+        labels = ocr_easyocr(labels, args, temp_dir)
+    output_ocr_results(labels, args)
 
 
 def filter_labels(args):
@@ -73,10 +75,7 @@ def ocr_tesseract(batches, args, temp_dir):
         ]
         results = [r.get() for r in results]
 
-    labels = []
-    for result in labels:
-        labels += result
-
+    labels = list(chain.from_iterable(results))
     return labels
 
 
@@ -92,6 +91,7 @@ def tesseract_batch(batch, args, temp_dir):
 
 def ocr_easyocr(labels, args, temp_dir):
     """OCR the label with easyocr."""
+    # Because EasyOCR uses the GPU we cannot use subprocesses :(
     results = []
     for label in labels:
         image = Path(temp_dir) / label["path"].name
@@ -103,7 +103,8 @@ def ocr_easyocr(labels, args, temp_dir):
 def output_ocr_results(labels, args):
     """OCR the label with easyocr."""
     for label in labels:
-        in_path = Path(label['path'])
+        del label["json"]
+        in_path = Path(label["path"])
         json_path = args.output_dir / f"{in_path.stem}.json"
         with open(json_path, "w") as json_file:
             json.dump(label, json_file, indent=True)
