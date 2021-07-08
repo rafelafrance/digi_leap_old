@@ -4,11 +4,11 @@ import csv
 from io import StringIO
 
 import easyocr
+import numpy as np
 import pytesseract
 from PIL import Image
 
 from digi_leap.const import CHAR_BLACKLIST, TESS_CONFIG
-from digi_leap.util import to_opencv
 
 EASY_OCR = easyocr.Reader(["en"])
 
@@ -49,16 +49,16 @@ def tesseract_engine(image: Image) -> list[dict]:
 def easyocr_engine(image: Image) -> list[dict]:
     """OCR the image with easyOCR."""
     results = []
-    image = to_opencv(image)
+    image = np.asarray(image)
     raw = EASY_OCR.readtext(image, blocklist=CHAR_BLACKLIST)
     for item in raw:
         pos = item[0]
         results.append({
             "text": item[1],
             "conf": item[2],
-            "left": pos[0][0],
-            "top": pos[0][1],
-            "right": pos[1][0],
-            "bottom": pos[2][1],
+            "left": int(pos[0][0]),
+            "top": int(pos[0][1]),
+            "right": int(pos[1][0]),
+            "bottom": int(pos[2][1]),
         })
     return results

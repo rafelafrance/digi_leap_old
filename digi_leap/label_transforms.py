@@ -47,9 +47,12 @@ class Scale(LabelTransform):
         self.min_dim = min_dim
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
+        action = repr(self)
         if image.shape[0] < self.min_dim or image.shape[1] < self.min_dim:
             image = ndimage.zoom(image, self.factor)
-        return image
+        else:
+            action += " skipped"
+        return image, action
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -62,11 +65,14 @@ class Rotate(LabelTransform):
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         osd = pytesseract.image_to_osd(image)
         angle = int(re.search(r"degrees:\s*(\d+)", osd).group(1))
+        action = repr(self)
 
         if angle != 0:
             image = ndimage.rotate(image, angle, mode="nearest")
+        else:
+            action += " skipped"
 
-        return image
+        return image, action
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -78,12 +84,15 @@ class Deskew(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         """Perform the image transform."""
+        action = repr(self)
         angle = util.find_skew(image)
 
         if angle != 0.0:
             image = ndimage.rotate(image, angle, mode="nearest")
+        else:
+            action += " skipped"
 
-        return image
+        return image, action
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -98,7 +107,7 @@ class RankMean(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = filters.rank.mean(image, selem=self.selem)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -114,7 +123,7 @@ class RankMedian(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = filters.rank.median(image, selem=self.selem)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -130,7 +139,7 @@ class RankModal(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = filters.rank.median(image, selem=self.selem)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -150,7 +159,7 @@ class Blur(LabelTransform):
         sigma = sigma if sigma else self.sigma
         multichannel = len(image.shape) > 2
         image = filters.gaussian(image, sigma=sigma, multichannel=multichannel)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -166,7 +175,7 @@ class Exposure(LabelTransform):
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = ex.adjust_gamma(image, gamma=self.gamma)
         image = ex.rescale_intensity(image)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -185,7 +194,7 @@ class BinarizeSauvola(LabelTransform):
             image, window_size=self.window_size, k=self.k
         )
         image = image > threshold
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -200,7 +209,7 @@ class BinaryRemoveSmallHoles(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = morph.remove_small_holes(image, area_threshold=self.area_threshold)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -215,7 +224,7 @@ class BinaryOpening(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = morph.binary_opening(image, selem=self.selem)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -232,7 +241,7 @@ class BinaryThin(LabelTransform):
         image = sk_util.invert(image)
         image = morph.thin(image, max_iter=self.max_iter)
         image = sk_util.invert(image)
-        return image
+        return image, repr(self)
 
     def __repr__(self):
         name = self.__class__.__name__

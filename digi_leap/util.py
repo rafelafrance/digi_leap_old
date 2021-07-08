@@ -1,8 +1,12 @@
 """Common utilities."""
 
+from contextlib import contextmanager
+from shutil import rmtree
+from tempfile import mkdtemp
+
 import numpy as np
-from PIL import Image
 from numpy import typing as npt
+from PIL import Image
 from scipy.ndimage import interpolation as interp
 from skimage.transform import probabilistic_hough_line
 
@@ -11,22 +15,14 @@ from digi_leap.const import HORIZ_ANGLES
 
 def to_pil(label) -> Image:
     """Convert the label data into a PIL image"""
-    if label.dtype == 'float64':
-        mode = 'L' if len(label.shape) < 3 else 'RGB'
+    if label.dtype == "float64":
+        mode = "L" if len(label.shape) < 3 else "RGB"
         return Image.fromarray(label * 255.0, mode)
-    if label.dtype == 'bool':
-        image = (label * 255).astype('uint8')
-        mode = 'L' if len(label.shape) < 3 else 'RGB'
+    if label.dtype == "bool":
+        image = (label * 255).astype("uint8")
+        mode = "L" if len(label.shape) < 3 else "RGB"
         return Image.fromarray(image, mode)
-    return Image.fromarray(label, 'L')
-
-
-def to_opencv(image) -> Image:
-    """Convert the image into a format opencv can handle."""
-    image = np.asarray(image)
-    if image.dtype == 'bool':
-        return (image * 255).astype('uint8')
-    return image
+    return Image.fromarray(label, "L")
 
 
 def find_skew(label: Image) -> float:
@@ -50,8 +46,17 @@ def find_skew(label: Image) -> float:
 def find_lines(label: npt.ArrayLike, thetas, line_length=50, line_gap=6) -> list[tuple]:
     """Find lines on the label using the Hough Transform."""
     lines = probabilistic_hough_line(
-        label,
-        theta=thetas,
-        line_length=line_length,
-        line_gap=line_gap)
+        label, theta=thetas, line_length=line_length, line_gap=line_gap
+    )
     return lines
+
+
+@contextmanager
+def make_temp_dir(where=None, prefix=None, keep=False):
+    """Handle creation and deletion of temporary directory."""
+    temp_dir = mkdtemp(prefix=prefix, dir=where)
+    try:
+        yield temp_dir
+    finally:
+        if not keep or not where:
+            rmtree(temp_dir, ignore_errors=True)

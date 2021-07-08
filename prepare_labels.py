@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+"""Prepare labels for OCR."""
+
+import logging
+import os
+import textwrap
+from argparse import ArgumentParser, Namespace
+from itertools import chain
+from multiprocessing import Pool
+from os import makedirs
+from os.path import basename, join
+from pathlib import Path
+
+import pandas as pd
+from PIL import Image
+from pytesseract.pytesseract import TesseractError
+from tqdm import tqdm
+
+from digi_leap.label_transforms import DEFAULT_PIPELINE, transform_label
+from digi_leap.log import finished, started
+
+BATCH_SIZE = 10
+PIPELINE = DEFAULT_PIPELINE
+
+
+def prepare_labels(args: Namespace) -> None:
+    """OCR the label images."""
+    makedirs(args.transformed_dir, exist_ok=True)
+
+    labels = filter_labels(args)
+    labels = transform(labels, args)
+
+    path = args.transformed_dir / "actions.csv"
+    df = pd.DataFrame(labels)
+    df.to_csv(path, index=False)
+
+
+def filter_labels(args):
+    """Filter labels that do not meet argument criteria."""
+    logging.info("filtering labels")
+    labels = sorted(args.label_dir.glob(args.image_filter))
+    labels = [{"label": str(p)} for p in labels]
+    labels = labels[: args.limit] if args.limit else labels
+    return labels
+
+
+def transform(labels, args):
+    """Perform the label transformations before the OCR step(s)."""
+    logging.info("transforming labels")
+
+    batches = [labels[i:i + BATCH_SIZE] for i in range(0, len(labels), BATCH_SIZE)]
+
+    with Pool(processes=args.cpus) as pool, tqdm(total=len(batches)) as bar:
+        results = [
+            pool.apply_async(
+                transform_batch, args=(b, vars(args)), callback=lambda _: bar.update(1)
+            )
+            for b in batches
+        ]
+        results = [r.get() for r in results]
+
+    labels = list(chain.from_iterable(results))
+    return labels
+
+
+def transform_batch(batch, args):
+    """Perform the label transformations on a batch of labels."""
+    labels = []
+    for label in batch:
+        image = Image.open(label["label"])
+
+        try:
+            image, actions = transform_label(PIPELINE, image)
+        except TesseractError:
+            logging.warning(f"Could not transform {label['label']}")
+            continue
+
+        path = join(args["transformed_dir"], basename(label["label"]))
+
+        label["transformed"] = path
+        label["actions"] = actions
+        labels.append(label)
+
+        image.save(path)
+
+    return labels
+
+
+def parse_args() -> Namespace:
+    """Process command-line arguments."""
+    description = """
+        Prepare images of labels.
+
+        Take all images in the --label-dir, prepare them for OCR and then
+        write them to the --transformed-dir. The input label images should
+        be cut out of the specimens first.
+    """
+    arg_parser = ArgumentParser(
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
+
+    arg_parser.add_argument(
+        "--label-dir",
+        required=True,
+        type=Path,
+        help="""The directory containing input labels.""",
+    )
+
+    arg_parser.add_argument(
+        "--transformed-dir",
+        required=True,
+        type=Path,
+        help="""Output transformed labels to this directory.""",
+    )
+
+    cpus = max(1, min(10, os.cpu_count() - 4))
+    arg_parser.add_argument(
+        "--cpus",
+        type=int,
+        default=cpus,
+        help="""How many CPUs to use. (default %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many label images.""",
+    )
+
+    arg_parser.add_argument(
+        "--image-filter",
+        type=str,
+        default="*.jpg",
+        help="""Filter files in the --label-dir with this. (default %(default)s)""",
+    )
+
+    args = arg_parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    started()
+
+    ARGS = parse_args()
+    prepare_labels(ARGS)
+
+    finished()
