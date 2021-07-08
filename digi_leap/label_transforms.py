@@ -18,6 +18,8 @@ from digi_leap import util as util
 
 
 # TODO: Cleanly handle gray scale vs binary images in the chain of transformations
+
+
 class LabelTransform(ABC):
     """Base class for image transforms for labels."""
 
@@ -36,6 +38,9 @@ class LabelTransform(ABC):
         """Convert a numpy array to a PIL image."""
         return util.to_pil(image)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}()"
+
 
 class Scale(LabelTransform):
     """Enlarge an image if it is too small."""
@@ -48,6 +53,10 @@ class Scale(LabelTransform):
         if image.shape[0] < self.min_dim or image.shape[1] < self.min_dim:
             image = ndimage.zoom(image, self.factor)
         return image
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.factor=}, {self.min_dist=})"
 
 
 class Rotate(LabelTransform):
@@ -62,6 +71,10 @@ class Rotate(LabelTransform):
 
         return image
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}(pytesseract.image_to_osd, mode='nearest')"
+
 
 class Deskew(LabelTransform):
     """Tweak the rotation of the image."""
@@ -74,6 +87,10 @@ class Deskew(LabelTransform):
             image = ndimage.rotate(image, angle, mode="nearest")
 
         return image
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}(util.find_skew, mode='nearest')"
 
 
 class RankMean(LabelTransform):
@@ -88,6 +105,10 @@ class RankMean(LabelTransform):
         image = filters.rank.mean(image, selem=selem)
         return image
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.selem2d=}, {self.selem3d=})"
+
 
 class RankMedian(LabelTransform):
     """Filter the image using a mean filter."""
@@ -100,6 +121,10 @@ class RankMedian(LabelTransform):
         selem = self.selem2d if len(image.shape) == 2 else self.selem3d
         image = filters.rank.median(image, selem=selem)
         return image
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.selem2d=}, {self.selem3d=})"
 
 
 class RankModal(LabelTransform):
@@ -114,6 +139,10 @@ class RankModal(LabelTransform):
         image = filters.rank.modal(image, selem=selem)
         return image
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.selem2d=}, {self.selem3d=})"
+
 
 class Blur(LabelTransform):
     """Blur the image."""
@@ -127,6 +156,10 @@ class Blur(LabelTransform):
         image = filters.gaussian(image, sigma=sigma, multichannel=multichannel)
         return image
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.sigma=})"
+
 
 class Exposure(LabelTransform):
     """Stretching or shrinking an image's intensity levels."""
@@ -138,6 +171,10 @@ class Exposure(LabelTransform):
         image = ex.adjust_gamma(image, gamma=self.gamma)
         image = ex.rescale_intensity(image)
         return image
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.gamma=})"
 
 
 class BinarizeSauvola(LabelTransform):
@@ -154,6 +191,10 @@ class BinarizeSauvola(LabelTransform):
         image = image > threshold
         return image
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.window_size=}, {self.k=})"
+
 
 class BinaryRemoveSmallHoles(LabelTransform):
     """Remove contiguous holes smaller than the specified size in a binary image."""
@@ -165,6 +206,10 @@ class BinaryRemoveSmallHoles(LabelTransform):
         image = morph.remove_small_holes(image, area_threshold=self.area_threshold)
         return image
 
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.area_threshold=})"
+
 
 class BinaryOpening(LabelTransform):
     """Fast binary morphological opening of a binary image."""
@@ -175,6 +220,10 @@ class BinaryOpening(LabelTransform):
     def __call__(self, image: npt.ArrayLike) -> npt.ArrayLike:
         image = morph.binary_opening(image, selem=self.selem)
         return image
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.selem=})"
 
 
 class BinaryThin(LabelTransform):
@@ -188,6 +237,10 @@ class BinaryThin(LabelTransform):
         image = morph.thin(image, max_iter=self.max_iter)
         image = sk_util.invert(image)
         return image
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.max_iter=})"
 
 
 TRANSFORMS: list[Callable] = [
@@ -211,3 +264,7 @@ def transform_label(image: Image) -> Image:
 
     image = LabelTransform.to_pil(image)
     return image
+
+
+def get_script():
+    return ', '.join(repr(t) for t in TRANSFORMS)

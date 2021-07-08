@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 """OCR  a set of labels."""
 
+import json
 import multiprocessing
 import os
 import textwrap
 from argparse import ArgumentParser, Namespace
 from os import makedirs
 from pathlib import Path
-from typing import Optional
 
-import numpy.typing as npt
 from PIL import Image
-from skimage import color, io
 
-from digi_leap.label_transforms import transform_label
+from digi_leap.label_transforms import get_script, transform_label
 from digi_leap.log import finished, started
+from digi_leap.ocr import ocr_label
 
 BATCH_SIZE = 100
 
@@ -34,70 +33,21 @@ def ocr_labels(args: Namespace) -> None:
 def process_batch(batch, args):
     """OCR a batch of labels."""
 
+    script = get_script()
     for path in batch:
-        path = Path(path)
+        in_path = Path(path)
+        out_path = args["output_dir"] / f"{in_path.stem}.json"
 
-        if path.exists() and not args["restart"]:
+        if out_path.exists() and not args["restart"]:
             continue
 
-        image = Image.load(path)
+        image = Image.load(in_path)
         image = transform_label(image)
-        # Read image
-        # Process image
-        # OCR image tesseract
-        # OCR image easyOCR
-        # Write results
+        results = ocr_label(image)
+        results["script"] = script
 
-
-def output_label(
-    args: Namespace,
-    image_path: Path,
-    label: Optional[npt.ArrayLike],
-    suffix: str,
-) -> Optional[npt.ArrayLike]:
-    """Output data in the specified format."""
-    dir_ = args.data_dir if suffix == ".tsv" else args.text_dir
-    if not dir_:
-        return label
-
-    path = dir_ / f"{image_path.stem}{suffix}"
-    if path.exists() and not args.restart:
-        return label
-
-    if not label:
-        label = prepare_image(image_path)
-
-    info = label.ocr_data() if suffix == ".tsv" else label.ocr_text()
-    info = info.strip()
-    with open(path, "w") as out_file:
-        out_file.write(info)
-        out_file.write("\n")
-
-    return label
-
-
-def prepare_image(path: Path) -> npt.ArrayLike:
-    """Turn an image of a label into text."""
-    label = io.imread(str(path))
-    label = color.rgb2gray(label)
-    # label.deskew()
-    # label.binarize()
-    #
-    # if lines := label.find_horizontal_lines(line_gap=5):
-    #     label.remove_horiz_lines(lines, window=20, threshold=2)
-    #
-    # if lines := label.find_vertical_lines(line_gap=5):
-    #     label.remove_vert_lines(lines, window=20, threshold=2)
-
-    return label
-
-
-def make_dirs(args: Namespace) -> None:
-    """Create output directories."""
-    if args.data_dir:
-        makedirs(args.data_dir, exist_ok=True)
-    if args.text_dir:
-        makedirs(args.text_dir, exist_ok=True)
+        with open(out_path, "w") as out_file:
+            json.dump(results, out_file, indent=True)
 
 
 def parse_args() -> Namespace:
