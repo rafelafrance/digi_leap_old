@@ -25,6 +25,7 @@ TESS_CONFIG = " ".join(
         f"-c tessedit_char_blacklist='{CHAR_BLACKLIST}'",
     ]
 )
+TESS_LANG = "eng"
 
 HORIZ_ANGLES = np.array([0.0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0])
 NEAR_HORIZ = np.deg2rad(HORIZ_ANGLES)

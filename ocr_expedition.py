@@ -5,7 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
 
-import enchant
+# import enchant
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
@@ -29,9 +29,9 @@ PREVIOUS = ROOT / "output" / "ocr_sample_2021-05-10a"
 OUTPUT = ROOT / "output" / "ocr_sample_2021-05-10b"
 
 
-LANG = "en_US"
-EXTRA_VOCAB = DATA_DIR / "custom_vocab.txt"
-VOCAB = enchant.DictWithPWL(LANG, str(EXTRA_VOCAB))
+# LANG = "en_US"
+# EXTRA_VOCAB = DATA_DIR / "custom_vocab.txt"
+# VOCAB = enchant.DictWithPWL(LANG, str(EXTRA_VOCAB))
 
 
 NAMES = {p.name for p in PREVIOUS.glob("*.jpg")}
@@ -40,6 +40,30 @@ IMAGES = [p for p in LABELS_DIR.glob("*.jpg") if p.name in NAMES]
 
 def build_expedition(args):
     """BUild the output images and manifest."""
+
+
+def build_subject(args):
+    """BUild the output images and manifest."""
+    filter_boxes_by_size()
+    filter_boxes_by_shape()
+    filter_boxes_by_conf()
+    place_boxes_on_label()
+
+
+def filter_boxes_by_size():
+    """Remove bounding boxes that seem to contain noise."""
+
+
+def filter_boxes_by_shape():
+    """Remove bounding boxes that seem to contain noise."""
+
+
+def filter_boxes_by_conf():
+    """Remove bounding boxes that seem to contain noise."""
+
+
+def place_boxes_on_label():
+    """Put the bounding boxes onto the label."""
 
 
 class FontDict(dict):
@@ -212,25 +236,11 @@ def parse_args() -> Namespace:
     )
 
     arg_parser.add_argument(
-        "--label-dir",
-        "-l",
-        required=True,
-        type=Path,
-        help="""The directory containing input labels.""",
-    )
-
-    arg_parser.add_argument(
         "--text-dir", "-t", type=Path, help="""The directory to output OCR text."""
     )
 
     arg_parser.add_argument(
         "--data-dir", "-d", type=Path, help="""The directory to output OCR data."""
-    )
-
-    arg_parser.add_argument(
-        "--restart",
-        action="store_true",
-        help="""If selected this will overwrite existing output files.""",
     )
 
     args = arg_parser.parse_args()

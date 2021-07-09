@@ -2,7 +2,6 @@
 
 import re
 from abc import ABC, abstractmethod
-from typing import Callable
 
 import numpy as np
 import pytesseract
@@ -31,7 +30,7 @@ class LabelTransform(ABC):
     def as_array(image: Image) -> npt.ArrayLike:
         """Convert a PIL image to a gray scale numpy array."""
         image = image.convert("L")
-        return np.asarray(image).copy()
+        return np.asarray(image)
 
     @staticmethod
     def to_pil(image: npt.ArrayLike) -> Image:
@@ -59,15 +58,27 @@ class Scale(LabelTransform):
         return f"{name}({self.factor=}, {self.min_dim=})"
 
 
-class Rotate(LabelTransform):
+class Orient(LabelTransform):
     """Adjust the orientation of the image."""
 
+    def __init__(self, conf_low: float = 15.0, conf_high: float = 100.0):
+        self.conf_low = conf_low
+        self.conf_high = conf_high
+
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
-        osd = pytesseract.image_to_osd(image)
-        angle = int(re.search(r"degrees:\s*(\d+)", osd).group(1))
+        osd = pytesseract.image_to_osd(image)  # , lang=TESS_LANG)
+
+        angle = 0
+        if match := re.search(r"Rotate: ([0-9.]+)", osd):
+            angle = int(match.group(1))
+
+        conf = 0.0
+        if match := re.search(r"Orientation confidence: ([0-9.]+)", osd):
+            conf = float(match.group(1))
+
         action = repr(self)
 
-        if angle != 0:
+        if angle != 0 and self.conf_low < conf <= self.conf_high:
             image = ndimage.rotate(image, angle, mode="nearest")
         else:
             action += " skipped"
@@ -248,25 +259,31 @@ class BinaryThin(LabelTransform):
         return f"{name}({self.max_iter=})"
 
 
-# A default label transform pipeline
-DEFAULT_PIPELINE: list[Callable] = [
-    Scale(),
-    Rotate(),
-    Deskew(),
-    RankMedian(),
-    BinarizeSauvola(),
-    BinaryRemoveSmallHoles(area_threshold=24),
-    BinaryThin(max_iter=2),
-    BinaryOpening(),
-]
+# Canned scripts for transforming labels
+PIPELINES = {
+    "default": [
+        Scale(),
+        Orient(),
+        Deskew(),
+        RankMedian(),
+        BinarizeSauvola(),
+        BinaryRemoveSmallHoles(area_threshold=24),
+        BinaryThin(max_iter=2),
+        BinaryOpening(),
+    ],
+    "simple": [
+        Scale(),
+        Orient(),
+    ],
+}
 
 
-def transform_label(transforms: list[Callable], image: Image) -> Image:
+def transform_label(pipeline: str, image: Image) -> Image:
     """Transform the label to improve OCR results."""
     image = LabelTransform.as_array(image)
 
     actions = []
-    for func in transforms:
+    for func in PIPELINES[pipeline]:
         image, action = func(image)
         actions.append(action)
 

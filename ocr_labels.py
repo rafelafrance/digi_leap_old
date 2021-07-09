@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import textwrap
-from argparse import ArgumentParser, BooleanOptionalAction, Namespace
+from argparse import ArgumentParser, Namespace
 from multiprocessing import Pool
 from os import makedirs
 from os.path import basename, join, splitext
@@ -22,14 +22,14 @@ BATCH_SIZE = 10
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
-    makedirs(args.json_dir, exist_ok=True)
-
     labels = filter_labels(args)
 
-    if args.tesseract:
+    if args.tesseract_dir:
+        makedirs(args.tesseract_dir, exist_ok=True)
         ocr_tesseract(labels, args)
 
-    if args.easyocr:
+    if args.easyocr_dir:
+        makedirs(args.easyocr_dir, exist_ok=True)
         ocr_easyocr(labels, args)
 
 
@@ -65,7 +65,7 @@ def tesseract_batch(batch, args):
         results = tesseract_engine(image)
 
         path = splitext(basename(label["label"]))[0]
-        path = join(args["json_dir"], f"{path}.tesseract.json")
+        path = join(args["tesseract_dir"], f"{path}.tesseract.json")
 
         with open(path, "w") as json_file:
             json.dump(results, json_file, indent=True)
@@ -80,7 +80,7 @@ def ocr_easyocr(labels, args):
         results = easyocr_engine(image)
 
         path = splitext(basename(label["label"]))[0]
-        path = join(args.json_dir, f"{path}.easyocr.json")
+        path = join(args.easyocr_dir, f"{path}.easyocr.json")
 
         with open(path, "w") as json_file:
             json.dump(results, json_file, indent=True)
@@ -91,10 +91,11 @@ def parse_args() -> Namespace:
     description = """
         OCR images of labels.
 
-        Take all images in the input --label-dir, OCR them and output the results
-        to the --json-dir. The file name stems of the output files echo the file
-        name stems of the input images. The input label images should be ready
-        for OCR.
+        Take all images in the input --label-dir, OCR them, and output the results
+        into either (or both) the --tesseract-dir or the --easyocr-dir. The output
+        directory determines which OCR engine is used. The output file names
+        echo the file name stems of the input images. Make sure that the input
+        label images are prepared for OCR.
     """
     arg_parser = ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -108,10 +109,15 @@ def parse_args() -> Namespace:
     )
 
     arg_parser.add_argument(
-        "--json-dir",
-        required=True,
+        "--tesseract-dir",
         type=Path,
-        help="""Output the OCR results to this directory.""",
+        help="""Output the Tesseract OCR results to this directory.""",
+    )
+
+    arg_parser.add_argument(
+        "--easyocr-dir",
+        type=Path,
+        help="""Output the EasyOCR OCR results to this directory.""",
     )
 
     cpus = max(1, min(10, os.cpu_count() - 8))
@@ -133,20 +139,6 @@ def parse_args() -> Namespace:
         type=str,
         default="*.jpg",
         help="""Filter files in the --label-dir with this. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--tesseract",
-        action=BooleanOptionalAction,
-        default=True,
-        help="""OCR with Tesseract.""",
-    )
-
-    arg_parser.add_argument(
-        "--easyocr",
-        action=BooleanOptionalAction,
-        default=True,
-        help="""OCR with EasyOCR.""",
     )
 
     args = arg_parser.parse_args()

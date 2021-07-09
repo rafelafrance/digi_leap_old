@@ -16,11 +16,10 @@ from PIL import Image
 from pytesseract.pytesseract import TesseractError
 from tqdm import tqdm
 
-from digi_leap.label_transforms import DEFAULT_PIPELINE, transform_label
+from digi_leap.label_transforms import PIPELINES, transform_label
 from digi_leap.log import finished, started
 
 BATCH_SIZE = 10
-PIPELINE = DEFAULT_PIPELINE
 
 
 def prepare_labels(args: Namespace) -> None:
@@ -70,7 +69,7 @@ def transform_batch(batch, args):
         image = Image.open(label["label"])
 
         try:
-            image, actions = transform_label(PIPELINE, image)
+            image, actions = transform_label(args["pipeline"], image)
         except TesseractError:
             logging.warning(f"Could not transform {label['label']}")
             continue
@@ -111,6 +110,14 @@ def parse_args() -> Namespace:
         required=True,
         type=Path,
         help="""Output transformed labels to this directory.""",
+    )
+
+    pipelines = list(PIPELINES.keys())
+    arg_parser.add_argument(
+        "--pipeline",
+        choices=pipelines,
+        default=pipelines[0],
+        help="""The pipeline to use for transformations. (default %(default)s)""",
     )
 
     cpus = max(1, min(10, os.cpu_count() - 4))
