@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """OCR a set of labels."""
 
-import json
+import csv
 import logging
 import os
 import textwrap
@@ -64,11 +64,8 @@ def tesseract_batch(batch, args):
         image = Image.open(label["label"])
         results = tesseract_engine(image)
 
-        path = splitext(basename(label["label"]))[0]
-        path = join(args["tesseract_dir"], f"{path}.tesseract.json")
-
-        with open(path, "w") as json_file:
-            json.dump(results, json_file, indent=True)
+        path = name_output_file(args["tesseract_dir"], args["prefix"], label)
+        to_csv(path, results)
 
 
 def ocr_easyocr(labels, args):
@@ -79,11 +76,36 @@ def ocr_easyocr(labels, args):
         image = Image.open(label["label"])
         results = easyocr_engine(image)
 
-        path = splitext(basename(label["label"]))[0]
-        path = join(args.easyocr_dir, f"{path}.easyocr.json")
+        path = name_output_file(args.easyocr_dir, args.prefix, label)
+        to_csv(path, results)
 
-        with open(path, "w") as json_file:
-            json.dump(results, json_file, indent=True)
+
+def name_output_file(dir_path, prefix, label):
+    """Generate the output file name."""
+    path = splitext(basename(label["label"]))[0]
+    path = join(dir_path, f"{prefix}{path}.csv")
+    return path
+
+
+def to_csv(path, results):
+    """Write the results to a CSV file."""
+    headers = "conf left top right bottom text".split()
+
+    with open(path, "w") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(headers)
+
+        for box in results:
+            writer.writerow(
+                [
+                    box["conf"],
+                    box["left"],
+                    box["top"],
+                    box["right"],
+                    box["bottom"],
+                    box["text"],
+                ]
+            )
 
 
 def parse_args() -> Namespace:
@@ -120,6 +142,19 @@ def parse_args() -> Namespace:
         help="""Output the EasyOCR OCR results to this directory.""",
     )
 
+    arg_parser.add_argument(
+        "--prefix",
+        default="",
+        help="""The prefix to use for the output file names.""",
+    )
+
+    arg_parser.add_argument(
+        "--image-filter",
+        type=str,
+        default="*.jpg",
+        help="""Filter files in the --label-dir with this. (default %(default)s)""",
+    )
+
     cpus = max(1, min(10, os.cpu_count() - 8))
     arg_parser.add_argument(
         "--cpus",
@@ -132,13 +167,6 @@ def parse_args() -> Namespace:
         "--limit",
         type=int,
         help="""Limit the input to this many label images.""",
-    )
-
-    arg_parser.add_argument(
-        "--image-filter",
-        type=str,
-        default="*.jpg",
-        help="""Filter files in the --label-dir with this. (default %(default)s)""",
     )
 
     args = arg_parser.parse_args()

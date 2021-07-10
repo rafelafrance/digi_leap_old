@@ -36,12 +36,12 @@ def tesseract_engine(image: Image) -> list[dict]:
             top = int(row["top"])
 
             results.append({
-                "text": text,
                 "conf": conf / 100.0,
                 "left": left,
                 "top": top,
                 "right": left + int(row["width"]) - 1,
                 "bottom": top + int(row["height"]) - 1,
+                "text": text,
             })
     return results
 
@@ -54,11 +54,11 @@ def easyocr_engine(image: Image) -> list[dict]:
     for item in raw:
         pos = item[0]
         results.append({
-            "text": item[1],
             "conf": item[2],
             "left": int(pos[0][0]),
             "top": int(pos[0][1]),
             "right": int(pos[1][0]),
             "bottom": int(pos[2][1]),
+            "text": item[1],
         })
     return results
