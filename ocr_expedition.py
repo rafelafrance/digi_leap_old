@@ -44,9 +44,9 @@ def build_expedition(args):
 
 def build_subject(args):
     """BUild the output images and manifest."""
+    filter_boxes_by_conf()
     filter_boxes_by_size()
     filter_boxes_by_shape()
-    filter_boxes_by_conf()
     place_boxes_on_label()
 
 

@@ -5,11 +5,11 @@ import numpy as np
 
 def iou(box1, box2):
     """Calculate the intersection over union of a pair of boxes."""
-    x0 = max(box1[0], box2[0])
-    y0 = max(box1[1], box2[1])
-    x1 = min(box1[2], box2[2])
-    y1 = min(box1[3], box2[3])
-    inter = max(0, x1 - x0 + 1) * max(0, y1 - y0 + 1)
+    x_min = max(box1[0], box2[0])
+    y_min = max(box1[1], box2[1])
+    x_max = min(box1[2], box2[2])
+    y_max = min(box1[3], box2[3])
+    inter = max(0, x_max - x_min + 1) * max(0, y_max - y_min + 1)
     area1 = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1)
     area2 = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
     return inter / (area1 + area2 - inter)
@@ -35,7 +35,7 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
 
-    area = (x1 - x0 + 1) * (y1 - y0 + 1)
+    area = np.maximum(0.0, x1 - x0 + 1.0) * np.maximum(0.0, y1 - y0 + 1.0)
 
     idx = scores if scores else area
     idx = idx.argsort()
@@ -44,26 +44,29 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
     group = 0
     while len(idx) > 0:
         group += 1
-        curr = idx[-1]  # Work with end of list so slice indexing will work as is
+
+        # Pop the largest box
+        curr = idx[-1]
+        idx = idx[:-1]
+
         overlapping[curr] = group
 
         # Get interior (overlap) coordinates
-        xx0 = np.maximum(x0[curr], x0[idx[:-1]])
-        yy0 = np.maximum(y0[curr], y0[idx[:-1]])
-        xx1 = np.minimum(x1[curr], x1[idx[:-1]])
-        yy1 = np.minimum(y1[curr], y1[idx[:-1]])
+        xx0 = np.maximum(x0[curr], x0[idx])
+        yy0 = np.maximum(y0[curr], y0[idx])
+        xx1 = np.minimum(x1[curr], x1[idx])
+        yy1 = np.minimum(y1[curr], y1[idx])
 
         # Get the intersection over the union (IOU) with the current box
-        iou_ = np.maximum(0, xx1 - xx0 + 1) * np.maximum(0, yy1 - yy0 + 1)  # intersect
-        iou_ /= area[idx[:-1]] + area[curr] - iou_  # over union
+        iou_ = np.maximum(0.0, xx1 - xx0 + 1.0) * np.maximum(0.0, yy1 - yy0 + 1.0)
+        iou_ /= area[idx] + area[curr] - iou_
 
         # Find IOUs larger than threshold & group them
         iou_ = np.where(iou_ >= threshold)[0]
         overlapping[idx[iou_]] = -group
 
         # Remove all indices in an IOU group
-        delete = np.concatenate(([-1], iou_))
-        idx = np.delete(idx, delete)
+        idx = np.delete(idx, iou_)
 
     return overlapping
 

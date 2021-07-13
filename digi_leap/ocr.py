@@ -13,6 +13,9 @@ from digi_leap.const import CHAR_BLACKLIST, TESS_CONFIG
 EASY_OCR = easyocr.Reader(["en"])
 
 
+KEYS = """conf left top right bottom text""".split()
+
+
 def tesseract_engine(image: Image) -> list[dict]:
     """OCR the image with tesseract."""
     results = []
@@ -44,6 +47,25 @@ def tesseract_engine(image: Image) -> list[dict]:
                 "text": text,
             })
     return results
+
+
+def tesseract_dataframe(image: Image) -> list[dict]:
+    """OCR the image with tesseract and return a data frame."""
+    df = pytesseract.image_to_data(image, config=TESS_CONFIG, output_type='data.frame')
+
+    df = df.loc[df.conf > 0]
+
+    if df.shape[0] > 0:
+        df.conf = df.conf / 100.0
+        df.text = df.text.str.strip()
+        df["right"] = df.left + df.width - 1
+        df["bottom"] = df.top + df.height - 1
+    else:
+        df['right'] = None
+        df['bottom'] = None
+
+    df = df.loc[:, KEYS]
+    return df
 
 
 def easyocr_engine(image: Image) -> list[dict]:

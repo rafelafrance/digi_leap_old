@@ -15,7 +15,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from digi_leap.log import finished, started
-from digi_leap.ocr import easyocr_engine, tesseract_engine
+from digi_leap.ocr import easyocr_engine, tesseract_dataframe
 
 BATCH_SIZE = 10
 
@@ -61,11 +61,10 @@ def ocr_tesseract(labels, args):
 def tesseract_batch(batch, args):
     """OCR one set of labels with tesseract."""
     for label in batch:
+        path = name_output_file(args["tesseract_dir"], label)
         image = Image.open(label["label"])
-        results = tesseract_engine(image)
-
-        path = name_output_file(args["tesseract_dir"], args["prefix"], label)
-        to_csv(path, results)
+        df = tesseract_dataframe(image)
+        df.to_csv(path, index=False)
 
 
 def ocr_easyocr(labels, args):
@@ -76,14 +75,14 @@ def ocr_easyocr(labels, args):
         image = Image.open(label["label"])
         results = easyocr_engine(image)
 
-        path = name_output_file(args.easyocr_dir, args.prefix, label)
+        path = name_output_file(args.easyocr_dir, label)
         to_csv(path, results)
 
 
-def name_output_file(dir_path, prefix, label):
+def name_output_file(dir_path, label):
     """Generate the output file name."""
     path = splitext(basename(label["label"]))[0]
-    path = join(dir_path, f"{prefix}{path}.csv")
+    path = join(dir_path, f"{path}.csv")
     return path
 
 
@@ -140,12 +139,6 @@ def parse_args() -> Namespace:
         "--easyocr-dir",
         type=Path,
         help="""Output the EasyOCR OCR results to this directory.""",
-    )
-
-    arg_parser.add_argument(
-        "--prefix",
-        default="",
-        help="""The prefix to use for the output file names.""",
     )
 
     arg_parser.add_argument(

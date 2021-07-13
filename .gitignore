@@ -37,6 +37,7 @@ junk*
 pilot/
 scratch/
 old/
+experiments/
 
 # yolo
 yolov5/
