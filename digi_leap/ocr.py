@@ -12,7 +12,6 @@ from digi_leap.const import CHAR_BLACKLIST, TESS_CONFIG
 
 EASY_OCR = easyocr.Reader(["en"])
 
-
 KEYS = """conf left top right bottom text""".split()
 
 

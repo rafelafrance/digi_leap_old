@@ -260,8 +260,7 @@ class BinaryThin(LabelTransform):
 
 
 # Canned scripts for transforming labels
-PIPELINES = {
-    "default": [
+ALL_TRANSFORMS = [
         Scale(),
         Orient(),
         Deskew(),
@@ -270,11 +269,13 @@ PIPELINES = {
         BinaryRemoveSmallHoles(area_threshold=24),
         BinaryThin(max_iter=2),
         BinaryOpening(),
-    ],
-    "simple": [
-        Scale(),
-        Orient(),
-    ],
+]
+
+PIPELINES = {
+    "first3": ALL_TRANSFORMS[:3],
+    "first5": ALL_TRANSFORMS[:5],
+    "first6": ALL_TRANSFORMS[:6],
+    "first8": ALL_TRANSFORMS,
 }
 
 

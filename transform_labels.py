@@ -90,7 +90,7 @@ def parse_args() -> Namespace:
     description = """
         Prepare images of labels.
 
-        Take all images in the --label-dir, prepare them for OCR and then
+        Take all images in the --label-dir, toransform them for OCR and then
         write them to the --transformed-dir. The input label images should
         be cut out of the specimens first.
     """
