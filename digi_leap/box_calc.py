@@ -1,4 +1,7 @@
-"""Common functions for bounding boxes."""
+"""Common functions for bounding boxes.
+
+This module mostly contains variants of bounding box non-maximum suppression (NMS).
+"""
 
 import numpy as np
 
@@ -113,3 +116,49 @@ def all_fractions(boxes):
         inters[i] = inter
 
     return inters
+
+
+def small_box_overlap(boxes, threshold=0.60):
+    """Find the overlap between bounding boxes as a fraction of the smaller box."""
+    if len(boxes) == 0:
+        return np.array([])
+
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float64")
+
+    # Simplify access to box components
+    x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+
+    area = np.maximum(0.0, x1 - x0 + 1.0) * np.maximum(0.0, y1 - y0 + 1.0)
+
+    idx = area.argsort()
+
+    overlapping = np.zeros_like(idx)
+    group = 0
+    while len(idx) > 0:
+        group += 1
+
+        # Pop the largest box
+        curr = idx[-1]
+        idx = idx[:-1]
+
+        overlapping[curr] = group
+
+        # Get interior (overlap) coordinates
+        xx0 = np.maximum(x0[curr], x0[idx])
+        yy0 = np.maximum(y0[curr], y0[idx])
+        xx1 = np.minimum(x1[curr], x1[idx])
+        yy1 = np.minimum(y1[curr], y1[idx])
+
+        # Get the intersection as a fraction of the smaller box
+        inter = np.maximum(0.0, xx1 - xx0 + 1.0) * np.maximum(0.0, yy1 - yy0 + 1.0)
+        inter /= area[idx]
+
+        # Find overlaps larger than threshold & group them
+        inter = np.where(inter >= threshold)[0]
+        overlapping[idx[inter]] = -group
+
+        # Remove all indices in an overlap group
+        idx = np.delete(idx, inter)
+
+    return overlapping

@@ -2,6 +2,7 @@
 
 import re
 from abc import ABC, abstractmethod
+from typing import Callable
 
 import numpy as np
 import pytesseract
@@ -177,6 +178,21 @@ class Blur(LabelTransform):
         return f"{name}({self.sigma=})"
 
 
+class EqualizeHist(LabelTransform):
+    """Return image after histogram equalization."""
+
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
+        image = ex.equalize_hist(image)
+        image = (image * 255).astype(np.int8)
+        # footprint = morph.disk(30)
+        # image = filters.rank.equalize(image, footprint)
+        return image, repr(self)
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}()"
+
+
 class Exposure(LabelTransform):
     """Stretching or shrinking an image's intensity levels."""
 
@@ -215,11 +231,13 @@ class BinarizeSauvola(LabelTransform):
 class BinaryRemoveSmallHoles(LabelTransform):
     """Remove contiguous holes smaller than the specified size in a binary image."""
 
-    def __init__(self, area_threshold: int = 64):
+    def __init__(self, area_threshold: int = 64, connectivity: int = 1):
         self.area_threshold = area_threshold
+        self.connectivity = connectivity
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
-        image = morph.remove_small_holes(image, area_threshold=self.area_threshold)
+        image = morph.remove_small_holes(
+            image, area_threshold=self.area_threshold, connectivity=self.connectivity)
         return image, repr(self)
 
     def __repr__(self):
@@ -260,31 +278,23 @@ class BinaryThin(LabelTransform):
 
 
 # Canned scripts for transforming labels
-ALL_TRANSFORMS = [
-        Scale(),
-        Orient(),
-        Deskew(),
-        RankMedian(),
-        BinarizeSauvola(),
-        BinaryRemoveSmallHoles(area_threshold=24),
-        BinaryThin(max_iter=2),
-        BinaryOpening(),
-]
-
 PIPELINES = {
-    "first3": ALL_TRANSFORMS[:3],
-    "first5": ALL_TRANSFORMS[:5],
-    "first6": ALL_TRANSFORMS[:6],
-    "first8": ALL_TRANSFORMS,
+    "deskew": [Scale(), Orient(), Deskew()],  # This is the base for other scripts
+    "binarize": [Scale(), Orient(), Deskew(), BinarizeSauvola()],
 }
 
 
 def transform_label(pipeline: str, image: Image) -> Image:
     """Transform the label to improve OCR results."""
+    return transform_image(PIPELINES[pipeline], image)
+
+
+def transform_image(pipeline: list[Callable], image: Image) -> Image:
+    """Transform the label to improve OCR results."""
     image = LabelTransform.as_array(image)
 
     actions = []
-    for func in PIPELINES[pipeline]:
+    for func in pipeline:
         image, action = func(image)
         actions.append(action)
 
