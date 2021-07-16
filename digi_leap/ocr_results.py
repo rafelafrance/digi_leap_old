@@ -1,4 +1,4 @@
-"""Functions for manipulaing OCR results."""
+"""Functions for manipulaing OCR result ensembles."""
 
 import re
 from collections import Counter
@@ -134,7 +134,7 @@ def find_rows_of_text(df: pd.DataFrame, image_height: int) -> pd.DataFrame:
 
     rows = {}
     for idx, box in df.iterrows():
-        mid = int((box.top + box.bottom) / 2)
+        mid = (box.top + box.bottom) // 2
         if row := [r for r, b in rows.items() if b[0] <= mid <= b[1]]:
             row = row[0]
         else:
@@ -166,26 +166,48 @@ def straighten_rows_of_text(df: pd.DataFrame) -> pd.DataFrame:
     for r, boxes in df.groupby("row"):
         df.loc[boxes.index, "top"] = boxes.top.min()
         df.loc[boxes.index, "bottom"] = boxes.top.max()
+
+    row = 0
+    for t, boxes in df.groupby("top"):
+        row += 1
+        df.loc[boxes.index, "row"] = row
+
+    df = df.sort_values(["row", "left"]).reset_index()
     return df
 
 
 def arrange_rows_of_text(df: pd.DataFrame, gutter: int = 12) -> pd.DataFrame:
     """Move lines of text in a label closer together."""
-    df["moved_top"] = 0
-    df["moved_bottom"] = 0
+    df["new_left"] = df.left
+    df["new_top"] = df.top
+    df["new_right"] = df.right
+    df["new_bottom"] = df.bottom
 
-    prev_bottom = 0
+    prev_bottom = gutter
 
     for row, boxes in df.groupby("row"):
+        boxes = boxes.sort_values("left")
+
         height = boxes.bottom.max() - boxes.top.min()
 
-        if row == 1:
-            df.loc[boxes.index, "moved_top"] = gutter
-            df.loc[boxes.index, "moved_bottom"] = gutter + height
-        else:
-            df.loc[boxes.index, "moved_top"] = prev_bottom + gutter
-            df.loc[boxes.index, "moved_bottom"] = prev_bottom + height + gutter
+        df.loc[boxes.index, "new_top"] = prev_bottom + gutter
+        df.loc[boxes.index, "new_bottom"] = prev_bottom + height + gutter
 
         prev_bottom += height + gutter
+
+        # prev_right = 0
+        # margin = 0
+
+        # for i, (idx, box) in enumerate(boxes.iterrows()):
+        #     width = box.right - box.left
+
+        #     if i == 0:
+        #         prev_right = box.left
+        #         margin = width // len(box.text)
+
+        #     df.loc[idx, "new_left"] = prev_right + margin
+        #     df.loc[idx, "new_right"] = prev_right + width + margin
+
+        #     prev_right += width + margin
 
     return df

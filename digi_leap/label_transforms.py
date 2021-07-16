@@ -42,21 +42,37 @@ class LabelTransform(ABC):
 class Scale(LabelTransform):
     """Enlarge an image if it is too small."""
 
-    def __init__(self, factor: float = 2.0, min_dim: int = 512):
+    def __init__(self, factor: float = 2.0, min_dim: int = 512, mode: str = "constant"):
         self.factor = factor
         self.min_dim = min_dim
+        self.mode = mode
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         action = repr(self)
         if image.shape[0] < self.min_dim or image.shape[1] < self.min_dim:
-            image = ndimage.zoom(image, self.factor)
+            image = ndimage.zoom(image, self.factor, mode=self.mode)
         else:
             action += " skipped"
         return image, action
 
     def __repr__(self):
         name = self.__class__.__name__
-        return f"{name}({self.factor=}, {self.min_dim=})"
+        return f"{name}({self.factor=}, {self.min_dim=}, {self.mode=})"
+
+
+class Blur(LabelTransform):
+    """Blur the image."""
+
+    def __init__(self, sigma: int = 1):
+        self.sigma = sigma
+
+    def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
+        image = ndimage.gaussian_filter(image, self.sigma)
+        return image, repr(self)
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        return f"{name}({self.sigma=})"
 
 
 class Orient(LabelTransform):
@@ -159,25 +175,6 @@ class RankModal(LabelTransform):
         return f"{name}({selem=})"
 
 
-class Blur(LabelTransform):
-    """Blur the image."""
-
-    def __init__(self, sigma: int = 1):
-        self.sigma = sigma
-
-    def __call__(
-        self, image: npt.ArrayLike, sigma: int = None
-    ) -> tuple[npt.ArrayLike, str]:
-        sigma = sigma if sigma else self.sigma
-        multichannel = len(image.shape) > 2
-        image = filters.gaussian(image, sigma=sigma, multichannel=multichannel)
-        return image, repr(self)
-
-    def __repr__(self):
-        name = self.__class__.__name__
-        return f"{name}({self.sigma=})"
-
-
 class EqualizeHist(LabelTransform):
     """Return image after histogram equalization."""
 
@@ -277,12 +274,25 @@ class BinaryThin(LabelTransform):
         return f"{name}({self.max_iter=})"
 
 
+# =============================================================================
 # Canned scripts for transforming labels
+
+# If you plan to use an ensemble every ensemble pipeline must include the same
+# affine transforms that modify the geommetry of the image [Scale, Orient, Deskew].
+# Elsewise, it becomes almost impossible to align bounding boxes of each
+# ensemble member. In the PIPELINES below you must use the same:
+# Scale(mode="nearest"), Orient(), Deskew() in every ensemble member but you
+# could exclude Blur() because that does not modify the image geometry.
+BASE_PIPELINE = [Blur(sigma=0.5), Scale(mode="nearest"), Orient(), Deskew()]
+
 PIPELINES = {
-    "deskew": [Scale(), Orient(), Deskew()],  # This is the base for other scripts
-    "binarize": [Scale(), Orient(), Deskew(), BinarizeSauvola()],
+    "deskew": BASE_PIPELINE,
+    "binarize": BASE_PIPELINE + [BinarizeSauvola()],
 }
 
+
+# =============================================================================
+# Functions for applying transforms to images
 
 def transform_label(pipeline: str, image: Image) -> Image:
     """Transform the label to improve OCR results."""

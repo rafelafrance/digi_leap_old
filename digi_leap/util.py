@@ -13,12 +13,13 @@ from skimage.transform import probabilistic_hough_line
 from digi_leap.const import HORIZ_ANGLES
 
 
+# TODO: This function is a mess
 def to_pil(label) -> Image:
     """Convert the label data into a PIL image"""
-    if label.dtype == "float64":
+    if hasattr(label, 'dtype') and label.dtype == "float64":
         mode = "L" if len(label.shape) < 3 else "RGB"
         return Image.fromarray(label * 255.0, mode)
-    if label.dtype == "bool":
+    if hasattr(label, 'dtype') and label.dtype == "bool":
         image = (label * 255).astype("uint8")
         mode = "L" if len(label.shape) < 3 else "RGB"
         return Image.fromarray(image, mode)
