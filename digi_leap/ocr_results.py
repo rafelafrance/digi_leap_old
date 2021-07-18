@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Union
 
 import nltk
-import numpy as np
 import pandas as pd
 from nltk.corpus import words
 
@@ -46,7 +45,7 @@ def filter_bounding_boxes(
     image_height: int,
     conf: float = 0.25,
     height_threshold: float = 0.25,
-    std_devs: float = 3.0,
+    std_devs: float = 2.0,
 ) -> pd.DataFrame:
     """Remove problem bounding boxes from the data frame."""
     df["width"] = df.right - df.left + 1
@@ -79,17 +78,17 @@ def reconcile_text(texts: list[str], vocab: set[str]) -> str:
 
     texts = [re.sub(r"\s([.,:])", r"\1", t) for t in texts]
     counts = Counter(texts)
-    counts = [(c[1], len(c[0]), c[0]) for c in counts.most_common()]
+    counts = [(c[1], len(c[0]), c[0]) for c in counts.most_common(3)]
     counts = sorted(counts, reverse=True)
     best = counts[0]
 
-    if best[0] > len(texts) / 2:
+    if best[0] >= len(texts) / 2:
         return best[2]
 
     scores = []
     for t, text in enumerate(texts):
         words = text.split()
-        hits = sum(1 for w in words if re.sub(r"\S", "", w) in vocab)
+        hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab)
         hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
         hits += sum(1 for w in words if re.match(r"^\d{1,2}[/-]\d{1,2}[/-]\d{1,2}$", w))
         count = len(words)
@@ -99,18 +98,20 @@ def reconcile_text(texts: list[str], vocab: set[str]) -> str:
     return texts[best[2]]
 
 
-def merge_bounding_boxes(df: pd.DataFrame, vocab: set[str]) -> pd.DataFrame:
+def merge_bounding_boxes(
+    df: pd.DataFrame, vocab: set[str], threshold: float = 0.50
+) -> pd.DataFrame:
     """Merge overlapping bounding boxes and create a new data frame."""
     boxes = df[["left", "top", "right", "bottom"]].to_numpy()
-    groups = small_box_overlap(boxes)
-    df["group"] = np.absolute(groups)
+    groups = small_box_overlap(boxes, threshold=threshold)
+    df["group"] = groups
 
     merged = []
     for g, box_group in df.groupby("group"):
         texts = []
         for s, subgroup in box_group.groupby("ocr_dir"):
             subgroup = subgroup.sort_values("left")
-            text = " ".join(str(i.text) for _, i in subgroup.iterrows())
+            text = " ".join(subgroup.text)
             texts.append(text)
 
         merged.append(
@@ -120,6 +121,7 @@ def merge_bounding_boxes(df: pd.DataFrame, vocab: set[str]) -> pd.DataFrame:
                 "right": box_group.right.max(),
                 "bottom": box_group.bottom.max(),
                 "text": reconcile_text(texts, vocab),
+                "ocr_dir": box_group.ocr_dir.iloc[0],
             }
         )
 
@@ -127,21 +129,38 @@ def merge_bounding_boxes(df: pd.DataFrame, vocab: set[str]) -> pd.DataFrame:
     return df
 
 
-def find_rows_of_text(df: pd.DataFrame, image_height: int) -> pd.DataFrame:
-    """Find rows of text in the label and mark what row each box belongs to."""
-    df = df.sort_values(["left", "top"])
-    df["row"] = 0
+def merge_bounding_boxes2(
+    df: pd.DataFrame, vocab: set[str], threshold: float = 0.50
+) -> pd.DataFrame:
+    """Merge overlapping bounding boxes and create a new data frame."""
+    df["group"] = 0
 
-    rows = {}
-    for idx, box in df.iterrows():
-        mid = (box.top + box.bottom) // 2
-        if row := [r for r, b in rows.items() if b[0] <= mid <= b[1]]:
-            row = row[0]
-        else:
-            row = len(rows) + 1
-        rows[row] = (box.top, box.bottom)
-        df.at[idx, "row"] = row
+    merged = []
 
+    for row, row_boxes in df.groupby("row"):
+        box_array = row_boxes.loc[:, ["left", "top", "right", "bottom"]].to_numpy()
+        groups = small_box_overlap(box_array, threshold=threshold)
+        row_boxes.loc[:, "group"] = groups + 100_000 * row
+
+        for group, box_group in row_boxes.groupby("group"):
+            texts = []
+            for s, subgroup in box_group.groupby("ocr_dir"):
+                subgroup = subgroup.sort_values("left")
+                text = " ".join(subgroup.text)
+                texts.append(text)
+
+            merged.append(
+                {
+                    "left": box_group.left.min(),
+                    "top": box_group.top.min(),
+                    "right": box_group.right.max(),
+                    "bottom": box_group.bottom.max(),
+                    "text": reconcile_text(texts, vocab),
+                    "row": row,
+                }
+            )
+
+    df = pd.DataFrame(merged)
     return df
 
 
@@ -165,7 +184,7 @@ def straighten_rows_of_text(df: pd.DataFrame) -> pd.DataFrame:
     """Align bounding boxes on the same row of text to the same top and bottom."""
     for r, boxes in df.groupby("row"):
         df.loc[boxes.index, "top"] = boxes.top.min()
-        df.loc[boxes.index, "bottom"] = boxes.top.max()
+        df.loc[boxes.index, "bottom"] = boxes.bottom.max()
 
     row = 0
     for t, boxes in df.groupby("top"):

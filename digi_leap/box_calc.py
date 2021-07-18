@@ -118,8 +118,8 @@ def all_fractions(boxes):
     return inters
 
 
-def small_box_overlap(boxes, threshold=0.60):
-    """Find the overlap between bounding boxes as a fraction of the smaller box."""
+def small_box_overlap(boxes, threshold=0.50):
+    """Get overlapping boxes using the threshold on the are of the smaller box."""
     if len(boxes) == 0:
         return np.array([])
 
@@ -156,7 +156,7 @@ def small_box_overlap(boxes, threshold=0.60):
 
         # Find overlaps larger than threshold & group them
         inter = np.where(inter >= threshold)[0]
-        overlapping[idx[inter]] = -group
+        overlapping[idx[inter]] = group
 
         # Remove all indices in an overlap group
         idx = np.delete(idx, inter)
