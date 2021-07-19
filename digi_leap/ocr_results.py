@@ -5,30 +5,10 @@ from collections import Counter
 from pathlib import Path
 from typing import Union
 
-import nltk
 import pandas as pd
-from nltk.corpus import words
 
 from digi_leap.box_calc import small_box_overlap
-
-
-def get_nltk_words():
-    """Get words from the NLTK corpus."""
-    nltk.download("words")
-
-
-def get_vocab() -> set[str]:
-    """Get the vocabulary used for scoring OCR quality."""
-    vocab_dir = Path("..") / "data" / "vocab"
-
-    vocab = set()
-
-    with open(vocab_dir / "plant_taxa.txt") as in_file:
-        vocab |= {v.strip().lower() for v in in_file.readlines() if len(v) > 1}
-
-    vocab |= {w.lower() for w in words.words() if len(w) > 1}
-
-    return vocab
+from digi_leap.const import VOCAB
 
 
 def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
@@ -69,16 +49,16 @@ def filter_bounding_boxes(
     return df
 
 
-def text_hits(text: str, vocab: set[str]) -> int:
+def text_hits(text: str) -> int:
     """Count the number of words in the text that are in our corpus."""
     words = text.lower().split()
-    hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab)
+    hits = sum(1 for w in words if re.sub(r"\W", "", w) in VOCAB)
     hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
     hits += sum(1 for w in words if re.match(r"^\d{1,2}[/-]\d{1,2}[/-]\d{1,2}$", w))
     return hits
 
 
-def reconcile_text(texts: list[str], vocab: set[str]) -> str:
+def reconcile_text(texts: list[str]) -> str:
     """Find the single "best" text string from a list of similar texts.
 
     First we look for the most common text string in the list. If that
@@ -100,7 +80,7 @@ def reconcile_text(texts: list[str], vocab: set[str]) -> str:
     scores = []
     for t, text in enumerate(texts):
         words = text.split()
-        hits = text_hits(text, vocab)
+        hits = text_hits(text)
         count = len(words)
         scores.append((hits / count, count, t))
 
@@ -108,9 +88,7 @@ def reconcile_text(texts: list[str], vocab: set[str]) -> str:
     return texts[best[2]]
 
 
-def merge_bounding_boxes(
-    df: pd.DataFrame, vocab: set[str], threshold: float = 0.50
-) -> pd.DataFrame:
+def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFrame:
     """Merge overlapping bounding boxes and create a new data frame."""
     boxes = df[["left", "top", "right", "bottom"]].to_numpy()
     groups = small_box_overlap(boxes, threshold=threshold)
@@ -130,7 +108,7 @@ def merge_bounding_boxes(
                 "top": box_group.top.min(),
                 "right": box_group.right.max(),
                 "bottom": box_group.bottom.max(),
-                "text": reconcile_text(texts, vocab),
+                "text": reconcile_text(texts),
                 "ocr_dir": box_group.ocr_dir.iloc[0],
             }
         )

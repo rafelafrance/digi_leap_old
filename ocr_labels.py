@@ -37,7 +37,7 @@ def filter_labels(args):
     """Filter labels that do not meet argument criteria."""
     logging.info("filtering labels")
     paths = sorted(args.label_dir.glob(args.image_filter))
-    paths = [{"label": str(p)} for p in paths]
+    paths = [str(p) for p in paths]
     paths = paths[: args.limit] if args.limit else paths
     return paths
 
@@ -62,7 +62,7 @@ def tesseract_batch(batch, args):
     """OCR one set of labels with tesseract."""
     for label in batch:
         path = name_output_file(args["tesseract_dir"], label)
-        image = Image.open(label["label"])
+        image = Image.open(label)
         df = tesseract_dataframe(image)
         df.to_csv(path, index=False)
 
@@ -72,7 +72,7 @@ def ocr_easyocr(labels, args):
     # Because EasyOCR uses the GPU we cannot use subprocesses :(
     logging.info("OCR with EasyOCR")
     for label in tqdm(labels):
-        image = Image.open(label["label"])
+        image = Image.open(label)
         results = easyocr_engine(image)
 
         path = name_output_file(args.easyocr_dir, label)
@@ -81,7 +81,7 @@ def ocr_easyocr(labels, args):
 
 def name_output_file(dir_path, label):
     """Generate the output file name."""
-    path = splitext(basename(label["label"]))[0]
+    path = splitext(basename(label))[0]
     path = join(dir_path, f"{path}.csv")
     return path
 

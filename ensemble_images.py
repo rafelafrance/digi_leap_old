@@ -1,22 +1,26 @@
 #!/usr/bin/env python
-"""Reconcile a "best" label from an ensemble of OCR results of each label."""
+"""Find "best" labels from ensembles of OCR results of each label."""
 
+import os
 import textwrap
 from argparse import ArgumentParser, Namespace
 from collections import defaultdict
+from multiprocessing import Pool
 from pathlib import Path
 
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
+from tqdm import tqdm
 
 import digi_leap.ocr_results as results
 from digi_leap.const import FONTS_DIR
 from digi_leap.log import finished, started
 from digi_leap.ocr_rows import find_rows_of_text
 
-
 FONT = FONTS_DIR / "print" / "Source_Code_Pro" / "SourceCodePro-Regular.ttf"
 BASE_FONT_SIZE = 42
+
+BATCH_SIZE = 10
 
 
 class FontDict(dict):
@@ -30,25 +34,39 @@ BASE_FONT = ImageFont.truetype(str(FONT), BASE_FONT_SIZE)
 
 def build_all_ensembles(args: Namespace) -> None:
     """Group OCR output paths by label."""
-    paths = group_files(args.ocr_dir, glob=args.glob)
-    for label, csv_paths in paths.items():
-        boxes = get_boxes(csv_paths)
-        boxes = results.filter_boxes(boxes)
-        ensemble = results.group_boxes(label, boxes)
-        write_file(args, label, ensemble)
+    os.makedirs(args.ensemble_dir, exist_ok=True)
+    paths = group_files(args.ocr_dir, glob="*.csv")
+
+    batches = [paths[i : i + BATCH_SIZE] for i in range(0, len(paths), BATCH_SIZE)]
+
+    with Pool(processes=args.cpus) as pool, tqdm(total=len(batches)) as bar:
+        results = [
+            pool.apply_async(
+                ensemble_batch, args=(vars(args), b), callback=lambda _: bar.update(1)
+            )
+            for b in batches
+        ]
+        _ = [r.get() for r in results]
 
 
-def build_ensemble(args, path_tuple, vocab):
+def ensemble_batch(args, batch):
+    """Find the "best" label on a batch of OCR results."""
+    for path_tuple in batch:
+        build_ensemble(args, path_tuple)
+
+
+def build_ensemble(args, path_tuple):
     """Build the "best" label output given the ensemble of OCR results."""
     key, paths = path_tuple
-    label = Image.open(args.label_dir / f"{key}.jpg").convert("RGB")
+    paths = [Path(p) for p in paths]
+
+    label = Image.open(Path(args["label_dir"]) / f"{key}.jpg").convert("RGB")
     width, height = label.size
     recon = Image.new("RGB", label.size, color="white")
 
     df = get_boxes(paths)
-    df = results.merge_bounding_boxes(df, vocab)
+    df = results.merge_bounding_boxes(df)
     df = find_rows_of_text(df)
-
     df = results.straighten_rows_of_text(df)
 
     draw_recon = ImageDraw.Draw(recon)
@@ -56,7 +74,6 @@ def build_ensemble(args, path_tuple, vocab):
     df["font_size"] = BASE_FONT_SIZE
 
     for idx, box in df.iterrows():
-
         for font_size in range(BASE_FONT_SIZE, 16, -1):
             text_left, text_top, text_right, text_bottom = draw_recon.textbbox(
                 (box.left, box.top), box.text, font=FONTS[font_size], anchor="lt"
@@ -79,14 +96,14 @@ def build_ensemble(args, path_tuple, vocab):
             anchor="lt",
         )
 
-    recon_bottom += args.gutter
+    recon_bottom += args["gutter"]
     recon = recon.crop((0, 0, recon.width, recon_bottom))
 
     image = Image.new("RGB", (width, height + recon_bottom))
     image.paste(label, (0, 0))
     image.paste(recon, (0, height))
 
-    path = args.ensemble_dir / f"{key}.jpg"
+    path = Path(args["ensemble_dir"]) / f"{key}.jpg"
     image.save(path)
 
 
@@ -99,7 +116,7 @@ def group_files(
         paths = ocr_dir.glob(glob)
         for path in paths:
             label = path.stem
-            path_dict[label].append(path)
+            path_dict[label].append(str(path))
     path_tuples = [(k, v) for k, v in path_dict.items()]
     path_tuples = sorted(path_tuples, key=lambda p: p[0])
     return path_tuples
@@ -112,12 +129,6 @@ def get_boxes(paths):
         df = results.get_results_df(path)
         boxes.append(df)
     return pd.concat(boxes)
-
-
-def write_file(args, label, ensemble):
-    """Write the ensemble to a file."""
-    path = args.ensemble_dir / f"{label}.csv"
-    ensemble.to_csv(path, index=False)
 
 
 def parse_args() -> Namespace:
@@ -133,7 +144,7 @@ def parse_args() -> Namespace:
         "--ocr-dir",
         required=True,
         type=Path,
-        nargs="+",
+        action="append",
         help="""The directory containing OCR output.""",
     )
 
@@ -151,19 +162,26 @@ def parse_args() -> Namespace:
         help="""Output resulting images of the OCR ensembles to this directory.""",
     )
 
+    cpus = max(1, min(10, os.cpu_count() - 4))
+    arg_parser.add_argument(
+        "--cpus",
+        type=int,
+        default=cpus,
+        help="""How many CPUs to use. (default %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many label images.""",
+    )
+
     arg_parser.add_argument(
         "--gutter",
         type=int,
         default=12,
         help="""Margin between lines of text in the reconstructed label output.
             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--glob",
-        type=str,
-        default="*.jpg",
-        help="""Input images have this extension. (default %(default)s)""",
     )
 
     args = arg_parser.parse_args()
