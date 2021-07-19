@@ -34,7 +34,11 @@ BASE_FONT = ImageFont.truetype(str(FONT), BASE_FONT_SIZE)
 
 def build_all_ensembles(args: Namespace) -> None:
     """Group OCR output paths by label."""
-    os.makedirs(args.ensemble_dir, exist_ok=True)
+    if args.ensemble_images:
+        os.makedirs(args.ensemble_images, exist_ok=True)
+    if args.ensemble_text:
+        os.makedirs(args.ensemble_text, exist_ok=True)
+
     paths = group_files(args.ocr_dir, glob="*.csv")
 
     batches = [paths[i : i + BATCH_SIZE] for i in range(0, len(paths), BATCH_SIZE)]
@@ -57,20 +61,37 @@ def ensemble_batch(args, batch):
 
 def build_ensemble(args, path_tuple):
     """Build the "best" label output given the ensemble of OCR results."""
-    key, paths = path_tuple
+    stem, paths = path_tuple
     paths = [Path(p) for p in paths]
-
-    label = Image.open(Path(args["label_dir"]) / f"{key}.jpg").convert("RGB")
-    width, height = label.size
-    recon = Image.new("RGB", label.size, color="white")
 
     df = get_boxes(paths)
     df = results.merge_bounding_boxes(df)
     df = find_rows_of_text(df)
-    df = results.straighten_rows_of_text(df)
+
+    if args.get("ensemble_text"):
+        build_ensemble_text(args, stem, df)
+
+    if args.get("ensemble_images"):
+        build_ensemble_images(args, stem, df)
+
+
+def build_ensemble_text(args, stem, df):
+    """Build the "best" text output given the ensemble of OCR results."""
+    lines = [" ".join(b.text) + "\n" for _, b in df.groupby("row")]
+    path = Path(args["ensemble_text"]) / f"{stem}.txt"
+    with open(path, "w") as out_file:
+        out_file.writelines(lines)
+
+
+def build_ensemble_images(args, stem, df):
+    """Build the "best" image output given the ensemble of OCR results."""
+    label = Image.open(Path(args["label_dir"]) / f"{stem}.jpg").convert("RGB")
+    width, height = label.size
+    recon = Image.new("RGB", label.size, color="white")
 
     draw_recon = ImageDraw.Draw(recon)
 
+    df = results.straighten_rows_of_text(df)
     df["font_size"] = BASE_FONT_SIZE
 
     for idx, box in df.iterrows():
@@ -103,7 +124,7 @@ def build_ensemble(args, path_tuple):
     image.paste(label, (0, 0))
     image.paste(recon, (0, height))
 
-    path = Path(args["ensemble_dir"]) / f"{key}.jpg"
+    path = Path(args["ensemble_images"]) / f"{stem}.jpg"
     image.save(path)
 
 
@@ -156,10 +177,15 @@ def parse_args() -> Namespace:
     )
 
     arg_parser.add_argument(
-        "--ensemble-dir",
-        required=True,
+        "--ensemble-images",
         type=Path,
         help="""Output resulting images of the OCR ensembles to this directory.""",
+    )
+
+    arg_parser.add_argument(
+        "--ensemble-text",
+        type=Path,
+        help="""Output resulting text of the OCR ensembles to this directory.""",
     )
 
     cpus = max(1, min(10, os.cpu_count() - 4))
