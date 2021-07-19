@@ -57,7 +57,7 @@ class Rows:
     def overlapping_rows(self, box: pd.Series) -> Union[Row, None]:
         """Get the rows that overlap (vertically) with the given box.
 
-        If a large box overlaps with multiple row's centerlines then want
+        If a tall box overlaps with multiple row's centerlines then I want
         the row with the centerline closest to the given box's centerline.
         """
         overlap = [r for r in self.rows if box.top <= r.center <= box.bottom]
@@ -71,7 +71,7 @@ class Rows:
     def row_brackets_box(self, box: pd.Series) -> Union[Row, None]:
         """Check if the given box is fully contained within a row.
 
-        This happens for very small boxes, typically containing only punctuation.
+        This happens for very small boxes, typically punctuation.
         """
         contains = [r for r in self.rows if r.top <= box.top and r.bottom >= box.bottom]
         return contains[0] if contains else None
@@ -80,7 +80,9 @@ class Rows:
 def horizontal_overlap(box, row):
     """Calculate how much boxes overlap horizontally.
 
-    Tall boxes will match centerlines even they should not.
+    Tall boxes will match centerlines even they should not. I check if the
+    boxes significantly overlap in the horizontal direction, and if they do
+    we consider them separate rows.
     """
     max_left = max(box.left, row.left)
     min_right = min(box.right, row.right)

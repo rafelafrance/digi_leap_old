@@ -130,6 +130,7 @@ def small_box_overlap(boxes, threshold=0.50):
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
 
     area = np.maximum(0.0, x1 - x0 + 1.0) * np.maximum(0.0, y1 - y0 + 1.0)
+    area += 0.0000001
 
     idx = area.argsort()
 

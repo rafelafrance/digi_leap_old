@@ -51,6 +51,9 @@ def filter_bounding_boxes(
     df["width"] = df.right - df.left + 1
     df["height"] = df.bottom - df.top + 1
 
+    # Remove boxes with nothing in them
+    df = df.loc[df.text != '']
+
     # Remove boxes with low confidence
     df = df.loc[df.conf > conf]
 
@@ -64,6 +67,15 @@ def filter_bounding_boxes(
     df = df.loc[(df.width > thresh_width) & (df.height > thresh_height)]
 
     return df
+
+
+def text_hits(text: str, vocab: set[str]) -> int:
+    """Count the number of words in the text that are in our corpus."""
+    words = text.lower().split()
+    hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab)
+    hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
+    hits += sum(1 for w in words if re.match(r"^\d{1,2}[/-]\d{1,2}[/-]\d{1,2}$", w))
+    return hits
 
 
 def reconcile_text(texts: list[str], vocab: set[str]) -> str:
@@ -88,9 +100,7 @@ def reconcile_text(texts: list[str], vocab: set[str]) -> str:
     scores = []
     for t, text in enumerate(texts):
         words = text.split()
-        hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab)
-        hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
-        hits += sum(1 for w in words if re.match(r"^\d{1,2}[/-]\d{1,2}[/-]\d{1,2}$", w))
+        hits = text_hits(text, vocab)
         count = len(words)
         scores.append((hits / count, count, t))
 
@@ -124,41 +134,6 @@ def merge_bounding_boxes(
                 "ocr_dir": box_group.ocr_dir.iloc[0],
             }
         )
-
-    df = pd.DataFrame(merged)
-    return df
-
-
-def merge_bounding_boxes2(
-    df: pd.DataFrame, vocab: set[str], threshold: float = 0.50
-) -> pd.DataFrame:
-    """Merge overlapping bounding boxes and create a new data frame."""
-    df["group"] = 0
-
-    merged = []
-
-    for row, row_boxes in df.groupby("row"):
-        box_array = row_boxes.loc[:, ["left", "top", "right", "bottom"]].to_numpy()
-        groups = small_box_overlap(box_array, threshold=threshold)
-        row_boxes.loc[:, "group"] = groups + 100_000 * row
-
-        for group, box_group in row_boxes.groupby("group"):
-            texts = []
-            for s, subgroup in box_group.groupby("ocr_dir"):
-                subgroup = subgroup.sort_values("left")
-                text = " ".join(subgroup.text)
-                texts.append(text)
-
-            merged.append(
-                {
-                    "left": box_group.left.min(),
-                    "top": box_group.top.min(),
-                    "right": box_group.right.max(),
-                    "bottom": box_group.bottom.max(),
-                    "text": reconcile_text(texts, vocab),
-                    "row": row,
-                }
-            )
 
     df = pd.DataFrame(merged)
     return df
@@ -214,19 +189,19 @@ def arrange_rows_of_text(df: pd.DataFrame, gutter: int = 12) -> pd.DataFrame:
 
         prev_bottom += height + gutter
 
-        # prev_right = 0
-        # margin = 0
+        prev_right = 0
+        margin = 0
 
-        # for i, (idx, box) in enumerate(boxes.iterrows()):
-        #     width = box.right - box.left
+        for i, (idx, box) in enumerate(boxes.iterrows()):
+            width = box.right - box.left
 
-        #     if i == 0:
-        #         prev_right = box.left
-        #         margin = width // len(box.text)
+            if i == 0:
+                prev_right = box.left
+                margin = width // len(box.text)
 
-        #     df.loc[idx, "new_left"] = prev_right + margin
-        #     df.loc[idx, "new_right"] = prev_right + width + margin
+            df.loc[idx, "new_left"] = prev_right + margin
+            df.loc[idx, "new_right"] = prev_right + width + margin
 
-        #     prev_right += width + margin
+            prev_right += width + margin
 
     return df

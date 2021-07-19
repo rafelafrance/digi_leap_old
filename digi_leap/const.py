@@ -15,6 +15,7 @@ PROCESSED_DIR = DATA_DIR / "processed"
 RAW_DIR = DATA_DIR / "raw"
 TEMP_DIR = DATA_DIR / "temp"
 VOCAB_DIR = DATA_DIR / "vocab"
+FONTS_DIR = ROOT_DIR / "fonts"
 
 CSV_FILE = "occurrence_raw.csv"
 DB = PROCESSED_DIR / "occurrence_raw_2021-02.sqlite3.db"
