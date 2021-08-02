@@ -7,7 +7,6 @@ import os
 import textwrap
 from argparse import ArgumentParser, Namespace
 from multiprocessing import Pool
-from os import makedirs
 from os.path import basename, join, splitext
 from pathlib import Path
 
@@ -25,11 +24,11 @@ def ocr_labels(args: Namespace) -> None:
     labels = filter_labels(args)
 
     if args.tesseract_dir:
-        makedirs(args.tesseract_dir, exist_ok=True)
+        os.makedirs(args.tesseract_dir, exist_ok=True)
         ocr_tesseract(labels, args)
 
     if args.easyocr_dir:
-        makedirs(args.easyocr_dir, exist_ok=True)
+        os.makedirs(args.easyocr_dir, exist_ok=True)
         ocr_easyocr(labels, args)
 
 

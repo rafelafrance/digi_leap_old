@@ -2,15 +2,19 @@
 """Reconcile data from a Label Babel expedition."""
 
 import csv
+import logging
 import textwrap
 from argparse import ArgumentParser, Namespace
 from collections import defaultdict
+from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import torch
 from PIL import Image, UnidentifiedImageError
 from sklearn.model_selection import train_test_split
+from torchvision.ops import clip_boxes_to_image
 from tqdm import tqdm
 
 from digi_leap.log import finished, started
@@ -21,9 +25,24 @@ def reconcile(args):
     """Reconcile data from a Label Babel expedition."""
     classifications = get_classifications(args)
     subjects = group_by_subject(classifications)
+    subjects = subject_images(args, subjects)
     subjects = merge_boxes(subjects)
-    rows = get_image_sizes(args, subjects)
-    write_csv(args, rows)
+
+    as_list = [s.as_dict() for s in subjects]
+    df = pd.DataFrame(as_list)
+
+    logging.info(f"Writing CSV files: {args.reconciled}")
+    df.to_csv(args.reconciled, index=False)
+
+    if args.split:
+        train, test = train_test_split(df, test_size=args.split, random_state=args.seed)
+        parent = args.reconciled.parent
+
+        name = parent / f"{args.reconciled.stem}.train.{args.reconciled.suffix}"
+        train.to_csv(name, index=False)
+
+        name = parent / f"{args.reconciled.stem}.test.{args.reconciled.suffix}"
+        test.to_csv(name, index=False)
 
 
 def get_classifications(args):
@@ -36,26 +55,51 @@ def get_classifications(args):
 
 def group_by_subject(classifications):
     """Group classifications by subject."""
-    subs: dict[str, Subject] = defaultdict(lambda: Subject())
+    subjects: dict[str, Subject] = defaultdict(lambda: Subject())
 
-    for classify in tqdm(classifications):
-        sub_id = classify['subject_id']
+    for class_ in tqdm(classifications):
+        sub_id = class_["subject_id"]
 
-        subs[sub_id].subject_id = sub_id
-        subs[sub_id].image_file = classify['subject_Filename']
+        subjects[sub_id].subject_id = sub_id
+        subjects[sub_id].image_file = class_["subject_Filename"]
 
-        coords = [v for k, v in classify.items() if k.startswith('Box(es): box') and v]
+        coords = [v for k, v in class_.items() if k.startswith("Box(es): box") and v]
         boxes = np.array([Subject.bbox_from_json(c) for c in coords if c])
         if len(boxes):
-            subs[sub_id].boxes = np.vstack((subs[sub_id].boxes, boxes))
+            subjects[sub_id].boxes = np.vstack((subjects[sub_id].boxes, boxes))
 
-        selects = [(v if v else '') for k, v in classify.items()
-                   if k.startswith('Box(es): select')]
-        types = np.array(selects[:len(boxes)], dtype=str)
+        selects = [
+            (v if v else "")
+            for k, v in class_.items()
+            if k.startswith("Box(es): select")
+        ]
+        types = np.array(selects[: len(boxes)], dtype=str)
         if len(types):
-            subs[sub_id].types = np.hstack((subs[sub_id].types, types))
+            subjects[sub_id].types = np.hstack((subjects[sub_id].types, types))
 
-    return list(subs.values())
+    return list(subjects.values())
+
+
+def subject_images(args, subjects):
+    """Clip boxes to the image size and remove bad images."""
+    new_subjects = []
+    for subject in tqdm(subjects):
+        path = args.image_dir / subject.image_file
+        try:
+            image = Image.open(path)
+            width, height = image.size
+        except UnidentifiedImageError:
+            logging.warning(f"{path} is not an image")
+            continue
+
+        boxes = torch.from_numpy(subject.boxes)
+        boxes = clip_boxes_to_image(boxes, (height, width))
+        subject.boxes = boxes.numpy()
+        subject.image_size = (height, width)
+
+        new_subjects.append(subject)
+
+    return new_subjects
 
 
 def merge_boxes(subjects):
@@ -67,65 +111,16 @@ def merge_boxes(subjects):
     have the individual bounding boxes for each label so we're going to do
     some extra processing to see if we can get them.
     """
-    new_subjects = []
-
     for subject in tqdm(subjects):
         subject.merge_box_groups()
-        new_subjects.append(subject.to_dict(everything=True))
-
-    return new_subjects
+    return subjects
 
 
-def get_image_sizes(args, subjects):
-    """Get image sizes."""
-    new_rows = []
-
-    for subject in subjects:
-        path = args.image_file / subject['image_file']
-        try:
-            image = Image.open(path)
-            width, height = image.size
-        except UnidentifiedImageError:
-            continue
-        subject['image_size'] = {'width': width, 'height': height}
-        new_rows.append(subject)
-
-    return new_rows
-
-
-def write_csv(args, rows):
+def to_dataframe(subjects):
     """Create the data frame for output."""
-    df = pd.DataFrame(rows).fillna('')
-
-    # Sort columns
-    columns = """ subject_id  image_file image_size """.split()
-
-    boxes = [k for k in df.columns if k.startswith('merged_box_')]
-    types = [k for k in df.columns if k.startswith('merged_type_')]
-    columns += [c for s in zip(boxes, types) for c in s]
-
-    boxes = [k for k in df.columns if k.startswith('removed_box_')]
-    types = [k for k in df.columns if k.startswith('removed_type_')]
-    columns += [c for s in zip(boxes, types) for c in s]
-
-    boxes = [k for k in df.columns if k.startswith('box_')]
-    types = [k for k in df.columns if k.startswith('type_')]
-    groups = [k for k in df.columns if k.startswith('group_')]
-    columns += [c for s in zip(boxes, types, groups) for c in s]
-
-    df = df[columns]
-
-    # Write reconciled output along with training and test partitions of the data
-    df.to_csv(args.reconciled, index=False)
-
-    train_df, test_df = train_test_split(
-        df, test_size=args.split, random_state=args.seed)
-
-    name = args.reconciled / f'{args.reconciled.stem}.train.{args.reconciled.suffix}'
-    train_df.to_csv(name, index=False)
-
-    name = args.reconciled / f'{args.reconciled.stem}.test.{args.reconciled.suffix}'
-    test_df.to_csv(name, index=False)
+    as_list = [asdict(s) for s in subjects]
+    df = pd.DataFrame(as_list)
+    return df
 
 
 def parse_args() -> Namespace:
@@ -138,32 +133,44 @@ def parse_args() -> Namespace:
     on the herbarium sheet and then merge them to find a single "best" bounding box.
     """
     arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars='@')
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
 
     arg_parser.add_argument(
-        '--unreconciled', required=True, type=Path,
-        help="""The unreconciled input CSV.""")
+        "--unreconciled",
+        required=True,
+        type=Path,
+        help="""The unreconciled input CSV.""",
+    )
 
     arg_parser.add_argument(
-        '--reconciled', required=True, type=Path,
-        help="""The reconciled output CSV.""")
+        "--image-dir",
+        required=True,
+        type=Path,
+        help="""Read training images from this directory.""",
+    )
 
     arg_parser.add_argument(
-        '--image-dir', required=True, type=Path,
-        help="""Read training images from this directory.""")
+        "--reconciled",
+        required=True,
+        type=Path,
+        help="""The reconciled output as a CSV file.""",
+    )
 
     arg_parser.add_argument(
-        '--split', type=float, default=0.2,
-        help="""Fraction of subjects in the test dataset. (default: %(default)s)""")
+        "--split",
+        type=float,
+        default=0.2,
+        help="""Fraction of subjects in the test dataset. (default: %(default)s)""",
+    )
 
-    arg_parser.add_argument(
-        '--seed', type=int, help="""Create a random seed.""")
+    arg_parser.add_argument("--seed", type=int, help="""Create a random seed.""")
 
     args = arg_parser.parse_args()
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     started()
 
     ARGS = parse_args()

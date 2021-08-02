@@ -1,102 +1,76 @@
 """A utility class to calculate average subject boxes."""
 
 import json
-from collections import namedtuple
-from typing import Union
+from dataclasses import dataclass, field
 
 import numpy as np
 import numpy.typing as npt
 
 import digi_leap.box_calc as calc
 
-ClipType = Union[list[int], tuple[int], None]
-
-TYPE_CLASSES = {0: "None", 1: "Barcode", 2: "Both", 3: "Handwritten", 4: "Typewritten"}
-TYPE = {v: k for k, v in TYPE_CLASSES.items()}
+TYPES = "None Barcode Both Handwritten Typewritten".split()
+TYPE = {c: i for i, c in enumerate(TYPES)}
 
 RECONCILE_TYPES = {
-    "": TYPE["None"],
-    "Barcode": TYPE["Barcode"],
-    "Barcode_Both": TYPE["Barcode"],
-    "Barcode_Both_Handwritten": TYPE["Barcode"],
-    "Barcode_Both_Handwritten_Typewritten": TYPE["Barcode"],
-    "Barcode_Both_Typewritten": TYPE["Barcode"],
-    "Barcode_Handwritten": TYPE["Barcode"],
-    "Barcode_Handwritten_Typewritten": TYPE["Barcode"],
-    "Barcode_Typewritten": TYPE["Barcode"],
-    "Both": TYPE["Both"],
-    "Both_Handwritten": TYPE["Both"],
-    "Both_Handwritten_Typewritten": TYPE["Both"],
-    "Both_Typewritten": TYPE["Both"],
-    "Handwritten": TYPE["Handwritten"],
-    "Handwritten_Typewritten": TYPE["Both"],
-    "Typewritten": TYPE["Typewritten"],
+    tuple(): "None",
+    ("Barcode",): "Barcode",
+    ("Barcode", "Both"): "Barcode",
+    ("Barcode", "Both", "Handwritten"): "Barcode",
+    ("Barcode", "Both", "Handwritten", "Typewritten"): "Barcode",
+    ("Barcode", "Both", "Typewritten"): "Barcode",
+    ("Barcode", "Handwritten"): "Barcode",
+    ("Barcode", "Handwritten", "Typewritten"): "Barcode",
+    ("Barcode", "Typewritten"): "Barcode",
+    ("Both",): "Both",
+    ("Both", "Handwritten"): "Both",
+    ("Both", "Handwritten", "Typewritten"): "Both",
+    ("Both", "Typewritten"): "Both",
+    ("Handwritten",): "Handwritten",
+    ("Handwritten", "Typewritten"): "Both",
+    ("Typewritten",): "Typewritten",
 }
-
-# Used for training data
-SubjectTrainData = namedtuple("SubjectTrainData", "id path boxes labels")
 
 
 # Used when merging bounding boxes
+@dataclass
 class Subject:
     """A utility class used to calculate merging subject boxes."""
 
-    def __init__(self):
-        self.subject_id: str = ""
-        self.image_file: str = ""
-        self.types: np.ndarray = np.array([], dtype=str)
-        self.boxes: np.ndarray = np.empty((0, 4))
-        self.groups: np.ndarray = np.array([])
-        self.merged_boxes: list[np.ndarray] = []
-        self.merged_types: list[str] = []
-        self.removed_boxes: np.ndarray = np.empty((0, 4))
-        self.removed_types: np.ndarray = np.array([], dtype=str)
+    subject_id: str = ""
+    image_file: str = ""
+    image_size: tuple[int, int] = field(default_factory=tuple)
+    groups: np.ndarray = field(default_factory=lambda: np.array([]))
+    boxes: np.ndarray = field(default_factory=lambda: np.empty((0, 4), dtype=np.int32))
+    types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
+    merged_boxes: np.ndarray = field(
+        default_factory=lambda: np.empty((0, 4), dtype=np.int32)
+    )
+    merged_types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
+    removed_boxes: np.ndarray = field(
+        default_factory=lambda: np.empty((0, 4), dtype=np.int32)
+    )
+    removed_types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
 
-    def to_dict(self, *, everything=False) -> dict:
-        """Convert this object to a dictionary."""
-        as_dict = {
+    def as_dict(self):
+        """Custom asdict."""
+        return {
             "subject_id": self.subject_id,
             "image_file": self.image_file,
+            "image_size": list(self.image_size),
+            "groups": self.groups.tolist(),
+            "boxes": self.boxes.tolist(),
+            "types": self.types.tolist(),
+            "merged_boxes": self.merged_boxes,
+            "merged_types": self.merged_types.tolist(),
+            "removed_boxes": self.removed_boxes.tolist(),
+            "removed_types": self.removed_types.tolist(),
         }
 
-        zippy = zip(self.merged_boxes, self.merged_types)
-        for i, (box, type_) in enumerate(zippy, 1):
-            as_dict[f"merged_box_{i}"] = self.bbox_to_json(box)
-            as_dict[f"merged_type_{i}"] = type_
-
-        if everything:
-            zippy = zip(self.removed_boxes, self.removed_types)
-            for i, (box, type_) in enumerate(zippy, 1):
-                as_dict[f"removed_box_{i}"] = self.bbox_to_json(box)
-                as_dict[f"removed_type_{i}"] = type_
-
-            zippy2 = zip(self.boxes, self.types, self.groups)
-            for i, (box, type_, group) in enumerate(zippy2, 1):
-                as_dict[f"box_{i}"] = self.bbox_to_json(box)
-                as_dict[f"type_{i}"] = type_
-                as_dict[f"group_{i}"] = group
-
-        return as_dict
-
     @staticmethod
-    def bbox_to_json(box: np.ndarray) -> str:
-        """Convert a JSON box into a numpy array."""
-        as_dict: dict[str, int] = {
-            "left": int(box[0]),
-            "top": int(box[1]),
-            "right": int(box[2]),
-            "bottom": int(box[3]),
-        }
-        return json.dumps(as_dict)
-
-    @staticmethod
-    def bbox_from_json(coords: str, clip: ClipType = None) -> npt.ArrayLike:
+    def bbox_from_json(coords: str) -> npt.ArrayLike:
         """Convert a JSON box into a numpy array."""
         jj = json.loads(coords)
         box = np.array([jj["left"], jj["top"], jj["right"], jj["bottom"]])
-        if clip:
-            box[[0, 2]] = np.clip(box[[0, 2]], 0, clip[0])
-            box[[1, 3]] = np.clip(box[[1, 3]], 0, clip[1])
         return box
 
     def merge_box_groups(self) -> None:
@@ -176,10 +150,13 @@ class Subject:
 
         mins = [np.min(g, axis=0).round() for g in box_groups]
         maxs = [np.max(g, axis=0).round() for g in box_groups]
-        self.merged_boxes = [np.hstack((mn[:2], mx[2:])) for mn, mx in zip(mins, maxs)]
+        self.merged_boxes = [
+            np.hstack((mn[:2], mx[2:])).tolist() for mn, mx in zip(mins, maxs)
+        ]
         # self.merged_boxes = [np.mean(g, axis=0).round() for g in box_groups]
 
         # Select box type for the merged box
         type_groups = np.split(self.types, wheres)
-        avg_types = [np.unique(g) for g in type_groups]
-        self.merged_types = ["_".join(sorted(t)) for t in avg_types]
+        avg_types = [sorted(np.unique(g)) for g in type_groups]
+        avg_types = [t if t[0] else t[1:] for t in avg_types]
+        self.merged_types = np.array([RECONCILE_TYPES[tuple(t)] for t in avg_types])

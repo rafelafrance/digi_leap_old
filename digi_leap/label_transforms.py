@@ -83,19 +83,19 @@ class Orient(LabelTransform):
         self.conf_high = conf_high
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
-        osd = pytesseract.image_to_osd(image)  # , lang=TESS_LANG)
+        osd = pytesseract.image_to_osd(image)
 
         angle = 0
-        if match := re.search(r"Rotate: ([0-9.]+)", osd):
+        if match := re.search(r"Rotate: (\d+)", osd):
             angle = int(match.group(1))
 
         conf = 0.0
-        if match := re.search(r"Orientation confidence: ([0-9.]+)", osd):
+        if match := re.search(r"Orientation confidence: ([\d.]+)", osd):
             conf = float(match.group(1))
 
         action = repr(self)
 
-        if angle != 0 and self.conf_low < conf <= self.conf_high:
+        if angle != 0 and self.conf_low <= conf <= self.conf_high:
             image = ndimage.rotate(image, angle, mode="nearest")
         else:
             action += " skipped"
