@@ -9,7 +9,7 @@ import numpy.typing as npt
 import digi_leap.box_calc as calc
 
 TYPES = "None Barcode Both Handwritten Typewritten".split()
-TYPE = {c: i for i, c in enumerate(TYPES)}
+TYPE = {c: i for i, c in enumerate(TYPES, 1)}
 
 RECONCILE_TYPES = {
     tuple(): "None",
@@ -51,7 +51,7 @@ class Subject:
     )
     removed_types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
 
-    def as_dict(self):
+    def to_dict(self):
         """Custom asdict."""
         return {
             "subject_id": self.subject_id,
@@ -60,10 +60,10 @@ class Subject:
             "groups": self.groups.tolist(),
             "boxes": self.boxes.tolist(),
             "types": self.types.tolist(),
-            "merged_boxes": self.merged_boxes,
-            "merged_types": self.merged_types.tolist(),
             "removed_boxes": self.removed_boxes.tolist(),
             "removed_types": self.removed_types.tolist(),
+            "merged_boxes": list(self.merged_boxes),
+            "merged_types": list(self.merged_types),
         }
 
     @staticmethod
@@ -81,6 +81,7 @@ class Subject:
             self.groups = calc.overlapping_boxes(self.boxes)
             self._sort_by_group()
             self._merge_boxes()
+            self._filter_merged_boxes()
 
     def _remove_unlabeled(self):
         """Remove solo boxes that have no labels.
@@ -160,3 +161,13 @@ class Subject:
         avg_types = [sorted(np.unique(g)) for g in type_groups]
         avg_types = [t if t[0] else t[1:] for t in avg_types]
         self.merged_types = np.array([RECONCILE_TYPES[tuple(t)] for t in avg_types])
+
+    def _filter_merged_boxes(self, threshold: int = 12) -> None:
+        """Remove degenerate merged boxes."""
+        boxes, types = [], []
+        for box, type_ in zip(self.merged_boxes, self.merged_types):
+            if box[2] - box[0] >= threshold and box[3] - box[1] >= threshold:
+                boxes.append(box)
+                types.append(type_)
+        self.merged_boxes = boxes
+        self.merged_types = types

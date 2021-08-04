@@ -61,3 +61,7 @@ def make_temp_dir(where=None, prefix=None, keep=False):
     finally:
         if not keep or not where:
             rmtree(temp_dir, ignore_errors=True)
+
+
+def collate_fn(batch):
+    return tuple(zip(*batch))

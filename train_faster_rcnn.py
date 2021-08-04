@@ -7,27 +7,23 @@ from os import makedirs
 from pathlib import Path
 from random import randint
 
-import numpy as np
 import torch
 import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
-import digi_leap.detection.utils as utils
-from digi_leap.detection.engine import evaluate, train_one_epoch
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
-from digi_leap.subject import TYPE_CLASSES
+from digi_leap.subject import TYPE
+from digi_leap.util import collate_fn
 
 
 def train(args):
     """Train the neural net."""
-    make_dirs(args)
+    # make_dirs(args)
 
     model = get_model()
-    epoch_start = continue_training(args.model_dir, args.trained_model, model)
-    epoch_end = epoch_start + args.epochs
 
     device = torch.device(args.device)
     model.to(device)
@@ -37,41 +33,62 @@ def train(args):
     # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
-
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3)
 
-    for epoch in range(epoch_start, epoch_end):
-        np.random.seed(args.seed + epoch)
-
-        train_one_epoch(model, optimizer, train_loader, device, epoch, print_freq=100)
+    for epoch in range(args.epochs):
+        train_loss = train_epoch(model, train_loader, device, optimizer)
         lr_scheduler.step()
-        evaluate(model, score_loader, device=device)
+        score_epoch(model, score_loader, device, train_loss, epoch)
+        break
+
+
+def train_epoch(model, loader, device, optimizer):
+    """Train for one epoch."""
+    model.train()
+    for images, targets in loader:
+        images = list(image.to(device) for image in images)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        loss_dict = model(images, targets)
+
+        losses = sum(loss for loss in loss_dict.values())
+        loss_value = losses.item()
+
+        optimizer.zero_grad()
+        losses.backward()
+        optimizer.step()
+
+    return loss_value
+
+
+def score_epoch(model, loader, device, train_loss, epoch):
+    """Evaluate the model."""
+    model.eval()
+    print(f"Epoch {epoch} training loss: {train_loss}")
 
 
 def get_loaders(args):
     """Get the data loaders."""
-    subjects = FasterRcnnData.read_subjects(args.csv_file, args.image_dir)
+    subjects = FasterRcnnData.read_jsonl(args.reconciled_jsonl)
+    # train_subjects, score_subjects = subjects[312:4000], subjects[4000:]
     train_subjects, score_subjects = train_test_split(
         subjects, test_size=args.split, random_state=args.seed
     )
-    train_dataset = FasterRcnnData(train_subjects, True)
-    score_dataset = FasterRcnnData(score_subjects, False)
+    train_dataset = FasterRcnnData(train_subjects, args.image_dir)
+    score_dataset = FasterRcnnData(score_subjects, args.image_dir)
 
     train_loader = DataLoader(
         train_dataset,
         shuffle=True,
         batch_size=args.batch_size,
         num_workers=args.workers,
-        collate_fn=utils.collate_fn,
-        worker_init_fn=lambda w: np.random.seed(np.random.get_state()[1][0] + w),
+        collate_fn=collate_fn,
     )
 
     score_loader = DataLoader(
         score_dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
-        collate_fn=utils.collate_fn,
-        worker_init_fn=lambda w: np.random.seed(np.random.get_state()[1][0] + w),
+        collate_fn=collate_fn,
     )
 
     return train_loader, score_loader
@@ -105,7 +122,7 @@ def get_model():
     """Get the model to use."""
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(TYPE_CLASSES))
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(TYPE) + 1)
     return model
 
 
@@ -117,17 +134,18 @@ def parse_args():
     )
 
     arg_parser.add_argument(
-        "--csv-file",
+        "--reconciled-jsonl",
         required=True,
         type=Path,
-        help="""The CSV file containing reconciled data.""",
+        help="""The JSONL file containing reconciled bounding boxes.""",
     )
 
     arg_parser.add_argument(
         "--image-dir",
         required=True,
         type=Path,
-        help="""Read training images from this directory.""",
+        help="""Read training images corresponding to the JSONL file from this
+            directory.""",
     )
 
     arg_parser.add_argument(
@@ -137,21 +155,21 @@ def parse_args():
         help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
     )
 
-    arg_parser.add_argument(
-        "--model-dir", type=Path, help="""Save models to this directory."""
-    )
+    # arg_parser.add_argument(
+    #     "--model-dir", type=Path, help="""Save models to this directory."""
+    # )
 
-    arg_parser.add_argument(
-        "--trained-model",
-        help="""Load this model state to continue training the model. The file must
-            be in the --model-dir.""",
-    )
+    # arg_parser.add_argument(
+    #     "--trained-model",
+    #     help="""Load this model state to continue training the model. The file must
+    #         be in the --model-dir.""",
+    # )
 
-    arg_parser.add_argument(
-        "--suffix",
-        help="""Add this to the saved model name to differentiate it from
-            other runs.""",
-    )
+    # arg_parser.add_argument(
+    #     "--suffix",
+    #     help="""Add this to the saved model name to differentiate it from
+    #         other runs.""",
+    # )
 
     default = "cuda:0" if torch.cuda.is_available() else "cpu"
     arg_parser.add_argument(
@@ -178,7 +196,7 @@ def parse_args():
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=8,
+        default=2,
         help="""Input batch size. (default: %(default)s)""",
     )
 
@@ -191,12 +209,8 @@ def parse_args():
 
     arg_parser.add_argument("--seed", type=int, help="""Create a random seed.""")
 
-    # arg_parser.add_argument(
-    #     '--runs-dir', help="""Save tensor board logs to this directory.""")
-
     args = arg_parser.parse_args()
 
-    # Wee need something for the data loaders
     args.seed = args.seed if args.seed is not None else randint(0, 4_000_000_000)
 
     return args
