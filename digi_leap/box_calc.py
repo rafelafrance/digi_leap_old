@@ -7,11 +7,17 @@ import numpy as np
 
 
 def iou(box1, box2):
-    """Calculate the intersection over union of a pair of boxes."""
+    """Calculate the intersection over union of a pair of boxes.
+
+    The boxes are expected to be in [x_min, y_min, x_max, y_max] format.
+    """
+    # These are inner (overlapping) box dimensions so we want
+    # the maximum of the mins and the minimum of the maxs
     x_min = max(box1[0], box2[0])
     y_min = max(box1[1], box2[1])
     x_max = min(box1[2], box2[2])
     y_max = min(box1[3], box2[3])
+
     inter = max(0, x_max - x_min + 1) * max(0, y_max - y_min + 1)
     area1 = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1)
     area2 = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
@@ -119,7 +125,7 @@ def all_fractions(boxes):
 
 
 def small_box_overlap(boxes, threshold=0.50):
-    """Get overlapping boxes using the threshold on the are of the smaller box."""
+    """Get overlapping boxes using the threshold on the area of the smaller box."""
     if len(boxes) == 0:
         return np.array([])
 

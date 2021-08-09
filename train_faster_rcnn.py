@@ -2,6 +2,7 @@
 """Train a model to recognize digits on allometry sheets."""
 
 import argparse
+import logging
 import textwrap
 from os import makedirs
 from pathlib import Path
@@ -23,53 +24,125 @@ def train(args):
     """Train the neural net."""
     # make_dirs(args)
 
+    state = torch.load(args.load_model) if args.load_model else {}
+
     model = get_model()
+    if state.get("model_state"):
+        model.load_state_dict(state["model_state"])
 
     device = torch.device(args.device)
     model.to(device)
 
-    train_loader, score_loader = get_loaders(args)
-
-    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
+
+    # optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = torch.optim.SGD(
+        params, lr=args.learning_rate, momentum=0.9, weight_decay=0.0005
+    )
+    if state.get("optimizer_state"):
+        optimizer.load_state_dict(state["optimizer_state"])
+
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3)
 
-    for epoch in range(args.epochs):
+    train_loader, score_loader = get_loaders(args)
+
+    start_epoch = state["epoch"] + 1 if state.get("epoch") else 1
+    end_epoch = start_epoch + args.epochs + 1
+
+    best_loss = state["best_loss"] if state.get("best_loss") else float("inf")
+
+    for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
+
         lr_scheduler.step()
-        score_epoch(model, score_loader, device, train_loss, epoch)
-        break
+
+        score_loss = score_epoch(model, score_loader, device)
+        return
+
+        log_results(epoch, train_loss, score_loss, best_loss)
+
+        best_loss = save_model(
+            model, optimizer, epoch, score_loss, best_loss, args.save_model
+        )
 
 
 def train_epoch(model, loader, device, optimizer):
     """Train for one epoch."""
     model.train()
+
+    running_loss = 0.0
+    count = 0
+
     for images, targets in loader:
+        count += len(targets)
+
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        loss_dict = model(images, targets)
 
+        loss_dict = model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
         loss_value = losses.item()
+        running_loss += loss_value
 
         optimizer.zero_grad()
         losses.backward()
         optimizer.step()
 
-    return loss_value
+    return running_loss / count
 
 
-def score_epoch(model, loader, device, train_loss, epoch):
+def score_epoch(model, loader, device, iou_threshold=0.3):
     """Evaluate the model."""
     model.eval()
-    print(f"Epoch {epoch} training loss: {train_loss}")
+
+    running_loss = 0.0
+    count = 0
+
+    for images, targets in loader:
+        count += len(targets)
+
+        images = list(image.to(device) for image in images)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+
+        loss_dict = model(images, targets)
+        losses = sum(loss for loss in loss_dict.values())
+        loss_value = losses.item()
+        running_loss += loss_value
+
+    return running_loss / count
+
+
+def log_results(epoch, train_loss, score_loss, best_loss):
+    """Print results to screen."""
+    new = '*' if score_loss < best_loss else ''
+    logging.info(
+        f"Epoch {epoch} Loss train: {train_loss:0.3f} score {score_loss:0.3f} {new}"
+    )
+
+
+def save_model(model, optimizer, epoch, loss, best_loss, save_model):
+    """Save the current model if it scores well."""
+    if loss < best_loss:
+        torch.save(
+            {
+                "epoch": epoch,
+                "modeL_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "best_loss": loss,
+            },
+            save_model,
+        )
+        return loss
+    return best_loss
 
 
 def get_loaders(args):
     """Get the data loaders."""
     subjects = FasterRcnnData.read_jsonl(args.reconciled_jsonl)
-    # train_subjects, score_subjects = subjects[312:4000], subjects[4000:]
+
+    if args.limit:
+        subjects = subjects[: args.limit]
+
     train_subjects, score_subjects = train_test_split(
         subjects, test_size=args.split, random_state=args.seed
     )
@@ -98,24 +171,6 @@ def make_dirs(args):
     """Create output directories."""
     if args.model_dir:
         makedirs(args.model_dir, exist_ok=True)
-
-
-def continue_training(model_dir, trained_model, model):
-    """Continue training the model."""
-    if trained_model:
-        return load_model_state(model_dir / trained_model, model)
-    return 1
-
-
-def load_model_state(trained_model, model):
-    """Load a saved model."""
-    start = 1
-    if trained_model:
-        state = torch.load(trained_model)
-        model.load_state_dict(state)
-        if model.state_dict().get("epoch"):
-            start = model.state_dict()["epoch"] + 1
-    return start
 
 
 def get_model():
@@ -149,27 +204,24 @@ def parse_args():
     )
 
     arg_parser.add_argument(
+        "--save-model",
+        type=Path,
+        required=True,
+        help="""Save model state to this file.""",
+    )
+
+    arg_parser.add_argument(
+        "--load-model",
+        type=Path,
+        help="""Load this model state to continue training.""",
+    )
+
+    arg_parser.add_argument(
         "--split",
         type=float,
         default=0.25,
         help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
     )
-
-    # arg_parser.add_argument(
-    #     "--model-dir", type=Path, help="""Save models to this directory."""
-    # )
-
-    # arg_parser.add_argument(
-    #     "--trained-model",
-    #     help="""Load this model state to continue training the model. The file must
-    #         be in the --model-dir.""",
-    # )
-
-    # arg_parser.add_argument(
-    #     "--suffix",
-    #     help="""Add this to the saved model name to differentiate it from
-    #         other runs.""",
-    # )
 
     default = "cuda:0" if torch.cuda.is_available() else "cpu"
     arg_parser.add_argument(
@@ -189,7 +241,7 @@ def parse_args():
     arg_parser.add_argument(
         "--learning-rate",
         type=float,
-        default=0.0001,
+        default=0.005,
         help="""Initial learning rate. (default: %(default)s)""",
     )
 
@@ -205,6 +257,12 @@ def parse_args():
         type=int,
         default=4,
         help="""Number of workers for loading data. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many records.""",
     )
 
     arg_parser.add_argument("--seed", type=int, help="""Create a random seed.""")

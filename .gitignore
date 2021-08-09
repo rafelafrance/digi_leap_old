@@ -28,6 +28,7 @@ venv/
 # data
 output/
 data/
+models/
 
 # Temp files
 temp/
@@ -38,9 +39,6 @@ pilot/
 scratch/
 old/
 experiments/
-
-# yolo
-yolov5/
 
 # Notes
 notes/
