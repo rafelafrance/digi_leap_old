@@ -8,7 +8,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
-from digi_leap.subject import TYPE
+from digi_leap.subject import CLASS2INT
 
 
 class FasterRcnnData(Dataset):
@@ -29,7 +29,7 @@ class FasterRcnnData(Dataset):
         image = Image.open(path).convert("L")
         image = ToTensor()(image)
 
-        labels = [TYPE[t] for t in subject["merged_types"]]
+        labels = [CLASS2INT[t] for t in subject["merged_types"]]
 
         boxes = torch.tensor(subject["merged_boxes"], dtype=torch.float32)
         if boxes.shape[0] == 0:
@@ -38,9 +38,9 @@ class FasterRcnnData(Dataset):
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
         target = {
+            "image_id": torch.tensor([int(subject["subject_id"])]),
             "boxes": boxes,
             "labels": torch.tensor(labels, dtype=torch.int64),
-            "image_id": torch.tensor([idx]),
             "area": area,
             "iscrowd": torch.zeros((len(labels),), dtype=torch.int64),
         }

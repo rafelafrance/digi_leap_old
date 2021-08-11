@@ -13,10 +13,12 @@ import torchvision
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision.ops import batched_nms
 
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
-from digi_leap.subject import TYPE
+from digi_leap.mean_avg_precision import mAP
+from digi_leap.subject import CLASSES
 from digi_leap.util import collate_fn
 
 
@@ -49,20 +51,19 @@ def train(args):
     start_epoch = state["epoch"] + 1 if state.get("epoch") else 1
     end_epoch = start_epoch + args.epochs + 1
 
-    best_loss = state["best_loss"] if state.get("best_loss") else float("inf")
+    best_score = state["best_score"] if state.get("best_score") else -1.0
 
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
         lr_scheduler.step()
 
-        score_loss = score_epoch(model, score_loader, device)
-        return
+        score = score_epoch(model, score_loader, device)
 
-        log_results(epoch, train_loss, score_loss, best_loss)
+        log_results(epoch, train_loss, score, best_score)
 
-        best_loss = save_model(
-            model, optimizer, epoch, score_loss, best_loss, args.save_model
+        best_score = save_model(
+            model, optimizer, epoch, score, best_score, args.save_model
         )
 
 
@@ -95,45 +96,55 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
     """Evaluate the model."""
     model.eval()
 
-    running_loss = 0.0
-    count = 0
+    all_results = []
 
     for images, targets in loader:
-        count += len(targets)
-
         images = list(image.to(device) for image in images)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-        loss_dict = model(images, targets)
-        losses = sum(loss for loss in loss_dict.values())
-        loss_value = losses.item()
-        running_loss += loss_value
+        preds = model(images, targets)
 
-    return running_loss / count
+        for pred, target in zip(preds, targets):
+            idx = batched_nms(
+                pred["boxes"], pred["scores"], pred["labels"], iou_threshold
+            )
+            all_results.append(
+                {
+                    "image_id": target["image_id"],
+                    "true_boxes": target["boxes"],
+                    "true_labels": target["labels"],
+                    "pred_boxes": pred["boxes"][idx, :].detach().cpu(),
+                    "pred_labels": pred["labels"][idx].detach().cpu(),
+                    "pred_scores": pred["scores"][idx].detach().cpu(),
+                }
+            )
+
+    score = mAP(all_results)
+
+    return score
 
 
-def log_results(epoch, train_loss, score_loss, best_loss):
+def log_results(epoch, train_loss, score, best_score):
     """Print results to screen."""
-    new = '*' if score_loss < best_loss else ''
+    new = "*" if score > best_score else ""
     logging.info(
-        f"Epoch {epoch} Loss train: {train_loss:0.3f} score {score_loss:0.3f} {new}"
+        f"""Epoch {epoch} Loss train: {train_loss:0.3f}, mAP: {score:0.3f} {new}"""
     )
 
 
-def save_model(model, optimizer, epoch, loss, best_loss, save_model):
+def save_model(model, optimizer, epoch, score, best_score, save_model):
     """Save the current model if it scores well."""
-    if loss < best_loss:
+    if score > best_score:
         torch.save(
             {
                 "epoch": epoch,
                 "modeL_state": model.state_dict(),
                 "optimizer_state": optimizer.state_dict(),
-                "best_loss": loss,
+                "best_score": score,
             },
             save_model,
         )
-        return loss
-    return best_loss
+        return score
+    return best_score
 
 
 def get_loaders(args):
@@ -159,6 +170,7 @@ def get_loaders(args):
 
     score_loader = DataLoader(
         score_dataset,
+        shuffle=True,
         batch_size=args.batch_size,
         num_workers=args.workers,
         collate_fn=collate_fn,
@@ -177,7 +189,9 @@ def get_model():
     """Get the model to use."""
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(TYPE) + 1)
+    model.roi_heads.box_predictor = FastRCNNPredictor(
+        in_features, num_classes=len(CLASSES) + 1
+    )
     return model
 
 
