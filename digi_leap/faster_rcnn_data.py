@@ -26,8 +26,10 @@ class FasterRcnnData(Dataset):
     def __getitem__(self, idx):
         subject = self.subjects[idx]
         path = self.image_dir / subject["image_file"]
-        image = Image.open(path).convert("L")
-        image = ToTensor()(image)
+
+        with Image.open(path) as image:
+            image = image.convert("L")
+            image = ToTensor()(image)
 
         labels = [CLASS2INT[t] for t in subject["merged_types"]]
 

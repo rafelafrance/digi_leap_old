@@ -4,7 +4,7 @@
 import argparse
 import logging
 import textwrap
-from os import makedirs
+from copy import deepcopy
 from pathlib import Path
 from random import randint
 
@@ -24,7 +24,7 @@ from digi_leap.util import collate_fn
 
 def train(args):
     """Train the neural net."""
-    # make_dirs(args)
+    torch.multiprocessing.set_sharing_strategy('file_system')
 
     state = torch.load(args.load_model) if args.load_model else {}
 
@@ -37,14 +37,13 @@ def train(args):
 
     params = [p for p in model.parameters() if p.requires_grad]
 
-    # optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
     optimizer = torch.optim.SGD(
         params, lr=args.learning_rate, momentum=0.9, weight_decay=0.0005
     )
     if state.get("optimizer_state"):
         optimizer.load_state_dict(state["optimizer_state"])
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3)
+    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
     train_loader, score_loader = get_loaders(args)
 
@@ -56,7 +55,7 @@ def train(args):
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
-        lr_scheduler.step()
+        # lr_scheduler.step()
 
         score = score_epoch(model, score_loader, device)
 
@@ -109,9 +108,9 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
             )
             all_results.append(
                 {
-                    "image_id": target["image_id"],
-                    "true_boxes": target["boxes"],
-                    "true_labels": target["labels"],
+                    "image_id": deepcopy(target["image_id"]),
+                    "true_boxes": deepcopy(target["boxes"]),
+                    "true_labels": deepcopy(target["labels"]),
                     "pred_boxes": pred["boxes"][idx, :].detach().cpu(),
                     "pred_labels": pred["labels"][idx].detach().cpu(),
                     "pred_scores": pred["scores"][idx].detach().cpu(),
@@ -127,7 +126,7 @@ def log_results(epoch, train_loss, score, best_score):
     """Print results to screen."""
     new = "*" if score > best_score else ""
     logging.info(
-        f"""Epoch {epoch} Loss train: {train_loss:0.3f}, mAP: {score:0.3f} {new}"""
+        f"""Epoch {epoch} Train loss: {train_loss:0.3f}, mAP: {score:0.3f} {new}"""
     )
 
 
@@ -170,19 +169,12 @@ def get_loaders(args):
 
     score_loader = DataLoader(
         score_dataset,
-        shuffle=True,
         batch_size=args.batch_size,
         num_workers=args.workers,
         collate_fn=collate_fn,
     )
 
     return train_loader, score_loader
-
-
-def make_dirs(args):
-    """Create output directories."""
-    if args.model_dir:
-        makedirs(args.model_dir, exist_ok=True)
 
 
 def get_model():

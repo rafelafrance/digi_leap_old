@@ -26,35 +26,38 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
     avg_precisions = []
 
     for result in results:
-        true_count = len(result["true_labels"])
-        pred_count = len(result["pred_labels"])
-
         iou = box_iou(result["true_boxes"], result["pred_boxes"])
-        scores = result["pred_scores"].repeat(true_count, 1)
+        scores = result["pred_scores"].repeat(len(result["true_labels"]), 1)
+        scores[iou.lt(iou_threshold)] = 0.0
 
         for cls in set(result["true_labels"].tolist()):
-            # Select all IoUs for the current class and is above the threshold
-            mask = torch.zeros_like(iou, dtype=int)
-            mask[result["true_labels"] == cls, :] = 1
-            mask[:, result["pred_labels"] == cls] += 1
-            mask = torch.bitwise_and(mask.eq(2), iou.ge(iou_threshold))
+            # Select all scores for the current class
+            class_scores = scores[result["true_labels"] == cls, :]
+            class_scores = class_scores[:, result["pred_labels"] == cls]
 
-            # Get the max value for each row which is the true positive score
-            masked_scores = scores.clone()
-            masked_scores[~mask] = 0.0
-            pred_max = torch.argmax(masked_scores, dim=1)
+            if class_scores.shape[1] == 0:
+                avg_precisions.append(0.0)
+                continue
 
-            tp = torch.zeros((pred_count,), dtype=int)
-            tp[pred_max] = 1
-            if masked_scores[:, 0].sum() == 0.0:
-                tp[0] = 0
+            # Find the true positives
+            conf, _ = torch.max(class_scores, dim=0)
+            tp_idx = torch.argmax(class_scores, dim=1)
+            tp = torch.zeros(class_scores.shape[1])
+            tp[tp_idx] = 1
 
-            # # Calculate the precision/recall curve
+            order = (-conf).argsort()
+            tp = tp[order]
+            conf = conf[order]
+
+            # Calculate the precision/recall curve
             tp_sum = torch.cumsum(tp, dim=0)
-            n_pred = torch.arange(len(tp)) + 1
+            n_pred = torch.arange(tp.shape[0]) + 1
 
             precis = tp_sum / (n_pred + eps)
-            recall = tp_sum / (true_count + eps)
+            precis = torch.cat((torch.tensor([1]), precis))
+
+            recall = tp_sum / (tp.shape[0] + eps)
+            recall = torch.cat((torch.tensor([0]), recall))
 
             # Avg precision for this class
             avg_precisions.append(torch.trapz(precis, recall))
