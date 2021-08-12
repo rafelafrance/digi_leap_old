@@ -23,43 +23,43 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
         pred_labels = labels as integers
         pred_scores = model confidence scores of each prediction
     """
-    avg_precisions = []
+    all_ap = []
 
     for result in results:
         iou = box_iou(result["true_boxes"], result["pred_boxes"])
-        scores = result["pred_scores"].repeat(len(result["true_labels"]), 1)
-        scores[iou.lt(iou_threshold)] = 0.0
 
         for cls in set(result["true_labels"].tolist()):
-            # Select all scores for the current class
-            class_scores = scores[result["true_labels"] == cls, :]
-            class_scores = class_scores[:, result["pred_labels"] == cls]
+            class_scores = result["pred_scores"][result["pred_labels"] == cls]
 
-            if class_scores.shape[1] == 0:
-                avg_precisions.append(0.0)
-                continue
+            class_iou = iou[result["true_labels"] == cls, :]
+            class_iou = class_iou[:, result["pred_labels"] == cls]
 
-            # Find the true positives
-            conf, _ = torch.max(class_scores, dim=0)
-            tp_idx = torch.argmax(class_scores, dim=1)
-            tp = torch.zeros(class_scores.shape[1])
-            tp[tp_idx] = 1
+            order = class_scores.argsort(descending=True)
 
-            order = (-conf).argsort()
-            tp = tp[order]
-            conf = conf[order]
+            is_tp = torch.zeros(class_scores.shape[0])
+            for col in order:
+                max_iou, row = class_iou[:, col].max(dim=0)
+                if max_iou >= iou_threshold:
+                    is_tp[col] = 1
+                    class_iou[:, col] = 0.0
+                    class_iou[row, :] = 0.0
 
-            # Calculate the precision/recall curve
-            tp_sum = torch.cumsum(tp, dim=0)
-            n_pred = torch.arange(tp.shape[0]) + 1
+            is_tp = is_tp[order]
 
-            precis = tp_sum / (n_pred + eps)
-            precis = torch.cat((torch.tensor([1]), precis))
+            cumsum = is_tp.cumsum(dim=0)
+            rank = torch.arange(is_tp.shape[0]) + 1
 
-            recall = tp_sum / (tp.shape[0] + eps)
-            recall = torch.cat((torch.tensor([0]), recall))
+            pre = cumsum / (rank + eps)
+            rec = cumsum / (cumsum.shape[0] + eps)
 
-            # Avg precision for this class
-            avg_precisions.append(torch.trapz(precis, recall))
+            pre = torch.cat((torch.tensor([0.0]), pre, torch.tensor([pre[-1]])))
+            rec = torch.cat((torch.tensor([0.0]), rec, torch.tensor([1.0])))
 
-    return sum(avg_precisions) / (len(avg_precisions) + eps)
+            pre = pre.flip(dims=(0,))  # flip() is slower than reshape()
+            pre, _ = pre.cummax(dim=0)
+            pre = pre.flip(dims=(0,))
+
+            ap = torch.trapz(pre, rec)
+            all_ap.append(ap)
+
+    return sum(all_ap) / (len(all_ap) + eps)
