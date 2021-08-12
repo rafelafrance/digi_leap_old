@@ -52,7 +52,8 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
             pre = cumsum / (rank + eps)
             rec = cumsum / (cumsum.shape[0] + eps)
 
-            pre = torch.cat((torch.tensor([0.0]), pre, torch.tensor([pre[-1]])))
+            last = pre[-1] if pre.shape[0] else 0.0
+            pre = torch.cat((torch.tensor([0.0]), pre, torch.tensor([last])))
             rec = torch.cat((torch.tensor([0.0]), rec, torch.tensor([1.0])))
 
             pre = pre.flip(dims=(0,))  # flip() is slower than reshape()
