@@ -14,6 +14,10 @@ def mAP_iou(results, low=0.5, high=0.95, step=0.05, eps=1e-8):
 def mAP(results, iou_threshold=0.5, eps=1e-8):
     """Calculate the mean average precision at a specific IoU threshold.
 
+    Loosely based off of:
+    https://github.com/eriklindernoren/PyTorch-YOLOv3/blob/master/pytorchyolo
+    /utils/utils.py
+
     We're given a list of dictionaries with one dictionary per subject image.
     Each dict contains: (all values are torch tensors)
         image_id
@@ -28,39 +32,46 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
     for result in results:
         iou = box_iou(result["true_boxes"], result["pred_boxes"])
 
-        for cls in set(result["true_labels"].tolist()):
+        for cls in result["true_labels"].unique():
+            # Limit scores and IoUs to this class
             class_scores = result["pred_scores"][result["pred_labels"] == cls]
 
             class_iou = iou[result["true_labels"] == cls, :]
             class_iou = class_iou[:, result["pred_labels"] == cls]
 
+            # Order true positives by scores
             order = class_scores.argsort(descending=True)
 
-            is_tp = torch.zeros(class_scores.shape[0])
+            # Find true positives
+            is_tp = torch.zeros(class_iou.shape[1])
             for col in order:
                 max_iou, row = class_iou[:, col].max(dim=0)
                 if max_iou >= iou_threshold:
-                    is_tp[col] = 1
+                    is_tp[col] = 1.0
                     class_iou[:, col] = 0.0
                     class_iou[row, :] = 0.0
-
             is_tp = is_tp[order]
 
-            cumsum = is_tp.cumsum(dim=0)
-            rank = torch.arange(is_tp.shape[0]) + 1
+            # Calculate precision and recall
+            tp_cumsum = is_tp.cumsum(dim=0)
+            fp_cumsum = (1.0 - is_tp).cumsum(dim=0)
+            n_ground_truth = class_iou.shape[0]
 
-            pre = cumsum / (rank + eps)
-            rec = cumsum / (cumsum.shape[0] + eps)
+            pre = tp_cumsum / (tp_cumsum + fp_cumsum + eps)
+            rec = tp_cumsum / (n_ground_truth + eps)
 
-            last = pre[-1] if pre.shape[0] else 0.0
-            pre = torch.cat((torch.tensor([0.0]), pre, torch.tensor([last])))
+            # Build the precision/recall curve
+            pre = torch.cat((torch.tensor([0.0]), pre, torch.tensor([0.0])))
             rec = torch.cat((torch.tensor([0.0]), rec, torch.tensor([1.0])))
 
-            pre = pre.flip(dims=(0,))  # flip() is slower than reshape()
-            pre, _ = pre.cummax(dim=0)
-            pre = pre.flip(dims=(0,))
+            # Remove precision/recall curve jaggies
+            for i in range(pre.shape[0] - 1, 0, -1):
+                pre[i - 1] = torch.maximum(pre[i - 1], pre[i])
 
-            ap = torch.trapz(pre, rec)
+            # Calculate the AUC
+            idx = torch.where(rec[1:] != rec[:-1])[0]
+            ap = torch.sum((rec[idx + 1] - rec[idx]) * pre[idx + 1])
+
             all_ap.append(ap)
 
     return sum(all_ap) / (len(all_ap) + eps)

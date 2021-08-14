@@ -16,11 +16,11 @@ class TestMeanAvgPrecision(unittest.TestCase):
             {
                 "image_id": torch.Tensor([1]),
                 "true_boxes": torch.Tensor(
-                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]]
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "true_labels": torch.Tensor([1, 2]),
                 "pred_boxes": torch.Tensor(
-                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]]
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "pred_labels": torch.Tensor([1, 2]),
                 "pred_scores": torch.Tensor([0.8, 0.9]),
@@ -34,7 +34,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
             {
                 "image_id": torch.Tensor([1]),
                 "true_boxes": torch.Tensor(
-                    [[0, 0, 1000, 1000], [1000, 1000, 2000, 2000]]
+                    [[0, 0, 1000, 1000], [1000, 1000, 2000, 2000]],
                 ),
                 "true_labels": torch.Tensor([1, 1]),
                 "pred_boxes": torch.Tensor(
@@ -48,7 +48,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.7, 0.8, 0.9]),
             },
         ]
-        self.assertAlmostEqual(mAP(results).item(), 0.3889, 4)
+        self.assertAlmostEqual(mAP(results).item(), 0.25, 4)
 
     def test_mAP_03(self):
         """It handles boxes, labels, & scores being equal."""
@@ -56,11 +56,11 @@ class TestMeanAvgPrecision(unittest.TestCase):
             {
                 "image_id": torch.Tensor([1]),
                 "true_boxes": torch.Tensor(
-                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]]
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "true_labels": torch.Tensor([1, 1]),
                 "pred_boxes": torch.Tensor(
-                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]]
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "pred_labels": torch.Tensor([1, 1]),
                 "pred_scores": torch.Tensor([0.8, 0.8]),
@@ -74,14 +74,50 @@ class TestMeanAvgPrecision(unittest.TestCase):
             {
                 "image_id": torch.Tensor([1]),
                 "true_boxes": torch.Tensor(
-                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]]
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "true_labels": torch.Tensor([1, 1]),
                 "pred_boxes": torch.Tensor(
-                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]]
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "pred_labels": torch.Tensor([2, 2]),
                 "pred_scores": torch.Tensor([0.8, 0.8]),
+            },
+        ]
+        self.assertEqual(mAP(results), 0.0)
+
+    def test_mAP_05(self):
+        """It handles false negatives."""
+        results = [
+            {
+                "image_id": torch.Tensor([1]),
+                "true_boxes": torch.Tensor(
+                    [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
+                ),
+                "true_labels": torch.Tensor([1, 1]),
+                "pred_boxes": torch.Tensor(
+                    [[100, 100, 800, 800]]
+                ),
+                "pred_labels": torch.Tensor([1]),
+                "pred_scores": torch.Tensor([1.0]),
+            },
+        ]
+        self.assertEqual(mAP(results), 0.5)
+
+    def test_mAP_06(self):
+        """It handles empty data."""
+        results = [
+            {
+                "image_id": torch.Tensor([1]),
+                "true_boxes": torch.Tensor(
+                    torch.empty((0, 4), dtype=torch.float32),
+                ),
+                "true_labels": torch.Tensor([]),
+                "pred_boxes": torch.Tensor(
+                    torch.empty((0, 4), dtype=torch.float32),
+                ),
+                "pred_labels": torch.Tensor([]),
+                "pred_scores": torch.Tensor([]),
             },
         ]
         self.assertEqual(mAP(results), 0.0)
