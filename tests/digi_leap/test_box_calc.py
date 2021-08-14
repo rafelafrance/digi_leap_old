@@ -33,8 +33,8 @@ class TestBoxCalc(unittest.TestCase):
         """It handles one box inside of another box."""
         box1 = [0, 0, 10, 10]
         box2 = [0, 0, 5, 5]
-        i1 = 11.0 * 11.0
-        i2 = 6.0 * 6.0
+        i1 = 10.0 * 10.0
+        i2 = 5.0 * 5.0
         self.assertEqual(util.iou(box1, box2), (i2 / (i1 + i2 - i2)))
 
     def test_nms_01(self):
@@ -108,8 +108,8 @@ class TestBoxCalc(unittest.TestCase):
         """It handles overlap above the threshold."""
         boxes = np.array(
             [
-                [0, 0, 1, 2],
-                [0, 1, 2, 3],
+                [0, 0, 100, 200],
+                [0, 1, 102, 203],
             ]
         )
         npt.assert_array_equal(util.overlapping_boxes(boxes), [1, 1])

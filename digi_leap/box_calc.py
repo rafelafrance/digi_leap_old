@@ -18,9 +18,9 @@ def iou(box1, box2):
     x_max = min(box1[2], box2[2])
     y_max = min(box1[3], box2[3])
 
-    inter = max(0, x_max - x_min + 1) * max(0, y_max - y_min + 1)
-    area1 = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1)
-    area2 = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
+    inter = max(0, x_max - x_min) * max(0, y_max - y_min)
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
     return inter / (area1 + area2 - inter)
 
 
@@ -44,7 +44,7 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
 
-    area = np.maximum(0.0, x1 - x0 + 1.0) * np.maximum(0.0, y1 - y0 + 1.0)
+    area = np.maximum(0.0, x1 - x0) * np.maximum(0.0, y1 - y0)
 
     idx = scores if scores else area
     idx = idx.argsort()
@@ -67,7 +67,7 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
         yy1 = np.minimum(y1[curr], y1[idx])
 
         # Get the intersection over the union (IOU) with the current box
-        iou_ = np.maximum(0.0, xx1 - xx0 + 1.0) * np.maximum(0.0, yy1 - yy0 + 1.0)
+        iou_ = np.maximum(0.0, xx1 - xx0) * np.maximum(0.0, yy1 - yy0)
         iou_ /= area[idx] + area[curr] - iou_
 
         # Find IOUs larger than threshold & group them
@@ -95,6 +95,7 @@ def nms(boxes, threshold=0.3, scores=None):
 
 def all_fractions(boxes):
     """Find the intersection over union (IOU) of every box with every other box."""
+    # todo replace with pytorch's function
     if len(boxes) == 0:
         return np.array([])
 
@@ -105,7 +106,7 @@ def all_fractions(boxes):
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
     n = len(boxes)
 
-    area = (x1 - x0 + 1) * (y1 - y0 + 1)
+    area = (x1 - x0) * (y1 - y0)
     inters = np.empty([n, n], dtype="float64")
 
     for i in range(n):
@@ -116,7 +117,7 @@ def all_fractions(boxes):
         yy1 = np.minimum(y1[i], y1)
 
         # Get the intersection with current box
-        inter = np.maximum(0, xx1 - xx0 + 1) * np.maximum(0, yy1 - yy0 + 1)
+        inter = np.maximum(0, xx1 - xx0) * np.maximum(0, yy1 - yy0)
         inter = np.maximum(inter / area, inter / area[i])
 
         inters[i] = inter
@@ -135,7 +136,7 @@ def small_box_overlap(boxes, threshold=0.50):
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
 
-    area = np.maximum(0.0, x1 - x0 + 1.0) * np.maximum(0.0, y1 - y0 + 1.0)
+    area = np.maximum(0.0, x1 - x0) * np.maximum(0.0, y1 - y0)
     area += 0.0000001
 
     idx = area.argsort()
@@ -158,7 +159,7 @@ def small_box_overlap(boxes, threshold=0.50):
         yy1 = np.minimum(y1[curr], y1[idx])
 
         # Get the intersection as a fraction of the smaller box
-        inter = np.maximum(0.0, xx1 - xx0 + 1.0) * np.maximum(0.0, yy1 - yy0 + 1.0)
+        inter = np.maximum(0.0, xx1 - xx0) * np.maximum(0.0, yy1 - yy0)
         inter /= area[idx]
 
         # Find overlaps larger than threshold & group them
