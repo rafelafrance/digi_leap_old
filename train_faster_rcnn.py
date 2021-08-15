@@ -17,7 +17,7 @@ from torchvision.ops import batched_nms
 
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
-from digi_leap.mean_avg_precision import mAP
+from digi_leap.mean_avg_precision import mAP_iou
 from digi_leap.subject import CLASSES
 from digi_leap.util import collate_fn
 
@@ -117,7 +117,7 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
                 }
             )
 
-    score = mAP(all_results)
+    score = mAP_iou(all_results)
 
     return score
 
@@ -156,7 +156,7 @@ def get_loaders(args):
     train_subjects, score_subjects = train_test_split(
         subjects, test_size=args.split, random_state=args.seed
     )
-    train_dataset = FasterRcnnData(train_subjects, args.image_dir)
+    train_dataset = FasterRcnnData(train_subjects, args.image_dir, augment=True)
     score_dataset = FasterRcnnData(score_subjects, args.image_dir)
 
     train_loader = DataLoader(

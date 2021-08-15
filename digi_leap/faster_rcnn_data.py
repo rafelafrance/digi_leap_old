@@ -6,19 +6,20 @@ from pathlib import Path
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.transforms import ToTensor
+from torchvision import transforms
 
+import digi_leap.augmentations as aug
 from digi_leap.subject import CLASS2INT
 
 
 class FasterRcnnData(Dataset):
     """Generate augmented training data."""
 
-    def __init__(self, subjects: list[dict], image_dir: Path):
+    def __init__(self, subjects: list[dict], image_dir: Path, augment=False):
         super().__init__()
-
         self.image_dir = image_dir
         self.subjects = subjects
+        self.augment = augment
 
     def __len__(self):
         return len(self.subjects)
@@ -27,10 +28,6 @@ class FasterRcnnData(Dataset):
         subject = self.subjects[idx]
         path = self.image_dir / subject["image_file"]
 
-        with Image.open(path) as image:
-            image = image.convert("L")
-            image = ToTensor()(image)
-
         labels = [CLASS2INT[t] for t in subject["merged_types"]]
 
         boxes = torch.tensor(subject["merged_boxes"], dtype=torch.float32)
@@ -38,6 +35,14 @@ class FasterRcnnData(Dataset):
             boxes = torch.empty((0, 4), dtype=torch.float32)
 
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        with Image.open(path) as image:
+            image = image.convert("L")
+            if self.augment:
+                image = aug.random_blur(image)
+                image = aug.random_color(image)
+                image, boxes = aug.random_rescale(image, boxes)
+            image = transforms.ToTensor()(image)
 
         target = {
             "image_id": torch.tensor([int(subject["subject_id"])]),

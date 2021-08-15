@@ -4,7 +4,7 @@ import unittest
 
 import torch
 
-from digi_leap.mean_avg_precision import mAP
+from digi_leap.mean_avg_precision import mAP, mAP_iou
 
 
 class TestMeanAvgPrecision(unittest.TestCase):
@@ -48,7 +48,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.7, 0.8, 0.9]),
             },
         ]
-        self.assertAlmostEqual(mAP(results).item(), 0.25, 4)
+        self.assertAlmostEqual(mAP(results).item(), 0.25)
 
     def test_mAP_03(self):
         """It handles boxes, labels, & scores being equal."""
@@ -142,4 +142,42 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.8]),
             },
         ]
-        self.assertAlmostEqual(mAP(results).item(), 0.5, 4)
+        self.assertAlmostEqual(mAP(results).item(), 0.5)
+
+    def test_mAP_iou_01(self):
+        """It averages the various thresholds."""
+        results = [
+            {
+                "image_id": torch.Tensor([1]),
+                "true_boxes": torch.Tensor(
+                    [
+                        [0, 0, 10, 10],
+                        [10, 10, 20, 20],
+                        [20, 20, 30, 30],
+                        [30, 30, 40, 40],
+                        [40, 40, 50, 50],
+                        [50, 50, 60, 60],
+                    ],
+                ),
+                "true_labels": torch.Tensor([1, 2, 3, 1, 2, 3]),
+                "pred_boxes": torch.Tensor(
+                    [
+                        [0, 0, 5, 10],
+                        [10, 10, 16, 20],
+                        [20, 20, 27, 30],
+                        [30, 30, 38, 40],
+                        [40, 40, 49, 50],
+                        [50, 50, 60, 60],
+                    ],
+                ),
+                "pred_labels": torch.Tensor([1, 2, 3, 1, 2, 3]),
+                "pred_scores": torch.Tensor([0.8, 0.9, 0.6, 0.8, 0.9, 0.6]),
+            },
+        ]
+        self.assertEqual(mAP(results, iou_threshold=0.5), 1.0)
+        self.assertEqual(mAP(results, iou_threshold=0.6), 0.75)
+        self.assertEqual(mAP(results, iou_threshold=0.7), 0.5)
+        self.assertEqual(mAP(results, iou_threshold=0.8), 0.25)
+        self.assertAlmostEqual(
+            mAP_iou(results, low=0.5, high=0.8, step=0.1).item(), 0.625
+        )

@@ -6,8 +6,7 @@ from torchvision.ops import box_iou
 
 def mAP_iou(results, low=0.5, high=0.95, step=0.05, eps=1e-8):
     """Calculate the mean average precision over several IoU thresholds."""
-    high += step
-    scores = [mAP(results, t, eps=eps) for t in torch.arange(low, high, step)]
+    scores = [mAP(results, t, eps=eps) for t in torch.arange(low, high + step, step)]
     return sum(scores) / (len(scores) + eps)
 
 
@@ -34,6 +33,7 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
         true_labels = result["true_labels"].unique()
 
         if true_labels.numel() == 0:
+            # TODO Should the empty true vs empty predicted case be 1.0?
             ap = 1.0 if result["pred_labels"].numel() == 0 else 0.0
             all_ap.append(torch.tensor(ap))
             continue
