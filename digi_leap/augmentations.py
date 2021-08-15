@@ -31,7 +31,7 @@ def random_color(image, threshold=0.1):
 def random_rescale(image, boxes, threshold=0.25):
     """Randomly rescale the image."""
     if random.random() < threshold:
-        return image
+        return image, boxes
 
     scale = random.choice([0.9, 0.8, 0.7])
     w, h = image.size

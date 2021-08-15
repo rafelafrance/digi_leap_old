@@ -6,7 +6,6 @@ import logging
 import textwrap
 from copy import deepcopy
 from pathlib import Path
-from random import randint
 
 import torch
 import torchvision
@@ -24,7 +23,7 @@ from digi_leap.util import collate_fn
 
 def train(args):
     """Train the neural net."""
-    torch.multiprocessing.set_sharing_strategy('file_system')
+    torch.multiprocessing.set_sharing_strategy("file_system")
 
     state = torch.load(args.load_model) if args.load_model else {}
 
@@ -51,6 +50,7 @@ def train(args):
     end_epoch = start_epoch + args.epochs + 1
 
     best_score = state["best_score"] if state.get("best_score") else -1.0
+    best_loss = state["best_loss"] if state.get("best_loss") else 99999.0
 
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
@@ -59,10 +59,17 @@ def train(args):
 
         score = score_epoch(model, score_loader, device)
 
-        log_results(epoch, train_loss, score, best_score)
+        log_results(epoch, train_loss, best_loss, score, best_score)
 
-        best_score = save_model(
-            model, optimizer, epoch, score, best_score, args.save_model
+        best_loss, best_score = save_model(
+            model,
+            optimizer,
+            epoch,
+            train_loss,
+            best_loss,
+            score,
+            best_score,
+            args.save_model,
         )
 
 
@@ -122,16 +129,22 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
     return score
 
 
-def log_results(epoch, train_loss, score, best_score):
+def log_results(epoch, train_loss, best_loss, score, best_score):
     """Print results to screen."""
-    new = "*" if score > best_score else ""
+    new_score = "*" if score > best_score else ""
+    new_loss = "*" if train_loss < best_loss else " "
     logging.info(
-        f"""Epoch {epoch} Train loss: {train_loss:0.3f}, mAP: {score:0.3f} {new}"""
+        f"Epoch {epoch} Train loss: {train_loss:0.3f} {new_loss}, "
+        f"mAP: {score:0.3f} {new_score}"
     )
 
 
-def save_model(model, optimizer, epoch, score, best_score, save_model):
+def save_model(
+    model, optimizer, epoch, train_loss, best_loss, score, best_score, save_model
+):
     """Save the current model if it scores well."""
+    best_loss = train_loss if train_loss < best_loss else best_loss
+
     if score > best_score:
         torch.save(
             {
@@ -139,11 +152,13 @@ def save_model(model, optimizer, epoch, score, best_score, save_model):
                 "modeL_state": model.state_dict(),
                 "optimizer_state": optimizer.state_dict(),
                 "best_score": score,
+                "best_loss": best_loss,
             },
             save_model,
         )
-        return score
-    return best_score
+        return best_loss, score
+
+    return best_loss, best_score
 
 
 def get_loaders(args):
@@ -153,9 +168,7 @@ def get_loaders(args):
     if args.limit:
         subjects = subjects[: args.limit]
 
-    train_subjects, score_subjects = train_test_split(
-        subjects, test_size=args.split, random_state=args.seed
-    )
+    train_subjects, score_subjects = train_test_split(subjects, test_size=args.split)
     train_dataset = FasterRcnnData(train_subjects, args.image_dir, augment=True)
     score_dataset = FasterRcnnData(score_subjects, args.image_dir)
 
@@ -271,11 +284,7 @@ def parse_args():
         help="""Limit the input to this many records.""",
     )
 
-    arg_parser.add_argument("--seed", type=int, help="""Create a random seed.""")
-
     args = arg_parser.parse_args()
-
-    args.seed = args.seed if args.seed is not None else randint(0, 4_000_000_000)
 
     return args
 
