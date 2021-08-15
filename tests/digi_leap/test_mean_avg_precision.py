@@ -95,9 +95,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                     [[100, 100, 800, 800], [1000, 1000, 2000, 2000]],
                 ),
                 "true_labels": torch.Tensor([1, 1]),
-                "pred_boxes": torch.Tensor(
-                    [[100, 100, 800, 800]]
-                ),
+                "pred_boxes": torch.Tensor([[100, 100, 800, 800]]),
                 "pred_labels": torch.Tensor([1]),
                 "pred_scores": torch.Tensor([1.0]),
             },
@@ -105,19 +103,43 @@ class TestMeanAvgPrecision(unittest.TestCase):
         self.assertEqual(mAP(results), 0.5)
 
     def test_mAP_06(self):
-        """It handles empty data."""
+        """It handles multiple samples."""
         results = [
+            # Both empty: 1.0
             {
                 "image_id": torch.Tensor([1]),
-                "true_boxes": torch.Tensor(
-                    torch.empty((0, 4), dtype=torch.float32),
-                ),
+                "true_boxes": torch.empty((0, 4), dtype=torch.float32),
                 "true_labels": torch.Tensor([]),
-                "pred_boxes": torch.Tensor(
-                    torch.empty((0, 4), dtype=torch.float32),
-                ),
+                "pred_boxes": torch.empty((0, 4), dtype=torch.float32),
                 "pred_labels": torch.Tensor([]),
                 "pred_scores": torch.Tensor([]),
             },
+            # True empty: 0.0
+            {
+                "image_id": torch.Tensor([2]),
+                "true_boxes": torch.empty((0, 4), dtype=torch.float32),
+                "true_labels": torch.Tensor([]),
+                "pred_boxes": torch.Tensor([[100, 100, 800, 800]]),
+                "pred_labels": torch.Tensor([1]),
+                "pred_scores": torch.Tensor([1.0]),
+            },
+            # Predicted empty: 0.0
+            {
+                "image_id": torch.Tensor([4]),
+                "true_boxes": torch.Tensor([[100, 100, 800, 800]]),
+                "true_labels": torch.Tensor([1]),
+                "pred_boxes": torch.empty((0, 4), dtype=torch.float32),
+                "pred_labels": torch.Tensor([]),
+                "pred_scores": torch.Tensor([]),
+            },
+            # Identical: 1.0
+            {
+                "image_id": torch.Tensor([3]),
+                "true_boxes": torch.Tensor([[100, 100, 800, 800]]),
+                "true_labels": torch.Tensor([1]),
+                "pred_boxes": torch.Tensor([[100, 100, 800, 800]]),
+                "pred_labels": torch.Tensor([1]),
+                "pred_scores": torch.Tensor([0.8]),
+            },
         ]
-        self.assertEqual(mAP(results), 0.0)
+        self.assertAlmostEqual(mAP(results).item(), 0.5, 4)

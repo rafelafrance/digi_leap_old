@@ -8,17 +8,17 @@ def mAP_iou(results, low=0.5, high=0.95, step=0.05, eps=1e-8):
     """Calculate the mean average precision over several IoU thresholds."""
     high += step
     scores = [mAP(results, t, eps=eps) for t in torch.arange(low, high, step)]
-    return sum(scores) / len(scores)
+    return sum(scores) / (len(scores) + eps)
 
 
 def mAP(results, iou_threshold=0.5, eps=1e-8):
     """Calculate the mean average precision at a specific IoU threshold.
 
-    Loosely based off of:
+    Modified from:
     https://github.com/eriklindernoren/PyTorch-YOLOv3/blob/master/pytorchyolo
     /utils/utils.py
 
-    We're given a list of dictionaries with one dictionary per subject image.
+    Given a list of dictionaries with one dictionary per subject image.
     Each dict contains: (all values are torch tensors)
         image_id
         true_boxes = one row per box and each row is [x_min, y_min, x_max, y_max]
@@ -31,8 +31,14 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
 
     for result in results:
         iou = box_iou(result["true_boxes"], result["pred_boxes"])
+        true_labels = result["true_labels"].unique()
 
-        for cls in result["true_labels"].unique():
+        if true_labels.numel() == 0:
+            ap = 1.0 if result["pred_labels"].numel() == 0 else 0.0
+            all_ap.append(torch.tensor(ap))
+            continue
+
+        for cls in true_labels:
             # Limit scores and IoUs to this class
             class_scores = result["pred_scores"][result["pred_labels"] == cls]
 
