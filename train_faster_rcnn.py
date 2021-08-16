@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Train a model to recognize digits on allometry sheets."""
+"""Train a model to recognize labels on herbarium sheets."""
 
 import argparse
 import logging
@@ -55,8 +55,6 @@ def train(args):
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
-        # lr_scheduler.step()
-
         score = score_epoch(model, score_loader, device)
 
         log_results(epoch, train_loss, best_loss, score, best_score)
@@ -107,7 +105,8 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
     for images, targets in loader:
         images = list(image.to(device) for image in images)
 
-        preds = model(images, targets)
+        with torch.no_grad():
+            preds = model(images)
 
         for pred, target in zip(preds, targets):
             idx = batched_nms(
@@ -125,7 +124,6 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
             )
 
     score = mAP_iou(all_results)
-
     return score
 
 
