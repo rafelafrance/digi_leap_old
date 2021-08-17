@@ -26,7 +26,7 @@ def use(args):
     state = torch.load(args.load_model)
 
     model = get_model()
-    model.load_state_dict(state[args.model_state_key])
+    model.load_state_dict(state["model_state"])
 
     device = torch.device(args.device)
     model.to(device)
