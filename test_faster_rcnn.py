@@ -152,7 +152,7 @@ def parse_args():
     arg_parser.add_argument(
         "--workers",
         type=int,
-        default=4,
+        default=2,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
@@ -166,7 +166,7 @@ def parse_args():
         "--nms-threshold",
         type=float,
         default=NMS_THRESHOLD,
-        help="""The threshold to use for non-maximum suppression. (0.0 - 1.0].
+        help="""The IoU threshold to use for non-maximum suppression. (0.0 - 1.0].
             (default: %(default)s)""",
     )
 

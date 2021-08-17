@@ -5,5 +5,5 @@
 --device=cuda:0
 --epochs=20
 --batch-size=2
---workers=2
+--workers=4
 --nms-threshold=0.1

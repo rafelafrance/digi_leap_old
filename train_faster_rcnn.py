@@ -54,7 +54,7 @@ def train(args):
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
-        score = score_epoch(model, score_loader, device, args.iou_threshold)
+        score = score_epoch(model, score_loader, device, args.nms_threshold)
 
         log_results(epoch, train_loss, best_loss, score, best_score)
 
@@ -95,7 +95,7 @@ def train_epoch(model, loader, device, optimizer):
     return running_loss / count
 
 
-def score_epoch(model, loader, device, iou_threshold):
+def score_epoch(model, loader, device, nms_threshold):
     """Evaluate the model."""
     model.eval()
 
@@ -109,7 +109,7 @@ def score_epoch(model, loader, device, iou_threshold):
 
         for pred, target in zip(preds, targets):
             idx = batched_nms(
-                pred["boxes"], pred["scores"], pred["labels"], iou_threshold
+                pred["boxes"], pred["scores"], pred["labels"], nms_threshold
             )
             all_results.append(
                 {
@@ -285,7 +285,7 @@ def parse_args():
         "--nms-threshold",
         type=float,
         default=NMS_THRESHOLD,
-        help="""The threshold to use for non-maximum suppression (0.0 - 1.0].
+        help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
 

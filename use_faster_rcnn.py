@@ -118,7 +118,7 @@ def parse_args():
         "--nms-threshold",
         type=float,
         default=NMS_THRESHOLD,
-        help="""The threshold to use for non-maximum suppression (0.0 - 1.0].
+        help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
 
