@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
+from digi_leap.const import NMS_THRESHOLD
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
 from digi_leap.mean_avg_precision import mAP_iou
@@ -36,11 +37,11 @@ def test(args):
 
     train_score = state["best_score"] if state.get("best_score") else -1.0
 
-    score = score_epoch(model, score_loader, device)
+    score = score_epoch(model, score_loader, device, nms_threshold=args.nms_threshold)
     log_results(score, train_score)
 
 
-def score_epoch(model, loader, device, iou_threshold=0.3):
+def score_epoch(model, loader, device, nms_threshold):
     """Evaluate the model."""
     model.eval()
 
@@ -54,7 +55,7 @@ def score_epoch(model, loader, device, iou_threshold=0.3):
 
         for pred, target in zip(preds, targets):
             idx = batched_nms(
-                pred["boxes"], pred["scores"], pred["labels"], iou_threshold
+                pred["boxes"], pred["scores"], pred["labels"], nms_threshold
             )
             all_results.append(
                 {
@@ -159,6 +160,14 @@ def parse_args():
         "--limit",
         type=int,
         help="""Limit the input to this many records.""",
+    )
+
+    arg_parser.add_argument(
+        "--nms-threshold",
+        type=float,
+        default=NMS_THRESHOLD,
+        help="""The threshold to use for non-maximum suppression. (0.0 - 1.0].
+            (default: %(default)s)""",
     )
 
     args = arg_parser.parse_args()

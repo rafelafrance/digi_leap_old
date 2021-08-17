@@ -36,6 +36,8 @@ NEAR_HORIZ = np.deg2rad(HORIZ_ANGLES)
 NEAR_VERT = np.deg2rad(np.linspace(88.0, 92.0, num=9))
 NEAR_HORIZ, NEAR_VERT = NEAR_VERT, NEAR_HORIZ  # ?!
 
+NMS_THRESHOLD = 0.1
+
 
 def get_nltk_words():
     """Get words from the NLTK corpus."""

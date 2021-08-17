@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
+from digi_leap.const import NMS_THRESHOLD
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
 from digi_leap.mean_avg_precision import mAP_iou
@@ -42,8 +43,6 @@ def train(args):
     if state.get("optimizer_state"):
         optimizer.load_state_dict(state["optimizer_state"])
 
-    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
-
     train_loader, score_loader = get_loaders(args)
 
     start_epoch = state["epoch"] + 1 if state.get("epoch") else 1
@@ -55,7 +54,7 @@ def train(args):
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
-        score = score_epoch(model, score_loader, device)
+        score = score_epoch(model, score_loader, device, args.iou_threshold)
 
         log_results(epoch, train_loss, best_loss, score, best_score)
 
@@ -96,7 +95,7 @@ def train_epoch(model, loader, device, optimizer):
     return running_loss / count
 
 
-def score_epoch(model, loader, device, iou_threshold=0.3):
+def score_epoch(model, loader, device, iou_threshold):
     """Evaluate the model."""
     model.eval()
 
@@ -147,7 +146,7 @@ def save_model(
         torch.save(
             {
                 "epoch": epoch,
-                "modeL_state": model.state_dict(),
+                "model_state": model.state_dict(),
                 "optimizer_state": optimizer.state_dict(),
                 "best_score": score,
                 "best_loss": best_loss,
@@ -272,7 +271,7 @@ def parse_args():
     arg_parser.add_argument(
         "--workers",
         type=int,
-        default=4,
+        default=2,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
@@ -282,8 +281,15 @@ def parse_args():
         help="""Limit the input to this many records.""",
     )
 
-    args = arg_parser.parse_args()
+    arg_parser.add_argument(
+        "--nms-threshold",
+        type=float,
+        default=NMS_THRESHOLD,
+        help="""The threshold to use for non-maximum suppression (0.0 - 1.0].
+            (default: %(default)s)""",
+    )
 
+    args = arg_parser.parse_args()
     return args
 
 

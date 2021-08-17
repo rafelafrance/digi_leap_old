@@ -1,0 +1,4 @@
+--reconciled-jsonl=data/label-babel-2/17633_label_babel_2.reconciled.jsonl
+--train-jsonl=data/label-babel-2/17633_label_babel_2.reconciled.train.jsonl
+--test-jsonl=data/label-babel-2/17633_label_babel_2.reconciled.test.jsonl
+--split=0.2

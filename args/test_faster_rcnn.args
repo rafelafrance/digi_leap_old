@@ -1,0 +1,7 @@
+--reconciled-jsonl=data/label-babel-2/17633_label_babel_2.reconciled.test.jsonl
+--image-dir=data/label-babel-2/herbarium-sheets-small
+--load-model=models/faster_rcnn_2021-08-17.pth
+--device=cuda:0
+--batch-size=2
+--workers=2
+--nms-threshold=0.1
