@@ -4,7 +4,6 @@
 import argparse
 import logging
 import textwrap
-from copy import deepcopy
 from pathlib import Path
 
 import torch
@@ -14,7 +13,8 @@ from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
-from digi_leap.const import NMS_THRESHOLD
+from digi_leap.box_calc import small_box_suppression
+from digi_leap.const import DEVICE, GPU_BATCH, NMS_THRESHOLD, SBS_THRESHOLD, WORKERS
 from digi_leap.faster_rcnn_data import FasterRcnnData
 from digi_leap.log import finished, started
 from digi_leap.mean_avg_precision import mAP_iou
@@ -54,7 +54,9 @@ def train(args):
     for epoch in range(start_epoch, end_epoch):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
-        score = score_epoch(model, score_loader, device, args.nms_threshold)
+        score = score_epoch(
+            model, score_loader, device, args.nms_threshold, args.sbs_threshold
+        )
 
         log_results(epoch, train_loss, best_loss, score, best_score)
 
@@ -95,7 +97,7 @@ def train_epoch(model, loader, device, optimizer):
     return running_loss / count
 
 
-def score_epoch(model, loader, device, nms_threshold):
+def score_epoch(model, loader, device, nms_threshold, sbs_threshold):
     """Evaluate the model."""
     model.eval()
 
@@ -108,17 +110,24 @@ def score_epoch(model, loader, device, nms_threshold):
             preds = model(images)
 
         for pred, target in zip(preds, targets):
-            idx = batched_nms(
-                pred["boxes"], pred["scores"], pred["labels"], nms_threshold
-            )
+            boxes = pred["boxes"].detach().cpu()
+            labels = pred["labels"].detach().cpu()
+            scores = pred["scores"].detach().cpu()
+
+            idx = small_box_suppression(boxes, sbs_threshold)
+            boxes = boxes[idx, :]
+            labels = labels[idx]
+            scores = scores[idx]
+
+            idx = batched_nms(boxes, scores, labels, nms_threshold)
             all_results.append(
                 {
-                    "image_id": deepcopy(target["image_id"]),
-                    "true_boxes": deepcopy(target["boxes"]),
-                    "true_labels": deepcopy(target["labels"]),
-                    "pred_boxes": pred["boxes"][idx, :].detach().cpu(),
-                    "pred_labels": pred["labels"][idx].detach().cpu(),
-                    "pred_scores": pred["scores"][idx].detach().cpu(),
+                    "image_id": target["image_id"],
+                    "true_boxes": target["boxes"],
+                    "true_labels": target["labels"],
+                    "pred_boxes": boxes[idx, :],
+                    "pred_labels": labels[idx],
+                    "pred_scores": scores[idx],
                 }
             )
 
@@ -239,10 +248,9 @@ def parse_args():
         help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
     )
 
-    default = "cuda:0" if torch.cuda.is_available() else "cpu"
     arg_parser.add_argument(
         "--device",
-        default=default,
+        default=DEVICE,
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
@@ -264,14 +272,14 @@ def parse_args():
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=2,
+        default=GPU_BATCH,
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
         type=int,
-        default=2,
+        default=WORKERS,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
@@ -286,6 +294,14 @@ def parse_args():
         type=float,
         default=NMS_THRESHOLD,
         help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
+            (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--sbs-threshold",
+        type=float,
+        default=SBS_THRESHOLD,
+        help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
 

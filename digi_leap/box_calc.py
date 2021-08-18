@@ -4,6 +4,7 @@ This module mostly contains variants of bounding box non-maximum suppression (NM
 """
 
 import numpy as np
+import torch
 
 
 def iou(box1, box2):
@@ -26,10 +27,6 @@ def iou(box1, box2):
 
 def find_box_groups(boxes, threshold=0.3, scores=None):
     """Find overlapping sets of bounding boxes.
-
-    Note: This is primarily designed to work with non-maximum suppression. Which
-    means that it will find larger boxes first and attach lesser boxes to it.
-    It does not chain overlapping boxes.
 
     Groups are by abs() where the positive value indicates the "best" box in the
     group and negative values indicate all other boxes in the group. I know that
@@ -93,39 +90,7 @@ def nms(boxes, threshold=0.3, scores=None):
     return boxes[reduced]
 
 
-def all_fractions(boxes):
-    """Find the intersection over union (IOU) of every box with every other box."""
-    # todo replace with pytorch's function
-    if len(boxes) == 0:
-        return np.array([])
-
-    if boxes.dtype.kind == "i":
-        boxes = boxes.astype("float64")
-
-    # Simplify access to box components
-    x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
-    n = len(boxes)
-
-    area = (x1 - x0) * (y1 - y0)
-    inters = np.empty([n, n], dtype="float64")
-
-    for i in range(n):
-        # Get interior (overlap) coordinates
-        xx0 = np.maximum(x0[i], x0)
-        yy0 = np.maximum(y0[i], y0)
-        xx1 = np.minimum(x1[i], x1)
-        yy1 = np.minimum(y1[i], y1)
-
-        # Get the intersection with current box
-        inter = np.maximum(0, xx1 - xx0) * np.maximum(0, yy1 - yy0)
-        inter = np.maximum(inter / area, inter / area[i])
-
-        inters[i] = inter
-
-    return inters
-
-
-def small_box_overlap(boxes, threshold=0.50):
+def small_box_overlap(boxes, threshold=0.5):
     """Get overlapping boxes using the threshold on the area of the smaller box."""
     if len(boxes) == 0:
         return np.array([])
@@ -136,8 +101,7 @@ def small_box_overlap(boxes, threshold=0.50):
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
 
-    area = np.maximum(0.0, x1 - x0) * np.maximum(0.0, y1 - y0)
-    area += 0.0000001
+    area = np.maximum(0.0, x1 - x0) * np.maximum(0.0, y1 - y0) + 1e-8
 
     idx = area.argsort()
 
@@ -170,3 +134,52 @@ def small_box_overlap(boxes, threshold=0.50):
         idx = np.delete(idx, inter)
 
     return overlapping
+
+
+def small_box_suppression(boxes, threshold=0.9, eps=1e-8):
+    """Remove overlapping small boxes, analogous to non-maximum suppression.
+
+    Use the intersection of the boxes as a fraction of the smaller box.
+
+    If a small box is contained in a larger box the intersection over union may be
+    too small to for NMS to work. Using this measure gets around the issue.
+    """
+    if boxes.numel() == 0:
+        return torch.empty((0, 4), dtype=torch.float32)
+
+    # Simplify access to box components
+    x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+
+    a1 = torch.maximum(torch.tensor([0.0]), x1 - x0)
+    a2 = torch.maximum(torch.tensor([0.0]), y1 - y0)
+    area = a1 * a2 + eps
+
+    idx = area.argsort()
+
+    keep = torch.zeros(idx.numel(), dtype=torch.bool)
+
+    while idx.numel() > 0:
+        # Pop the largest box
+        curr = idx[-1]
+        idx = idx[:-1]
+
+        keep[curr] = True
+
+        # Get interior (overlap) coordinates
+        xx0 = torch.maximum(x0[curr], x0[idx])
+        yy0 = torch.maximum(y0[curr], y0[idx])
+        xx1 = torch.minimum(x1[curr], x1[idx])
+        yy1 = torch.minimum(y1[curr], y1[idx])
+
+        # Get the intersection as a fraction of the smaller box
+        i1 = torch.maximum(torch.tensor([0.0]), xx1 - xx0)
+        i2 = torch.maximum(torch.tensor([0.0]), yy1 - yy0)
+        inter = (i1 * i2) / area[idx]
+
+        # Find overlaps larger than threshold & delete them
+        inter = torch.where(inter >= threshold)[0]
+        mask = torch.ones(idx.numel(), dtype=torch.bool)
+        mask[inter] = False
+        idx = idx[mask]
+
+    return torch.where(keep)[0]

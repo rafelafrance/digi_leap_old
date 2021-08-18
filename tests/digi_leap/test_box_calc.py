@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 import numpy.testing as npt
+import torch
 
 import digi_leap.box_calc as util
 
@@ -137,7 +138,22 @@ class TestBoxCalc(unittest.TestCase):
         )
         npt.assert_array_equal(util.overlapping_boxes(boxes), [1, 2, 2, 1, 2])
 
-    def test_overlap_groups_06(self):
-        """It handles an empty array."""
-        boxes = np.array([])
-        npt.assert_array_equal(util.overlapping_boxes(boxes), [])
+    def test_small_box_suppression_01(self):
+        """It removes a tiny box."""
+        boxes = torch.Tensor([[0, 0, 10, 10], [0, 0, 100, 100]])
+        npt.assert_array_equal(util.small_box_suppression(boxes), torch.tensor([1]))
+
+    def test_small_box_suppression_02(self):
+        """It removes a different tiny box."""
+        boxes = torch.Tensor([[0, 0, 100, 100], [0, 0, 10, 10]])
+        npt.assert_array_equal(util.small_box_suppression(boxes), torch.tensor([0]))
+
+    def test_small_box_suppression_03(self):
+        """It does not remove non-overlapping boxes."""
+        boxes = torch.Tensor([[0, 0, 100, 100], [200, 200, 210, 210]])
+        npt.assert_array_equal(util.small_box_suppression(boxes), torch.tensor([0, 1]))
+
+    def test_small_box_suppression_04(self):
+        """It does not remove overlaps below the threshold."""
+        boxes = torch.Tensor([[0, 0, 100, 100], [99, 99, 109, 109]])
+        npt.assert_array_equal(util.small_box_suppression(boxes), torch.tensor([0, 1]))

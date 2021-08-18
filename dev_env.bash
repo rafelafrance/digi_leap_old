@@ -20,6 +20,7 @@ if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 pip3 install -U torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 # pip install -U tensorboard
+python -c 'import nltk; nltk.download("words")'
 
 # Commonly used for dev
 pip install -U pynvim

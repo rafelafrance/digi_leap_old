@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Use a model cut out labels on herbarium sheets."""
+"""Use a trained model to cut out labels on herbarium sheets."""
 
 import argparse
 import logging
@@ -14,7 +14,8 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 from tqdm import tqdm
 
-from digi_leap.const import NMS_THRESHOLD
+from digi_leap.box_calc import small_box_suppression
+from digi_leap.const import DEVICE, NMS_THRESHOLD, SBS_THRESHOLD
 from digi_leap.log import finished, started
 from digi_leap.subject import CLASS2NAME, CLASSES
 
@@ -33,7 +34,11 @@ def use(args):
 
     model.eval()
 
-    for path in tqdm(args.image_dir.glob(args.glob)):
+    paths = list(args.image_dir.glob(args.glob))
+    if args.limit:
+        paths = paths[: args.limit]
+
+    for path in tqdm(paths):
         try:
             with Image.open(path) as image:
                 image = image.convert("L")
@@ -48,11 +53,19 @@ def use(args):
         image = transforms.ToPILImage()(image)
 
         for pred in preds:
-            idx = batched_nms(
-                pred["boxes"], pred["scores"], pred["labels"], args.nms_threshold
-            )
-            boxes = pred["boxes"][idx, :].detach().cpu()
-            labels = pred["labels"][idx].detach().cpu()
+            boxes = pred["boxes"].detach().cpu()
+            labels = pred["labels"].detach().cpu()
+            scores = pred["scores"].detach().cpu()
+
+            idx = small_box_suppression(boxes, args.sbs_threshold)
+            boxes = boxes[idx, :]
+            labels = labels[idx]
+            scores = scores[idx]
+
+            idx = batched_nms(boxes, scores, labels, args.nms_threshold)
+            boxes = boxes[idx, :]
+            labels = labels[idx]
+
             for i, (box, label) in enumerate(zip(boxes, labels)):
                 label_image = image.crop(box.tolist())
                 label_name = f"{path.stem}_{i}_{CLASS2NAME[label.item()]}{path.suffix}"
@@ -106,12 +119,17 @@ def parse_args():
         help="Write cropped labels to this directory.",
     )
 
-    default = "cuda:0" if torch.cuda.is_available() else "cpu"
     arg_parser.add_argument(
         "--device",
-        default=default,
+        default=DEVICE,
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many records.""",
     )
 
     arg_parser.add_argument(
@@ -119,6 +137,14 @@ def parse_args():
         type=float,
         default=NMS_THRESHOLD,
         help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
+            (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--sbs-threshold",
+        type=float,
+        default=SBS_THRESHOLD,
+        help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
 
