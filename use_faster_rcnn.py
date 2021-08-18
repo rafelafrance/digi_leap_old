@@ -39,14 +39,13 @@ def use(args):
         try:
             with Image.open(path) as image:
                 image = image.convert("L")
-                image = transforms.ToTensor()(image)
+                data = transforms.ToTensor()(image)
         except UnidentifiedImageError:
             logging.warning(f"{path} is not an image")
             continue
 
-        preds = model([image])
+        preds = model([data])
 
-        image = image
         image = transforms.ToPILImage()(image)
 
         for pred in preds:

@@ -29,8 +29,7 @@ def find_box_groups(boxes, threshold=0.3, scores=None):
     """Find overlapping sets of bounding boxes.
 
     Groups are by abs() where the positive value indicates the "best" box in the
-    group and negative values indicate all other boxes in the group. I know that
-    value flags are considered bad but it's more efficient here. Defensive much?
+    group and negative values indicate all other boxes in the group.
     """
     if len(boxes) == 0:
         return np.array([])
@@ -91,7 +90,7 @@ def nms(boxes, threshold=0.3, scores=None):
 
 
 def small_box_overlap(boxes, threshold=0.5):
-    """Get overlapping boxes using the threshold on the area of the smaller box."""
+    """Get overlapping box groups using the interection over area of the smaller box."""
     if len(boxes) == 0:
         return np.array([])
 
@@ -137,14 +136,15 @@ def small_box_overlap(boxes, threshold=0.5):
 
 
 def small_box_suppression(boxes, threshold=0.9, eps=1e-8):
-    """Remove overlapping small boxes, analogous to non-maximum suppression.
+    """Remove overlapping small bounding boxes, analogous to non-maximum suppression.
 
-    We can't just remove all of the small boxes because there are genuinely small
-    labels. So I use the intersection of the boxes as a fraction of the smaller box
-    to weed out the boxes that should not be there.
-
-    If a small box is contained in a larger box the intersection over union may be
-    too small to for NMS to work. Using this measure gets around the issue.
+    I can't just remove all small boxes because there are genuinely small labels.
+    So I use the intersection of the boxes (over the area of the smaller box) to
+    weed out small boxes that are covered by a bigger bounding box. Just using
+    non-maximum suppression is not going to work because it uses the intersection
+    over union (IoU) as a filtering metric and a tiny box contained in a larger box
+    will not have an IoU over the threshbold used for NMS. Using the intersection
+    over the area of the smaller box gets around the issue.
     """
     if boxes.numel() == 0:
         return torch.empty((0, 4), dtype=torch.float32)
