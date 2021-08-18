@@ -139,7 +139,9 @@ def small_box_overlap(boxes, threshold=0.5):
 def small_box_suppression(boxes, threshold=0.9, eps=1e-8):
     """Remove overlapping small boxes, analogous to non-maximum suppression.
 
-    Use the intersection of the boxes as a fraction of the smaller box.
+    We can't just remove all of the small boxes because there are genuinely small
+    labels. So I use the intersection of the boxes as a fraction of the smaller box
+    to weed out the boxes that should not be there.
 
     If a small box is contained in a larger box the intersection over union may be
     too small to for NMS to work. Using this measure gets around the issue.

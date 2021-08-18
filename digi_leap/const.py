@@ -12,7 +12,7 @@ BATCH_SIZE = 1_000_000  # How many records to work with at a time
 DEVICE: str = "cuda:0" if torch.cuda.is_available() else "cpu"
 GPU_BATCH: int = 2
 NMS_THRESHOLD: float = 0.3
-SBS_THRESHOLD: float = 0.9
+SBS_THRESHOLD: float = 0.95
 WORKERS: int = 2
 
 # Directories and files

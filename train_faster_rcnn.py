@@ -114,12 +114,12 @@ def score_epoch(model, loader, device, nms_threshold, sbs_threshold):
             labels = pred["labels"].detach().cpu()
             scores = pred["scores"].detach().cpu()
 
-            idx = small_box_suppression(boxes, sbs_threshold)
+            idx = batched_nms(boxes, scores, labels, nms_threshold)
             boxes = boxes[idx, :]
             labels = labels[idx]
             scores = scores[idx]
 
-            idx = batched_nms(boxes, scores, labels, nms_threshold)
+            idx = small_box_suppression(boxes, sbs_threshold)
             all_results.append(
                 {
                     "image_id": target["image_id"],

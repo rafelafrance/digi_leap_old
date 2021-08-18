@@ -2,6 +2,3 @@
 --glob=*.jpg
 --load-model=models/faster_rcnn_2021-08-17.pth
 --label-dir=data/label-babel-2/faster_rcnn_2021-08-17
---device=cuda:0
---nms-threshold=0.1
---sbs-threshold=0.95

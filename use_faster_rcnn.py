@@ -15,7 +15,7 @@ from torchvision.ops import batched_nms
 from tqdm import tqdm
 
 from digi_leap.box_calc import small_box_suppression
-from digi_leap.const import DEVICE, NMS_THRESHOLD, SBS_THRESHOLD
+from digi_leap.const import NMS_THRESHOLD, SBS_THRESHOLD
 from digi_leap.log import finished, started
 from digi_leap.subject import CLASS2NAME, CLASSES
 
@@ -28,9 +28,6 @@ def use(args):
 
     model = get_model()
     model.load_state_dict(state["model_state"])
-
-    device = torch.device(args.device)
-    model.to(device)
 
     model.eval()
 
@@ -47,22 +44,22 @@ def use(args):
             logging.warning(f"{path} is not an image")
             continue
 
-        preds = model([image.to(device)])
+        preds = model([image])
 
-        image = image.detach().cpu()
+        image = image
         image = transforms.ToPILImage()(image)
 
         for pred in preds:
-            boxes = pred["boxes"].detach().cpu()
-            labels = pred["labels"].detach().cpu()
-            scores = pred["scores"].detach().cpu()
+            boxes = pred["boxes"]
+            labels = pred["labels"]
+            scores = pred["scores"]
 
-            idx = small_box_suppression(boxes, args.sbs_threshold)
+            idx = batched_nms(boxes, scores, labels, args.nms_threshold)
             boxes = boxes[idx, :]
             labels = labels[idx]
             scores = scores[idx]
 
-            idx = batched_nms(boxes, scores, labels, args.nms_threshold)
+            idx = small_box_suppression(boxes, args.sbs_threshold)
             boxes = boxes[idx, :]
             labels = labels[idx]
 
@@ -117,13 +114,6 @@ def parse_args():
         required=True,
         type=Path,
         help="Write cropped labels to this directory.",
-    )
-
-    arg_parser.add_argument(
-        "--device",
-        default=DEVICE,
-        help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
-            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
