@@ -238,7 +238,8 @@ class BinaryRemoveSmallHoles(LabelTransform):
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         image = morph.remove_small_holes(
-            image, area_threshold=self.area_threshold, connectivity=self.connectivity)
+            image, area_threshold=self.area_threshold, connectivity=self.connectivity
+        )
         return image, repr(self)
 
     def __repr__(self):
@@ -297,6 +298,7 @@ PIPELINES = {
 
 # =============================================================================
 # Functions for applying transforms to images
+
 
 def transform_label(pipeline: str, image: Image) -> Image:
     """Transform the label to improve OCR results."""

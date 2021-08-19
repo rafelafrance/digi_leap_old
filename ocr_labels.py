@@ -45,7 +45,7 @@ def ocr_tesseract(labels, args):
     """OCR the labels with tesseract."""
     logging.info("OCR with Tesseract")
 
-    batches = [labels[i:i + BATCH_SIZE] for i in range(0, len(labels), BATCH_SIZE)]
+    batches = [labels[i : i + BATCH_SIZE] for i in range(0, len(labels), BATCH_SIZE)]
 
     arg_dict = vars(args)
 

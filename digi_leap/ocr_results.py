@@ -32,7 +32,7 @@ def filter_bounding_boxes(
     df["height"] = df.bottom - df.top + 1
 
     # Remove boxes with nothing in them
-    df = df.loc[df.text != '']
+    df = df.loc[df.text != ""]
 
     # Remove boxes with low confidence
     df = df.loc[df.conf > conf]
