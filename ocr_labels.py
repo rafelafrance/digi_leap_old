@@ -13,10 +13,9 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 
+from digi_leap.const import PROC_BATCH
 from digi_leap.log import finished, started
 from digi_leap.ocr import easyocr_engine, tesseract_dataframe
-
-BATCH_SIZE = 10
 
 
 def ocr_labels(args: Namespace) -> None:
@@ -45,7 +44,7 @@ def ocr_tesseract(labels, args):
     """OCR the labels with tesseract."""
     logging.info("OCR with Tesseract")
 
-    batches = [labels[i : i + BATCH_SIZE] for i in range(0, len(labels), BATCH_SIZE)]
+    batches = [labels[i : i + PROC_BATCH] for i in range(0, len(labels), PROC_BATCH)]
 
     arg_dict = vars(args)
 

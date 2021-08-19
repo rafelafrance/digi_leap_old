@@ -9,7 +9,7 @@ import zipfile
 import pandas as pd
 from tqdm import tqdm
 
-from digi_leap.const import BATCH_SIZE, CSV_FILE
+from digi_leap.const import ROW_BATCH, CSV_FILE
 from digi_leap.log import finished, started
 
 
@@ -184,7 +184,7 @@ def parse_args():
         "--batch-size",
         "-b",
         type=int,
-        default=BATCH_SIZE,
+        default=ROW_BATCH,
         help="""The number of lines we read from the CSV file at a time. This
             is mostly used to shorten iterations for debugging.
             (default: %(default)s)""",

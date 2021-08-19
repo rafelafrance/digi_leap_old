@@ -13,14 +13,12 @@ from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 
 import digi_leap.ocr_results as results
-from digi_leap.const import FONTS_DIR
+from digi_leap.const import FONTS_DIR, PROC_BATCH
 from digi_leap.log import finished, started
 from digi_leap.ocr_rows import find_rows_of_text
 
 FONT = FONTS_DIR / "print" / "Source_Code_Pro" / "SourceCodePro-Regular.ttf"
 BASE_FONT_SIZE = 42
-
-BATCH_SIZE = 10
 
 
 class FontDict(dict):
@@ -41,7 +39,7 @@ def build_all_ensembles(args: Namespace) -> None:
 
     paths = group_files(args.ocr_dir, glob="*.csv")
 
-    batches = [paths[i : i + BATCH_SIZE] for i in range(0, len(paths), BATCH_SIZE)]
+    batches = [paths[i : i + PROC_BATCH] for i in range(0, len(paths), PROC_BATCH)]
 
     with Pool(processes=args.cpus) as pool, tqdm(total=len(batches)) as bar:
         results = [

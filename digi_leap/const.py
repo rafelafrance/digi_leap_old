@@ -8,10 +8,11 @@ import numpy as np
 import torch
 
 # Common defaults
-BATCH_SIZE = 1_000_000  # How many records to work with at a time
 DEVICE: str = "cuda:0" if torch.cuda.is_available() else "cpu"
 GPU_BATCH: int = 2
 NMS_THRESHOLD: float = 0.3
+PROC_BATCH = 10
+ROW_BATCH = 1_000_000  # How many records to work with at a time
 SBS_THRESHOLD: float = 0.95
 WORKERS: int = 2
 

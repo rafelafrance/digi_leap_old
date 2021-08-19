@@ -15,10 +15,9 @@ import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 
+from digi_leap.const import PROC_BATCH
 from digi_leap.label_transforms import PIPELINES, transform_label
 from digi_leap.log import finished, started
-
-BATCH_SIZE = 10
 
 
 def prepare_labels(args: Namespace) -> None:
@@ -46,7 +45,7 @@ def transform(labels, args):
     """Perform the label transformations before the OCR step(s)."""
     logging.info("transforming labels")
 
-    batches = [labels[i : i + BATCH_SIZE] for i in range(0, len(labels), BATCH_SIZE)]
+    batches = [labels[i : i + PROC_BATCH] for i in range(0, len(labels), PROC_BATCH)]
 
     with Pool(processes=args.cpus) as pool, tqdm(total=len(batches)) as bar:
         results = [
