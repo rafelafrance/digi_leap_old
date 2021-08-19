@@ -52,7 +52,7 @@ def score_epoch(model, loader, device, nms_threshold, sbs_threshold):
     for images, targets in loader:
         images = list(image.to(device) for image in images)
 
-        with torch.no_grad:
+        with torch.no_grad():
             preds = model(images)
 
         for pred, target in zip(preds, targets):

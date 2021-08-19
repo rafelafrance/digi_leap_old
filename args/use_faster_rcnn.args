@@ -1,4 +1,4 @@
 --image-dir=data/label-babel-2/herbarium-sheets-small
 --glob=*.jpg
---load-model=models/faster_rcnn_2021-08-17.pth
---label-dir=data/label-babel-2/faster_rcnn_2021-08-17
+--load-model=models/faster_rcnn_2021-08-18.pth
+--label-dir=data/label-babel-2/faster_rcnn_2021-08-18

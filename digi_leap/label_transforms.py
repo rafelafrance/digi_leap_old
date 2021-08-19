@@ -8,6 +8,7 @@ import numpy as np
 import pytesseract
 from numpy import typing as npt
 from PIL import Image
+from pytesseract.pytesseract import TesseractError
 from scipy import ndimage
 from skimage import exposure as ex
 from skimage import filters
@@ -15,7 +16,6 @@ from skimage import morphology as morph
 from skimage import util as sk_util
 
 from digi_leap import util as util
-
 
 # TODO: Cleanly handle gray scale vs binary images in transformation pipeline
 
@@ -83,7 +83,13 @@ class Orient(LabelTransform):
         self.conf_high = conf_high
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
-        osd = pytesseract.image_to_osd(image)
+        action = repr(self)
+
+        try:
+            osd = pytesseract.image_to_osd(image)
+        except TesseractError:
+            action += " skipped"
+            return image, action
 
         angle = 0
         if match := re.search(r"Rotate: (\d+)", osd):
@@ -92,8 +98,6 @@ class Orient(LabelTransform):
         conf = 0.0
         if match := re.search(r"Orientation confidence: ([\d.]+)", osd):
             conf = float(match.group(1))
-
-        action = repr(self)
 
         if angle != 0 and self.conf_low <= conf <= self.conf_high:
             image = ndimage.rotate(image, angle, mode="nearest")
