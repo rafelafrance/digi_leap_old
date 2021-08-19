@@ -57,8 +57,9 @@ def tesseract_dataframe(image: Image) -> list[dict]:
     df = df.loc[df.conf > 0]
 
     if df.shape[0] > 0:
-        df.conf = df.conf / 100.0
+        df.text = df.text.astype(str)
         df.text = df.text.str.strip()
+        df.conf = df.conf / 100.0
         df["right"] = df.left + df.width - 1
         df["bottom"] = df.top + df.height - 1
     else:

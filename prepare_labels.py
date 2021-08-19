@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pandas as pd
 from PIL import Image
-from pytesseract.pytesseract import TesseractError
 from tqdm import tqdm
 
 from digi_leap.label_transforms import PIPELINES, transform_label
