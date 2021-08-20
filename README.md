@@ -31,7 +31,7 @@ Labels will be roughly aligned to the edges of the herbarium sheet itself.
 
 The strategy we are using for training this model is to download some herbarium sheets and have volunteers (citizen scientists) identify where the labels are and what type of writing they contain. We are using [Notes from Nature](https://www.zooniverse.org/organizations/md68135/notes-from-nature) to organize the data collection. Notes from Nature is a part of the [Zooniverse](https://www.zooniverse.org/).
 
-We use [download_images.py](download_images.py) (**TODO rewrite this script**) to download images for Notes from Nature "expeditions".
+We use [download_images.py](digi_leap/idigbio_images.py) (**TODO rewrite this script**) to download images for Notes from Nature "expeditions".
 
 ### Clean Labels
 
@@ -59,17 +59,17 @@ This is a project unto itself and is in another repository.
 This is a list of the current set of scripts, what they do, and the general order to run them.
 
 1. **dev_env.bash**: (optional) I use this to setup my personal development environment. You will likely want to use your own setup.
-1. **load_idigbio_data.py**: (optional) iDigBio is a good source of data for both tests and extractions. Once you have downloaded the zip file use this script to load data into an SQLite database.
-1. **download_images.py**: (optional and incomplete). I use this script to mine iDigBio data for images of herbarium sheets and then download them for further use.
-1. **taxon_names.py**: I score the quality of the OCR by counting the number of words from an OCR label text that are in a vocabulary. I want to include taxon names in this vocabulary. To get them I download an ITIS SQLite database and extend the vocabulary with plant taxa from that database.
+1. **idigbio_load.py**: (optional) iDigBio is a good source of data for both tests and extractions. Once you have downloaded the zip file use this script to load data into an SQLite database.
+1. **idigbio_images.py**: (optional and incomplete). I use this script to mine iDigBio data for images of herbarium sheets and then download them for further use.
+1. **itis_taxa.py**: I score the quality of the OCR by counting the number of words from an OCR label text that are in a vocabulary. I want to include taxon names in this vocabulary. To get them I download an ITIS SQLite database and extend the vocabulary with plant taxa from that database.
 1. **label_babel_expedition.py**: (incomplete) I use this script to bundle the herbarium sheet images into a _Notes from Nature_ expedition that is used to create training data for the model(s) that finds labels on herbarium sheets.
-1. **reconcile_label_babel_data.py**: We use _Notes from Nature_ to get training data for models that find labels on the herbarium sheets. For each herbarium sheet we have a few people mark all of the labels they find. All of these labels have to be reconciled into a single "best" label.
-1. **train_test_split.py**: (optional) I use this simple script to spit that data from the last step into a training (training/validation) set and a holdout dataset for testing.
-1. **train_faster_rcnn.py**: This is the script that trains a model that finds lables on herbarium sheets.
-1. **test_faster_rcnn.py**: (optional) This tests the model we just trained above on the holdout dataset.
-1. **use_faster_rcnn.py**: This script cuts labels out of the herbarium sheets.
-1. **prepare_labels.py**: This script takes the cut out labels from the previous step and runs various image manipulations on them to make the labels easier for the OCR engine.
+1. **label_babel_reconcile.py**: We use _Notes from Nature_ to get training data for models that find labels on the herbarium sheets. For each herbarium sheet we have a few people mark all the labels they find. All of these labels have to be reconciled into a single "best" label.
+1. ~~train_test_split.py~~: (optional) I use this simple script to spit that data from the last step into a training (training/validation) set and a holdout dataset for testing.
+1. **faster_rcnn_train.py**: This is the script that trains a model that finds labels on herbarium sheets.
+1. **faster_rcnn_test.py**: (optional) This tests the model we just trained above on the holdout dataset.
+1. **faster_rcnn_use.py**: This script cuts labels out of the herbarium sheets.
+1. **ocr_prepare.py**: This script takes the labels from the previous step and runs various image manipulations on them to make it easier to OCR them.
 1. **ocr_labels.py**: This takes the prepared labels and runs the OCR engine on them, saving the text. I will run this script several times with varying conditions.
-1. **ocr_ensemble.py**: I use all of the OCR output from the last step as an ensemble to try to find a single "best" OCR output for each label, then I use that "best" label for further processing.
-1. **score_ocr_ensemble.py**: (optional) A script used report statistics on the ensemble output from the last step.
+1. **ocr_ensemble.py**: I use all the OCR output from the last step as an ensemble to try to find a single "best" OCR output for each label, then I use that "best" label for further processing.
+1. **ocr_score.py**: (optional) A script used report statistics on the ensemble output from the last step.
 1. **TBD**: Is a script used to create a _Notes from Nature_ expedition used to locate problem areas in the OCR chain.
