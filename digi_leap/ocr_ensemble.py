@@ -17,13 +17,12 @@ import pylib.log as log
 import pylib.ocr_results as results
 import pylib.ocr_rows as rows
 
-
 FONT = const.FONTS_DIR / "print" / "Source_Code_Pro" / "SourceCodePro-Regular.ttf"
 BASE_FONT_SIZE = 42
 
 
 class FontDict(dict):
-    """Allow resizing of the fonts."""
+    """Allow easy resizing of fonts."""
     def __missing__(self, key):
         return ImageFont.truetype(str(FONT), key)
 
@@ -40,14 +39,17 @@ def build_all_ensembles(args: Namespace) -> None:
         os.makedirs(args.ensemble_text, exist_ok=True)
 
     paths = group_files(args.ocr_dir)
+    paths = paths[:args.limit] if args.limit else paths
 
     batches = [paths[i:i + const.PROC_BATCH]
                for i in range(0, len(paths), const.PROC_BATCH)]
 
+    arg_dict = vars(args)
+
     with Pool(processes=args.cpus) as pool, tqdm.tqdm(total=len(batches)) as bar:
         all_results = [
             pool.apply_async(
-                ensemble_batch, args=(vars(args), b), callback=lambda _: bar.update()
+                ensemble_batch, args=(arg_dict, b), callback=lambda _: bar.update()
             )
             for b in batches
         ]
@@ -66,6 +68,9 @@ def build_ensemble(args, path_tuple):
     paths = [Path(p) for p in paths]
 
     df = get_boxes(paths)
+    if df.shape[0] == 0:
+        return
+
     df = results.merge_bounding_boxes(df)
     df = rows.find_rows_of_text(df)
 
@@ -175,7 +180,9 @@ def parse_args() -> Namespace:
         "--label-dir",
         required=True,
         type=Path,
-        help="""The directory containing images of labels.""",
+        help="""The directory containing images of labels. NOTE: This should contain
+            images that have gone through (at least) some of the transforms. I.e. The
+            label images should be prepared images.""",
     )
 
     arg_parser.add_argument(

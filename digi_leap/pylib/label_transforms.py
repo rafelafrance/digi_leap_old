@@ -17,7 +17,6 @@ from skimage import util as sk_util
 
 from . import util
 
-
 # TODO: Cleanly handle gray scale vs binary images in transformation pipeline
 
 

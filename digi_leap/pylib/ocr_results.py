@@ -14,6 +14,7 @@ from . import const
 def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
     """Get the data frame from the image."""
     df = pd.read_csv(path).fillna("")
+    df.text = df.text.astype(str)
     df["ocr_dir"] = Path(path).parent.stem
     df.text = df.text.str.strip()
     df = df.loc[df.text != ""]
@@ -175,7 +176,7 @@ def arrange_rows_of_text(df: pd.DataFrame, gutter: int = 12) -> pd.DataFrame:
 
             if i == 0:
                 prev_right = box.left
-                margin = width // len(box.text)
+                margin = width // len(box.text)  # ~= 1 char width
 
             df.loc[idx, "new_left"] = prev_right + margin
             df.loc[idx, "new_right"] = prev_right + width + margin
