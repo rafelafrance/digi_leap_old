@@ -17,15 +17,13 @@ SBS_THRESHOLD: float = 0.95
 WORKERS: int = 2
 
 # Directories and files
-ROOT_DIR = Path(".." if os.getcwd().endswith("scratch") else ".")
-DATA_DIR = ROOT_DIR / "data"
+ROOT_DIR = Path(".." if os.getcwd().endswith("notebooks") else ".")
 
-IMAGE_DIR = DATA_DIR / "images"
-PROCESSED_DIR = DATA_DIR / "processed"
-RAW_DIR = DATA_DIR / "raw"
-TEMP_DIR = DATA_DIR / "temp"
 VOCAB_DIR = ROOT_DIR / "vocab"
 FONTS_DIR = ROOT_DIR / "fonts"
+DATA_DIR = ROOT_DIR / "data"
+
+PROCESSED_DIR = DATA_DIR / "processed"
 
 CSV_FILE = "occurrence_raw.csv"
 DB = PROCESSED_DIR / "occurrence_raw_2021-02.sqlite3.db"
