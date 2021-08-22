@@ -17,7 +17,10 @@ SBS_THRESHOLD: float = 0.95
 WORKERS: int = 2
 
 # Directories and files
-ROOT_DIR = Path(".." if os.getcwd().endswith("notebooks") else ".")
+CURR_DIR = Path(os.getcwd())
+IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments")
+
+ROOT_DIR = Path(".." if IS_SUBDIR else ".")
 
 VOCAB_DIR = ROOT_DIR / "vocab"
 FONTS_DIR = ROOT_DIR / "fonts"
