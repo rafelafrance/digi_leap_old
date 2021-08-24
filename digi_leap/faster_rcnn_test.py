@@ -93,7 +93,7 @@ def get_loaders(args):
     if args.limit:
         subjects = subjects[: args.limit]
 
-    score_dataset = data.FasterRcnnData(subjects, args.image_dir)
+    score_dataset = data.FasterRcnnData(subjects, args.sheets_dir)
 
     score_loader = DataLoader(
         score_dataset,
@@ -122,68 +122,72 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        required=True,
+        default=defaults['reconciled_jsonl'],
         type=Path,
-        help="""The JSONL file containing reconciled bounding boxes.""",
+        help="""The JSONL file containing reconciled bounding boxes.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--image-dir",
-        required=True,
+        "--sheets-dir",
+        default=defaults['sheets_dir'],
         type=Path,
-        help="Read test images corresponding to the JSONL file from this directory.",
+        help="""Read test herbarium sheets corresponding to the JSONL file from this
+            directory. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--load-model",
-        required=True,
+        default=defaults['sheets_dir'],
         type=Path,
-        help="""Load this model state testing.""",
+        help="""Load this model state testing. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=const.DEVICE,
+        default=defaults['device'],
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
+        default=defaults['batch_size'],
         type=int,
-        default=const.GPU_BATCH,
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
+        default=defaults['workers'],
         type=int,
-        default=const.WORKERS,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    arg_parser.add_argument(
         "--nms-threshold",
+        default=defaults['nms_threshold'],
         type=float,
-        default=const.NMS_THRESHOLD,
         help="""The IoU threshold to use for non-maximum suppression. (0.0 - 1.0].
             (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--sbs-threshold",
+        default=defaults['sbs_threshold'],
         type=float,
-        default=const.SBS_THRESHOLD,
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many records.""",
     )
 
     args = arg_parser.parse_args()

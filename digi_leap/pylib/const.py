@@ -1,6 +1,8 @@
 """Define literals used in the system."""
 
 import os
+import sys
+from configparser import ConfigParser, ExtendedInterpolation
 from pathlib import Path
 
 import nltk
@@ -19,17 +21,10 @@ WORKERS: int = 2
 # Directories and files
 CURR_DIR = Path(os.getcwd())
 IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments")
-
 ROOT_DIR = Path(".." if IS_SUBDIR else ".")
 
 VOCAB_DIR = ROOT_DIR / "vocab"
 FONTS_DIR = ROOT_DIR / "fonts"
-DATA_DIR = ROOT_DIR / "data"
-
-PROCESSED_DIR = DATA_DIR / "processed"
-
-CSV_FILE = "occurrence_raw.csv"
-DB = PROCESSED_DIR / "occurrence_raw_2021-02.sqlite3.db"
 
 # OCR defaults
 CHAR_BLACKLIST = "¥€£¢$«»®©§{}[]<>|"
@@ -46,6 +41,19 @@ HORIZ_ANGLES = np.array([0.0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0])
 NEAR_HORIZ = np.deg2rad(HORIZ_ANGLES)
 NEAR_VERT = np.deg2rad(np.linspace(88.0, 92.0, num=9))
 NEAR_HORIZ, NEAR_VERT = NEAR_VERT, NEAR_HORIZ  # ?!
+
+
+# Config file
+def get_config(for_module=True):
+    """Read argument and other configurations for a module."""
+    cfg_path = ROOT_DIR / 'digi_leap.cfg'
+    config = ConfigParser(interpolation=ExtendedInterpolation())
+
+    with open(cfg_path) as cfg_file:
+        config.read_file(cfg_file)
+
+    module = Path(sys.argv[0]).stem
+    return config[module] if for_module else config
 
 
 # Vocabulary for scoring OCR quality

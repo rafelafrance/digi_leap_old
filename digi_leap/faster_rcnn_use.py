@@ -34,7 +34,7 @@ def use(args):
 
     model.eval()
 
-    paths = list(args.image_dir.glob(args.glob))
+    paths = list(args.sheets_dir.glob(args.glob))
     if args.limit:
         paths = paths[: args.limit]
 
@@ -88,52 +88,48 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
-        "--image-dir",
-        required=True,
+        "--sheets-dir",
+        default=defaults['sheets_dir'],
         type=Path,
         help="""Read training images corresponding to the JSONL file from this
-            directory.""",
+            directory. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--glob",
-        default="*.jpg",
+        default=defaults['glob'],
         help="""Use images in the --image-dir with this glob pattern.
             (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--load-model",
-        required=True,
+        default=defaults['load_model'],
         type=Path,
-        help="""Load this model state to continue training.""",
+        help="""Use this model to find labels. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--label-dir",
-        required=True,
+        default=defaults['label_dir'],
         type=Path,
-        help="Write cropped labels to this directory.",
+        help="Write cropped labels to this directory. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=const.DEVICE,
+        default=defaults['device'],
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    arg_parser.add_argument(
         "--nms-threshold",
         type=float,
-        default=const.NMS_THRESHOLD,
+        default=defaults['nms_threshold'],
         help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
@@ -141,9 +137,15 @@ def parse_args():
     arg_parser.add_argument(
         "--sbs-threshold",
         type=float,
-        default=const.SBS_THRESHOLD,
+        default=defaults['sbs_threshold'],
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many records.""",
     )
 
     args = arg_parser.parse_args()

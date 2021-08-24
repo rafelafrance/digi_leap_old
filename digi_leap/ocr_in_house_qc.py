@@ -17,6 +17,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image, ImageDraw
 
+import pylib.const as const
 import pylib.log as log
 import pylib.ocr_results as results
 
@@ -107,46 +108,53 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        required=True,
+        default=defaults['reconciled_jsonl'],
         type=Path,
         help="""The JSONL file containing reconciled bounding boxes. The file
-            contains one reconciliation record per herbarium sheet.""",
+            contains one reconciliation record per herbarium sheet.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--sheets-dir",
-        required=True,
+        default=defaults['sheets_dir'],
         type=Path,
-        help="""Images of herbarium sheets are in this directory.""",
+        help="""Images of herbarium sheets are in this directory
+             (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--ensemble-images",
-        required=True,
+        default=defaults['ensemble_images'],
         type=Path,
-        help="""The directory containing the OCR ensemble images.""",
+        help="""The directory containing the OCR ensemble images.
+             (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--ensemble-text",
-        required=True,
+        default=defaults['ensemble_text'],
         type=Path,
-        help="""The directory containing the OCR ensemble text.""",
+        help="""The directory containing the OCR ensemble text.
+             (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--qc-dir",
-        required=True,
+        default=defaults['qc_dir'],
         type=Path,
-        help="""Output the sampled QC data to this directory.""",
+        help="""Output the sampled QC data to this directory.
+             (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--sample-size",
         type=int,
-        default=25,
+        default=defaults['sample_size'],
         help="""How many herbarium sheets to sample. (default %(default)s)""",
     )
 

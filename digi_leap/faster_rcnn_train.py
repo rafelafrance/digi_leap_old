@@ -175,8 +175,8 @@ def get_loaders(args):
         subjects = subjects[: args.limit]
 
     train_subjects, score_subjects = train_test_split(subjects, test_size=args.split)
-    train_dataset = data.FasterRcnnData(train_subjects, args.image_dir, augment=True)
-    score_dataset = data.FasterRcnnData(score_subjects, args.image_dir)
+    train_dataset = data.FasterRcnnData(train_subjects, args.sheets_dir, augment=True)
+    score_dataset = data.FasterRcnnData(score_subjects, args.sheets_dir)
 
     train_loader = DataLoader(
         train_dataset,
@@ -213,44 +213,47 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        required=True,
+        default=defaults['reconciled_jsonl'],
         type=Path,
-        help="""The JSONL file containing reconciled bounding boxes.""",
+        help="""The JSONL file containing reconciled bounding boxes.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--image-dir",
-        required=True,
+        "--sheets-dir",
+        default=defaults['sheets_dir'],
         type=Path,
-        help="""Read training images corresponding to the JSONL file from this
-            directory.""",
+        help="""Read test herbarium sheets corresponding to the JSONL file from this
+            directory. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--save-model",
+        default=defaults['save_model'],
         type=Path,
-        required=True,
-        help="""Save model state to this file.""",
+        help="""Save model state to this file. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--load-model",
         type=Path,
-        help="""Load this model state to continue training.""",
+        help="""Load this model to continue training.""",
     )
 
     arg_parser.add_argument(
         "--split",
+        default=defaults['split'],
         type=float,
-        default=0.25,
         help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=const.DEVICE,
+        default=defaults['device'],
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
@@ -258,41 +261,35 @@ def parse_args():
     arg_parser.add_argument(
         "--epochs",
         type=int,
-        default=100,
+        default=defaults['epochs'],
         help="""How many epochs to train. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--learning-rate",
         type=float,
-        default=0.005,
+        default=defaults['learning_rate'],
         help="""Initial learning rate. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=const.GPU_BATCH,
+        default=defaults['batch_size'],
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
         type=int,
-        default=const.WORKERS,
+        default=defaults['workers'],
         help="""Number of workers for loading data. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
     )
 
     arg_parser.add_argument(
         "--nms-threshold",
         type=float,
-        default=const.NMS_THRESHOLD,
+        default=defaults['nms_threshold'],
         help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
@@ -300,9 +297,15 @@ def parse_args():
     arg_parser.add_argument(
         "--sbs-threshold",
         type=float,
-        default=const.SBS_THRESHOLD,
+        default=defaults['sbs_threshold'],
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many records.""",
     )
 
     args = arg_parser.parse_args()
