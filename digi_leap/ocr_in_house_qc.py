@@ -24,7 +24,12 @@ import pylib.ocr_results as results
 
 def sample_sheets(args):
     """Sample the reconciled herbarium sheets and output the QC data."""
-    os.makedirs(args.qc_dir, exist_ok=True)
+    qc_dir = str(args.qc_dir)
+    if args.suffix:
+        qc_dir += args.suffix
+    qc_dir = Path(qc_dir)
+
+    os.makedirs(qc_dir, exist_ok=True)
 
     image_files = [f for f in args.ensemble_images.iterdir()]
     text_files = [f for f in args.ensemble_text.iterdir()]
@@ -36,22 +41,28 @@ def sample_sheets(args):
     for sheet in samples:
         stem = Path(sheet['image_file']).stem
 
-        qc_dir = args.qc_dir / stem
-        os.makedirs(qc_dir, exist_ok=True)
+        # Shorten file names
+        name = stem
+        name = name.replace("static_VascularPlant_originals_", "")
+        name = name.replace("_format_large", "")
+        name = name.replace("_http", "")
 
-        output_herbarium_sheet(sheet, qc_dir, args.sheets_dir)
+        sheet_dir = qc_dir / name
+        os.makedirs(sheet_dir, exist_ok=True)
+
+        output_herbarium_sheet(sheet, sheet_dir, args.sheets_dir)
 
         images = [f for f in image_files if f.stem.find(stem) >= 0]
-        copy_label_images(images, qc_dir)
+        copy_label_images(images, sheet_dir)
 
         texts = [f for f in text_files if f.stem.find(stem) >= 0]
-        score_label_text(texts, qc_dir)
+        score_label_text(texts, sheet_dir)
 
-        with open(qc_dir / 'reconciled.json', 'w') as json_file:
+        with open(sheet_dir / 'reconciled.json', 'w') as json_file:
             json.dump(sheet, json_file, indent=2)
 
 
-def score_label_text(texts, qc_dir):
+def score_label_text(texts, sheet_dir):
     """Return the scores for all of the predicted labels on the herbarium sheet."""
     scores = []
     for path in texts:
@@ -78,24 +89,25 @@ def score_label_text(texts, qc_dir):
 
     scores = sorted(scores, key=lambda s: s['index'])
     df = pd.DataFrame(scores)
-    df.to_csv(qc_dir / 'scores.csv', index=False)
+    df.to_csv(sheet_dir / 'scores.csv', index=False)
 
 
-def copy_label_images(images, qc_dir):
+def copy_label_images(images, sheet_dir):
     """Copy labels images into the QC directory."""
     for src in images:
-        dst = qc_dir / src.name
+        parts = src.stem.split("_")
+        dst = sheet_dir / f"label_{parts[-2]}_{parts[-1]}.{src.suffix}"
         shutil.copy(src, dst)
 
 
-def output_herbarium_sheet(sheet, qc_dir, sheets_dir):
+def output_herbarium_sheet(sheet, sheet_dir, sheets_dir):
     """Get the herbarium sheet, draw reconciled bounding boxes, & output the image."""
     in_path = sheets_dir / sheet["image_file"]
     image = Image.open(in_path)
     draw = ImageDraw.Draw(image)
     for box in sheet["merged_boxes"]:
         draw.rectangle(box, outline='red', width=4)
-    out_path = qc_dir / sheet["image_file"]
+    out_path = sheet_dir / f"herbarium_sheet.{in_path.suffix}"
     image.save(out_path)
 
 
@@ -156,6 +168,11 @@ def parse_args() -> Namespace:
         type=int,
         default=defaults['sample_size'],
         help="""How many herbarium sheets to sample. (default %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--suffix",
+        help="""Add this to the end of the --qc-dir directory.""",
     )
 
     args = arg_parser.parse_args()
