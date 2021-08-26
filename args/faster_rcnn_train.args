@@ -1,5 +1,0 @@
---reconciled-jsonl=data/label-babel-2/17633_label_babel_2.reconciled.train.jsonl
---image-dir=data/label-babel-2/herbarium-sheets-small
---save-model=models/faster_rcnn_2021-08-18.pth
---split=0.25
---epochs=20

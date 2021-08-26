@@ -5,6 +5,7 @@ import argparse
 import sqlite3
 import textwrap
 import zipfile
+from pathlib import Path
 
 import pandas as pd
 import tqdm
@@ -116,46 +117,45 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
         "--database",
-        "-d",
-        required=True,
+        default=defaults['database'],
+        type=Path,
         help="""Path to the output database. This is a temporary database that
             will later be sampled and then deleted.""",
     )
 
     arg_parser.add_argument(
         "--zip-file",
-        "-z",
-        required=True,
+        default=defaults['zip_file'],
+        type=Path,
         help="""The zip file containing the iDigBio snapshot.""",
     )
 
     arg_parser.add_argument(
         "--csv-file",
-        "-v",
-        required=True,
+        default=defaults['csv_file'],
+        type=Path,
         help="""The --zip-file itself contains several files. This is the file we
             are extracting for data. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--column-names",
-        "-n",
         action="store_true",
         help="""Dump the column names and exit.""",
     )
 
     arg_parser.add_argument(
         "--table-name",
-        "-t",
-        help="""Write the output to this table. The default is use the same name
-            as the --csv-file minus the file extension.""",
+        default=defaults['table_name'],
+        help="""Write the output to this table. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--keep",
-        "-k",
         action="append",
         help="""Columns to keep from the CSV file. You may use this argument more
             than once.""",
@@ -174,7 +174,6 @@ def parse_args():
 
     arg_parser.add_argument(
         "--append-table",
-        "-a",
         action="store_true",
         help="""Are we appending to the table or creating a new one. The default is
             to create a new table.""",
@@ -182,9 +181,8 @@ def parse_args():
 
     arg_parser.add_argument(
         "--batch-size",
-        "-b",
         type=int,
-        default=const.ROW_BATCH,
+        default=defaults['batch_size'],
         help="""The number of lines we read from the CSV file at a time. This
             is mostly used to shorten iterations for debugging.
             (default: %(default)s)""",

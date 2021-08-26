@@ -5,6 +5,7 @@ import textwrap
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+import pylib.const as const
 import pylib.log as log
 import pylib.reconcile as recon
 
@@ -23,25 +24,27 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
         "--unreconciled-csv",
-        required=True,
+        default=defaults['unreconciled_csv'],
         type=Path,
-        help="""The unreconciled input CSV.""",
+        help="""The unreconciled input CSV. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--image-dir",
-        required=True,
+        "--sheet-dir",
+        default=defaults['sheets_dir'],
         type=Path,
-        help="""Read training images from this directory.""",
+        help="""Herbarium sheet images are in this directory. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        required=True,
+        default=defaults['reconciled_jsonl'],
         type=Path,
-        help="""The reconciled output as a JSONL file.""",
+        help="""The reconciled output as a JSONL file. (default: %(default)s)""",
     )
 
     args = arg_parser.parse_args()

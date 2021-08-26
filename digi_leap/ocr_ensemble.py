@@ -3,7 +3,7 @@
 
 import os
 import textwrap
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from collections import defaultdict
 from multiprocessing import Pool
 from pathlib import Path
@@ -23,6 +23,7 @@ BASE_FONT_SIZE = 42
 
 class FontDict(dict):
     """Allow easy resizing of fonts."""
+
     def __missing__(self, key):
         return ImageFont.truetype(str(FONT), key)
 
@@ -39,10 +40,11 @@ def build_all_ensembles(args: Namespace) -> None:
         os.makedirs(args.ensemble_text, exist_ok=True)
 
     paths = group_files(args.ocr_dir)
-    paths = paths[:args.limit] if args.limit else paths
+    paths = paths[: args.limit] if args.limit else paths
 
-    batches = [paths[i:i + const.PROC_BATCH]
-               for i in range(0, len(paths), const.PROC_BATCH)]
+    batches = [
+        paths[i : i + const.PROC_BATCH] for i in range(0, len(paths), const.PROC_BATCH)
+    ]
 
     arg_dict = vars(args)
 
@@ -163,60 +165,75 @@ def parse_args() -> Namespace:
     """Process command-line arguments."""
     description = """
         Build a single "best" label from the ensemble of OCR outputs.
+
+        An ensemble is a list of OCR outputs with the same name contained
+        in parallel directories. For instance, if you have OCR output
+        (from ocr_labels.py) for three different runs then an ensemble
+        will be:
+            output/ocr/run1/label1.csv
+            output/ocr/run2/label1.csv
+            output/ocr/run3/label1.csv
         """
     arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+        formatter_class=RawDescriptionHelpFormatter,
+        description=textwrap.dedent(description),
+        fromfile_prefix_chars="@",
     )
+
+    defaults = const.get_config()
 
     arg_parser.add_argument(
         "--ocr-dir",
-        required=True,
-        type=Path,
+        default=defaults["ocr_dir"],
         action="append",
-        help="""The directory containing OCR output.""",
+        help="""A directory that contains OCR output in CSV form. You may use
+            wildcards and/or use this option more than once. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--label-dir",
-        required=True,
+        default=defaults["label_dir"],
         type=Path,
         help="""The directory containing images of labels. NOTE: This should contain
             images that have gone through (at least) some of the transforms. I.e. The
-            label images should be prepared images.""",
+            label images should be scaled, oriented, deskewed. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--ensemble-images",
+        default=defaults["ensemble_images"],
         type=Path,
-        help="""Output resulting images of the OCR ensembles to this directory.""",
+        help="""Output resulting images of the OCR ensembles to this directory.
+             (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--ensemble-text",
+        default=defaults["ensemble_text"],
         type=Path,
-        help="""Output resulting text of the OCR ensembles to this directory.""",
+        help="""Output resulting text of the OCR ensembles to this directory.
+             (default %(default)s)""",
     )
 
-    cpus = max(1, min(10, os.cpu_count() - 4))
     arg_parser.add_argument(
         "--cpus",
+        default=defaults["cpus"],
         type=int,
-        default=cpus,
         help="""How many CPUs to use. (default %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--gutter",
+        type=int,
+        default=defaults["gutter"],
+        help="""Margin between lines of text in the reconstructed label output.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--limit",
         type=int,
         help="""Limit the input to this many label images.""",
-    )
-
-    arg_parser.add_argument(
-        "--gutter",
-        type=int,
-        default=12,
-        help="""Margin between lines of text in the reconstructed label output.
-            (default %(default)s)""",
     )
 
     args = arg_parser.parse_args()

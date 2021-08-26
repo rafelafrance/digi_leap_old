@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
+import pylib.const as const
 import pylib.log as log
 
 NAMES = """ var subvar sp ssp subf """.split()
@@ -82,18 +83,18 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = const.get_config()
+
     arg_parser.add_argument(
         "--itis-db",
-        "-i",
-        required=True,
+        default=defaults['itis_db'],
         type=Path,
-        help="""The ITIS SQLite3 database.""",
+        help="""The ITIS SQLite3 database. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--lang",
-        "-l",
-        default="en_US",
+        default=defaults['lang'],
         help="""Which language to use. (default: %(default)s)""",
     )
 
