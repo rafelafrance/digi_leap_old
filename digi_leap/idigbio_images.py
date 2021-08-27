@@ -12,7 +12,7 @@ from urllib.request import urlretrieve
 import pandas as pd
 import tqdm
 
-import pylib.const as const
+from pylib.config import Configs
 import pylib.log as log
 
 
@@ -54,7 +54,7 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = const.get_config()
+    defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
         "--database",

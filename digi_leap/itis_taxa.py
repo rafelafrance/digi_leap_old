@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
-import pylib.const as const
+from pylib.config import Configs
 import pylib.log as log
 
 NAMES = """ var subvar sp ssp subf """.split()
@@ -23,7 +23,7 @@ def get_itis_data(args):
     names = set(NAMES)
     names |= taxonomic_names(args.itis_db)
     names |= people_names(args.itis_db)
-    names = filter_names(args.lang, names)
+    names = filter_names(names)
     for name in names:
         print(name)
 
@@ -65,7 +65,7 @@ def taxonomic_names(itis_db: Path) -> set[str]:
     return names
 
 
-def filter_names(lang: str, names: set[str]) -> list[str]:
+def filter_names(names: set[str]) -> list[str]:
     """Only put new names into the output list."""
     # vocab = enchant.Dict(lang)
     # names = [n for n in names if not vocab.check(n)]
@@ -83,7 +83,7 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = const.get_config()
+    defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
         "--itis-db",
@@ -92,11 +92,11 @@ def parse_args() -> Namespace:
         help="""The ITIS SQLite3 database. (default: %(default)s)""",
     )
 
-    arg_parser.add_argument(
-        "--lang",
-        default=defaults['lang'],
-        help="""Which language to use. (default: %(default)s)""",
-    )
+    # arg_parser.add_argument(
+    #     "--lang",
+    #     default=module_defaults['lang'],
+    #     help="""Which language to use. (default: %(default)s)""",
+    # )
 
     args = arg_parser.parse_args()
     return args

@@ -12,6 +12,7 @@ import pandas as pd
 import tqdm
 from PIL import Image, ImageDraw, ImageFont
 
+from pylib.config import Configs
 import pylib.const as const
 import pylib.log as log
 import pylib.ocr_results as results
@@ -43,7 +44,7 @@ def build_all_ensembles(args: Namespace) -> None:
     paths = paths[: args.limit] if args.limit else paths
 
     batches = [
-        paths[i : i + const.PROC_BATCH] for i in range(0, len(paths), const.PROC_BATCH)
+        paths[i: i + const.PROC_BATCH] for i in range(0, len(paths), const.PROC_BATCH)
     ]
 
     arg_dict = vars(args)
@@ -138,7 +139,7 @@ def build_ensemble_images(args, stem, df):
 
 
 def group_files(
-    ocr_dirs: list[Path], glob: str = "*.csv"
+        ocr_dirs: list[Path], glob: str = "*.csv"
 ) -> list[tuple[str, list[Path]]]:
     """Find files that represent then same label and group them."""
     path_dict = defaultdict(list)
@@ -180,7 +181,7 @@ def parse_args() -> Namespace:
         fromfile_prefix_chars="@",
     )
 
-    defaults = const.get_config()
+    defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
         "--ocr-dir",

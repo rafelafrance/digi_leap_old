@@ -15,7 +15,7 @@ from torchvision.ops import batched_nms
 from tqdm import tqdm
 
 import pylib.box_calc as calc
-import pylib.const as const
+import pylib.const as config
 import pylib.log as log
 import pylib.subject as sub
 
@@ -88,7 +88,7 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = const.get_config()
+    defaults = config.get_config()
 
     arg_parser.add_argument(
         "--sheets-dir",

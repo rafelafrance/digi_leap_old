@@ -8,7 +8,7 @@ from typing import Union
 import pandas as pd
 
 from . import box_calc as calc
-from . import const
+from . import vocab
 
 
 def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
@@ -53,7 +53,7 @@ def filter_bounding_boxes(
 def text_hits(text: str) -> int:
     """Count the number of words in the text that are in our corpus."""
     words = text.lower().split()
-    hits = sum(1 for w in words if re.sub(r"\W", "", w) in const.VOCAB)
+    hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab.VOCAB)
     hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
     hits += sum(1 for w in words if re.match(r"^\d{1,2}[/-]\d{1,2}[/-]\d{1,2}$", w))
     return hits

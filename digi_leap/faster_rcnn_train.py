@@ -14,7 +14,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
 import pylib.box_calc as calc
-import pylib.const as const
+from pylib.config import Configs
 import pylib.faster_rcnn_data as data
 import pylib.log as log
 import pylib.mean_avg_precision as mAP
@@ -153,7 +153,7 @@ def log_results(epoch, train_loss, best_loss, score, best_score):
 
 
 def save_state(
-    model, optimizer, epoch, train_loss, best_loss, score, best_score, save_model
+        model, optimizer, epoch, train_loss, best_loss, score, best_score, save_model
 ):
     """Save the current model if it scores well."""
     best_loss = train_loss if train_loss < best_loss else best_loss
@@ -220,7 +220,7 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = const.get_config()
+    defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
         "--reconciled-jsonl",

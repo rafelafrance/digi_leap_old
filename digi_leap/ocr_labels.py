@@ -13,6 +13,7 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 
+# from pylib.config import Configs
 import pylib.const as const
 import pylib.log as log
 import pylib.ocr as ocr

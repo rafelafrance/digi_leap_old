@@ -2,6 +2,7 @@
 """Load iDigBio Data into a database."""
 
 import argparse
+import re
 import sqlite3
 import textwrap
 import zipfile
@@ -11,8 +12,8 @@ from pathlib import Path
 import pandas as pd
 import tqdm
 
-import pylib.const as const
 import pylib.log as log
+from pylib.config import Configs
 
 
 @dataclass
@@ -20,51 +21,55 @@ class CsvParams:
     """How to process the CSV data before putting it into the DB."""
 
     file_name: str
-    keep_cols: list[str] = field(default_factory=list)
-    filters: list[str] = field(default_factory=list)
+    col_filters: list[str] = field(default_factory=list)
+    row_filters: list[str] = field(default_factory=list)
     headers: list[str] = field(default_factory=list)
     drops: list[str] = field(default_factory=list)
     renames: dict[str, str] = field(default_factory=dict)
 
-    def __init__(self, zip_file, file_name, keep_cols, filters):
+    def __init__(self, zip_file, file_name, col_filters, row_filters):
         self.file_name = file_name
-        self.keep_cols = keep_cols
-        self.filters = filters
+        self.col_filters = col_filters
+        self.row_filters = row_filters
         self.headers = self.get_csv_headers(zip_file)
-        self.drops = self.get_columns_to_drop()
         self.renames = self.get_column_renames()
+        self.drops = self.get_columns_to_drop()
 
     def get_csv_headers(self, zip_file):
         """Get the headers from the CSV file in the zipped snapshot."""
         with zipfile.ZipFile(zip_file) as zippy:
             with zippy.open(self.file_name) as csv_file:
                 headers = csv_file.readline()
-        return [h.decode().strip() for h in sorted(headers.split(b","))]
+        headers = [h.decode() for h in headers.split(b",")]
+        headers = [n for h in sorted(headers) if (n := h.strip())]
+        return headers
 
     def get_columns_to_drop(self):
         """Get columns to drop."""
-        if not self.keep_cols:
-            return []
-        keeps = set(self.keep_cols)
+        keeps = []
+        for header in self.headers:
+            for filter_ in self.col_filters:
+                if re.search(filter_, header):
+                    keeps.append(header)
+                    break
         drops = [h for h in self.headers if h not in keeps]
         return drops
 
     def get_column_renames(self):
-        """Rename column names so they'll work in sqlite3."""
+        """Rename columns so they'll work in sqlite3."""
         drops = set(self.drops)
-        renames = {}
+        rename = {}
         used = set()
 
         for header in [h for h in self.headers if h not in drops]:
-            col = header
+            new = header
             suffix = 0
-            while col.casefold() in used:
+            while new.casefold() in used:
                 suffix += 1
-                col = f"{header}_{str(suffix)}"
-            used.add(col.casefold())
-            renames[header] = col
-
-        return {k: renames[k] for k in self.keep_cols} if self.keep_cols else renames
+                new = f"{header}_{str(suffix)}"
+            used.add(new.casefold())
+            rename[header] = new
+        return rename
 
 
 @dataclass
@@ -79,9 +84,11 @@ class DbParams:
 
 def load_data(args):
     """Load the data."""
-    csv_params = CsvParams(args.zip_file, args.csv_file, args.keep_col, args.filter)
+    csv_params = CsvParams(
+        args.zip_file, args.csv_file, args.col_filters, args.row_filters
+    )
 
-    if args.column_names:
+    if args.show_columns:
         for header in csv_params.headers:
             print(f"[{header}]")
         return
@@ -112,8 +119,8 @@ def insert(zip_file, csv_params, db_params):
                     # TODO: Slows things down but not doing it causes a memory leak
                     df = df.copy()
 
-                    if csv_params.filters:
-                        for f in csv_params.filters:
+                    if csv_params.row_filters:
+                        for f in csv_params.row_filters:
                             regex, col = f.split("@")
                             mask = df[col].str.contains(regex, regex=True, case=False)
                             df = df.loc[mask, :]
@@ -140,21 +147,19 @@ def parse_args():
 
         The files in the iDigBio snapshot is too big to work with easily on a laptop.
         So, we extract one CSV file from them and then create a database table from
-        that CSV. Later on we will sample this data several times before eventually
-        deleting it.
-    """
+        that CSV."""
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = const.get_config()
+    configs = Configs()
+    defaults = configs.module_defaults()
 
     arg_parser.add_argument(
         "--database",
         default=defaults["database"],
         type=Path,
-        help="""Path to the output database. This is a temporary database that
-            will later be sampled and then deleted.""",
+        help="""Path to the output SQLite3 database.""",
     )
 
     arg_parser.add_argument(
@@ -169,13 +174,14 @@ def parse_args():
         default=defaults["csv_file"],
         type=Path,
         help="""The --zip-file itself contains several files. This is the file we
-            are extracting for data. (default: %(default)s)""",
+            are CSV file inside of the zip file that contains the data.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--column-names",
+        "--show-columns",
         action="store_true",
-        help="""Dump the column names and exit.""",
+        help="""Show the column names and exit.""",
     )
 
     arg_parser.add_argument(
@@ -184,47 +190,49 @@ def parse_args():
         help="""Write the output to this table. (default: %(default)s)""",
     )
 
+    default = ' '.join(configs.default_list('col_filters'))
     arg_parser.add_argument(
-        "--keep-col",
-        action="append",
-        help="""Columns to keep from the CSV file. You may use this argument more
-            than once.""",
+        "--col-filters",
+        default=configs.default_list('col_filters'),
+        nargs="*",
+        help=f"""Column names must match any of these patterns or the column will not
+            get into the database. You may add more than one filter. The filters may
+            be a constant or a regex. For example, --col-filters=dwc will match all
+            columns with 'dwc' in the column name and --col-filters=. will match all
+            non-blank columns. Column names only need to match one of the filters to
+            get into the database. It's an 'or' condition. (default: {default})""",
     )
 
+    default = ' '.join(configs.default_list('row_filters'))
     arg_parser.add_argument(
-        "--filter",
-        action="append",
-        help="""Records must contain this value in the given field. You may use
-            this argument more than once. The format is regex@column. For example
-            --filter=plant@dwc:kingdom will only choose records that have 'plant'
-            somewhere in the 'dwc:kingdom' field and --filter=.@dwc:scientificName
-            will look for a non-blank 'dwc:scientificName' field. You may filter
-            on columns that will not be in the output table.""",
+        "--row-filters",
+        default=configs.default_list('row_filters'),
+        nargs="*",
+        help=f"""Rows must contain these patterns in the given fields. You may use
+            more than one filter. The format is regex@column. For example,
+            --row-filters=plant@dwc:kingdom will only choose rows that have 'plant'
+            somewhere in the 'dwc:kingdom' field and --row-filters=.@dwc:scientificName
+            will look for a non-blank 'dwc:scientificName' field. If you use more than
+            one filter the row must match all of the filters to get into the
+            database. It's an 'and' condition. (default: {default})""",
     )
 
     arg_parser.add_argument(
         "--append-to",
         action="store_true",
-        help="""Are we appending to the table or creating a new one. The default is
-            to create a new table.""",
+        help="""Are we appending to the database table or creating a new one. The
+            default is to create a new table.""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
         type=int,
         default=defaults["batch_size"],
-        help="""The number of lines we read from the CSV file at a time. This
-            is mostly used to shorten iterations for debugging.
+        help="""The number of lines we read from the CSV file at a time.
             (default: %(default)s)""",
     )
 
     args = arg_parser.parse_args()
-
-    if not args.table_name:
-        args.table_name = args.csv_file.split(".")[0]
-
-    args.filter = args.filter if args.filter else []
-
     return args
 
 

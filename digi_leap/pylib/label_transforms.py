@@ -6,16 +6,13 @@ from typing import Callable
 
 import numpy as np
 import pytesseract
-from numpy import typing as npt
 from PIL import Image
+from numpy import typing as npt
 from pytesseract.pytesseract import TesseractError
 from scipy import ndimage
-from skimage import exposure as ex
-from skimage import filters
-from skimage import morphology as morph
-from skimage import util as sk_util
+from scipy.ndimage import interpolation as interp
+from skimage import exposure as ex, filters, morphology as morph, util as sk_util
 
-from . import util
 
 # TODO: Cleanly handle gray scale vs binary images in transformation pipeline
 
@@ -33,10 +30,19 @@ class LabelTransform(ABC):
         image = image.convert("L")
         return np.asarray(image)
 
+    # TODO: This method is a mess
     @staticmethod
     def to_pil(image: npt.ArrayLike) -> Image:
         """Convert a numpy array to a PIL image."""
-        return util.to_pil(image)
+        """Convert the label data into a PIL image"""
+        if hasattr(image, "dtype") and image.dtype == "float64":
+            mode = "L" if len(image.shape) < 3 else "RGB"
+            return Image.fromarray(image * 255.0, mode)
+        if hasattr(image, "dtype") and image.dtype == "bool":
+            image = (image * 255).astype("uint8")
+            mode = "L" if len(image.shape) < 3 else "RGB"
+            return Image.fromarray(image, mode)
+        return Image.fromarray(image, "L")
 
 
 class Scale(LabelTransform):
@@ -113,11 +119,13 @@ class Orient(LabelTransform):
 
 class Deskew(LabelTransform):
     """Tweak the rotation of the image."""
+    # TODO: More angles
+    horiz_angles = np.array([0.0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0])
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
         """Perform the image transform."""
         action = repr(self)
-        angle = util.find_skew(image)
+        angle = self.find_skew(image)
 
         if angle != 0.0:
             image = ndimage.rotate(image, angle, mode="nearest")
@@ -129,6 +137,23 @@ class Deskew(LabelTransform):
     def __repr__(self):
         name = self.__class__.__name__
         return f"{name}(util.find_skew, mode='nearest')"
+
+    def find_skew(self, label: Image) -> float:
+        """Find the skew of the label.
+
+        This method is looking for sharp breaks between the characters and spaces.
+        It will work best with binary images.
+        """
+        label = np.array(label).astype(np.int8)
+        scores = []
+        for angle in self.horiz_angles:
+            rotated = interp.rotate(label, angle, reshape=False, order=0)
+            proj = np.sum(rotated, axis=1)
+            score = np.sum((proj[1:] - proj[:-1]) ** 2)
+            scores.append(score)
+        best = max(scores)
+        best = self.horiz_angles[scores.index(best)]
+        return best
 
 
 class RankMean(LabelTransform):

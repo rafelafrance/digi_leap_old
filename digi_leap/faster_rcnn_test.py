@@ -13,7 +13,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
 import pylib.box_calc as calc
-import pylib.const as const
+from pylib.config import Configs
 import pylib.faster_rcnn_data as data
 import pylib.log as log
 import pylib.mean_avg_precision as mAP
@@ -128,7 +128,7 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = const.get_config()
+    defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
         "--reconciled-jsonl",

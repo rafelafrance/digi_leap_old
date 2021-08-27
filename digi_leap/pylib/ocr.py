@@ -6,17 +6,24 @@ import pandas as pd
 import pytesseract
 from PIL import Image
 
-from . import const
-
 EASY_OCR = easyocr.Reader(["en"])
 
 KEYS = """conf left top right bottom text""".split()
+
+CHAR_BLACKLIST = "¥€£¢$«»®©§{}[]<>|"
+TESS_LANG = "eng"
+TESS_CONFIG = " ".join(
+    [
+        f"-l {TESS_LANG}",
+        f"-c tessedit_char_blacklist='{CHAR_BLACKLIST}'",
+    ]
+)
 
 
 def tesseract_dataframe(image: Image) -> pd.DataFrame:
     """OCR the image with tesseract and return a data frame."""
     df = pytesseract.image_to_data(
-        image, config=const.TESS_CONFIG, output_type="data.frame")
+        image, config=TESS_CONFIG, output_type="data.frame")
 
     df = df.loc[df.conf > 0]
 
@@ -38,7 +45,7 @@ def easyocr_engine(image: Image) -> list[dict]:
     """OCR the image with easyOCR."""
     results = []
     image = np.asarray(image)
-    raw = EASY_OCR.readtext(image, blocklist=const.CHAR_BLACKLIST)
+    raw = EASY_OCR.readtext(image, blocklist=CHAR_BLACKLIST)
     for item in raw:
         pos = item[0]
         results.append(
