@@ -33,7 +33,13 @@ def test(args):
     device = torch.device(args.device)
     model.to(device)
 
-    score_loader = get_loaders(args)
+    score_loader = get_loaders(
+        args.reconciled_jsonl,
+        args.sheets_dir,
+        args.batch_size,
+        args.workers,
+        args.limit,
+    )
 
     train_score = state["best_score"] if state.get("best_score") else -1.0
 
@@ -86,19 +92,19 @@ def log_results(score, train_score):
     logging.info(f"Train mAP: {train_score:0.3f}, test mAP: {score:0.3f}")
 
 
-def get_loaders(args):
+def get_loaders(reconciled_jsonl, sheets_dir, batch_size, workers, limit):
     """Get the data loaders."""
-    subjects = data.FasterRcnnData.read_jsonl(args.reconciled_jsonl)
+    subjects = data.FasterRcnnData.read_jsonl(reconciled_jsonl)
 
-    if args.limit:
-        subjects = subjects[: args.limit]
+    if limit:
+        subjects = subjects[:limit]
 
-    score_dataset = data.FasterRcnnData(subjects, args.sheets_dir)
+    score_dataset = data.FasterRcnnData(subjects, sheets_dir)
 
     score_loader = DataLoader(
         score_dataset,
-        batch_size=args.batch_size,
-        num_workers=args.workers,
+        batch_size=batch_size,
+        num_workers=workers,
         collate_fn=util.collate_fn,
     )
 
@@ -126,7 +132,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        default=defaults['reconciled_jsonl'],
+        default=defaults["reconciled_jsonl"],
         type=Path,
         help="""The JSONL file containing reconciled bounding boxes.
             (default %(default)s)""",
@@ -134,7 +140,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--sheets-dir",
-        default=defaults['sheets_dir'],
+        default=defaults["sheets_dir"],
         type=Path,
         help="""Read test herbarium sheets corresponding to the JSONL file from this
             directory. (default %(default)s)""",
@@ -142,35 +148,35 @@ def parse_args():
 
     arg_parser.add_argument(
         "--load-model",
-        default=defaults['sheets_dir'],
+        default=defaults["sheets_dir"],
         type=Path,
         help="""Load this model state testing. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=defaults['device'],
+        default=defaults["device"],
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
-        default=defaults['batch_size'],
+        default=defaults["batch_size"],
         type=int,
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
-        default=defaults['workers'],
+        default=defaults["workers"],
         type=int,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--nms-threshold",
-        default=defaults['nms_threshold'],
+        default=defaults["nms_threshold"],
         type=float,
         help="""The IoU threshold to use for non-maximum suppression. (0.0 - 1.0].
             (default: %(default)s)""",
@@ -178,7 +184,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--sbs-threshold",
-        default=defaults['sbs_threshold'],
+        default=defaults["sbs_threshold"],
         type=float,
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",

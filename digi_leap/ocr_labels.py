@@ -20,55 +20,53 @@ import pylib.ocr as ocr
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
-    labels = filter_labels(args)
+    labels = filter_labels(args.prepared_dir, args.image_filter, args.limit)
 
     if args.tesseract_dir:
         os.makedirs(args.tesseract_dir, exist_ok=True)
-        ocr_tesseract(labels, args)
+        ocr_tesseract(labels, args.tesseract_dir, args.cpus)
 
     if args.easyocr_dir:
         os.makedirs(args.easyocr_dir, exist_ok=True)
-        ocr_easyocr(labels, args)
+        ocr_easyocr(labels, args.easyocr_dir)
 
 
-def filter_labels(args):
+def filter_labels(prepared_dir, image_filter, limit):
     """Filter labels that do not meet argument criteria."""
     logging.info("filtering labels")
-    paths = sorted(args.label_dir.glob(args.image_filter))
+    paths = sorted(prepared_dir.glob(image_filter))
     paths = [str(p) for p in paths]
-    paths = paths[: args.limit] if args.limit else paths
+    paths = paths[: limit] if limit else paths
     return paths
 
 
-def ocr_tesseract(labels, args):
+def ocr_tesseract(labels, tesseract_dir, cpus):
     """OCR the labels with tesseract."""
     logging.info("OCR with Tesseract")
 
     batches = [labels[i:i + const.PROC_BATCH]
                for i in range(0, len(labels), const.PROC_BATCH)]
 
-    arg_dict = vars(args)
-
-    with Pool(processes=args.cpus) as pool, tqdm(total=len(batches)) as bar:
+    with Pool(processes=cpus) as pool, tqdm(total=len(batches)) as bar:
         results = [
             pool.apply_async(
-                tesseract_batch, (b, arg_dict), callback=lambda _: bar.update()
+                tesseract_batch, (b, tesseract_dir), callback=lambda _: bar.update()
             )
             for b in batches
         ]
         _ = [r.get() for r in results]
 
 
-def tesseract_batch(batch, args):
+def tesseract_batch(batch, tesseract_dir):
     """OCR one set of labels with tesseract."""
     for label in batch:
-        path = name_output_file(args["tesseract_dir"], label)
+        path = name_output_file(tesseract_dir, label)
         image = Image.open(label)
         df = ocr.tesseract_dataframe(image)
         df.to_csv(path, index=False)
 
 
-def ocr_easyocr(labels, args):
+def ocr_easyocr(labels, easyocr_dir):
     """OCR the label with easyocr."""
     # Because EasyOCR uses the GPU we cannot use subprocesses :(
     logging.info("OCR with EasyOCR")
@@ -76,7 +74,7 @@ def ocr_easyocr(labels, args):
         image = Image.open(label)
         results = ocr.easyocr_engine(image)
 
-        path = name_output_file(args.easyocr_dir, label)
+        path = name_output_file(easyocr_dir, label)
         to_csv(path, results)
 
 
@@ -124,7 +122,7 @@ def parse_args() -> Namespace:
     )
 
     arg_parser.add_argument(
-        "--label-dir",
+        "--prepared-dir",
         required=True,
         type=Path,
         help="""The directory containing OCR ready labels.""",

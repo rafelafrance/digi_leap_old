@@ -43,7 +43,14 @@ def train(args):
     if state.get("optimizer_state"):
         optimizer.load_state_dict(state["optimizer_state"])
 
-    train_loader, score_loader = get_loaders(args)
+    train_loader, score_loader = get_loaders(
+        args.reconciled_jsonl,
+        args.sheets_dir,
+        args.split,
+        args.batch_size,
+        args.workers,
+        args.limit,
+    )
 
     start_epoch = state["epoch"] + 1 if state.get("epoch") else 1
     end_epoch = start_epoch + args.epochs + 1
@@ -167,29 +174,29 @@ def save_state(
     return best_loss, best_score
 
 
-def get_loaders(args):
+def get_loaders(reconciled_jsonl, sheets_dir, split, batch_size, workers, limit):
     """Get the data loaders."""
-    subjects = data.FasterRcnnData.read_jsonl(args.reconciled_jsonl)
+    subjects = data.FasterRcnnData.read_jsonl(reconciled_jsonl)
 
-    if args.limit:
-        subjects = subjects[: args.limit]
+    if limit:
+        subjects = subjects[:limit]
 
-    train_subjects, score_subjects = train_test_split(subjects, test_size=args.split)
-    train_dataset = data.FasterRcnnData(train_subjects, args.sheets_dir, augment=True)
-    score_dataset = data.FasterRcnnData(score_subjects, args.sheets_dir)
+    train_subjects, score_subjects = train_test_split(subjects, test_size=split)
+    train_dataset = data.FasterRcnnData(train_subjects, sheets_dir, augment=True)
+    score_dataset = data.FasterRcnnData(score_subjects, sheets_dir)
 
     train_loader = DataLoader(
         train_dataset,
         shuffle=True,
-        batch_size=args.batch_size,
-        num_workers=args.workers,
+        batch_size=batch_size,
+        num_workers=workers,
         collate_fn=util.collate_fn,
     )
 
     score_loader = DataLoader(
         score_dataset,
-        batch_size=args.batch_size,
-        num_workers=args.workers,
+        batch_size=batch_size,
+        num_workers=workers,
         collate_fn=util.collate_fn,
     )
 
@@ -217,7 +224,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        default=defaults['reconciled_jsonl'],
+        default=defaults["reconciled_jsonl"],
         type=Path,
         help="""The JSONL file containing reconciled bounding boxes.
             (default %(default)s)""",
@@ -225,7 +232,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--sheets-dir",
-        default=defaults['sheets_dir'],
+        default=defaults["sheets_dir"],
         type=Path,
         help="""Read test herbarium sheets corresponding to the JSONL file from this
             directory. (default %(default)s)""",
@@ -233,7 +240,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--save-model",
-        default=defaults['save_model'],
+        default=defaults["save_model"],
         type=Path,
         help="""Save model state to this file. (default %(default)s)""",
     )
@@ -246,14 +253,14 @@ def parse_args():
 
     arg_parser.add_argument(
         "--split",
-        default=defaults['split'],
+        default=defaults["split"],
         type=float,
         help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=defaults['device'],
+        default=defaults["device"],
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
@@ -261,35 +268,35 @@ def parse_args():
     arg_parser.add_argument(
         "--epochs",
         type=int,
-        default=defaults['epochs'],
+        default=defaults["epochs"],
         help="""How many epochs to train. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--learning-rate",
         type=float,
-        default=defaults['learning_rate'],
+        default=defaults["learning_rate"],
         help="""Initial learning rate. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=defaults['batch_size'],
+        default=defaults["batch_size"],
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
         type=int,
-        default=defaults['workers'],
+        default=defaults["workers"],
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--nms-threshold",
         type=float,
-        default=defaults['nms_threshold'],
+        default=defaults["nms_threshold"],
         help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
@@ -297,7 +304,7 @@ def parse_args():
     arg_parser.add_argument(
         "--sbs-threshold",
         type=float,
-        default=defaults['sbs_threshold'],
+        default=defaults["sbs_threshold"],
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
