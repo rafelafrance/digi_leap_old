@@ -15,9 +15,9 @@ from torchvision.ops import batched_nms
 from tqdm import tqdm
 
 import pylib.box_calc as calc
-import pylib.const as config
 import pylib.log as log
 import pylib.subject as sub
+from pylib.config import Configs
 
 
 def use(args):
@@ -34,7 +34,7 @@ def use(args):
 
     model.eval()
 
-    paths = list(args.sheets_dir.glob(args.glob))
+    paths = list(args.sheets_dir.glob(args.image_filter))
     if args.limit:
         paths = paths[: args.limit]
 
@@ -88,7 +88,7 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = config.get_config()
+    defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
         "--sheets-dir",
@@ -99,8 +99,8 @@ def parse_args():
     )
 
     arg_parser.add_argument(
-        "--glob",
-        default=defaults['glob'],
+        "--image-filter",
+        default=defaults['image_filter'],
         help="""Use images in the --image-dir with this glob pattern.
             (default: %(default)s)""",
     )

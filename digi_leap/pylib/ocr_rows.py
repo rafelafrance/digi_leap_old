@@ -1,7 +1,7 @@
 """Find rows of text in the OCR output.
 
 It takes a dataframe of the OCR output and returns a sorted dataframe with
-row order and each row in left to right order. I call the algorithm "Marching
+row order and each row in left-to-right order. I call the algorithm "Marching
 Center lines" because it is looking at the center lines (horizontal) of text
 bounding boxes as they progress across the label.
 """
@@ -46,7 +46,6 @@ class Rows:
     rows: list[Row] = field(default_factory=list)
 
     def __iter__(self) -> iter:
-        """Iterate over the rows in this object."""
         return iter(self.rows)
 
     def new_row(self, row) -> Row:
@@ -59,7 +58,8 @@ class Rows:
     def overlapping_rows(self, box: pd.Series) -> Union[Row, None]:
         """Get the rows that overlap (vertically) with the given box.
 
-        If a tall box overlaps with multiple row's center lines then I want
+        I'm defining an overlap as a box's top and bottom covering a row's center
+        line. If a tall box overlaps with multiple row center lines then I want
         the row with the center line closest to the given box's center line.
         """
         overlap = [r for r in self.rows if box.top <= r.center <= box.bottom]
@@ -73,7 +73,8 @@ class Rows:
     def row_brackets_box(self, box: pd.Series) -> Union[Row, None]:
         """Check if the given box is fully contained within a row.
 
-        This happens for very small boxes, typically punctuation.
+        A tiny box may not overlap a center line but still be contained entirely
+        within a row. This happens for very small boxes, typically punctuation.
         """
         contains = [r for r in self.rows if r.top <= box.top and r.bottom >= box.bottom]
         return contains[0] if contains else None
@@ -82,9 +83,9 @@ class Rows:
 def horizontal_overlap(box, row):
     """Calculate how much boxes overlap horizontally.
 
-    Tall boxes will match center lines even they should not. I check if the
-    boxes significantly overlap in the horizontal direction, and if they do
-    we consider them separate rows.
+    Tall boxes will match center lines even when they should not. To counter this I
+    check if the boxes significantly overlap in the horizontal direction, and if they
+    do we consider them separate rows.
     """
     max_left = max(box.left, row.left)
     min_right = min(box.right, row.right)
@@ -93,8 +94,23 @@ def horizontal_overlap(box, row):
     return horiz_overlap
 
 
+# TODO: Improve this function because it's still adding excess rows.
 def find_rows_of_text(df: pd.DataFrame, width_threshold: float = 0.4) -> pd.DataFrame:
-    """Find rows of text in the label and mark what row each box belongs to."""
+    """Find rows of text in the label and mark what row each box belongs to.
+
+    Lines of text may curve or slant up or downwards so finding rows of text is not as
+    straightforward as sorting bounding boxes. The general idea is to compare the
+    current box's top and bottom and see if it brackets the vertical center line of
+    the last box in and existing row.
+    1) Put all bounding boxes in left-to-right order.
+    2) For each bounding box:
+        a) If the bounding box is bracketed by the last box in the row then it gets
+           appended to the row.
+        b) If the bounding box overlaps a row's last box's center line and there is
+           no significant horizontal overlap then then append the box to the row.
+        c) If a & b fail then create a new row.
+    3) Put the rows in top to bottom order and then each row into left to right order.
+    """
     df = df.sort_values(["left", "top"])
     df["width"] = df["right"] - df["left"] + 1
 

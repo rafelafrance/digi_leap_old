@@ -158,6 +158,7 @@ def get_boxes(paths):
     boxes = []
     for path in paths:
         df = results.get_results_df(path)
+        df.text = df.text.astype(str)
         boxes.append(df)
     return pd.concat(boxes)
 
