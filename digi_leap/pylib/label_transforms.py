@@ -69,7 +69,7 @@ class Scale(LabelTransform):
 class Blur(LabelTransform):
     """Blur the image."""
 
-    def __init__(self, sigma: int = 1):
+    def __init__(self, sigma: float = 1.0):
         self.sigma = sigma
 
     def __call__(self, image: npt.ArrayLike) -> tuple[npt.ArrayLike, str]:
@@ -308,14 +308,16 @@ class BinaryThin(LabelTransform):
 # Canned scripts for transforming labels
 
 # If you plan to use an ensemble every ensemble pipeline must include the same
-# affine transforms that modify the geommetry of the image [Scale, Orient, Deskew].
-# Elsewise, it becomes almost impossible to align bounding boxes of each
+# affine transforms that modify the geometry of the image [Scale, Orient, Deskew].
+# Else wise, it becomes almost impossible to align bounding boxes of each
 # ensemble member. In the PIPELINES below you must use the same:
 # Scale(mode="nearest"), Orient(), Deskew() in every ensemble member but you
 # could exclude Blur() because that does not modify the image geometry.
-BASE_PIPELINE = [Blur(sigma=0.5), Scale(mode="nearest"), Orient(), Deskew()]
+BASE_PIPELINE: list[LabelTransform] = [
+    Blur(sigma=0.5), Scale(mode="nearest"), Orient(), Deskew(),
+]
 
-PIPELINES = {
+PIPELINES: dict[str, list[LabelTransform]] = {
     "deskew": BASE_PIPELINE,
     "binarize": BASE_PIPELINE + [BinarizeSauvola()],
 }

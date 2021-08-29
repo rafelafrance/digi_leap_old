@@ -13,7 +13,7 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 
-# from pylib.config import Configs
+from pylib.config import Configs
 import pylib.const as const
 import pylib.log as log
 import pylib.ocr as ocr
@@ -122,8 +122,10 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
+    defaults = Configs().module_defaults()
+
     arg_parser.add_argument(
-        "--prepared-dir",
+        "--label-dir",
         required=True,
         type=Path,
         help="""The directory containing OCR ready labels.""",

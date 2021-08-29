@@ -12,11 +12,11 @@ import pandas as pd
 import tqdm
 from PIL import Image, ImageDraw, ImageFont
 
-from pylib.config import Configs
 import pylib.const as const
 import pylib.log as log
 import pylib.ocr_results as results
 import pylib.ocr_rows as rows
+from pylib.config import Configs
 
 FONT = const.FONTS_DIR / "print" / "Source_Code_Pro" / "SourceCodePro-Regular.ttf"
 BASE_FONT_SIZE = 42
@@ -44,7 +44,7 @@ def build_all_ensembles(args: Namespace) -> None:
     paths = paths[: args.limit] if args.limit else paths
 
     batches = [
-        paths[i: i + const.PROC_BATCH] for i in range(0, len(paths), const.PROC_BATCH)
+        paths[i:i + args.batch_size] for i in range(0, len(paths), args.batch_size)
     ]
 
     arg_dict = vars(args)
@@ -186,7 +186,7 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--ocr-dir",
         default=defaults["ocr_dir"],
-        action="append",
+        nars="*",
         help="""A directory that contains OCR output in CSV form. You may use
             wildcards and/or use this option more than once. (default %(default)s)""",
     )
@@ -221,6 +221,13 @@ def parse_args() -> Namespace:
         default=defaults["cpus"],
         type=int,
         help="""How many CPUs to use. (default %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--batch-size",
+        default=defaults["batch_size"],
+        type=int,
+        help="""How many labels to process in a process batch. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
