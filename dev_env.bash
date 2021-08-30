@@ -5,10 +5,10 @@ if [[ ! -z "$VIRTUAL_ENV" ]]; then
   exit 1
 fi
 
-mkdir .lsp_symlink
-cd .lsp_symlink
-ln -s /home home
-cd ..
+# mkdir .lsp_symlink
+# cd .lsp_symlink
+# ln -s /home home
+# cd ..
 
 rm -rf .venv
 virtualenv -p python3.9 .venv

@@ -35,16 +35,16 @@ BASE_FONT = ImageFont.truetype(str(FONT), BASE_FONT_SIZE)
 
 def build_all_ensembles(args: Namespace) -> None:
     """Group OCR output paths by label."""
-    if args.ensemble_images:
-        os.makedirs(args.ensemble_images, exist_ok=True)
-    if args.ensemble_text:
-        os.makedirs(args.ensemble_text, exist_ok=True)
+    if args.ensemble_image_dir:
+        os.makedirs(args.ensemble_image_dir, exist_ok=True)
+    if args.ensemble_text_dir:
+        os.makedirs(args.ensemble_text_dir, exist_ok=True)
 
     paths = group_files(args.ocr_dir)
     paths = paths[: args.limit] if args.limit else paths
 
     batches = [
-        paths[i:i + args.batch_size] for i in range(0, len(paths), args.batch_size)
+        paths[i : i + args.batch_size] for i in range(0, len(paths), args.batch_size)
     ]
 
     arg_dict = vars(args)
@@ -59,13 +59,23 @@ def build_all_ensembles(args: Namespace) -> None:
         _ = [r.get() for r in all_results]
 
 
-def ensemble_batch(args, batch):
+def ensemble_batch(
+    batch, prepared_label_dir, ensemble_text_dir, ensemble_image_dir, gutter
+):
     """Find the "best" label on a batch of OCR results."""
     for path_tuple in batch:
-        build_ensemble(args, path_tuple)
+        build_ensemble(
+            path_tuple,
+            prepared_label_dir,
+            ensemble_text_dir,
+            ensemble_image_dir,
+            gutter,
+        )
 
 
-def build_ensemble(args, path_tuple):
+def build_ensemble(
+    path_tuple, prepared_label_dir, ensemble_text_dir, ensemble_image_dir, gutter
+):
     """Build the "best" label output given the ensemble of OCR results."""
     stem, paths = path_tuple
     paths = [Path(p) for p in paths]
@@ -77,24 +87,24 @@ def build_ensemble(args, path_tuple):
     df = results.merge_bounding_boxes(df)
     df = rows.find_rows_of_text(df)
 
-    if args.get("ensemble_text"):
-        build_ensemble_text(args, stem, df)
+    if ensemble_text_dir:
+        build_ensemble_text(stem, df, ensemble_text_dir)
 
-    if args.get("ensemble_images"):
-        build_ensemble_images(args, stem, df)
+    if ensemble_image_dir:
+        build_ensemble_images(stem, df, prepared_label_dir, ensemble_image_dir, gutter)
 
 
-def build_ensemble_text(args, stem, df):
+def build_ensemble_text(stem, df, ensemble_text_dir):
     """Build the "best" text output given the ensemble of OCR results."""
     lines = [" ".join(b.text) + "\n" for _, b in df.groupby("row")]
-    path = Path(args["ensemble_text"]) / f"{stem}.txt"
+    path = Path(ensemble_text_dir) / f"{stem}.txt"
     with open(path, "w") as out_file:
         out_file.writelines(lines)
 
 
-def build_ensemble_images(args, stem, df):
+def build_ensemble_images(stem, df, prepared_label_dir, ensemble_image_dir, gutter):
     """Build the "best" image output given the ensemble of OCR results."""
-    label = Image.open(Path(args["label_dir"]) / f"{stem}.jpg").convert("RGB")
+    label = Image.open(Path(prepared_label_dir) / f"{stem}.jpg").convert("RGB")
     width, height = label.size
     recon = Image.new("RGB", label.size, color="white")
 
@@ -127,19 +137,19 @@ def build_ensemble_images(args, stem, df):
             anchor="lt",
         )
 
-    recon_bottom += args["gutter"]
+    recon_bottom += gutter
     recon = recon.crop((0, 0, recon.width, recon_bottom))
 
     image = Image.new("RGB", (width, height + recon_bottom))
     image.paste(label, (0, 0))
     image.paste(recon, (0, height))
 
-    path = Path(args["ensemble_images"]) / f"{stem}.jpg"
+    path = Path(ensemble_image_dir) / f"{stem}.jpg"
     image.save(path)
 
 
 def group_files(
-        ocr_dirs: list[Path], glob: str = "*.csv"
+    ocr_dirs: list[Path], glob: str = "*.csv"
 ) -> list[tuple[str, list[Path]]]:
     """Find files that represent then same label and group them."""
     path_dict = defaultdict(list)
@@ -187,31 +197,30 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--ocr-dir",
         default=defaults["ocr_dir"],
-        nars="*",
+        nargs="*",
         help="""A directory that contains OCR output in CSV form. You may use
-            wildcards and/or use this option more than once. (default %(default)s)""",
+            wildcards and/or more than one filter. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--label-dir",
-        default=defaults["label_dir"],
+        "--prepared-label-dir",
+        default=defaults["prepared_label_dir"],
         type=Path,
-        help="""The directory containing images of labels. NOTE: This should contain
-            images that have gone through (at least) some of the transforms. I.e. The
-            label images should be scaled, oriented, deskewed. (default %(default)s)""",
+        help="""The directory containing images of labels ready for OCR.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--ensemble-images",
-        default=defaults["ensemble_images"],
+        "--ensemble-image-dir",
+        default=defaults["ensemble_image_dir"],
         type=Path,
         help="""Output resulting images of the OCR ensembles to this directory.
              (default %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--ensemble-text",
-        default=defaults["ensemble_text"],
+        "--ensemble-text-dir",
+        default=defaults["ensemble_text_dir"],
         type=Path,
         help="""Output resulting text of the OCR ensembles to this directory.
              (default %(default)s)""",

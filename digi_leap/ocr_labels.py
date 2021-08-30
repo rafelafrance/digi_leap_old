@@ -21,23 +21,23 @@ from pylib.config import Configs
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
-    labels = filter_labels(args.prepared_dir, args.image_filter, args.limit)
+    labels = filter_labels(args.prepared_label_dir, args.image_filter, args.limit)
 
     if args.tesseract_dir:
         os.makedirs(args.tesseract_dir, exist_ok=True)
         ocr_tesseract(labels, args.tesseract_dir, args.cpus)
 
     if args.easyocr_dir:
-        os.makedirs(args.easyocr_dir, exist_ok=True)
-        ocr_easyocr(labels, args.easyocr_dir)
+        os.makedirs(args.tesseract_dir, exist_ok=True)
+        ocr_easyocr(labels, args.tesseract_dir)
 
 
-def filter_labels(prepared_dir, image_filter, limit):
+def filter_labels(prepared_label_dir, image_filter, limit):
     """Filter labels that do not meet argument criteria."""
     logging.info("filtering labels")
-    paths = sorted(prepared_dir.glob(image_filter))
+    paths = sorted(prepared_label_dir.glob(image_filter))
     paths = [str(p) for p in paths]
-    paths = paths[: limit] if limit else paths
+    paths = paths[:limit] if limit else paths
     return paths
 
 
@@ -45,8 +45,10 @@ def ocr_tesseract(labels, tesseract_dir, cpus):
     """OCR the labels with tesseract."""
     logging.info("OCR with Tesseract")
 
-    batches = [labels[i:i + const.PROC_BATCH]
-               for i in range(0, len(labels), const.PROC_BATCH)]
+    batches = [
+        labels[i:i + const.PROC_BATCH]
+        for i in range(0, len(labels), const.PROC_BATCH)
+    ]
 
     with Pool(processes=cpus) as pool, tqdm(total=len(batches)) as bar:
         results = [
@@ -69,7 +71,7 @@ def tesseract_batch(batch, tesseract_dir):
 
 def ocr_easyocr(labels, easyocr_dir):
     """OCR the label with easyocr."""
-    # Because EasyOCR uses the GPU we cannot use subprocesses :(
+    # Because EasyOCR uses the GPU I cannot use subprocesses on a laptop :(
     logging.info("OCR with EasyOCR")
     for label in tqdm(labels):
         image = Image.open(label)
@@ -125,37 +127,38 @@ def parse_args() -> Namespace:
     defaults = Configs().module_defaults()
 
     arg_parser.add_argument(
-        "--label-dir",
-        required=True,
+        "--prepared-dir",
         type=Path,
-        help="""The directory containing OCR ready labels.""",
+        default=defaults["prepared_label_dir"],
+        help="""The directory containing OCR prepared labels.""",
     )
 
     arg_parser.add_argument(
         "--tesseract-dir",
         type=Path,
+        default=defaults["tesseract_dir"],
         help="""Output the Tesseract OCR results to this directory.""",
     )
 
     arg_parser.add_argument(
         "--easyocr-dir",
         type=Path,
+        default=defaults["easyocr_dir"],
         help="""Output the EasyOCR OCR results to this directory.""",
     )
 
     arg_parser.add_argument(
         "--image-filter",
         type=str,
-        default="*.jpg",
-        help="""Filter files in the --label-dir with this. (default %(default)s)""",
+        default=defaults["image_filter"],
+        help="""Filter files in the --prepared-dir with this. (default %(default)s)""",
     )
 
-    cpus = max(1, min(10, os.cpu_count() - 8))
     arg_parser.add_argument(
         "--cpus",
         type=int,
-        default=cpus,
-        help="""How many CPUs to use. (default %(default)s)""",
+        default=defaults["cpus"],
+        help="""How many processes to use. (default %(default)s)""",
     )
 
     arg_parser.add_argument(

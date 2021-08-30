@@ -31,8 +31,8 @@ def sample_sheets(args):
 
     os.makedirs(qc_dir, exist_ok=True)
 
-    image_files = [f for f in args.ensemble_images.iterdir()]
-    text_files = [f for f in args.ensemble_text.iterdir()]
+    image_files = [f for f in args.ensemble_image_dir.iterdir()]
+    text_files = [f for f in args.ensemble_text_dir.iterdir()]
 
     with open(args.reconciled_jsonl) as jsonl_file:
         reconciled = [json.loads(ln) for ln in jsonl_file.readlines()]
@@ -141,7 +141,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-images",
-        default=default['ensemble_images'],
+        default=default['ensemble_image_dir'],
         type=Path,
         help="""The directory containing the OCR ensemble images.
              (default %(default)s)""",
@@ -149,7 +149,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-text",
-        default=default['ensemble_text'],
+        default=default['ensemble_text_dir'],
         type=Path,
         help="""The directory containing the OCR ensemble text.
              (default %(default)s)""",

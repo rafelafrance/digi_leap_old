@@ -22,12 +22,12 @@ import pylib.log as log
 
 def prepare_labels(args: Namespace) -> None:
     """Prepare the label images for OCR."""
-    makedirs(args.prepared_dir, exist_ok=True)
+    makedirs(args.prepared_label_dir, exist_ok=True)
 
     labels = filter_labels(args)
     labels = transform(labels, args)
 
-    path = args.prepared_dir / "actions.csv"
+    path = args.prepared_label_dir / "actions.csv"
     df = pd.DataFrame(labels)
     df.to_csv(path, index=False)
 
@@ -69,7 +69,7 @@ def transform_batch(batch, args):
 
         image, actions = trans.transform_label(args["pipeline"], image)
 
-        path = join(args["prepared_dir"], basename(label["label"]))
+        path = join(args["prepared_label_dir"], basename(label["label"]))
 
         label["prepared"] = path
         label["actions"] = actions
