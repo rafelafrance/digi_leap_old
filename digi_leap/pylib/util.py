@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 from shutil import rmtree
 from tempfile import mkdtemp
+from typing import Any
 
 
 @contextmanager
@@ -19,3 +20,8 @@ def make_temp_dir(where=None, prefix=None, keep=False):
 def collate_fn(batch):
     """Turn batches into tuples."""
     return tuple(zip(*batch))
+
+
+def as_list(values: Any) -> list:
+    """Convert values to a list."""
+    return list(values) if isinstance(values, (list, tuple, set)) else [values]

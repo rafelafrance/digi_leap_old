@@ -83,9 +83,9 @@ class Rows:
 def horizontal_overlap(box, row):
     """Calculate how much boxes overlap horizontally.
 
-    Tall boxes will match center lines even when they should not. To counter this I
-    check if the boxes significantly overlap in the horizontal direction, and if they
-    do we consider them separate rows.
+    Boxes on the same row will often overlap. I will use this value to see if I want
+    to create a new row. This is calculating the fraction of overlap of the thinner
+    box.
     """
     max_left = max(box.left, row.left)
     min_right = min(box.right, row.right)
@@ -94,8 +94,7 @@ def horizontal_overlap(box, row):
     return horiz_overlap
 
 
-# TODO: Improve this function because it's still adding excess rows.
-def find_rows_of_text(df: pd.DataFrame, width_threshold: float = 0.4) -> pd.DataFrame:
+def find_rows_of_text(df: pd.DataFrame, width_threshold: float = 0.5) -> pd.DataFrame:
     """Find rows of text in the label and mark what row each box belongs to.
 
     Lines of text may curve or slant up or downwards so finding rows of text is not as
