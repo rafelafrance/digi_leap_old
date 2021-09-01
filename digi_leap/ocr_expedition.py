@@ -16,7 +16,7 @@ from PIL import Image
 
 import pylib.log as log
 import pylib.subject as subject
-from pylib.config import Configs
+from pylib.config import Config
 
 
 @dataclass
@@ -36,7 +36,7 @@ def build_expedition(args: Namespace) -> None:
     sheets = get_sheets(args.ensemble_image_dir, args.ensemble_text_dir)
     sheets = sort_sheet_labels(sheets)
 
-    # The order of the follwing 3 filters matters
+    # The order of the following 3 filters matters
     # Remove rulers before getting the largest labels
     # Get largest labels before filtering by label type
     if args.filter_rulers > 0.0:
@@ -104,7 +104,7 @@ def sort_sheet_labels(sheets):
 
 
 def get_sheets(ensemble_image_dir, ensemble_text_dir):
-    """Build a dictionary of expedtion sheets with lists of their labels."""
+    """Build a dictionary of expedition sheets with lists of their labels."""
     images = ensemble_image_dir.glob("*.jpg")
     texts = ensemble_text_dir.glob("*.txt")
 
@@ -132,7 +132,7 @@ def parse_args() -> Namespace:
         fromfile_prefix_chars="@",
     )
 
-    configs = Configs()
+    configs = Config()
     defaults = configs.module_defaults()
 
     arg_parser.add_argument(
@@ -161,7 +161,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--prepared-label-dir",
-        default=defaults["prepared_label_dir"],
+        default=defaults["prep_deskew_dir"],
         type=Path,
         help="""The directory containing images of labels ready for OCR. This is only
             needed if you are filtering out rulers. (default %(default)s)""",

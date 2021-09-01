@@ -17,7 +17,7 @@ from tqdm import tqdm
 import pylib.box_calc as calc
 import pylib.log as log
 import pylib.subject as sub
-from pylib.config import Configs
+from pylib.config import Config
 
 
 def use(args):
@@ -83,12 +83,13 @@ def get_model():
 
 def parse_args():
     """Process command-line arguments."""
-    description = """Test a model that finds labels on herbarium sheets."""
+    description = """Test a model that finds labels batch_size         = ${DEFAULT:row_batch}
+on herbarium sheets."""
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = Configs().module_defaults()
+    defaults = Config().module_defaults()
 
     arg_parser.add_argument(
         "--sheets-dir",
@@ -107,7 +108,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--load-model",
-        default=defaults['load_model'],
+        default=defaults['model'],
         type=Path,
         help="""Use this model to find labels. (default %(default)s)""",
     )

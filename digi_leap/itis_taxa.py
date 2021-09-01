@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from pylib.config import Configs
+from pylib.config import Config
 import pylib.log as log
 
 NAMES = """ var subvar sp ssp subf """.split()
@@ -83,7 +83,7 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = Configs().module_defaults()
+    defaults = Config().module_defaults()
 
     arg_parser.add_argument(
         "--itis-db",

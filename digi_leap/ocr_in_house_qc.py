@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw
 
 import pylib.log as log
 import pylib.ocr_results as results
-from pylib.config import Configs
+from pylib.config import Config
 
 
 def sample_sheets(args):
@@ -120,7 +120,7 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    default = Configs().module_defaults()
+    default = Config().module_defaults()
 
     arg_parser.add_argument(
         "--reconciled-jsonl",

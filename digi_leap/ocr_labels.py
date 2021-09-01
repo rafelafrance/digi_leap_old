@@ -16,7 +16,7 @@ from tqdm import tqdm
 import pylib.const as const
 import pylib.log as log
 import pylib.ocr as ocr
-from pylib.config import Configs
+from pylib.config import Config
 
 
 def ocr_labels(args: Namespace) -> None:
@@ -124,27 +124,29 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = Configs().module_defaults()
+    defaults = Config().module_defaults()
 
     arg_parser.add_argument(
         "--prepared-dir",
         type=Path,
         default=defaults["prepared_label_dir"],
-        help="""The directory containing OCR prepared labels.""",
+        help="""The directory containing OCR prepared labels. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--tesseract-dir",
         type=Path,
         default=defaults["tesseract_dir"],
-        help="""Output the Tesseract OCR results to this directory.""",
+        help="""Output the Tesseract OCR results to this directory.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--easyocr-dir",
         type=Path,
         default=defaults["easyocr_dir"],
-        help="""Output the EasyOCR OCR results to this directory.""",
+        help="""Output the EasyOCR OCR results to this directory.
+            (default %(default)s)""",
     )
 
     arg_parser.add_argument(
@@ -157,7 +159,7 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--cpus",
         type=int,
-        default=defaults["cpus"],
+        default=defaults["proc_cpus"],
         help="""How many processes to use. (default %(default)s)""",
     )
 

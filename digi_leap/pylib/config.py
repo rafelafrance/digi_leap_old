@@ -8,7 +8,7 @@ from typing import Optional
 from . import const
 
 
-class Configs:
+class Config:
     """Handle configurations."""
 
     default_path = const.ROOT_DIR / 'digi_leap.cfg'

@@ -5,7 +5,7 @@ The training set will contain both the training and validation data. The test se
 also known as a holdout set.
 """
 
-# TODO: Roll this into anther script, possibly table_babel_reconcile.py
+# TODO: Roll this into anther script, possibly label_babel_reconcile.py
 
 import argparse
 import textwrap

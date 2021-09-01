@@ -5,7 +5,7 @@ import textwrap
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from pylib.config import Configs
+from pylib.config import Config
 import pylib.log as log
 import pylib.reconcile as recon
 
@@ -24,7 +24,7 @@ def parse_args() -> Namespace:
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = Configs().module_defaults()
+    defaults = Config().module_defaults()
 
     arg_parser.add_argument(
         "--unreconciled-csv",

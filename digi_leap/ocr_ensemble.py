@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pylib.ensemble as ensemble
 import pylib.log as log
-from pylib.config import Configs
+from pylib.config import Config
 
 
 def build_all_ensembles(args: Namespace) -> None:
@@ -56,7 +56,7 @@ def parse_args() -> Namespace:
         fromfile_prefix_chars="@",
     )
 
-    defaults = Configs().module_defaults()
+    defaults = Config().module_defaults()
 
     arg_parser.add_argument(
         "--ocr-dir",
@@ -68,7 +68,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--prepared-label-dir",
-        default=defaults["prepared_label_dir"],
+        default=defaults["prep_deskew_dir"],
         type=Path,
         help="""The directory containing images of labels ready for OCR.
             (default %(default)s)""",
@@ -92,14 +92,14 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--cpus",
-        default=defaults["cpus"],
+        default=defaults["proc_cpus"],
         type=int,
         help="""How many CPUs to use. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
-        default=defaults["batch_size"],
+        default=defaults["proc_batch"],
         type=int,
         help="""How many labels to process in a process batch. (default %(default)s)""",
     )

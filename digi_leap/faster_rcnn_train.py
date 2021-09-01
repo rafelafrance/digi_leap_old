@@ -14,7 +14,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
 import pylib.box_calc as calc
-from pylib.config import Configs
+from pylib.config import Config
 import pylib.faster_rcnn_data as data
 import pylib.log as log
 import pylib.mean_avg_precision as mAP
@@ -220,7 +220,7 @@ def parse_args():
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    defaults = Configs().module_defaults()
+    defaults = Config().module_defaults()
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
@@ -240,7 +240,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--save-model",
-        default=defaults["save_model"],
+        default=defaults["model"],
         type=Path,
         help="""Save model state to this file. (default %(default)s)""",
     )
@@ -282,7 +282,7 @@ def parse_args():
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=defaults["batch_size"],
+        default=defaults["gpu_batch"],
         help="""Input batch size. (default: %(default)s)""",
     )
 

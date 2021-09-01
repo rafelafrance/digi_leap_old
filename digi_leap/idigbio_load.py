@@ -13,7 +13,7 @@ import pandas as pd
 import tqdm
 
 import pylib.log as log
-from pylib.config import Configs
+from pylib.config import Config
 
 
 @dataclass
@@ -145,26 +145,26 @@ def parse_args():
     description = """
         Load iDigBio Data.
 
-        The files in the iDigBio snapshot is too big to work with easily on a laptop.
+        The files in the iDigBio snapshot are too big to work with easily on a laptop.
         So, we extract one CSV file from them and then create a database table from
         that CSV."""
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
 
-    configs = Configs()
+    configs = Config()
     defaults = configs.module_defaults()
 
     arg_parser.add_argument(
         "--database",
-        default=defaults["database"],
+        default=defaults["idigbio_db"],
         type=Path,
         help="""Path to the output SQLite3 database.""",
     )
 
     arg_parser.add_argument(
         "--zip-file",
-        default=defaults["zip_file"],
+        default=defaults["idigbio_zip_file"],
         type=Path,
         help="""The zip file containing the iDigBio snapshot.""",
     )
@@ -227,7 +227,7 @@ def parse_args():
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=defaults["batch_size"],
+        default=defaults["row_batch"],
         help="""The number of lines we read from the CSV file at a time.
             (default: %(default)s)""",
     )
