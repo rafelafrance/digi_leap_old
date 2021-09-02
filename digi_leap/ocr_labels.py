@@ -129,14 +129,14 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--prepared-dir",
         type=Path,
-        default=defaults["prepared_label_dir"],
+        default=defaults.prepared_label_dir,
         help="""The directory containing OCR prepared labels. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--tesseract-dir",
         type=Path,
-        default=defaults["tesseract_dir"],
+        default=defaults.tesseract_dir,
         help="""Output the Tesseract OCR results to this directory.
             (default %(default)s)""",
     )
@@ -144,7 +144,7 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--easyocr-dir",
         type=Path,
-        default=defaults["easyocr_dir"],
+        default=defaults.easyocr_dir,
         help="""Output the EasyOCR OCR results to this directory.
             (default %(default)s)""",
     )
@@ -152,14 +152,14 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--image-filter",
         type=str,
-        default=defaults["image_filter"],
+        default=defaults.image_filter,
         help="""Filter files in the --prepared-dir with this. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--cpus",
         type=int,
-        default=defaults["proc_cpus"],
+        default=defaults.proc_cpus,
         help="""How many processes to use. (default %(default)s)""",
     )
 

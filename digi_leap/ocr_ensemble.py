@@ -60,7 +60,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ocr-dir",
-        default=defaults["ocr_dir"],
+        default=defaults.ocr_dir,
         nargs="*",
         help="""A directory that contains OCR output in CSV form. You may use
             wildcards and/or more than one filter. (default %(default)s)""",
@@ -68,7 +68,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--prepared-label-dir",
-        default=defaults["prep_deskew_dir"],
+        default=defaults.prep_deskew_dir,
         type=Path,
         help="""The directory containing images of labels ready for OCR.
             (default %(default)s)""",
@@ -76,7 +76,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-image-dir",
-        default=defaults["ensemble_image_dir"],
+        default=defaults.ensemble_image_dir,
         type=Path,
         help="""Output resulting images of the OCR ensembles to this directory.
              (default %(default)s)""",
@@ -84,7 +84,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-text-dir",
-        default=defaults["ensemble_text_dir"],
+        default=defaults.ensemble_text_dir,
         type=Path,
         help="""Output resulting text of the OCR ensembles to this directory.
              (default %(default)s)""",
@@ -92,14 +92,14 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--cpus",
-        default=defaults["proc_cpus"],
+        default=defaults.proc_cpus,
         type=int,
         help="""How many CPUs to use. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
-        default=defaults["proc_batch"],
+        default=defaults.proc_batch,
         type=int,
         help="""How many labels to process in a process batch. (default %(default)s)""",
     )
@@ -107,7 +107,7 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--line_space",
         type=int,
-        default=defaults["line_space"],
+        default=defaults.line_space,
         help="""Margin between lines of text in the reconstructed label output.
             (default %(default)s)""",
     )

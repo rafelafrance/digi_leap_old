@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from . import const
+from . import util
 
 
 class Config:
@@ -30,7 +31,7 @@ class Config:
 
     def module_defaults(self):
         """Get argument module_defaults."""
-        return self.configs[self.module]
+        return util.Struct(**self.configs[self.module])
 
     def default_list(self, key, section=''):
         """Make a list from a multi-line configuration."""

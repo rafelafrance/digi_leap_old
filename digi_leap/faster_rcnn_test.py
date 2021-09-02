@@ -132,7 +132,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        default=defaults["reconciled_jsonl"],
+        default=defaults.reconciled_jsonl,
         type=Path,
         help="""The JSONL file containing reconciled bounding boxes.
             (default %(default)s)""",
@@ -140,7 +140,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--sheets-dir",
-        default=defaults["sheets_dir"],
+        default=defaults.sheets_dir,
         type=Path,
         help="""Read test herbarium sheets corresponding to the JSONL file from this
             directory. (default %(default)s)""",
@@ -148,35 +148,35 @@ def parse_args():
 
     arg_parser.add_argument(
         "--load-model",
-        default=defaults["sheets_dir"],
+        default=defaults.sheets_dir,
         type=Path,
         help="""Load this model state testing. (default %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=defaults["device"],
+        default=defaults.device,
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
-        default=defaults["gpu_batch"],
+        default=defaults.gpu_batch,
         type=int,
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
-        default=defaults["workers"],
+        default=defaults.workers,
         type=int,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--nms-threshold",
-        default=defaults["nms_threshold"],
+        default=defaults.nms_threshold,
         type=float,
         help="""The IoU threshold to use for non-maximum suppression. (0.0 - 1.0].
             (default: %(default)s)""",
@@ -184,7 +184,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--sbs-threshold",
-        default=defaults["sbs_threshold"],
+        default=defaults.sbs_threshold,
         type=float,
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",

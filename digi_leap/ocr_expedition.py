@@ -137,7 +137,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-image-dir",
-        default=defaults["ensemble_image_dir"],
+        default=defaults.ensemble_image_dir,
         type=Path,
         help="""Get images of the OCR ensembles results from this directory.
              (default %(default)s)""",
@@ -145,7 +145,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-text-dir",
-        default=defaults["ensemble_text_dir"],
+        default=defaults.ensemble_text_dir,
         type=Path,
         help="""Get text of the OCR ensembles results from this directory.
              (default %(default)s)""",
@@ -153,7 +153,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--expedition-dir",
-        default=defaults["expedition_dir"],
+        default=defaults.expedition_dir,
         type=Path,
         help="""Get text of the OCR ensembles results from this directory.
              (default %(default)s)""",
@@ -161,7 +161,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--prepared-label-dir",
-        default=defaults["prep_deskew_dir"],
+        default=defaults.prep_deskew_dir,
         type=Path,
         help="""The directory containing images of labels ready for OCR. This is only
             needed if you are filtering out rulers. (default %(default)s)""",
@@ -169,7 +169,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--filter-rulers",
-        default=defaults["filter_rulers"],
+        default=defaults.filter_rulers,
         type=float,
         help="""Remove rulers where the side ratio is greater than the given threshold.
         (default %(default)s)""",
@@ -177,7 +177,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--largest-labels",
-        default=defaults["largest_labels"],
+        default=defaults.largest_labels,
         type=int,
         help="""Keep the N labels with the highest word count. (default %(default)s)""",
     )

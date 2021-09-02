@@ -224,7 +224,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        default=defaults["reconciled_jsonl"],
+        default=defaults.reconciled_jsonl,
         type=Path,
         help="""The JSONL file containing reconciled bounding boxes.
             (default %(default)s)""",
@@ -232,7 +232,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--sheets-dir",
-        default=defaults["sheets_dir"],
+        default=defaults.sheets_dir,
         type=Path,
         help="""Read test herbarium sheets corresponding to the JSONL file from this
             directory. (default %(default)s)""",
@@ -240,7 +240,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--save-model",
-        default=defaults["model"],
+        default=defaults.model,
         type=Path,
         help="""Save model state to this file. (default %(default)s)""",
     )
@@ -253,14 +253,14 @@ def parse_args():
 
     arg_parser.add_argument(
         "--split",
-        default=defaults["split"],
+        default=defaults.split,
         type=float,
         help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--device",
-        default=defaults["device"],
+        default=defaults.device,
         help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
             (default: %(default)s)""",
     )
@@ -268,35 +268,35 @@ def parse_args():
     arg_parser.add_argument(
         "--epochs",
         type=int,
-        default=defaults["epochs"],
+        default=defaults.epochs,
         help="""How many epochs to train. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--learning-rate",
         type=float,
-        default=defaults["learning_rate"],
+        default=defaults.learning_rate,
         help="""Initial learning rate. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=defaults["gpu_batch"],
+        default=defaults.gpu_batch,
         help="""Input batch size. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--workers",
         type=int,
-        default=defaults["workers"],
+        default=defaults.workers,
         help="""Number of workers for loading data. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--nms-threshold",
         type=float,
-        default=defaults["nms_threshold"],
+        default=defaults.nms_threshold,
         help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )
@@ -304,7 +304,7 @@ def parse_args():
     arg_parser.add_argument(
         "--sbs-threshold",
         type=float,
-        default=defaults["sbs_threshold"],
+        default=defaults.sbs_threshold,
         help="""The area threshold to use for small box suppression (0.0 - 1.0].
             (default: %(default)s)""",
     )

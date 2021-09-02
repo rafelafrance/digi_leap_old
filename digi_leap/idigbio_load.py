@@ -157,21 +157,21 @@ def parse_args():
 
     arg_parser.add_argument(
         "--database",
-        default=defaults["idigbio_db"],
+        default=defaults.idigbio_db,
         type=Path,
-        help="""Path to the output SQLite3 database.""",
+        help="""Path to the output SQLite3 database. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--zip-file",
-        default=defaults["idigbio_zip_file"],
+        default=defaults.idigbio_zip_file,
         type=Path,
-        help="""The zip file containing the iDigBio snapshot.""",
+        help="""The zip file containing the iDigBio snapshot. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--csv-file",
-        default=defaults["csv_file"],
+        default=defaults.csv_file,
         type=Path,
         help="""The --zip-file itself contains several files. This is the file we
             are CSV file inside of the zip file that contains the data.
@@ -186,7 +186,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--table-name",
-        default=defaults["table_name"],
+        default=defaults.table_name,
         help="""Write the output to this table. (default: %(default)s)""",
     )
 
@@ -227,7 +227,7 @@ def parse_args():
     arg_parser.add_argument(
         "--batch-size",
         type=int,
-        default=defaults["row_batch"],
+        default=defaults.row_batch,
         help="""The number of lines we read from the CSV file at a time.
             (default: %(default)s)""",
     )

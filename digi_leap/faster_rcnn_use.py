@@ -83,8 +83,7 @@ def get_model():
 
 def parse_args():
     """Process command-line arguments."""
-    description = """Test a model that finds labels batch_size         = ${DEFAULT:row_batch}
-on herbarium sheets."""
+    description = """Test a model that finds labels on herbarium sheets."""
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
     )
