@@ -3,10 +3,10 @@
 import sys
 from configparser import ConfigParser, ExtendedInterpolation
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Optional
 
 from . import const
-from . import util
 
 
 class Config:
@@ -31,7 +31,7 @@ class Config:
 
     def module_defaults(self):
         """Get argument module_defaults."""
-        return util.Struct(**self.configs[self.module])
+        return SimpleNamespace(**self.configs[self.module])
 
     def default_list(self, key, section=''):
         """Make a list from a multi-line configuration."""
