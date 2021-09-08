@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Use a trained model to cut out labels on herbarium sheets."""
 
-import argparse
 import logging
-import textwrap
-from pathlib import Path
 
 import torch
 import torchvision
@@ -17,7 +14,7 @@ from tqdm import tqdm
 import pylib.box_calc as calc
 import pylib.log as log
 import pylib.subject as sub
-from pylib.config import Config
+from pylib.args import ArgParser
 
 
 def use(args):
@@ -84,72 +81,18 @@ def get_model():
 def parse_args():
     """Process command-line arguments."""
     description = """Test a model that finds labels on herbarium sheets."""
-    arg_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
+    parser = ArgParser(description)
 
-    defaults = Config().module_defaults()
+    parser.sheets_dir()
+    parser.image_filter()
+    parser.curr_model()
+    parser.label_dir()
+    parser.device()
+    parser.nms_threshold()
+    parser.sbs_threshold()
+    parser.limit()
 
-    arg_parser.add_argument(
-        "--sheets-dir",
-        default=defaults['sheets_dir'],
-        type=Path,
-        help="""Read training images corresponding to the JSONL file from this
-            directory. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--image-filter",
-        default=defaults['image_filter'],
-        help="""Use images in the --image-dir with this glob pattern.
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--load-model",
-        default=defaults['model'],
-        type=Path,
-        help="""Use this model to find labels. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--label-dir",
-        default=defaults['label_dir'],
-        type=Path,
-        help="Write cropped labels to this directory. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--device",
-        default=defaults['device'],
-        help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--nms-threshold",
-        type=float,
-        default=defaults['nms_threshold'],
-        help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sbs-threshold",
-        type=float,
-        default=defaults['sbs_threshold'],
-        help="""The area threshold to use for small box suppression (0.0 - 1.0].
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    args = arg_parser.parse_args()
-
+    args = parser.parse_args()
     return args
 
 

@@ -2,8 +2,7 @@
 """Build an expedition for scoring OCR output."""
 
 import logging
-import textwrap
-from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
+from argparse import Namespace
 from collections import defaultdict
 from dataclasses import dataclass
 from os import makedirs
@@ -16,7 +15,7 @@ from PIL import Image
 
 import pylib.log as log
 import pylib.subject as subject
-from pylib.config import Config
+from pylib.args import ArgParser
 
 
 @dataclass
@@ -74,6 +73,7 @@ def filter_types(sheets, types):
 def largest_labels(sheets, n):
     """Keep the n largest labels."""
     # They're already sorted by word count
+    # TODO If the word count is too small then filter by labels size
     return {name: labels[:n] for name, labels in sheets.items()}
 
 
@@ -126,78 +126,19 @@ def get_sheets(ensemble_image_dir, ensemble_text_dir):
 def parse_args() -> Namespace:
     """Process command-line arguments."""
     description = """Build build an expedition from OCR ensemble output."""
-    arg_parser = ArgumentParser(
-        formatter_class=RawDescriptionHelpFormatter,
-        description=textwrap.dedent(description),
-        fromfile_prefix_chars="@",
-    )
+    parser = ArgParser(description)
 
-    configs = Config()
-    defaults = configs.module_defaults()
+    parser.ensemble_image_dir()
+    parser.ensemble_text_dir()
+    parser.expedition_dir()
+    parser.prep_deskew_dir()
+    parser.filter_rulers()
+    parser.largest_labels()
+    parser.filter_types()
+    parser.word_threshold()
+    parser.limit()
 
-    arg_parser.add_argument(
-        "--ensemble-image-dir",
-        default=defaults.ensemble_image_dir,
-        type=Path,
-        help="""Get images of the OCR ensembles results from this directory.
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--ensemble-text-dir",
-        default=defaults.ensemble_text_dir,
-        type=Path,
-        help="""Get text of the OCR ensembles results from this directory.
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--expedition-dir",
-        default=defaults.expedition_dir,
-        type=Path,
-        help="""Get text of the OCR ensembles results from this directory.
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--prepared-label-dir",
-        default=defaults.prep_deskew_dir,
-        type=Path,
-        help="""The directory containing images of labels ready for OCR. This is only
-            needed if you are filtering out rulers. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--filter-rulers",
-        default=defaults.filter_rulers,
-        type=float,
-        help="""Remove rulers where the side ratio is greater than the given threshold.
-        (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--largest-labels",
-        default=defaults.largest_labels,
-        type=int,
-        help="""Keep the N labels with the highest word count. (default %(default)s)""",
-    )
-
-    default = " ".join(configs.default_list("filter_types"))
-    choices = subject.CLASSES
-    arg_parser.add_argument(
-        "--filter-types",
-        choices=choices,
-        default=default,
-        help="""Remove these types of labels. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many label images.""",
-    )
-
-    args = arg_parser.parse_args()
+    args = parser.parse_args()
     return args
 
 

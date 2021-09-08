@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Test a model recognizes labels on herbarium sheets."""
 
-import argparse
 import logging
-import textwrap
-from pathlib import Path
 
 import torch
 import torchvision
@@ -13,19 +10,19 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
 import pylib.box_calc as calc
-from pylib.config import Config
 import pylib.faster_rcnn_data as data
 import pylib.log as log
 import pylib.mean_avg_precision as mAP
 import pylib.subject as sub
 import pylib.util as util
+from pylib.args import ArgParser
 
 
 def test(args):
     """Train the neural net."""
     torch.multiprocessing.set_sharing_strategy("file_system")
 
-    state = torch.load(args.load_model)
+    state = torch.load(args.curr_model)
 
     model = get_model()
     model.load_state_dict(state["model_state"])
@@ -124,80 +121,19 @@ def get_model():
 def parse_args():
     """Process command-line arguments."""
     description = """Test a model that finds labels on herbarium sheets."""
-    arg_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
+    parser = ArgParser(description)
 
-    defaults = Config().module_defaults()
+    parser.reconciled_jsonl()
+    parser.sheets_dir()
+    parser.curr_model()
+    parser.device()
+    parser.gpu_batch()
+    parser.workers()
+    parser.nms_threshold()
+    parser.sbs_threshold()
+    parser.limit()
 
-    arg_parser.add_argument(
-        "--reconciled-jsonl",
-        default=defaults.reconciled_jsonl,
-        type=Path,
-        help="""The JSONL file containing reconciled bounding boxes.
-            (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sheets-dir",
-        default=defaults.sheets_dir,
-        type=Path,
-        help="""Read test herbarium sheets corresponding to the JSONL file from this
-            directory. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--load-model",
-        default=defaults.sheets_dir,
-        type=Path,
-        help="""Load this model state testing. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--device",
-        default=defaults.device,
-        help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--batch-size",
-        default=defaults.gpu_batch,
-        type=int,
-        help="""Input batch size. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--workers",
-        default=defaults.workers,
-        type=int,
-        help="""Number of workers for loading data. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--nms-threshold",
-        default=defaults.nms_threshold,
-        type=float,
-        help="""The IoU threshold to use for non-maximum suppression. (0.0 - 1.0].
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sbs-threshold",
-        default=defaults.sbs_threshold,
-        type=float,
-        help="""The area threshold to use for small box suppression (0.0 - 1.0].
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    args = arg_parser.parse_args()
-
+    args = parser.parse_args()
     return args
 
 

@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Train a model to recognize labels on herbarium sheets."""
 
-import argparse
 import logging
-import textwrap
-from pathlib import Path
 
 import torch
 import torchvision
@@ -14,19 +11,19 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
 import pylib.box_calc as calc
-from pylib.config import Config
 import pylib.faster_rcnn_data as data
 import pylib.log as log
 import pylib.mean_avg_precision as mAP
 import pylib.subject as sub
 import pylib.util as util
+from pylib.args import ArgParser
 
 
 def train(args):
     """Train the neural net."""
     torch.multiprocessing.set_sharing_strategy("file_system")
 
-    state = torch.load(args.load_model) if args.load_model else {}
+    state = torch.load(args.prev_model) if args.prev_model else {}
 
     model = get_model()
     if state.get("model_state"):
@@ -75,7 +72,7 @@ def train(args):
             best_loss,
             score,
             best_score,
-            args.save_model,
+            args.curr_model,
         )
 
 
@@ -216,106 +213,23 @@ def get_model():
 def parse_args():
     """Process command-line arguments."""
     description = """Train a model to find labels on herbarium sheets."""
-    arg_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
+    parser = ArgParser(description)
 
-    defaults = Config().module_defaults()
+    parser.reconciled_jsonl()
+    parser.sheets_dir()
+    parser.curr_model('save')
+    parser.prev_model()
+    parser.split()
+    parser.device()
+    parser.epochs()
+    parser.learning_rate()
+    parser.gpu_batch()
+    parser.workers()
+    parser.nms_threshold()
+    parser.sbs_threshold()
+    parser.limit()
 
-    arg_parser.add_argument(
-        "--reconciled-jsonl",
-        default=defaults.reconciled_jsonl,
-        type=Path,
-        help="""The JSONL file containing reconciled bounding boxes.
-            (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sheets-dir",
-        default=defaults.sheets_dir,
-        type=Path,
-        help="""Read test herbarium sheets corresponding to the JSONL file from this
-            directory. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--save-model",
-        default=defaults.model,
-        type=Path,
-        help="""Save model state to this file. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--load-model",
-        type=Path,
-        help="""Load this model to continue training.""",
-    )
-
-    arg_parser.add_argument(
-        "--split",
-        default=defaults.split,
-        type=float,
-        help="""Fraction of subjects in the score dataset. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--device",
-        default=defaults.device,
-        help="""Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1' etc.
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--epochs",
-        type=int,
-        default=defaults.epochs,
-        help="""How many epochs to train. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=defaults.learning_rate,
-        help="""Initial learning rate. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=defaults.gpu_batch,
-        help="""Input batch size. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--workers",
-        type=int,
-        default=defaults.workers,
-        help="""Number of workers for loading data. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--nms-threshold",
-        type=float,
-        default=defaults.nms_threshold,
-        help="""The IoU threshold to use for non-maximum suppression (0.0 - 1.0].
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sbs-threshold",
-        type=float,
-        default=defaults.sbs_threshold,
-        help="""The area threshold to use for small box suppression (0.0 - 1.0].
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    args = arg_parser.parse_args()
+    args = parser.parse_args()
     return args
 
 
