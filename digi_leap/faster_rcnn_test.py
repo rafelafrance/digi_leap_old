@@ -125,7 +125,7 @@ def parse_args():
 
     parser.reconciled_jsonl()
     parser.sheets_dir()
-    parser.curr_model()
+    parser.curr_model(action="load")
     parser.device()
     parser.gpu_batch()
     parser.workers()

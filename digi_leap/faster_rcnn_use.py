@@ -85,8 +85,8 @@ def parse_args():
 
     parser.sheets_dir()
     parser.image_filter()
-    parser.curr_model()
-    parser.label_dir()
+    parser.curr_model(action="load")
+    parser.label_dir(action="write")
     parser.device()
     parser.nms_threshold()
     parser.sbs_threshold()

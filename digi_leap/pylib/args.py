@@ -16,7 +16,8 @@ class ArgParser:
     """Argument parser."""
 
     def __init__(self, description=""):
-        self.defaults = Config().module_defaults()
+        self.config = Config()
+        self.defaults = self.config.module_defaults()
         self.parser = argparse.ArgumentParser(
             description=textwrap.dedent(description), fromfile_prefix_chars="@"
         )
@@ -25,14 +26,51 @@ class ArgParser:
         """Parse the arguments."""
         return self.parser.parse_args()
 
-    def reconciled_jsonl(self):
-        """Create a argument for the reconciled JSONL file."""
+    # #################################################################################
+    # Directories
+
+    def ensemble_image_dir(self):
+        """Create an argument for where the ensemble image results are stored."""
         self.parser.add_argument(
-            "--reconciled-jsonl",
-            default=self.defaults.reconciled_jsonl,
+            "--ensemble-image-dir",
+            default=self.defaults.ensemble_image_dir,
             type=Path,
-            metavar="JSONL",
-            help="""The JSONL file containing reconciled bounding boxes.
+            metavar="DIR",
+            help="""Get images of the OCR ensemble results from this directory.
+                 (default %(default)s)""",
+        )
+
+    def ensemble_text_dir(self):
+        """Create an argument for where the ensemble text results are stored."""
+        self.parser.add_argument(
+            "--ensemble-text-dir",
+            default=self.defaults.ensemble_text_dir,
+            type=Path,
+            metavar="DIR",
+            help="""Get text of the OCR ensemble results from this directory.
+                 (default %(default)s)""",
+        )
+
+    def expedition_dir(self):
+        """Create an argument for where to write the expedition contents."""
+        self.parser.add_argument(
+            "--expedition-dir",
+            default=self.defaults.expedition_dir,
+            type=Path,
+            metavar="DIR",
+            help="""Write the OCR ensembles results to this directory.
+                 (default %(default)s)""",
+        )
+
+    def label_dir(self, action):
+        """Create an output directory for labels argument."""
+        prep = "from" if action == "read" else "to"
+        self.parser.add_argument(
+            "--label-dir",
+            default=self.defaults.label_dir,
+            type=Path,
+            metavar="DIR",
+            help=f"""{action.capitalize()} cropped labels {prep} this directory.
                 (default %(default)s)""",
         )
 
@@ -48,7 +86,20 @@ class ArgParser:
                 (default %(default)s)""",
         )
 
-    def curr_model(self, action="load"):
+    # #################################################################################
+
+    def reconciled_jsonl(self):
+        """Create a argument for the reconciled JSONL file."""
+        self.parser.add_argument(
+            "--reconciled-jsonl",
+            default=self.defaults.reconciled_jsonl,
+            type=Path,
+            metavar="JSONL",
+            help="""The JSONL file containing reconciled bounding boxes.
+                (default %(default)s)""",
+        )
+
+    def curr_model(self, action):
         """Create an argument to load or save a model."""
         self.parser.add_argument(
             f"--{action}-model",
@@ -171,61 +222,6 @@ class ArgParser:
                 (default: %(default)s)""",
         )
 
-    def label_dir(self):
-        """Create an output directory for labels argument."""
-        self.parser.add_argument(
-            "--label-dir",
-            default=self.defaults.label_dir,
-            type=Path,
-            metavar="DIR",
-            help="Write cropped labels to this directory. (default %(default)s)""",
-        )
-
-    def ensemble_image_dir(self):
-        """Create an argument for where the ensemble image results are stored."""
-        self.parser.add_argument(
-            "--ensemble-image-dir",
-            default=self.defaults.ensemble_image_dir,
-            type=Path,
-            metavar="DIR",
-            help="""Get images of the OCR ensemble results from this directory.
-                 (default %(default)s)""",
-        )
-
-    def ensemble_text_dir(self):
-        """Create an argument for where the ensemble text results are stored."""
-        self.parser.add_argument(
-            "--ensemble-text-dir",
-            default=self.defaults.ensemble_text_dir,
-            type=Path,
-            metavar="DIR",
-            help="""Get text of the OCR ensemble results from this directory.
-                 (default %(default)s)""",
-        )
-
-    def expedition_dir(self):
-        """Create an argument for where to write the expedition contents."""
-        self.parser.add_argument(
-            "--expedition-dir",
-            default=self.defaults.expedition_dir,
-            type=Path,
-            metavar="DIR",
-            help="""Write the OCR ensembles results to this directory.
-                 (default %(default)s)""",
-        )
-
-    def prep_deskew_dir(self):
-        """Where to get images of the labels for showing label text."""
-        self.parser.add_argument(
-            "--prepared-label-dir",
-            default=self.defaults.prep_deskew_dir,
-            type=Path,
-            metavar="DIR",
-            help="""The directory containing images of labels ready for OCR. These
-                images are used to get the label/image size.
-                (default %(default)s)""",
-        )
-
     def filter_rulers(self):
         """Create an argument for the width to height ratio for deleting rulers."""
         self.parser.add_argument(
@@ -233,7 +229,7 @@ class ArgParser:
             default=self.defaults.filter_rulers,
             type=float,
             metavar="RATIO",
-            help="""Remove rulers where the with to height (or vice vera) ratio is
+            help="""Remove rulers where the width to height (or vice vera) ratio is
                 greater than the given threshold. (default %(default)s)""",
         )
 
@@ -250,7 +246,7 @@ class ArgParser:
 
     def filter_types(self):
         """Create an argument to filter labels by type."""
-        default = " ".join(self.defaults.filter_types.default_list("filter_types"))
+        default = " ".join(self.config.default_list("filter_types"))
         choices = subject.CLASSES
         self.parser.add_argument(
             "--filter-types",
@@ -265,7 +261,7 @@ class ArgParser:
             "--word-threshold",
             default=self.defaults.word_threshold,
             type=int,
-            metavar="THRESHOLD",
+            metavar="N",
             help="""When filtering by size if the label with the maximum word count has
                 fewer than this many words then switch to filter the labels by image
                 size. (default %(default)s)""",
