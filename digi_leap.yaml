@@ -133,7 +133,7 @@ model: &model !Config
 # Default arguments for scripts
 
 faster_rcnn_test:
-  help: >-
+  help: |-
     Test a model that finds labels on herbarium sheets.
   reconciled_jsonl: *reconciled_jsonl
   sheets_dir:       *sheets_dir
@@ -147,7 +147,7 @@ faster_rcnn_test:
 
 
 faster_rcnn_train:
-  help: >-
+  help: |-
     Train a model to find labels on herbarium sheets.
   reconciled_jsonl: *reconciled_jsonl
   sheets_dir:       *sheets_dir
@@ -266,7 +266,15 @@ ocr_in_house_qc:
 
 
 ocr_labels:
+  help: |-
+    OCR images of labels.
+    Take all images in the input --label-dir, OCR them, and output the results
+    into either (or both) the --tesseract-dir or the --easyocr-dir. The output
+    directory determines which OCR engine is used. The output file names
+    echo the file name stems of the input images. Make sure that the input
+    label images are prepared for OCR.
   # tesseract_dir: *deskew_easy_dir
   # easyocr_dir:   *binary_easy_dir
   tesseract_dir: *binary_tess_dir
   easyocr_dir:   *binary_easy_dir
+  glob:          *image_filter
