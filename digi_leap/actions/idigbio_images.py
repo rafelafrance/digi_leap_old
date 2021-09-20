@@ -1,33 +1,27 @@
 #!/usr/bin/env python3
 """Given a CSV file of iDigBio records, download the images."""
 
-import re
+import os
 from urllib.error import HTTPError
-from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
 import pandas as pd
 import tqdm
 
 
-def download_idigbio(csv_path, image_dir):
+def download_images(args):
     """Download iDigBio images out of a CSV file."""
-    target = "dwc:associatedMedia"
-    df = pd.read_csv(csv_path, dtype=str)
+    os.makedirs(args.sheets_dir, exist_ok=True)
 
-    images = df.loc[df[target].str.contains("http:")][target]
+    df = pd.read_csv(args.csv_file, index_col="coreid", dtype=str)
+    if args.sample_size > 0:
+        df = df.sample(args.sample_size)
 
-    for url in tqdm.tqdm(images):
-        url_part = urlparse(url)
-        name = f"{url_part.netloc}_{url_part.path}"
-        name = re.sub(r"[^\w.]", "_", name)
-        name = re.sub(r"__+", "_", name)
-        name = re.sub(r"^_+|_+$", "", name)
-        name += ".jpg" if not name.lower().endswith(".jpg") else ""
-        path = image_dir / name
+    for coreid, row in tqdm.tqdm(df.iterrows()):
+        path = args.sheets_dir / f"{coreid}.jpg"
         if path.exists():
             continue
         try:
-            urlretrieve(url, path)
+            urlretrieve(row[args.url_column], path)
         except HTTPError:
             continue

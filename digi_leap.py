@@ -8,6 +8,7 @@ from pathlib import Path
 
 import digi_leap.actions.faster_rcnn_test as faster_rcnn_test
 import digi_leap.actions.faster_rcnn_train as faster_rcnn_train
+import digi_leap.actions.idigbio_images as idigbio_images
 import digi_leap.pylib.config as conf
 import digi_leap.pylib.const as const
 
@@ -17,6 +18,7 @@ import digi_leap.pylib.const as const
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,
     "faster_rcnn_train": faster_rcnn_train.train,
+    "idigbio_images": idigbio_images.download_images,
 }
 
 
@@ -47,13 +49,8 @@ def parse_args(configs) -> Namespace:
 
 def add_subparser(subparsers, section, name):
     """Add a subparser for a module."""
-
-    def func(args, _):
-        """Perform the list params action."""
-        DISPATCH[name](args)
-
     subparser = subparsers.add_parser(name, help=section.get("help"))
-    subparser.set_defaults(func=func)
+    subparser.set_defaults(func=name)
     for key, config in section.items():
         if isinstance(config, conf.Config):
             subparser.add_argument(
@@ -100,7 +97,10 @@ def main():
         name = Path(sys.argv[0]).name
         sys.exit(f"You need to choose an action. See: {name} -h")
 
-    args.func(args, configs)
+    if args.func in DISPATCH:
+        DISPATCH[args.func](args)
+    else:
+        args.func(args, configs)
 
 
 if __name__ == "__main__":

@@ -4,19 +4,15 @@
 import csv
 import logging
 import os
-import textwrap
-from argparse import ArgumentParser, Namespace
+from argparse import Namespace
 from multiprocessing import Pool
 from os.path import basename, join, splitext
-from pathlib import Path
 
 from PIL import Image
 from tqdm import tqdm
 
 import digi_leap.pylib.const as const
-import digi_leap.pylib.log as log
 import digi_leap.pylib.ocr as ocr
-from digi_leap.pylib.config import Config
 
 
 def ocr_labels(args: Namespace) -> None:
@@ -46,7 +42,7 @@ def ocr_tesseract(labels, tesseract_dir, cpus):
     logging.info("OCR with Tesseract")
 
     batches = [
-        labels[i : i + const.PROC_BATCH]
+        labels[i:i + const.PROC_BATCH]
         for i in range(0, len(labels), const.PROC_BATCH)
     ]
 
@@ -109,74 +105,74 @@ def to_csv(path, results):
             )
 
 
-def parse_args() -> Namespace:
-    """Process command-line arguments."""
-    description = """
-        OCR images of labels.
-
-        Take all images in the input --label-dir, OCR them, and output the results
-        into either (or both) the --tesseract-dir or the --easyocr-dir. The output
-        directory determines which OCR engine is used. The output file names
-        echo the file name stems of the input images. Make sure that the input
-        label images are prepared for OCR.
-    """
-    arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
-
-    defaults = Config().module_defaults()
-
-    arg_parser.add_argument(
-        "--prepared-dir",
-        type=Path,
-        default=defaults.prepared_label_dir,
-        help="""The directory containing OCR prepared labels. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--tesseract-dir",
-        type=Path,
-        default=defaults.tesseract_dir,
-        help="""Output the Tesseract OCR results to this directory.
-            (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--easyocr-dir",
-        type=Path,
-        default=defaults.easyocr_dir,
-        help="""Output the EasyOCR OCR results to this directory.
-            (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--image-filter",
-        type=str,
-        default=defaults.image_filter,
-        help="""Filter files in the --prepared-dir with this. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--cpus",
-        type=int,
-        default=defaults.proc_cpus,
-        help="""How many processes to use. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many label images.""",
-    )
-
-    args = arg_parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    ocr_labels(ARGS)
-
-    log.finished()
+# def parse_args() -> Namespace:
+#     """Process command-line arguments."""
+#     description = """
+#         OCR images of labels.
+#
+#         Take all images in the input --label-dir, OCR them, and output the results
+#         into either (or both) the --tesseract-dir or the --easyocr-dir. The output
+#         directory determines which OCR engine is used. The output file names
+#         echo the file name stems of the input images. Make sure that the input
+#         label images are prepared for OCR.
+#     """
+#     arg_parser = ArgumentParser(
+#         description=textwrap.dedent(description), fromfile_prefix_chars="@"
+#     )
+#
+#     defaults = Config().module_defaults()
+#
+#     arg_parser.add_argument(
+#         "--prepared-dir",
+#         type=Path,
+#         default=defaults.prepared_label_dir,
+#         help="""The directory containing OCR prepared labels. (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--tesseract-dir",
+#         type=Path,
+#         default=defaults.tesseract_dir,
+#         help="""Output the Tesseract OCR results to this directory.
+#             (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--easyocr-dir",
+#         type=Path,
+#         default=defaults.easyocr_dir,
+#         help="""Output the EasyOCR OCR results to this directory.
+#             (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--image-filter",
+#         type=str,
+#         default=defaults.image_filter,
+#         help="""Filter files in the --prepared-dir with this. (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--cpus",
+#         type=int,
+#         default=defaults.proc_cpus,
+#         help="""How many processes to use. (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--limit",
+#         type=int,
+#         help="""Limit the input to this many label images.""",
+#     )
+#
+#     args = arg_parser.parse_args()
+#     return args
+#
+#
+# if __name__ == "__main__":
+#     log.started()
+#
+#     ARGS = parse_args()
+#     ocr_labels(ARGS)
+#
+#     log.finished()

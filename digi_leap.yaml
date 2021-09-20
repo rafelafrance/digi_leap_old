@@ -186,13 +186,22 @@ idigbio_images:
   help: >-
     Use iDigBio records to download images. You should extract an iDigBio media
     file from a snapshot (step 01) before running this.
-  database: *idigbio_db
+  sheets_dir: *sheets_dir
+  csv_file: !Config
+    default: data/sernec/sernec_multimedia.csv
+    help: The CSV file that contiains the image URL.
+  sample_size: !Config
+    default: 10_000
+    help: How many records to sample from the CSV file.
+  url_column: !Config
+    default: accessURI
+    help: Which column contains the image URI.
 
 
 idigbio_load:
-  zip_file:   *idigbio_zip_file
-  database:   *idigbio_db
-  batch:      *row_batch
+  zip_file: *idigbio_zip_file
+  database: *idigbio_db
+  batch:    *row_batch
   csv_file: !Config
     default: occurrence_raw.csv
     help: The raw CSV file inside of the zip file.
