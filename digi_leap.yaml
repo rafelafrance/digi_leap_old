@@ -1,0 +1,272 @@
+# TODO: Dry this up
+
+# Root dir for the label babel data
+label_babel_dir: &label_babel_dir !Config
+    default: !Path data/label-babel-2
+    help: Base directory for Label Babel data.
+
+# The most recent models
+curr_model_name: &curr_model_name !Config
+    default:  faster_rcnn_2021-08-18
+    help: The name of the model being used to find labels on herbarium sheets.
+
+curr_model_name: &prev_model_name !Config
+    default: ""
+    help: The name of the model previous used to find labels on herbarium sheets.
+
+# Label babel expedition
+label_babel: &label_babel !Config
+    default: 17633_label_babel_2
+    help: Name of the Label Babel expedition.
+
+image_filter: &image_filter !Config
+  default: "*.jpg"
+  help: Glob images in the given directory with this pattern.
+
+# GPU jobs
+device: &device !Config
+  default: cuda:0
+  help: Which GPU or CPU to use. Options are 'cpu', 'cuda:0', 'cuda:1', etc.
+
+gpu_batch: &gpu_batch !Config
+  default: 2
+  help: Input batch size for model batches.
+
+workers: &workers !Config
+  default: 2
+  help: Number of workers for loading data.
+
+# Processes and threads
+proc_cpus: &proc_cpus !Config
+  default:  6
+  help: How many process to spawn for running this job.
+
+proc_batch: &proc_batch !Config
+  default: 10
+  help: How many items to put in each spawned CPU batch.
+
+threads: &threads !Config
+  default: 20
+  help:
+
+row_batch: &row_batch !Config
+  default: 1_000_000
+  help: Batch size when loading large data sets.
+
+nms_threshold: &nms_threshold !Config
+  default: 0.3
+  help: IoU overlap to use for non-maximum suppression.
+
+sbs_threshold: &sbs_threshold !Config
+  default: 0.95
+  help: IoU overlap to use for small box suppression
+
+limit: &limit !Config
+  default: 0
+  help: Limit the input to this many records
+
+sheets_dir: &sheets_dir !Config
+  default: !Path label_babel_dir}/herbarium-sheets-small
+  help: The directory containing the herbarium sheet images.
+
+unreconciled_csv: &unreconciled_csv !Config
+  default: !Path "{label_babel_dir}/17633_label_babel_2.unreconciled.csv"
+  help: Unreconciled CSV data from a Label Babel expedtion.
+
+reconciled_jsonl: &reconciled_jsonl !Config
+  default: !Path "{label_babel_dir}/{label_babel}.reconciled.jsonl"
+  help: Reconciled JSONL data from a Label Babel expedtion.
+
+prep_binary_dir: &prep_binary_dir !Config
+  default: !Path output/prepared_{curr_model_name}_binarize
+  help: Put the prepared (binarized) label images in this directory.
+
+prep_deskew_dir: &prep_deskew_dir !Config
+  default: !Path output/prepared_{curr_model_name}_deskew
+  help: Put the prepared (deskewed) label images in this directory.
+
+binary_tess_dir: &binary_tess_dir !Config
+  default: !Path output/ocr_{curr_model_name}_binarize_tesseract
+  help: Put Tessereact OCR output for binary images into this directory.
+
+deskew_tess_dir: &deskew_tess_dir !Config
+  default: !Path output/ocr_{curr_model_name}_deskew_tesseract
+  help: Put Tessereact OCR output for deskewed images into this directory.
+
+binary_easy_dir: &binary_easy_dir !Config
+  default: !Path output/ocr_{curr_model_name}_binarize_easyocr
+  help: Put EasyOCR output for binary images into this directory.
+
+deskew_easy_dir: &deskew_easy_dir !Config
+  default: !Path output/ocr_{curr_model_name}_deskew_easyocr
+  help: Put EasyOCR output for deskewed images into this directory.
+
+ensemble_image_dir: &ensemble_image_dir !Config
+  default: !Path output/ensemble_{curr_model_name}a_images
+  help: Put OCR ensemble images into this directory.
+
+ensemble_text_dir: &ensemble_text_dir !Config
+  default: !Path output/ensemble_{curr_model_name}a_text
+  help: Put OCR ensemble text into this directory.
+
+idigbio_db: &idigbio_db !Config
+  default: !Path data/processed/occurrence_raw_2021-02.sqlite3.db
+  help: Database that holds processed iDigBio data.
+
+idigbio_zip_file: &idigbio_zip_file !Config
+  default: !Path data/raw/iDigBio_snapshot_2021-02.zip
+  help: Zip file that holds raw iDigBio data.
+
+itis_db: &itis_db !Config
+  default: !Path data/ITIS.sqlite
+  help: ITIS database.
+
+label_dir: &label_dir !Config
+  default: !Path "{label_babel_dir}/{curr_model_name}"
+  help: Directory containing cropped labels from herbarium sheets.
+
+model: &model !Config
+  default: !Path models/{curr_model_name}.pth
+  help: Path to the current model for finding labels on a herbarium sheet.
+
+# ############################################################################
+# Default arguments for scripts
+
+faster_rcnn_test:
+  help: >-
+    Test a model that finds labels on herbarium sheets.
+  reconciled_jsonl: *reconciled_jsonl
+  sheets_dir:       *sheets_dir
+  load_model:       *model
+  nms_threshold:    *nms_threshold
+  sbs_threshold:    *sbs_threshold
+  device:           *device
+  batch_size:       *gpu_batch
+  workers:          *workers
+  limit:            *limit
+
+
+faster_rcnn_train:
+  help: >-
+    Train a model to find labels on herbarium sheets.
+  reconciled_jsonl: *reconciled_jsonl
+  sheets_dir:       *sheets_dir
+  save_model:       *model
+  load_model: !Config
+    default: ""
+    help: Load this model to continue training.
+  batch_size:       *gpu_batch
+  device:           *device
+  nms_threshold:    *nms_threshold
+  sbs_threshold:    *sbs_threshold
+  workers:          *workers
+  limit:            *limit
+  epochs: !Config
+    default: 100
+    help: How many epochs for training the model.
+  learning_rate: !Config
+    default: 0.005
+    help: The learning rate for training the model.
+  split: !Config
+    default: 0.25
+    help: The train/validataion split for training the model.
+
+
+faster_rcnn_use:
+  label_dir:     *label_dir
+  load_model:    *model
+  sheets_dir:    *sheets_dir
+  device:        *device
+  glob:          *image_filter
+  nms_threshold: *nms_threshold
+  sbs_threshold: *sbs_threshold
+
+
+idigbio_images:
+  help: >-
+    Use iDigBio records to download images. You should extract an iDigBio media
+    file from a snapshot (step 01) before running this.
+  database: *idigbio_db
+
+
+idigbio_load:
+  zip_file:   *idigbio_zip_file
+  database:   *idigbio_db
+  batch:      *row_batch
+  csv_file: !Config
+    default: occurrence_raw.csv
+    help: The raw CSV file inside of the zip file.
+  table_name: !Config
+    default: occurrence_raw
+    help: What to call the table containing the processed data.
+  col_filters: !Config
+    default:
+      - .
+    help: Which columns to extract from the raw CSV file.
+  row_filters: !Config
+    default:
+      - plant@dwc:kingdom
+      - .@dwc:scientificName
+    help: Filter rows in the raw CSV file.
+
+
+itis_taxa:
+  lang: !Config
+    default: en_US
+    help:
+
+
+label_babel_reconcile:
+  nothing: !Config
+    default: None
+    help:
+
+
+ocr_ensemble:
+  ocr_dir: !Config
+    default: !Path output/ocr_{curr_model_name}*
+    help:
+  line_space: !Config
+    default: 8
+    help:
+
+
+ocr_expedition:
+  expedition_dir: !Config
+    default: !Path data/temp/expedition_{curr_model_name}b
+    help:
+  filter_rulers: !Config
+    default: 2.0
+    help:
+  largest_labels: !Config
+    default: 1
+    help:
+  word_threshold: !Config
+    default: 20
+    help:
+  filter_types: !Config
+    default:
+      - Barcode
+      - Both
+      - Handwritten
+    help:
+
+
+ocr_in_house_qc:
+  qc_dir: !Config
+    default: !Path data/temp/qc_{curr_model_name}
+    help:
+  ensemble_images:  *ensemble_image_dir
+  ensemble_text:    *ensemble_text_dir
+  reconciled_jsonl: *reconciled_jsonl
+  sheets_dir:       *sheets_dir
+  sample_size: !Config
+    default: 25
+    help:
+
+
+ocr_labels:
+  # tesseract_dir: *deskew_easy_dir
+  # easyocr_dir:   *binary_easy_dir
+  tesseract_dir: *binary_tess_dir
+  easyocr_dir:   *binary_easy_dir

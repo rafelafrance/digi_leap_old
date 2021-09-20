@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Split the reconciled Label Babel JSONL file into training & test JSONL files.
 
 The training set will contain both the training and validation data. The test set is
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from sklearn.model_selection import train_test_split
 
-import pylib.log as log
+import digi_leap.pylib.log as log
 
 
 def split(args):
@@ -23,10 +23,10 @@ def split(args):
 
     train_subjects, test_subjects = train_test_split(subjects, test_size=args.split)
 
-    with open(args.train_jsonl, 'w') as out_file:
+    with open(args.train_jsonl, "w") as out_file:
         out_file.writelines(train_subjects)
 
-    with open(args.test_jsonl, 'w') as out_file:
+    with open(args.test_jsonl, "w") as out_file:
         out_file.writelines(test_subjects)
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """OCR a set of labels."""
 
 import csv
@@ -13,10 +13,10 @@ from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 
-import pylib.const as const
-import pylib.log as log
-import pylib.ocr as ocr
-from pylib.config import Config
+import digi_leap.pylib.const as const
+import digi_leap.pylib.log as log
+import digi_leap.pylib.ocr as ocr
+from digi_leap.pylib.config import Config
 
 
 def ocr_labels(args: Namespace) -> None:
@@ -46,7 +46,7 @@ def ocr_tesseract(labels, tesseract_dir, cpus):
     logging.info("OCR with Tesseract")
 
     batches = [
-        labels[i:i + const.PROC_BATCH]
+        labels[i : i + const.PROC_BATCH]
         for i in range(0, len(labels), const.PROC_BATCH)
     ]
 

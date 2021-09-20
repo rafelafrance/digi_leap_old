@@ -1,13 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Reconcile data from a Label Babel expedition."""
 
 import textwrap
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from pylib.config import Config
-import pylib.log as log
-import pylib.reconcile as recon
+from digi_leap.pylib.config import Config
+import digi_leap.pylib.log as log
+import digi_leap.pylib.reconcile as recon
 
 
 def parse_args() -> Namespace:
@@ -28,21 +28,21 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--unreconciled-csv",
-        default=defaults['unreconciled_csv'],
+        default=defaults["unreconciled_csv"],
         type=Path,
         help="""The unreconciled input CSV. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--sheet-dir",
-        default=defaults['sheets_dir'],
+        default=defaults["sheets_dir"],
         type=Path,
         help="""Herbarium sheet images are in this directory. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        default=defaults['reconciled_jsonl'],
+        default=defaults["reconciled_jsonl"],
         type=Path,
         help="""The reconciled output as a JSONL file. (default: %(default)s)""",
     )

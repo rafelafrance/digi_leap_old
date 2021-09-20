@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Sample OCR and label detection for in-house quality control.
 
 Sample reconciled herbarium sheets, mark the reconciled labels on those sheets,
@@ -17,9 +17,9 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image, ImageDraw
 
-import pylib.log as log
-import pylib.ocr_results as results
-from pylib.config import Config
+import digi_leap.pylib.log as log
+import digi_leap.pylib.ocr_results as results
+from digi_leap.pylib.config import Config
 
 
 def sample_sheets(args):
@@ -39,7 +39,7 @@ def sample_sheets(args):
 
     samples = random.sample(reconciled, args.sample_size)
     for sheet in samples:
-        stem = Path(sheet['image_file']).stem
+        stem = Path(sheet["image_file"]).stem
 
         # Shorten file names
         name = stem
@@ -58,7 +58,7 @@ def sample_sheets(args):
         texts = [f for f in text_files if f.stem.find(stem) >= 0]
         score_label_text(texts, sheet_dir)
 
-        with open(sheet_dir / 'reconciled.json', 'w') as json_file:
+        with open(sheet_dir / "reconciled.json", "w") as json_file:
             json.dump(sheet, json_file, indent=2)
 
 
@@ -66,10 +66,10 @@ def score_label_text(texts, sheet_dir):
     """Return the scores for all of the predicted labels on the herbarium sheet."""
     scores = []
     for path in texts:
-        parts = path.stem.split('_')
+        parts = path.stem.split("_")
         score = {
-            'index': int(parts[-2]),
-            'type': parts[-1],
+            "index": int(parts[-2]),
+            "type": parts[-1],
         }
         with open(path) as text_file:
             text = text_file.read()
@@ -77,19 +77,19 @@ def score_label_text(texts, sheet_dir):
             count = len(words)
 
         if count == 0:
-            score['hit_percent'] = 0.0
-            score['word_count'] = 0
+            score["hit_percent"] = 0.0
+            score["word_count"] = 0
         else:
             hits = results.text_hits(text)
-            score['hit_percent'] = round(100.0 * hits / count)
-            score['word_count'] = count
+            score["hit_percent"] = round(100.0 * hits / count)
+            score["word_count"] = count
 
-        score['file_name'] = path.name  # Make this wide column last
+        score["file_name"] = path.name  # Make this wide column last
         scores.append(score)
 
-    scores = sorted(scores, key=lambda s: s['index'])
+    scores = sorted(scores, key=lambda s: s["index"])
     df = pd.DataFrame(scores)
-    df.to_csv(sheet_dir / 'scores.csv', index=False)
+    df.to_csv(sheet_dir / "scores.csv", index=False)
 
 
 def copy_label_images(images, sheet_dir):
@@ -106,7 +106,7 @@ def output_herbarium_sheet(sheet, sheet_dir, sheets_dir):
     image = Image.open(in_path)
     draw = ImageDraw.Draw(image)
     for box in sheet["merged_boxes"]:
-        draw.rectangle(box, outline='red', width=4)
+        draw.rectangle(box, outline="red", width=4)
     out_path = sheet_dir / f"herbarium_sheet.{in_path.suffix}"
     image.save(out_path)
 
@@ -124,7 +124,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--reconciled-jsonl",
-        default=default['reconciled_jsonl'],
+        default=default["reconciled_jsonl"],
         type=Path,
         help="""The JSONL file containing reconciled bounding boxes. The file
             contains one reconciliation record per herbarium sheet.
@@ -133,7 +133,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--sheets-dir",
-        default=default['sheets_dir'],
+        default=default["sheets_dir"],
         type=Path,
         help="""Images of herbarium sheets are in this directory
              (default %(default)s)""",
@@ -141,7 +141,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-images",
-        default=default['ensemble_image_dir'],
+        default=default["ensemble_image_dir"],
         type=Path,
         help="""The directory containing the OCR ensemble images.
              (default %(default)s)""",
@@ -149,7 +149,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--ensemble-text",
-        default=default['ensemble_text_dir'],
+        default=default["ensemble_text_dir"],
         type=Path,
         help="""The directory containing the OCR ensemble text.
              (default %(default)s)""",
@@ -157,7 +157,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--qc-dir",
-        default=default['qc_dir'],
+        default=default["qc_dir"],
         type=Path,
         help="""Output the sampled QC data to this directory.
              (default %(default)s)""",
@@ -166,7 +166,7 @@ def parse_args() -> Namespace:
     arg_parser.add_argument(
         "--sample-size",
         type=int,
-        default=default['sample_size'],
+        default=default["sample_size"],
         help="""How many herbarium sheets to sample. (default %(default)s)""",
     )
 

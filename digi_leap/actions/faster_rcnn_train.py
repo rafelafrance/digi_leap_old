@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Train a model to recognize labels on herbarium sheets."""
 
 import logging
@@ -10,13 +10,11 @@ from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
-import pylib.box_calc as calc
-import pylib.faster_rcnn_data as data
-import pylib.log as log
-import pylib.mean_avg_precision as mAP
-import pylib.subject as sub
-import pylib.util as util
-from pylib.args import ArgParser
+import digi_leap.pylib.box_calc as calc
+import digi_leap.pylib.faster_rcnn_data as data
+import digi_leap.pylib.mean_avg_precision as mAP
+import digi_leap.pylib.subject as sub
+import digi_leap.pylib.util as util
 
 
 def train(args):
@@ -150,7 +148,7 @@ def log_results(epoch, train_loss, best_loss, score, best_score):
 
 
 def save_state(
-        model, optimizer, epoch, train_loss, best_loss, score, best_score, save_model
+    model, optimizer, epoch, train_loss, best_loss, score, best_score, save_model
 ):
     """Save the current model if it scores well."""
     best_loss = train_loss if train_loss < best_loss else best_loss
@@ -208,35 +206,3 @@ def get_model():
         in_features, num_classes=len(sub.CLASSES) + 1
     )
     return model
-
-
-def parse_args():
-    """Process command-line arguments."""
-    description = """Train a model to find labels on herbarium sheets."""
-    parser = ArgParser(description)
-
-    parser.reconciled_jsonl()
-    parser.sheets_dir()
-    parser.curr_model('save')
-    parser.prev_model()
-    parser.split()
-    parser.device()
-    parser.epochs()
-    parser.learning_rate()
-    parser.gpu_batch()
-    parser.workers()
-    parser.nms_threshold()
-    parser.sbs_threshold()
-    parser.limit()
-
-    args = parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    train(ARGS)
-
-    log.finished()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Build an expedition for scoring OCR output."""
 
 import logging
@@ -13,18 +13,18 @@ from typing import Optional
 import pandas as pd
 from PIL import Image
 
-import pylib.log as log
-from pylib.args import ArgParser
+import digi_leap.pylib.log as log
+from digi_leap.pylib.args import ArgParser
 
 
 @dataclass
 class Label:
     """Holds information for a particular label."""
 
-    image: Optional[Path] = None    # Ensemble generated image
-    text: Optional[Path] = None     # Ensemble generated text
-    raw: Optional[Path] = None      # Original cropped label
-    type_: str = ""                 # Label type
+    image: Optional[Path] = None  # Ensemble generated image
+    text: Optional[Path] = None  # Ensemble generated text
+    raw: Optional[Path] = None  # Original cropped label
+    type_: str = ""  # Label type
     size: int = 0
 
 
@@ -32,9 +32,7 @@ def build_expedition(args: Namespace) -> None:
     """Group OCR output paths by label."""
     makedirs(args.expedition_dir, exist_ok=True)
 
-    sheets = get_sheets(
-        args.ensemble_image_dir, args.ensemble_text_dir, args.label_dir
-    )
+    sheets = get_sheets(args.ensemble_image_dir, args.ensemble_text_dir, args.label_dir)
     sheets = sort_sheet_labels(sheets, args.word_threshold)
 
     # The order of the following 3 filters matters

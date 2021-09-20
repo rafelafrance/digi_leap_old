@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Load iDigBio Data into a database."""
 
 import argparse
@@ -12,8 +12,8 @@ from pathlib import Path
 import pandas as pd
 import tqdm
 
-import pylib.log as log
-from pylib.config import Config
+import digi_leap.pylib.log as log
+from digi_leap.pylib.config import Config
 
 
 @dataclass
@@ -190,10 +190,10 @@ def parse_args():
         help="""Write the output to this table. (default: %(default)s)""",
     )
 
-    default = ' '.join(configs.default_list('col_filters'))
+    default = " ".join(configs.default_list("col_filters"))
     arg_parser.add_argument(
         "--col-filters",
-        default=configs.default_list('col_filters'),
+        default=configs.default_list("col_filters"),
         nargs="*",
         help=f"""Column names must match any of these patterns or the column will not
             get into the database. You may add more than one filter. The filters may
@@ -203,10 +203,10 @@ def parse_args():
             get into the database. It's an 'or' condition. (default: {default})""",
     )
 
-    default = ' '.join(configs.default_list('row_filters'))
+    default = " ".join(configs.default_list("row_filters"))
     arg_parser.add_argument(
         "--row-filters",
-        default=configs.default_list('row_filters'),
+        default=configs.default_list("row_filters"),
         nargs="*",
         help=f"""Rows must contain these patterns in the given fields. You may use
             more than one filter. The format is regex@column. For example,

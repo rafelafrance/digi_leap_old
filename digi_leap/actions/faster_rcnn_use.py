@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Use a trained model to cut out labels on herbarium sheets."""
 
 import logging
@@ -11,10 +11,10 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 from tqdm import tqdm
 
-import pylib.box_calc as calc
-import pylib.log as log
-import pylib.subject as sub
-from pylib.args import ArgParser
+import digi_leap.pylib.box_calc as calc
+import digi_leap.pylib.log as log
+import digi_leap.pylib.subject as sub
+from digi_leap.pylib.args import ArgParser
 
 
 def use(args):

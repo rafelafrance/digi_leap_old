@@ -31,7 +31,7 @@ Labels will be roughly aligned to the edges of the herbarium sheet itself.
 
 The strategy we are using for training this model is to download some herbarium sheets and have volunteers (citizen scientists) identify where the labels are and what type of writing they contain. We are using [Notes from Nature](https://www.zooniverse.org/organizations/md68135/notes-from-nature) to organize the data collection. Notes from Nature is a part of the [Zooniverse](https://www.zooniverse.org/).
 
-We use [download_images.py](digi_leap/idigbio_images.py) (**TODO rewrite this script**) to download images for Notes from Nature "expeditions".
+We use [download_images.py](digi_leap/actions/idigbio_images.py) (**TODO rewrite this script**) to download images for Notes from Nature "expeditions".
 
 ### Clean Labels
 

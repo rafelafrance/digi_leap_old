@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Get plant taxon names from ITIS."""
 
 import re
@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from pylib.config import Config
-import pylib.log as log
+from digi_leap.pylib.config import Config
+import digi_leap.pylib.log as log
 
 NAMES = """ var subvar sp ssp subf """.split()
 PUNCT = re.escape(string.punctuation)
@@ -87,7 +87,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument(
         "--itis-db",
-        default=defaults['itis_db'],
+        default=defaults["itis_db"],
         type=Path,
         help="""The ITIS SQLite3 database. (default: %(default)s)""",
     )

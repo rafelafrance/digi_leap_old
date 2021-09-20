@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Find "best" labels from ensembles of OCR results of each label."""
 
 import re
@@ -6,9 +6,9 @@ import textwrap
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from pathlib import Path
 
-import pylib.ensemble as ensemble
-import pylib.log as log
-from pylib.config import Config
+import digi_leap.pylib.ensemble as ensemble
+import digi_leap.pylib.log as log
+from digi_leap.pylib.config import Config
 
 
 def build_all_ensembles(args: Namespace) -> None:

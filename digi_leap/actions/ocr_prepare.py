@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Prepare labels for OCR."""
 
 import logging
@@ -15,9 +15,9 @@ import pandas as pd
 import tqdm
 from PIL import Image
 
-import pylib.const as const
-import pylib.label_transforms as trans
-import pylib.log as log
+import digi_leap.pylib.const as const
+import digi_leap.pylib.label_transforms as trans
+import digi_leap.pylib.log as log
 
 
 def prepare_labels(args: Namespace) -> None:
@@ -45,8 +45,10 @@ def transform(labels, args):
     """Perform the label transformations before the OCR step(s)."""
     logging.info("transforming labels")
 
-    batches = [labels[i:i + const.PROC_BATCH]
-               for i in range(0, len(labels), const.PROC_BATCH)]
+    batches = [
+        labels[i : i + const.PROC_BATCH]
+        for i in range(0, len(labels), const.PROC_BATCH)
+    ]
 
     with Pool(processes=args.cpus) as pool, tqdm.tqdm(total=len(batches)) as bar:
         results = [

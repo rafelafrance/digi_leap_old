@@ -62,7 +62,7 @@ class ArgParser:
                  (default %(default)s)""",
         )
 
-    def label_dir(self, action):
+    def label_dir(self, action="read write"):
         """Create an output directory for labels argument."""
         prep = "from" if action == "read" else "to"
         self.parser.add_argument(
@@ -95,11 +95,11 @@ class ArgParser:
             default=self.defaults.reconciled_jsonl,
             type=Path,
             metavar="JSONL",
-            help="""The JSONL file containing reconciled bounding boxes.
+            help="""The JSONL file containing reconciled bounding boxes of labels.
                 (default %(default)s)""",
         )
 
-    def curr_model(self, action):
+    def curr_model(self, action="load save"):
         """Create an argument to load or save a model."""
         self.parser.add_argument(
             f"--{action}-model",

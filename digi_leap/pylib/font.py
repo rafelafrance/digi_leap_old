@@ -1,6 +1,6 @@
 """Utilities and constants for working with fonts."""
 
-from pylib.const import ROOT_DIR
+from digi_leap.pylib.const import ROOT_DIR
 from PIL import ImageFont
 
 FONTS_DIR = ROOT_DIR / "fonts"
