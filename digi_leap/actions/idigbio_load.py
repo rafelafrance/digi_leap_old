@@ -1,18 +1,13 @@
 """Load iDigBio Data into a database."""
 
-import argparse
 import re
 import sqlite3
-import textwrap
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
 import tqdm
-
-import digi_leap.pylib.log as log
-from digi_leap.pylib.config import Config
 
 
 @dataclass
@@ -138,107 +133,106 @@ def insert(zip_file, csv_params, db_params):
 
                     if_exists = "append"
 
-
-def parse_args():
-    """Process command-line arguments."""
-    description = """
-        Load iDigBio Data.
-
-        The files in the iDigBio snapshot are too big to work with easily on a laptop.
-        So, we extract one CSV file from them and then create a database table from
-        that CSV."""
-    arg_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
-
-    configs = Config()
-    defaults = configs.module_defaults()
-
-    arg_parser.add_argument(
-        "--database",
-        default=defaults.idigbio_db,
-        type=Path,
-        help="""Path to the output SQLite3 database. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--zip-file",
-        default=defaults.idigbio_zip_file,
-        type=Path,
-        help="""The zip file containing the iDigBio snapshot. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--csv-file",
-        default=defaults.csv_file,
-        type=Path,
-        help="""The --zip-file itself contains several files. This is the file we
-            are CSV file inside of the zip file that contains the data.
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--show-columns",
-        action="store_true",
-        help="""Show the column names and exit.""",
-    )
-
-    arg_parser.add_argument(
-        "--table-name",
-        default=defaults.table_name,
-        help="""Write the output to this table. (default: %(default)s)""",
-    )
-
-    default = " ".join(configs.default_list("col_filters"))
-    arg_parser.add_argument(
-        "--col-filters",
-        default=configs.default_list("col_filters"),
-        nargs="*",
-        help=f"""Column names must match any of these patterns or the column will not
-            get into the database. You may add more than one filter. The filters may
-            be a constant or a regex. For example, --col-filters=dwc will match all
-            columns with 'dwc' in the column name and --col-filters=. will match all
-            non-blank columns. Column names only need to match one of the filters to
-            get into the database. It's an 'or' condition. (default: {default})""",
-    )
-
-    default = " ".join(configs.default_list("row_filters"))
-    arg_parser.add_argument(
-        "--row-filters",
-        default=configs.default_list("row_filters"),
-        nargs="*",
-        help=f"""Rows must contain these patterns in the given fields. You may use
-            more than one filter. The format is regex@column. For example,
-            --row-filters=plant@dwc:kingdom will only choose rows that have 'plant'
-            somewhere in the 'dwc:kingdom' field and --row-filters=.@dwc:scientificName
-            will look for a non-blank 'dwc:scientificName' field. If you use more than
-            one filter the row must match all of the filters to get into the
-            database. It's an 'and' condition. (default: {default})""",
-    )
-
-    arg_parser.add_argument(
-        "--append-to",
-        action="store_true",
-        help="""Are we appending to the database table or creating a new one. The
-            default is to create a new table.""",
-    )
-
-    arg_parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=defaults.row_batch,
-        help="""The number of lines we read from the CSV file at a time.
-            (default: %(default)s)""",
-    )
-
-    args = arg_parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    load_data(ARGS)
-
-    log.finished()
+# def parse_args():
+#     """Process command-line arguments."""
+#     description = """
+#         Load iDigBio Data.
+#
+#         The files in the iDigBio snapshot are too big to work with easily on a laptop.
+#         So, we extract one CSV file from them and then create a database table from
+#         that CSV."""
+#     arg_parser = argparse.ArgumentParser(
+#         description=textwrap.dedent(description), fromfile_prefix_chars="@"
+#     )
+#
+#     configs = Config()
+#     defaults = configs.module_defaults()
+#
+#     arg_parser.add_argument(
+#         "--database",
+#         default=defaults.idigbio_db,
+#         type=Path,
+#         help="""Path to the output SQLite3 database. (default: %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--zip-file",
+#         default=defaults.idigbio_zip_file,
+#         type=Path,
+#         help="""The zip file containing the iDigBio snapshot. (default: %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--csv-file",
+#         default=defaults.csv_file,
+#         type=Path,
+#         help="""The --zip-file itself contains several files. This is the file we
+#             are CSV file inside of the zip file that contains the data.
+#             (default: %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--show-columns",
+#         action="store_true",
+#         help="""Show the column names and exit.""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--table-name",
+#         default=defaults.table_name,
+#         help="""Write the output to this table. (default: %(default)s)""",
+#     )
+#
+#     default = " ".join(configs.default_list("col_filters"))
+#     arg_parser.add_argument(
+#         "--col-filters",
+#         default=configs.default_list("col_filters"),
+#         nargs="*",
+#         help=f"""Column names must match any of these patterns or the column will not
+#             get into the database. You may add more than one filter. The filters may
+#             be a constant or a regex. For example, --col-filters=dwc will match all
+#             columns with 'dwc' in the column name and --col-filters=. will match all
+#             non-blank columns. Column names only need to match one of the filters to
+#             get into the database. It's an 'or' condition. (default: {default})""",
+#     )
+#
+#     default = " ".join(configs.default_list("row_filters"))
+#     arg_parser.add_argument(
+#         "--row-filters",
+#         default=configs.default_list("row_filters"),
+#         nargs="*",
+#         help=f"""Rows must contain these patterns in the given fields. You may use
+#             more than one filter. The format is regex@column. For example,
+#             --row-filters=plant@dwc:kingdom will only choose rows that have 'plant'
+#             somewhere in the 'dwc:kingdom' field and --row-filters=.@dwc:scientificName
+#             will look for a non-blank 'dwc:scientificName' field. If you use more than
+#             one filter the row must match all of the filters to get into the
+#             database. It's an 'and' condition. (default: {default})""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--append-to",
+#         action="store_true",
+#         help="""Are we appending to the database table or creating a new one. The
+#             default is to create a new table.""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--batch-size",
+#         type=int,
+#         default=defaults.row_batch,
+#         help="""The number of lines we read from the CSV file at a time.
+#             (default: %(default)s)""",
+#     )
+#
+#     args = arg_parser.parse_args()
+#     return args
+#
+#
+# if __name__ == "__main__":
+#     log.started()
+#
+#     ARGS = parse_args()
+#     load_data(ARGS)
+#
+#     log.finished()

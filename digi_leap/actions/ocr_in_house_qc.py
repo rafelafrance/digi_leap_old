@@ -9,16 +9,12 @@ import json
 import os
 import random
 import shutil
-import textwrap
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 import pandas as pd
 from PIL import Image, ImageDraw
 
-import digi_leap.pylib.log as log
 import digi_leap.pylib.ocr_results as results
-from digi_leap.pylib.config import Config
 
 
 def sample_sheets(args):
@@ -68,7 +64,7 @@ def score_label_text(texts, sheet_dir):
         parts = path.stem.split("_")
         score = {
             "index": int(parts[-2]),
-            "type": parts[-1],
+            "type":  parts[-1],
         }
         with open(path) as text_file:
             text = text_file.read()
@@ -109,79 +105,78 @@ def output_herbarium_sheet(sheet, sheet_dir, sheets_dir):
     out_path = sheet_dir / f"herbarium_sheet.{in_path.suffix}"
     image.save(out_path)
 
-
-def parse_args() -> Namespace:
-    """Process command-line arguments."""
-    description = """
-        Build a single "best" label from the ensemble of OCR outputs.
-        """
-    arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
-
-    default = Config().module_defaults()
-
-    arg_parser.add_argument(
-        "--reconciled-jsonl",
-        default=default["reconciled_jsonl"],
-        type=Path,
-        help="""The JSONL file containing reconciled bounding boxes. The file
-            contains one reconciliation record per herbarium sheet.
-            (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sheets-dir",
-        default=default["sheets_dir"],
-        type=Path,
-        help="""Images of herbarium sheets are in this directory
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--ensemble-images",
-        default=default["ensemble_image_dir"],
-        type=Path,
-        help="""The directory containing the OCR ensemble images.
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--ensemble-text",
-        default=default["ensemble_text_dir"],
-        type=Path,
-        help="""The directory containing the OCR ensemble text.
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--qc-dir",
-        default=default["qc_dir"],
-        type=Path,
-        help="""Output the sampled QC data to this directory.
-             (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--sample-size",
-        type=int,
-        default=default["sample_size"],
-        help="""How many herbarium sheets to sample. (default %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--suffix",
-        help="""Add this to the end of the --qc-dir directory.""",
-    )
-
-    args = arg_parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    sample_sheets(ARGS)
-
-    log.finished()
+# def parse_args() -> Namespace:
+#     """Process command-line arguments."""
+#     description = """
+#         Build a single "best" label from the ensemble of OCR outputs.
+#         """
+#     arg_parser = ArgumentParser(
+#         description=textwrap.dedent(description), fromfile_prefix_chars="@"
+#     )
+#
+#     default = Config().module_defaults()
+#
+#     arg_parser.add_argument(
+#         "--reconciled-jsonl",
+#         default=default["reconciled_jsonl"],
+#         type=Path,
+#         help="""The JSONL file containing reconciled bounding boxes. The file
+#             contains one reconciliation record per herbarium sheet.
+#             (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--sheets-dir",
+#         default=default["sheets_dir"],
+#         type=Path,
+#         help="""Images of herbarium sheets are in this directory
+#              (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--ensemble-images",
+#         default=default["ensemble_image_dir"],
+#         type=Path,
+#         help="""The directory containing the OCR ensemble images.
+#              (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--ensemble-text",
+#         default=default["ensemble_text_dir"],
+#         type=Path,
+#         help="""The directory containing the OCR ensemble text.
+#              (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--qc-dir",
+#         default=default["qc_dir"],
+#         type=Path,
+#         help="""Output the sampled QC data to this directory.
+#              (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--sample-size",
+#         type=int,
+#         default=default["sample_size"],
+#         help="""How many herbarium sheets to sample. (default %(default)s)""",
+#     )
+#
+#     arg_parser.add_argument(
+#         "--suffix",
+#         help="""Add this to the end of the --qc-dir directory.""",
+#     )
+#
+#     args = arg_parser.parse_args()
+#     return args
+#
+#
+# if __name__ == "__main__":
+#     log.started()
+#
+#     ARGS = parse_args()
+#     sample_sheets(ARGS)
+#
+#     log.finished()

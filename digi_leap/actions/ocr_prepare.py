@@ -43,7 +43,7 @@ def transform(labels, cpus, batch_size, pipeline, output_dir):
 
     batches = [labels[i : i + batch_size] for i in range(0, len(labels), batch_size)]
 
-    with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(batches)) as bar:
+    with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(labels)) as bar:
         results = [
             pool.apply_async(
                 transform_batch,
