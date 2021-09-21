@@ -10,7 +10,7 @@ curr_model_name: &curr_model_name !Config
     default:  faster_rcnn_2021-08-18
     help: The name of the model being used to find labels on herbarium sheets.
 
-curr_model_name: &prev_model_name !Config
+prev_model_name: &prev_model_name !Config
     default: ""
     help: The name of the model previous used to find labels on herbarium sheets.
 
@@ -63,10 +63,10 @@ sbs_threshold: &sbs_threshold !Config
 
 limit: &limit !Config
   default: 0
-  help: Limit the input to this many records
+  help: Limit the input to this many records. 0 = no limit.
 
 sheets_dir: &sheets_dir !Config
-  default: !Path label_babel_dir}/herbarium-sheets-small
+  default: !Path "{label_babel_dir}/herbarium-sheets-small"
   help: The directory containing the herbarium sheet images.
 
 unreconciled_csv: &unreconciled_csv !Config
@@ -79,11 +79,11 @@ reconciled_jsonl: &reconciled_jsonl !Config
 
 prep_binary_dir: &prep_binary_dir !Config
   default: !Path output/prepared_{curr_model_name}_binarize
-  help: Put the prepared (binarized) label images in this directory.
+  help: Put the prepared label images in this directory.
 
 prep_deskew_dir: &prep_deskew_dir !Config
   default: !Path output/prepared_{curr_model_name}_deskew
-  help: Put the prepared (deskewed) label images in this directory.
+  help: Put the prepared label images in this directory.
 
 binary_tess_dir: &binary_tess_dir !Config
   default: !Path output/ocr_{curr_model_name}_binarize_tesseract
@@ -125,19 +125,23 @@ label_dir: &label_dir !Config
   default: !Path "{label_babel_dir}/{curr_model_name}"
   help: Directory containing cropped labels from herbarium sheets.
 
-model: &model !Config
+curr_model: &curr_model !Config
   default: !Path models/{curr_model_name}.pth
   help: Path to the current model for finding labels on a herbarium sheet.
+
+pipeline: &pipeline !Config
+  default: deskew
+  help: A pipeline of image transformations that may help with the OCR process.
 
 # ############################################################################
 # Default arguments for scripts
 
 faster_rcnn_test:
   help: |-
-    Test a model that finds labels on herbarium sheets.
+    Test a model that finds labels on herbarium sheets (inference with scoring).
   reconciled_jsonl: *reconciled_jsonl
   sheets_dir:       *sheets_dir
-  load_model:       *model
+  load_model:       *curr_model
   nms_threshold:    *nms_threshold
   sbs_threshold:    *sbs_threshold
   device:           *device
@@ -151,7 +155,7 @@ faster_rcnn_train:
     Train a model to find labels on herbarium sheets.
   reconciled_jsonl: *reconciled_jsonl
   sheets_dir:       *sheets_dir
-  save_model:       *model
+  save_model:       *curr_model
   load_model: !Config
     default: ""
     help: Load this model to continue training.
@@ -173,19 +177,22 @@ faster_rcnn_train:
 
 
 faster_rcnn_use:
-  label_dir:     *label_dir
-  load_model:    *model
+  help: |-
+    Use a model that finds labels on herbarium sheets (inference).
   sheets_dir:    *sheets_dir
-  device:        *device
+  label_dir:     *label_dir
   glob:          *image_filter
+  load_model:    *curr_model
+  device:        *device
   nms_threshold: *nms_threshold
   sbs_threshold: *sbs_threshold
+  limit:         *limit
 
 
 idigbio_images:
   help: >-
     Use iDigBio records to download images. You should extract an iDigBio media
-    file from a snapshot (step 01) before running this.
+    file from a snapshot before running this.
   sheets_dir: *sheets_dir
   csv_file: !Config
     default: data/sernec/sernec_multimedia.csv
@@ -277,13 +284,18 @@ ocr_in_house_qc:
 ocr_labels:
   help: |-
     OCR images of labels.
-    Take all images in the input --label-dir, OCR them, and output the results
-    into either (or both) the --tesseract-dir or the --easyocr-dir. The output
-    directory determines which OCR engine is used. The output file names
-    echo the file name stems of the input images. Make sure that the input
-    label images are prepared for OCR.
-  # tesseract_dir: *deskew_easy_dir
-  # easyocr_dir:   *binary_easy_dir
   tesseract_dir: *binary_tess_dir
   easyocr_dir:   *binary_easy_dir
   glob:          *image_filter
+
+
+ocr_prepare:
+  help: |-
+    Prepare images of labels for OCR. Perform image manipuations on labels that
+    may help with the OCR process.
+  label_dir:  *label_dir
+  output_dir: *prep_deskew_dir
+  pipeline:   *pipeline
+  cpus:       *proc_cpus
+  glob:       *image_filter
+  limit:      *limit

@@ -8,7 +8,9 @@ from pathlib import Path
 
 import digi_leap.actions.faster_rcnn_test as faster_rcnn_test
 import digi_leap.actions.faster_rcnn_train as faster_rcnn_train
+import digi_leap.actions.faster_rcnn_use as faster_rcnn_use
 import digi_leap.actions.idigbio_images as idigbio_images
+import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.config as conf
 import digi_leap.pylib.const as const
 
@@ -18,7 +20,9 @@ import digi_leap.pylib.const as const
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,
     "faster_rcnn_train": faster_rcnn_train.train,
+    "faster_rcnn_use": faster_rcnn_use.use,
     "idigbio_images": idigbio_images.download_images,
+    "ocr_prepare": ocr_prepare.prepare_labels,
 }
 
 
@@ -49,15 +53,19 @@ def parse_args(configs) -> Namespace:
 
 def add_subparser(subparsers, section, name):
     """Add a subparser for a module."""
-    subparser = subparsers.add_parser(name, help=section.get("help"))
+    subparser = subparsers.add_parser(name.replace('_', '-'), help=section.get("help"))
     subparser.set_defaults(func=name)
+
     for key, config in section.items():
         if isinstance(config, conf.Config):
+            help_ = config.help
+            if help_:
+                help_ += " (default %(default)s)"
             subparser.add_argument(
-                f"--{key}",
+                f"--{key.replace('_', '-')}",
                 default=config.default,
                 type=type(config.default),
-                help=config.help,
+                help=help_,
             )
 
 
@@ -76,7 +84,7 @@ def list_params(subparsers):
             print(args.action)
             conf.display(sect)
 
-    subparser = subparsers.add_parser("list", help="""List all parameters.""")
+    subparser = subparsers.add_parser("list", help="""List parameters for actions.""")
     subparser.set_defaults(func=func)
     subparser.add_argument(
         "action",

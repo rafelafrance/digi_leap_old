@@ -2,6 +2,7 @@
 """Use a trained model to cut out labels on herbarium sheets."""
 
 import logging
+import os
 
 import torch
 import torchvision
@@ -12,13 +13,13 @@ from torchvision.ops import batched_nms
 from tqdm import tqdm
 
 import digi_leap.pylib.box_calc as calc
-import digi_leap.pylib.log as log
 import digi_leap.pylib.subject as sub
-from digi_leap.pylib.args import ArgParser
 
 
 def use(args):
     """Train the neural net."""
+    os.makedirs(args.label_dir, exist_ok=True)
+
     torch.multiprocessing.set_sharing_strategy("file_system")
 
     state = torch.load(args.load_model)
@@ -31,7 +32,7 @@ def use(args):
 
     model.eval()
 
-    paths = list(args.sheets_dir.glob(args.image_filter))
+    paths = list(args.sheets_dir.glob(args.glob))
     if args.limit:
         paths = paths[: args.limit]
 
@@ -76,30 +77,3 @@ def get_model():
         in_features, num_classes=len(sub.CLASSES) + 1
     )
     return model
-
-
-def parse_args():
-    """Process command-line arguments."""
-    description = """Test a model that finds labels on herbarium sheets."""
-    parser = ArgParser(description)
-
-    parser.sheets_dir()
-    parser.image_filter()
-    parser.curr_model(action="load")
-    parser.label_dir(action="write")
-    parser.device()
-    parser.nms_threshold()
-    parser.sbs_threshold()
-    parser.limit()
-
-    args = parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    use(ARGS)
-
-    log.finished()
