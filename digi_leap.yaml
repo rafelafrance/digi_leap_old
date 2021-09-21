@@ -297,5 +297,6 @@ ocr_prepare:
   output_dir: *prep_deskew_dir
   pipeline:   *pipeline
   cpus:       *proc_cpus
+  batch_size: *proc_batch
   glob:       *image_filter
   limit:      *limit

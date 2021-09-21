@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Load iDigBio Data into a database."""
 
 import argparse

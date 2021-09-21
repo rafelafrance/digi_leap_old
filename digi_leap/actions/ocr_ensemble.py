@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Find "best" labels from ensembles of OCR results of each label."""
 
 import re

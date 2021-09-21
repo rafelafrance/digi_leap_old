@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Sample OCR and label detection for in-house quality control.
 
 Sample reconciled herbarium sheets, mark the reconciled labels on those sheets,

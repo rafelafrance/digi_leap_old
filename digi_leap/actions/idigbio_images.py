@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Given a CSV file of iDigBio records, download the images."""
 
 import os

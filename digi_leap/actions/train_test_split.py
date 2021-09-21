@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Split the reconciled Label Babel JSONL file into training & test JSONL files.
 
 The training set will contain both the training and validation data. The test set is

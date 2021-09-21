@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build an expedition for scoring OCR output."""
 
 import logging
@@ -12,9 +11,6 @@ from typing import Optional
 
 import pandas as pd
 from PIL import Image
-
-import digi_leap.pylib.log as log
-from digi_leap.pylib.args import ArgParser
 
 
 @dataclass
@@ -142,30 +138,29 @@ def get_sheets(ensemble_image_dir, ensemble_text_dir, label_dir):
 
     return sheets
 
-
-def parse_args() -> Namespace:
-    """Process command-line arguments."""
-    description = """Build build an expedition from OCR ensemble output."""
-    parser = ArgParser(description)
-
-    parser.ensemble_image_dir()
-    parser.ensemble_text_dir()
-    parser.expedition_dir()
-    parser.label_dir(action="read")
-    parser.filter_rulers()
-    parser.largest_labels()
-    parser.filter_types()
-    parser.word_threshold()
-    parser.limit()
-
-    args = parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    build_expedition(ARGS)
-
-    log.finished()
+# def parse_args() -> Namespace:
+#     """Process command-line arguments."""
+#     description = """Build build an expedition from OCR ensemble output."""
+#     parser = ArgParser(description)
+#
+#     parser.ensemble_image_dir()
+#     parser.ensemble_text_dir()
+#     parser.expedition_dir()
+#     parser.label_dir(action="read")
+#     parser.filter_rulers()
+#     parser.largest_labels()
+#     parser.filter_types()
+#     parser.word_threshold()
+#     parser.limit()
+#
+#     args = parser.parse_args()
+#     return args
+#
+#
+# if __name__ == "__main__":
+#     log.started()
+#
+#     ARGS = parse_args()
+#     build_expedition(ARGS)
+#
+#     log.finished()

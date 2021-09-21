@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Train a model to recognize labels on herbarium sheets."""
 
 import logging

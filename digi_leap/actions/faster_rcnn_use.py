@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Use a trained model to cut out labels on herbarium sheets."""
 
 import logging

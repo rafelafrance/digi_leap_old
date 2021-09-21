@@ -1,17 +1,11 @@
-#!/usr/bin/env python3
 """Get plant taxon names from ITIS."""
 
 import re
 import sqlite3
 import string
-import textwrap
-from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 import pandas as pd
-
-from digi_leap.pylib.config import Config
-import digi_leap.pylib.log as log
 
 NAMES = """ var subvar sp ssp subf """.split()
 PUNCT = re.escape(string.punctuation)
@@ -73,39 +67,38 @@ def filter_names(names: set[str]) -> list[str]:
     names = sorted(names)
     return names
 
+# def parse_args() -> Namespace:
+#     """Process command-line arguments."""
+#     description = """
+#     Create a vocabulary file of all plant taxon names.
+#     """
+#     arg_parser = ArgumentParser(
+#         description=textwrap.dedent(description), fromfile_prefix_chars="@"
+#     )
+#
+#     defaults = Config().module_defaults()
+#
+#     arg_parser.add_argument(
+#         "--itis-db",
+#         default=defaults["itis_db"],
+#         type=Path,
+#         help="""The ITIS SQLite3 database. (default: %(default)s)""",
+#     )
+#
+#     # arg_parser.add_argument(
+#     #     "--lang",
+#     #     default=module_defaults['lang'],
+#     #     help="""Which language to use. (default: %(default)s)""",
+#     # )
+#
+#     args = arg_parser.parse_args()
+#     return args
 
-def parse_args() -> Namespace:
-    """Process command-line arguments."""
-    description = """
-    Create a vocabulary file of all plant taxon names.
-    """
-    arg_parser = ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
 
-    defaults = Config().module_defaults()
-
-    arg_parser.add_argument(
-        "--itis-db",
-        default=defaults["itis_db"],
-        type=Path,
-        help="""The ITIS SQLite3 database. (default: %(default)s)""",
-    )
-
-    # arg_parser.add_argument(
-    #     "--lang",
-    #     default=module_defaults['lang'],
-    #     help="""Which language to use. (default: %(default)s)""",
-    # )
-
-    args = arg_parser.parse_args()
-    return args
-
-
-if __name__ == "__main__":
-    log.started()
-
-    ARGS = parse_args()
-    get_itis_data(ARGS)
-
-    log.finished()
+# if __name__ == "__main__":
+#     log.started()
+#
+#     ARGS = parse_args()
+#     get_itis_data(ARGS)
+#
+#     log.finished()

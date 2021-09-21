@@ -119,6 +119,7 @@ class Orient(LabelTransform):
 
 class Deskew(LabelTransform):
     """Tweak the rotation of the image."""
+
     # TODO: More angles
     horiz_angles = np.array([0.0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0])
 
@@ -314,7 +315,10 @@ class BinaryThin(LabelTransform):
 # Scale(mode="nearest"), Orient(), Deskew() in every ensemble member but you
 # could exclude Blur() because that does not modify the image geometry.
 BASE_PIPELINE: list[LabelTransform] = [
-    Blur(sigma=0.5), Scale(mode="nearest"), Orient(), Deskew(),
+    Blur(sigma=0.5),
+    Scale(mode="nearest"),
+    Orient(),
+    Deskew(),
 ]
 
 PIPELINES: dict[str, list[LabelTransform]] = {

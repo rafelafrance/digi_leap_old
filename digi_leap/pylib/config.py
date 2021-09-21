@@ -13,6 +13,7 @@ from . import const
 @dataclass
 class Config:
     """A config setting with help."""
+
     default: Any
     help: str
 

@@ -22,8 +22,7 @@ TESS_CONFIG = " ".join(
 
 def tesseract_dataframe(image: Image) -> pd.DataFrame:
     """OCR the image with tesseract and return a data frame."""
-    df = pytesseract.image_to_data(
-        image, config=TESS_CONFIG, output_type="data.frame")
+    df = pytesseract.image_to_data(image, config=TESS_CONFIG, output_type="data.frame")
 
     df = df.loc[df.conf > 0]
 

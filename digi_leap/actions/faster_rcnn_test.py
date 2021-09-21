@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Test a model recognizes labels on herbarium sheets."""
 
 import logging
@@ -69,10 +68,10 @@ def score_epoch(model, loader, device, nms_threshold, sbs_threshold):
             idx = calc.small_box_suppression(boxes, sbs_threshold)
             all_results.append(
                 {
-                    "image_id":    target["image_id"],
-                    "true_boxes":  target["boxes"],
+                    "image_id": target["image_id"],
+                    "true_boxes": target["boxes"],
                     "true_labels": target["labels"],
-                    "pred_boxes":  boxes[idx, :],
+                    "pred_boxes": boxes[idx, :],
                     "pred_labels": labels[idx],
                     "pred_scores": scores[idx],
                 }
@@ -114,6 +113,7 @@ def get_model():
         in_features, num_classes=len(sub.CLASSES) + 1
     )
     return model
+
 
 # def parse_args():
 #     """Process command-line arguments."""

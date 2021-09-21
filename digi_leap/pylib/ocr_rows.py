@@ -15,6 +15,7 @@ import pandas as pd
 @dataclass
 class Row:
     """Holds data for building a row."""
+
     left: int
     top: int
     right: int
@@ -42,6 +43,7 @@ class Row:
 @dataclass
 class Rows:
     """A row container."""
+
     row_id: int = 0
     rows: list[Row] = field(default_factory=list)
 

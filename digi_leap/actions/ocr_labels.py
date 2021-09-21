@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """OCR a set of labels."""
 
 import csv
@@ -11,7 +10,6 @@ from os.path import basename, join, splitext
 from PIL import Image
 from tqdm import tqdm
 
-import digi_leap.pylib.const as const
 import digi_leap.pylib.ocr as ocr
 
 
@@ -21,7 +19,7 @@ def ocr_labels(args: Namespace) -> None:
 
     if args.tesseract_dir:
         os.makedirs(args.tesseract_dir, exist_ok=True)
-        ocr_tesseract(labels, args.tesseract_dir, args.cpus)
+        ocr_tesseract(labels, args.tesseract_dir, args.cpus, args.batch_size)
 
     if args.easyocr_dir:
         os.makedirs(args.tesseract_dir, exist_ok=True)
@@ -37,19 +35,18 @@ def filter_labels(prepared_label_dir, image_filter, limit):
     return paths
 
 
-def ocr_tesseract(labels, tesseract_dir, cpus):
+def ocr_tesseract(labels, tesseract_dir, cpus, batch_size):
     """OCR the labels with tesseract."""
     logging.info("OCR with Tesseract")
 
-    batches = [
-        labels[i:i + const.PROC_BATCH]
-        for i in range(0, len(labels), const.PROC_BATCH)
-    ]
+    batches = [labels[i : i + batch_size] for i in range(0, len(labels), batch_size)]
 
     with Pool(processes=cpus) as pool, tqdm(total=len(batches)) as bar:
         results = [
             pool.apply_async(
-                tesseract_batch, (b, tesseract_dir), callback=lambda _: bar.update()
+                tesseract_batch,
+                (b, tesseract_dir),
+                callback=lambda _: bar.update(batch_size),
             )
             for b in batches
         ]
