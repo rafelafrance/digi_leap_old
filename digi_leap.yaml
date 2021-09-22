@@ -62,8 +62,8 @@ sbs_threshold: &sbs_threshold !Config
   help: IoU overlap to use for small box suppression
 
 limit: &limit !Config
-  default: 0
-  help: Limit the input to this many records. 0 = no limit.
+  type: 1
+  help: Limit the input to this many records.
 
 sheets_dir: &sheets_dir !Config
   default: !Path "{label_babel_dir}/herbarium-sheets-small"
@@ -77,29 +77,9 @@ reconciled_jsonl: &reconciled_jsonl !Config
   default: !Path "{label_babel_dir}/{label_babel}.reconciled.jsonl"
   help: Reconciled JSONL data from a Label Babel expedtion.
 
-prep_binary_dir: &prep_binary_dir !Config
-  default: !Path output/prepared_{curr_model_name}_binarize
-  help: Put the prepared label images in this directory.
-
-prep_deskew_dir: &prep_deskew_dir !Config
+prep_dir: &prep_dir !Config
   default: !Path output/prepared_{curr_model_name}_deskew
-  help: Put the prepared label images in this directory.
-
-binary_tess_dir: &binary_tess_dir !Config
-  default: !Path output/ocr_{curr_model_name}_binarize_tesseract
-  help: Put Tessereact OCR output for binary images into this directory.
-
-deskew_tess_dir: &deskew_tess_dir !Config
-  default: !Path output/ocr_{curr_model_name}_deskew_tesseract
-  help: Put Tessereact OCR output for deskewed images into this directory.
-
-binary_easy_dir: &binary_easy_dir !Config
-  default: !Path output/ocr_{curr_model_name}_binarize_easyocr
-  help: Put EasyOCR output for binary images into this directory.
-
-deskew_easy_dir: &deskew_easy_dir !Config
-  default: !Path output/ocr_{curr_model_name}_deskew_easyocr
-  help: Put EasyOCR output for deskewed images into this directory.
+  help: The directory that holds prepared label images.
 
 ensemble_image_dir: &ensemble_image_dir !Config
   default: !Path output/ensemble_{curr_model_name}a_images
@@ -284,9 +264,18 @@ ocr_in_house_qc:
 ocr_labels:
   help: |-
     OCR images of labels.
-  tesseract_dir: *binary_tess_dir
-  easyocr_dir:   *binary_easy_dir
-  glob:          *image_filter
+  prepared_dir: *prep_dir
+  output_dir: !Config
+    type: !Path .
+    help: Put OCR output for labels into this directory.
+  ocr_engine: !Config
+    default: tesseract
+    choices: [tesseract, easyocr]
+    help: Which OCR engine to use.
+  glob:       *image_filter
+  cpus:       *proc_cpus
+  batch_size: *proc_batch
+  limit:      *limit
 
 
 ocr_prepare:
@@ -294,7 +283,7 @@ ocr_prepare:
     Prepare images of labels for OCR. Perform image manipuations on labels that
     may help with the OCR process.
   label_dir:  *label_dir
-  output_dir: *prep_deskew_dir
+  output_dir: *prep_dir
   pipeline:   *pipeline
   cpus:       *proc_cpus
   batch_size: *proc_batch

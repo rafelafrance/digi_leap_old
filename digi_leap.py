@@ -10,6 +10,7 @@ import digi_leap.actions.faster_rcnn_test as faster_rcnn_test
 import digi_leap.actions.faster_rcnn_train as faster_rcnn_train
 import digi_leap.actions.faster_rcnn_use as faster_rcnn_use
 import digi_leap.actions.idigbio_images as idigbio_images
+import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.config as conf
 import digi_leap.pylib.const as const
@@ -22,6 +23,7 @@ DISPATCH = {
     "faster_rcnn_train": faster_rcnn_train.train,
     "faster_rcnn_use": faster_rcnn_use.use,
     "idigbio_images": idigbio_images.download_images,
+    "ocr_labels": ocr_labels.ocr_labels,
     "ocr_prepare": ocr_prepare.prepare_labels,
 }
 
@@ -58,15 +60,8 @@ def add_subparser(subparsers, section, name):
 
     for key, config in section.items():
         if isinstance(config, conf.Config):
-            help_ = config.help
-            if help_:
-                help_ += " (default %(default)s)"
-            subparser.add_argument(
-                f"--{key.replace('_', '-')}",
-                default=config.default,
-                type=type(config.default),
-                help=help_,
-            )
+            arg_dict = config.argument_dict()
+            subparser.add_argument(f"--{key.replace('_', '-')}", **arg_dict)
 
 
 def list_params(subparsers):

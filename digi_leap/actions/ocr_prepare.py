@@ -48,7 +48,7 @@ def transform(labels, cpus, batch_size, pipeline, output_dir):
             pool.apply_async(
                 transform_batch,
                 args=(b, pipeline, output_dir),
-                callback=lambda _: bar.update(batch_size),
+                callback=lambda _: bar.update(len(b)),
             )
             for b in batches
         ]

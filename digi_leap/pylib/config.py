@@ -14,8 +14,32 @@ from . import const
 class Config:
     """A config setting with help."""
 
-    default: Any
-    help: str
+    default: Optional[Any] = None
+    help: Optional[str] = None
+    type: Optional[Any] = None
+    choices: Optional[list] = None
+
+    def argument_dict(self):
+        """Convert into ArgumentParser argument."""
+        arg = {}
+
+        if self.default:
+            arg["default"] = self.default
+
+        if self.help:
+            arg["help"] = self.help
+            if self.default:
+                arg["help"] += " (default %(default)s)"
+
+        if self.type:
+            arg["type"] = type(self.type)
+        elif self.default:
+            arg["type"] = type(self.default)
+
+        if self.choices:
+            arg["choices"] = self.choices
+
+        return arg
 
 
 def read_configs(path: Optional[Path] = None):
