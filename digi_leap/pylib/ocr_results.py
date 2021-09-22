@@ -1,7 +1,7 @@
 """Functions for manipulating OCR result ensembles."""
 
 import re
-from collections import Counter
+from collections import defaultdict, namedtuple  # Counter
 from pathlib import Path
 from typing import Union
 
@@ -9,6 +9,10 @@ import pandas as pd
 
 from . import box_calc as calc
 from . import vocab
+
+
+DocText = namedtuple("DocText", "text doc")
+Best = namedtuple("Best", "text winners")
 
 
 def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
@@ -77,35 +81,40 @@ def text_hits(text: str) -> int:
     return hits
 
 
-def reconcile_text(texts: list[str]) -> str:
+def reconcile_text(doc_texts: list[DocText]) -> Best:
     """Find the single "best" text string from a list of similar texts.
 
     First we look for the most common text string in the list. If that
-    occurs more than half of the time, we return that. Otherwise, we
-    look for a string that contains the most words that have a vocabulary
-    hit.
+    occurs more than half of the time, we return that. Otherwise, we look
+    for a string that contains the most words that have a vocabulary hit.
     """
-    if not texts:
-        return ""
+    if not doc_texts:
+        return Best("", [])
 
-    texts = [re.sub(r"\s([.,:])", r"\1", t) for t in texts]
-    counts = Counter(texts)
-    counts = [(c[1], len(c[0]), c[0]) for c in counts.most_common(3)]
-    counts = sorted(counts, reverse=True)
-    best = counts[0]
+    # First look if a text appears in the majority of texts
+    # Count the occurrence of the texts. Counter is not helpful here.
+    counts = defaultdict(list)
+    for text, doc in doc_texts:
+        text = re.sub(r"\s([.,:])", r"\1", text)  # Remove leading space from punct
+        counts[text].append(doc)
+    bests = [Best(k, v) for k, v in sorted(counts.items(), key=lambda x: len(x[1]))]
 
-    if best[0] >= len(texts) / 2:
-        return best[2]
+    if len(bests[0].winners) >= len(doc_texts) / 2:
+        return bests[0]
 
-    scores = []
-    for t, text in enumerate(texts):
-        words = text.split()
-        hits = text_hits(text)
+    # Fallback to looking for the text(s) with the best score
+    scores = defaultdict(list)
+    for doc_text in doc_texts:
+        words = doc_text.text.split()
+        hits = text_hits(doc_text.text)
         count = len(words)
-        scores.append((hits / count, count, t))
-
-    best = sorted(scores, reverse=True)[0]
-    return texts[best[2]]
+        score = (hits / count) if count > 0 else 0.0
+        scores[score].append(doc_text)
+    scores = [b for s, b in sorted(scores.items(), key=lambda x: -x[0])]
+    best = scores[0]
+    text = best[0].text  # Just choosing the first one
+    winners = [b[1] for b in best]
+    return Best(text, winners)
 
 
 def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFrame:
@@ -116,20 +125,26 @@ def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFr
        by the OCR dir and NOT the file name because, by definition, each ensemble
        has identical files names but come from different directories.
         a) Put the text for each document group in left to right order & join the text.
-    3) Merge the bounding boxes into a single bounding box.
-    4) Find the "best" text for the new bounding box.
+    3) Merge the bounding boxes into a single bounding box. One per each OCR document.
+    4) Find the "best" text for the new bounding box. "Best" is relative to the other
+       documents.
     """
     boxes = df[["left", "top", "right", "bottom"]].to_numpy()
     groups = calc.small_box_overlap(boxes, threshold=threshold)
     df["group"] = groups
 
     merged = []
+    # First find everything that overlaps in all docs
     for g, box_group in df.groupby("group"):
         texts = []
+        # Now combine texts by doc
         for s, subgroup in box_group.groupby("ocr_dir"):
             subgroup = subgroup.sort_values("left")
             text = " ".join(subgroup.text)
-            texts.append(text)
+            texts.append(DocText(text, str(s)))
+
+        # Find the "best" text & the docs with it
+        best_text, winners = reconcile_text(texts)
 
         merged.append(
             {
@@ -137,8 +152,9 @@ def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFr
                 "top": box_group.top.min(),
                 "right": box_group.right.max(),
                 "bottom": box_group.bottom.max(),
-                "text": reconcile_text(texts),
+                "text": best_text,
                 "ocr_dir": box_group.ocr_dir.iloc[0],
+                "winners": winners,
             }
         )
 

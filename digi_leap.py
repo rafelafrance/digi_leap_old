@@ -3,26 +3,26 @@
 
 import sys
 import textwrap
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from pathlib import Path
 
 import digi_leap.actions.faster_rcnn_test as faster_rcnn_test
 import digi_leap.actions.faster_rcnn_train as faster_rcnn_train
 import digi_leap.actions.faster_rcnn_use as faster_rcnn_use
 import digi_leap.actions.idigbio_images as idigbio_images
+import digi_leap.actions.ocr_ensemble as ocr_ensemble
 import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.config as conf
 import digi_leap.pylib.const as const
-
-# TODO: Maybe use the ipython trick to adjust configuration parameters?
-
+from digi_leap.pylib.util import kabob
 
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,
     "faster_rcnn_train": faster_rcnn_train.train,
     "faster_rcnn_use": faster_rcnn_use.use,
     "idigbio_images": idigbio_images.download_images,
+    "ocr_ensemble": ocr_ensemble.build_all_ensembles,
     "ocr_labels": ocr_labels.ocr_labels,
     "ocr_prepare": ocr_prepare.prepare_labels,
 }
@@ -31,6 +31,7 @@ DISPATCH = {
 def parse_args(configs) -> Namespace:
     """Process the command-line."""
     parser = ArgumentParser(
+        formatter_class=RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
             Digi-Leap extracts information from from labels on images of herbarium
@@ -55,13 +56,13 @@ def parse_args(configs) -> Namespace:
 
 def add_subparser(subparsers, section, name):
     """Add a subparser for a module."""
-    subparser = subparsers.add_parser(name.replace('_', '-'), help=section.get("help"))
+    subparser = subparsers.add_parser(kabob(name), help=section.get("help"))
     subparser.set_defaults(func=name)
 
     for key, config in section.items():
         if isinstance(config, conf.Config):
             arg_dict = config.argument_dict()
-            subparser.add_argument(f"--{key.replace('_', '-')}", **arg_dict)
+            subparser.add_argument(f"--{kabob(key)}", **arg_dict)
 
 
 def list_params(subparsers):

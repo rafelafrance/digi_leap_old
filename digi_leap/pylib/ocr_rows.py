@@ -106,7 +106,7 @@ def find_rows_of_text(df: pd.DataFrame, width_threshold: float = 0.5) -> pd.Data
     1) Put all bounding boxes in left-to-right order.
     2) For each bounding box:
         a) If the bounding box is bracketed by the last box in the row then it gets
-           appended to the row.
+           appended to the row. This often happens with punctuation.
         b) If the bounding box overlaps a row's last box's center line and there is
            no significant horizontal overlap then then append the box to the row.
         c) If a & b fail then create a new row.

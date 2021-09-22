@@ -41,7 +41,7 @@ def transform(labels, cpus, batch_size, pipeline, output_dir):
     """Perform the label transformations before the OCR step(s)."""
     logging.info("transforming labels")
 
-    batches = [labels[i : i + batch_size] for i in range(0, len(labels), batch_size)]
+    batches = [labels[i:i + batch_size] for i in range(0, len(labels), batch_size)]
 
     with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(labels)) as bar:
         results = [

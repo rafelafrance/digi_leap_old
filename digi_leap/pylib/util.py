@@ -25,3 +25,8 @@ def collate_fn(batch):
 def as_list(values: Any) -> list:
     """Convert values to a list."""
     return list(values) if isinstance(values, (list, tuple, set)) else [values]
+
+
+def kabob(string):
+    """Convert snake case to kabob case."""
+    return string.replace('_', '-')

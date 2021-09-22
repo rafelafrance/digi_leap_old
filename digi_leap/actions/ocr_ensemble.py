@@ -1,133 +1,230 @@
 """Find "best" labels from ensembles of OCR results of each label."""
 
+import json
+import os
 import re
 from argparse import Namespace
+from collections import defaultdict
+from multiprocessing import Pool
 from pathlib import Path
 
-import digi_leap.pylib.ensemble as ensemble
+import pandas as pd
+import tqdm
+from PIL import Image, ImageDraw
+
+import digi_leap.pylib.font as font
+import digi_leap.pylib.ocr_results as results
+import digi_leap.pylib.ocr_rows as rows
+import digi_leap.pylib.util as util
 
 
 def build_all_ensembles(args: Namespace) -> None:
     """Group OCR output paths by label."""
-    ensemble.create_dirs(args.ensemble_image_dir, args.ensemble_text_dir)
+    create_dirs(args.ensemble_images, args.ensemble_text)
 
-    paths = ensemble.group_files(args.ocr_dir)
+    paths = group_files(args.ocr_dir)
     paths = filter_files(paths, args.limit, args.label_filter)
 
-    ensemble.process_batches(
+    all_records = process_batches(
         paths,
         args.batch_size,
         args.cpus,
-        args.prepared_label_dir,
-        args.ensemble_text_dir,
-        args.ensemble_image_dir,
+        args.prepared_dir,
+        args.ensemble_text,
+        args.ensemble_images,
         args.line_space,
     )
 
+    if args.winners_jsonl:
+        with open(args.winners_jsonl, "w") as jsonl_file:
+            for record in all_records:
+                jsonl_file.write(json.dumps(record) + "\n")
+
 
 def filter_files(paths, limit, label_filter) -> list[tuple[str, list[Path]]]:
-    """Filter files for debugging specific images."""
+    """Filter files for debugging specific labels."""
     if label_filter:
         paths = [(k, v) for k, v in paths if re.search(label_filter, k)]
     paths = paths[:limit] if limit else paths
     return paths
 
-# def parse_args() -> Namespace:
-#     """Process command-line arguments."""
-#     description = """
-#         Build a single "best" label from the ensemble of OCR outputs.
-#
-#         An ensemble is a list of OCR outputs with the same name contained
-#         in parallel directories. For instance, if you have OCR output
-#         (from ocr_labels.py) for three different runs then an ensemble
-#         will be:
-#             output/ocr/run1/label1.csv
-#             output/ocr/run2/label1.csv
-#             output/ocr/run3/label1.csv
-#         """
-#     arg_parser = ArgumentParser(
-#         formatter_class=RawDescriptionHelpFormatter,
-#         description=textwrap.dedent(description),
-#         fromfile_prefix_chars="@",
-#     )
-#
-#     defaults = Config().module_defaults()
-#
-#     arg_parser.add_argument(
-#         "--ocr-dir",
-#         default=defaults.ocr_dir,
-#         nargs="*",
-#         help="""A directory that contains OCR output in CSV form. You may use
-#             wildcards and/or more than one filter. (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--prepared-label-dir",
-#         default=defaults.prep_deskew_dir,
-#         type=Path,
-#         help="""The directory containing images of labels ready for OCR.
-#             (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--ensemble-image-dir",
-#         default=defaults.ensemble_image_dir,
-#         type=Path,
-#         help="""Output resulting images of the OCR ensembles to this directory.
-#              (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--ensemble-text-dir",
-#         default=defaults.ensemble_text_dir,
-#         type=Path,
-#         help="""Output resulting text of the OCR ensembles to this directory.
-#              (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--cpus",
-#         default=defaults.proc_cpus,
-#         type=int,
-#         help="""How many CPUs to use. (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--batch-size",
-#         default=defaults.proc_batch,
-#         type=int,
-#         help="""How many labels to process in a process batch. (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--line_space",
-#         type=int,
-#         default=defaults.line_space,
-#         help="""Margin between lines of text in the reconstructed label output.
-#             (default %(default)s)""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--limit",
-#         type=int,
-#         help="""Limit the input to this many label images.""",
-#     )
-#
-#     arg_parser.add_argument(
-#         "--label-filter",
-#         type=str,
-#         help="""Filter files in the --prepared-dir and --ocr-dir with this.
-#             (default %(default)s)""",
-#     )
-#
-#     args = arg_parser.parse_args()
-#     return args
-#
-#
-# if __name__ == "__main__":
-#     log.started()
-#
-#     ARGS = parse_args()
-#     build_all_ensembles(ARGS)
-#
-#     log.finished()
+
+def create_dirs(ensemble_image_dir, ensemble_text_dir):
+    """Create output directories."""
+    if ensemble_image_dir:
+        os.makedirs(ensemble_image_dir, exist_ok=True)
+    if ensemble_text_dir:
+        os.makedirs(ensemble_text_dir, exist_ok=True)
+
+
+def process_batches(
+    paths,
+    batch_size,
+    cpus,
+    prepared_label_dir,
+    ensemble_text_dir,
+    ensemble_image_dir,
+    line_space,
+):
+    """Process batches of label ensembles."""
+    all_records = []
+
+    batches = [paths[i: i + batch_size] for i in range(0, len(paths), batch_size)]
+    with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(paths)) as bar:
+        all_results = [
+            pool.apply_async(
+                ensemble_batch,
+                args=(
+                    b,
+                    prepared_label_dir,
+                    ensemble_text_dir,
+                    ensemble_image_dir,
+                    line_space,
+                ),
+                callback=lambda _: bar.update(len(b)),
+            )
+            for b in batches
+        ]
+
+        for results_list in [r.get() for r in all_results]:
+            all_records += results_list
+
+    return all_records
+
+
+def ensemble_batch(
+    batch, prepared_label_dir, ensemble_text_dir, ensemble_image_dir, line_space
+):
+    """Find the "best" label on a batch of OCR results."""
+    all_records = []
+    for path_tuple in batch:
+        records = build_ensemble(
+            path_tuple,
+            prepared_label_dir,
+            ensemble_text_dir,
+            ensemble_image_dir,
+            line_space,
+        )
+        all_records += records
+    return all_records
+
+
+def build_ensemble(
+    path_tuple,
+    prepared_label_dir,
+    ensemble_text_dir,
+    ensemble_image_dir,
+    line_space,
+):
+    """Build the "best" label output given the ensemble of OCR results."""
+    stem, paths = path_tuple
+    paths = [Path(p) for p in paths]
+
+    df = get_boxes(paths)
+    if df.shape[0] == 0:
+        return []
+
+    df = results.merge_bounding_boxes(df)
+    df = rows.find_rows_of_text(df)
+    df["stem"] = stem
+
+    if ensemble_text_dir:
+        build_ensemble_text(stem, df, ensemble_text_dir)
+
+    if ensemble_image_dir:
+        build_ensemble_images(
+            stem, df, prepared_label_dir, ensemble_image_dir, line_space
+        )
+    records = df.loc[:, ["text", "winners", "stem"]].to_dict("records")
+    return records
+
+
+def build_ensemble_text(stem, df, ensemble_text_dir):
+    """Build the "best" text output given the ensemble of OCR results."""
+    lines = [" ".join(b.text) + "\n" for _, b in df.groupby("row")]
+    path = Path(ensemble_text_dir) / f"{stem}.txt"
+    with open(path, "w") as out_file:
+        out_file.writelines(lines)
+
+
+def build_ensemble_images(stem, df, prepared_label_dir, ensemble_image_dir, line_space):
+    """Build the "best" image output given the ensemble of OCR results."""
+    label = Image.open(Path(prepared_label_dir) / f"{stem}.jpg").convert("RGB")
+    width, height = label.size
+    recon = Image.new("RGB", label.size, color="white")
+
+    row_df = results.merge_rows_of_text(df)
+    row_df["font_size"] = font.BASE_FONT_SIZE
+    row_df["height"] = row_df["bottom"] - row_df["top"]
+
+    draw_recon = ImageDraw.Draw(recon)
+
+    for idx, row in row_df.iterrows():
+        for font_size in range(row.font_size, 16, -1):
+            text_left, text_top, text_right, text_bottom = draw_recon.textbbox(
+                (row.left, row.top), row.text, font=font.FONTS[font_size], anchor="lt"
+            )
+            if row.right >= text_right and row.bottom >= text_bottom:
+                row_df.at[idx, "font_size"] = font_size
+                row_df.at[idx, "height"] = text_bottom - text_top
+                break
+
+    row_df.iloc[1:-1, 5] = row_df.iloc[1:-1, 5].min()
+    row_df.iloc[1:-1, 6] = row_df.iloc[1:-1, 6].min()
+
+    row_top = line_space
+    for _, row in row_df.iterrows():
+        draw_recon.text(
+            (row.left, row_top),
+            row.text,
+            font=font.FONTS[int(row.font_size)],
+            fill="black",
+            anchor="lt",
+        )
+        row_top += row.height + line_space
+
+    if width > height:
+        recon = recon.crop((0, 0, recon.width, row_top))
+        image = Image.new("RGB", (width, height + row_top))
+        image.paste(label, (0, 0))
+        image.paste(recon, (0, height))
+    else:
+        image = Image.new("RGB", (2 * width, height))
+        image.paste(label, (0, 0))
+        image.paste(recon, (width, 0))
+
+    path = Path(ensemble_image_dir) / f"{stem}.jpg"
+    image.save(path)
+
+
+def get_boxes(paths):
+    """Get all the bounding boxes from the ensemble."""
+    boxes = []
+    for path in paths:
+        df = results.get_results_df(path)
+        df.text = df.text.astype(str)
+        boxes.append(df)
+    return pd.concat(boxes)
+
+
+def group_files(
+    ocr_dirs: list[Path], glob: str = "*.csv"
+) -> list[tuple[str, list[Path]]]:
+    """Find files that represent then same label and group them."""
+    path_dict = defaultdict(list)
+
+    dirs = []
+    for ocr_dir in util.as_list(ocr_dirs):
+        path = Path(ocr_dir)
+        root = Path(path.root) if path.root else Path(".")
+        pattern = ocr_dir[len(path.root):]
+        dirs.extend([p for p in root.glob(pattern)])
+
+    for ocr_dir in dirs:
+        paths = ocr_dir.glob(glob)
+        for path in paths:
+            label = path.stem
+            path_dict[label].append(str(path))
+    path_tuples = [(k, v) for k, v in path_dict.items()]
+    path_tuples = sorted(path_tuples, key=lambda p: p[0])
+    return path_tuples

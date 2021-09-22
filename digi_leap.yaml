@@ -1,5 +1,17 @@
 # TODO: Dry this up
 
+# This contains, so far, Config objects that are just arguments to various actions
+# that digi_leap.py can perform.
+# The key for the Config object is the command line argument name.
+#  Config objects contain these fields:
+#   - The default value (optional) for the command line argument.
+#   - The help text (optional) for the command line argument.
+#   - The type (optional) arg types can be determined from the default value but if
+#     there is no default value then you can use this field.
+#   - The choices field is for a controlled vocabulary argument
+# There are a lot of common values for arguments at the top and the per module arguments
+# are grouped by module name below them.
+
 # Root dir for the label babel data
 label_babel_dir: &label_babel_dir !Config
     default: !Path data/label-babel-2
@@ -83,11 +95,11 @@ prep_dir: &prep_dir !Config
 
 ensemble_image_dir: &ensemble_image_dir !Config
   default: !Path output/ensemble_{curr_model_name}a_images
-  help: Put OCR ensemble images into this directory.
+  help: OCR ensemble images are in this directory.
 
 ensemble_text_dir: &ensemble_text_dir !Config
   default: !Path output/ensemble_{curr_model_name}a_text
-  help: Put OCR ensemble text into this directory.
+  help: OCR ensemble text is in directory.
 
 idigbio_db: &idigbio_db !Config
   default: !Path data/processed/occurrence_raw_2021-02.sqlite3.db
@@ -112,6 +124,12 @@ curr_model: &curr_model !Config
 pipeline: &pipeline !Config
   default: deskew
   help: A pipeline of image transformations that may help with the OCR process.
+
+ocr_engine: &ocr_engine !Config
+  default: tesseract
+  choices: [tesseract, easyocr]
+  help: Which OCR engine to use.
+
 
 # ############################################################################
 # Default arguments for scripts
@@ -170,7 +188,7 @@ faster_rcnn_use:
 
 
 idigbio_images:
-  help: >-
+  help: |-
     Use iDigBio records to download images. You should extract an iDigBio media
     file from a snapshot before running this.
   sheets_dir: *sheets_dir
@@ -214,17 +232,37 @@ itis_taxa:
 
 label_babel_reconcile:
   nothing: !Config
-    default: None
     help:
 
 
 ocr_ensemble:
+  help: |-
+    Build a single "best" label from the ensemble of OCR outputs.
+    An ensemble is a list of OCR outputs with the same name contained
+    in parallel directories. For instance, if you have OCR output
+    (from the ocr_labels action) for three different runs then an ensemble
+    will be:
+        output/ocr/run1/label1.csv
+        output/ocr/run2/label1.csv
+        output/ocr/run3/label1.csv
   ocr_dir: !Config
-    default: !Path output/ocr_{curr_model_name}*
-    help:
+    default: output/ocr_*
+    help: The set of OCR output directories to use for the ensemble.
+  ensemble_images: *ensemble_image_dir
+  ensemble_text:   *ensemble_text_dir
+  prepared_dir:    *prep_dir
+  winners_jsonl: !Config
+    type: !Path .
+    help: Save data on which OCR results were used in the output.
+  cpus:            *proc_cpus
+  batch_size:      *proc_batch
+  limit:           *limit
   line_space: !Config
     default: 8
-    help:
+    help: Margin between lines of text in the reconstructed label output.
+  label_filter: !Config
+    type: ""
+    help: Filter files for debugging specific labels.
 
 
 ocr_expedition:
@@ -268,10 +306,7 @@ ocr_labels:
   output_dir: !Config
     type: !Path .
     help: Put OCR output for labels into this directory.
-  ocr_engine: !Config
-    default: tesseract
-    choices: [tesseract, easyocr]
-    help: Which OCR engine to use.
+  ocr_engine: *ocr_engine
   glob:       *image_filter
   cpus:       *proc_cpus
   batch_size: *proc_batch
