@@ -11,6 +11,7 @@ import digi_leap.actions.faster_rcnn_train as faster_rcnn_train
 import digi_leap.actions.faster_rcnn_use as faster_rcnn_use
 import digi_leap.actions.idigbio_images as idigbio_images
 import digi_leap.actions.ocr_ensemble as ocr_ensemble
+import digi_leap.actions.ocr_in_house_qc as ocr_in_house_qc
 import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.config as conf
@@ -23,6 +24,7 @@ DISPATCH = {
     "faster_rcnn_use": faster_rcnn_use.use,
     "idigbio_images": idigbio_images.download_images,
     "ocr_ensemble": ocr_ensemble.build_all_ensembles,
+    "ocr_in_house_qc": ocr_in_house_qc.sample_sheets,
     "ocr_labels": ocr_labels.ocr_labels,
     "ocr_prepare": ocr_prepare.prepare_labels,
 }

@@ -72,7 +72,7 @@ def score_label_text(texts, sheet_dir):
             count = len(words)
 
         if count == 0:
-            score["hit_percent"] = 0.0
+            score["hit_percent"] = 0
             score["word_count"] = 0
         else:
             hits = results.text_hits(text)

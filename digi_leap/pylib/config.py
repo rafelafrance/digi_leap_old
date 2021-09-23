@@ -1,4 +1,7 @@
-"""Utilities for working with configurations."""
+"""Utilities for working with configurations.
+
+This is another experiment for handling common command-line arguments.
+"""
 
 import re
 from dataclasses import dataclass
@@ -18,9 +21,12 @@ class Config:
     help: Optional[str] = None
     type: Optional[Any] = None
     choices: Optional[list] = None
+    required: bool = False
+    metavar: str = ""
 
     def argument_dict(self):
         """Convert into ArgumentParser argument."""
+        # TODO: I can do better than the uber literalness of this
         arg = {}
 
         if self.default:
@@ -38,6 +44,12 @@ class Config:
 
         if self.choices:
             arg["choices"] = self.choices
+
+        if self.metavar:
+            arg["metavar"] = self.metavar
+
+        if self.required:
+            arg["required"] = True
 
         return arg
 

@@ -41,12 +41,12 @@ def ocr_tesseract(labels, tesseract_dir, cpus, batch_size):
 
     batches = [labels[i:i + batch_size] for i in range(0, len(labels), batch_size)]
 
-    with Pool(processes=cpus) as pool, tqdm(total=len(labels)) as bar:
+    with Pool(processes=cpus) as pool, tqdm(total=len(batches)) as bar:
         results = [
             pool.apply_async(
                 tesseract_batch,
                 (b, tesseract_dir),
-                callback=lambda _: bar.update(len(b)),
+                callback=lambda _: bar.update(),
             )
             for b in batches
         ]

@@ -2,17 +2,28 @@
 
 import re
 from collections import defaultdict, namedtuple  # Counter
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Union
+from typing import DefaultDict, Union
 
 import pandas as pd
 
-from . import box_calc as calc
-from . import vocab
+from . import box_calc as calc, vocab
+
+DocText = namedtuple("DocText", "text ocr")
 
 
-DocText = namedtuple("DocText", "text doc")
-Best = namedtuple("Best", "text winners")
+@dataclass
+class BestScore:
+    """Holds the best scores for a text ensemble."""
+
+    text: str
+    method: str
+    score: float
+    winners: list[str]
+
+
+# Best = namedtuple("Best", "text method winners")
 
 
 def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
@@ -81,7 +92,7 @@ def text_hits(text: str) -> int:
     return hits
 
 
-def reconcile_text(doc_texts: list[DocText]) -> Best:
+def reconcile_text(doc_texts: list[DocText]) -> BestScore:
     """Find the single "best" text string from a list of similar texts.
 
     First we look for the most common text string in the list. If that
@@ -89,32 +100,36 @@ def reconcile_text(doc_texts: list[DocText]) -> Best:
     for a string that contains the most words that have a vocabulary hit.
     """
     if not doc_texts:
-        return Best("", [])
+        return BestScore("", "None", 0.0, [])
 
-    # First look if a text appears in the majority of texts
-    # Count the occurrence of the texts. Counter is not helpful here.
+    # First look if a text appears in the majority of ocr documents
     counts = defaultdict(list)
-    for text, doc in doc_texts:
+    for text, ocr in doc_texts:
         text = re.sub(r"\s([.,:])", r"\1", text)  # Remove leading space from punct
-        counts[text].append(doc)
-    bests = [Best(k, v) for k, v in sorted(counts.items(), key=lambda x: len(x[1]))]
+        counts[text].append(ocr)
 
-    if len(bests[0].winners) >= len(doc_texts) / 2:
+    bests = [
+        BestScore(text, "majority", len(ocr) / len(doc_texts), ocr)
+        for text, ocr in sorted(counts.items(), key=lambda x: len(x[1]))
+    ]
+
+    if bests[0].score >= 0.5 and len(bests[0].winners) > 1:
         return bests[0]
 
     # Fallback to looking for the text(s) with the best score
-    scores = defaultdict(list)
+    scores: DefaultDict[float, list[DocText]] = defaultdict(list)
     for doc_text in doc_texts:
         words = doc_text.text.split()
         hits = text_hits(doc_text.text)
         count = len(words)
         score = (hits / count) if count > 0 else 0.0
         scores[score].append(doc_text)
-    scores = [b for s, b in sorted(scores.items(), key=lambda x: -x[0])]
-    best = scores[0]
-    text = best[0].text  # Just choosing the first one
-    winners = [b[1] for b in best]
-    return Best(text, winners)
+
+    top = [(s, d) for s, d in sorted(scores.items(), key=lambda i: -i[0])]
+    score, doc_text = top[0]
+    text = doc_text[0].text  # If there are equal scores choose the first text
+    winners = [d.ocr for d in doc_text]
+    return BestScore(text, "score", score, winners)
 
 
 def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFrame:
@@ -144,7 +159,7 @@ def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFr
             texts.append(DocText(text, str(s)))
 
         # Find the "best" text & the docs with it
-        best_text, winners = reconcile_text(texts)
+        best_score = reconcile_text(texts)
 
         merged.append(
             {
@@ -152,9 +167,11 @@ def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFr
                 "top": box_group.top.min(),
                 "right": box_group.right.max(),
                 "bottom": box_group.bottom.max(),
-                "text": best_text,
+                "text": best_score.text,
                 "ocr_dir": box_group.ocr_dir.iloc[0],
-                "winners": winners,
+                "method": best_score.method,
+                "winners": best_score.winners,
+                "score": best_score.score,
             }
         )
 

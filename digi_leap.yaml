@@ -1,4 +1,5 @@
-# TODO: Dry this up
+# TODO: Let's see if this experiment helps DRYs settings and arguments
+# TODO: Right now this file itself could use a bit of DRYing
 
 # This contains, so far, Config objects that are just arguments to various actions
 # that digi_leap.py can perform.
@@ -9,6 +10,7 @@
 #   - The type (optional) arg types can be determined from the default value but if
 #     there is no default value then you can use this field.
 #   - The choices field is for a controlled vocabulary argument
+#   - Required
 # There are a lot of common values for arguments at the top and the per module arguments
 # are grouped by module name below them.
 
@@ -94,11 +96,11 @@ prep_dir: &prep_dir !Config
   help: The directory that holds prepared label images.
 
 ensemble_image_dir: &ensemble_image_dir !Config
-  default: !Path output/ensemble_{curr_model_name}a_images
+  type: !Path .
   help: OCR ensemble images are in this directory.
 
 ensemble_text_dir: &ensemble_text_dir !Config
-  default: !Path output/ensemble_{curr_model_name}a_text
+  type: !Path .
   help: OCR ensemble text is in directory.
 
 idigbio_db: &idigbio_db !Config
@@ -266,6 +268,8 @@ ocr_ensemble:
 
 
 ocr_expedition:
+  ensemble_images:  *ensemble_image_dir
+  ensemble_text:    *ensemble_text_dir
   expedition_dir: !Config
     default: !Path data/temp/expedition_{curr_model_name}b
     help:
@@ -287,6 +291,8 @@ ocr_expedition:
 
 
 ocr_in_house_qc:
+  help: |-
+    Build a single "best" label from the ensemble of OCR outputs.
   qc_dir: !Config
     default: !Path data/temp/qc_{curr_model_name}
     help:

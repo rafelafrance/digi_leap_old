@@ -70,7 +70,7 @@ def process_batches(
     all_records = []
 
     batches = [paths[i: i + batch_size] for i in range(0, len(paths), batch_size)]
-    with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(paths)) as bar:
+    with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(batches)) as bar:
         all_results = [
             pool.apply_async(
                 ensemble_batch,
@@ -81,7 +81,7 @@ def process_batches(
                     ensemble_image_dir,
                     line_space,
                 ),
-                callback=lambda _: bar.update(len(b)),
+                callback=lambda _: bar.update(),
             )
             for b in batches
         ]
@@ -135,7 +135,10 @@ def build_ensemble(
         build_ensemble_images(
             stem, df, prepared_label_dir, ensemble_image_dir, line_space
         )
-    records = df.loc[:, ["text", "winners", "stem"]].to_dict("records")
+
+    records = df.loc[:, ["text", "method", "winners", "score", "stem"]].to_dict(
+        "records"
+    )
     return records
 
 
