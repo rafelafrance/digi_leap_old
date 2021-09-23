@@ -1,7 +1,0 @@
---label-dir=output/faster_rcnn_2021-08-18_deskew
---ocr-dir=output/easyocr_faster_rcnn_2021-08-18_binarize
---ocr-dir=output/easyocr_faster_rcnn_2021-08-18_deskew
---ocr-dir=output/tesseract_faster_rcnn_2021-08-18_binarize
---ocr-dir=output/tesseract_faster_rcnn_2021-08-18_deskew
---ensemble-images=output/ensemble_faster_rcnn_2021-08-18_images
---ensemble-text=output/ensemble_faster_rcnn_2021-08-18_text

@@ -1,3 +1,0 @@
---label-dir=data/label-babel-2/faster_rcnn_2021-08-18
---prepared-dir=output/faster_rcnn_2021-08-18_binarize
---pipeline=binarize
