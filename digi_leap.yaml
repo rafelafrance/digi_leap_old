@@ -1,5 +1,5 @@
 # TODO: Let's see if this experiment helps DRYs settings and arguments
-# TODO: Right now this file itself could use a bit of DRYing
+# TODO: This file itself could use a bit of DRYing. I.e. The experiment is not working.
 
 # This contains, so far, Config objects that are just arguments to various actions
 # that digi_leap.py can perform.
@@ -16,7 +16,7 @@
 
 # Root dir for the label babel data
 label_babel_dir: &label_babel_dir !Config
-    default: !Path data/label-babel-2
+    type: !Path .
     help: Base directory for Label Babel data.
 
 # The most recent models
@@ -25,13 +25,8 @@ curr_model_name: &curr_model_name !Config
     help: The name of the model being used to find labels on herbarium sheets.
 
 prev_model_name: &prev_model_name !Config
-    default: ""
+    type: !Path .
     help: The name of the model previous used to find labels on herbarium sheets.
-
-# Label babel expedition
-label_babel: &label_babel !Config
-    default: 17633_label_babel_2
-    help: Name of the Label Babel expedition.
 
 image_filter: &image_filter !Config
   default: "*.jpg"
@@ -78,6 +73,10 @@ sbs_threshold: &sbs_threshold !Config
 limit: &limit !Config
   type: 1
   help: Limit the input to this many records.
+
+label_babel: &label_babel !Config
+    default: 17633_label_babel_2
+    help: Name of a Label Babel expedition.
 
 sheets_dir: &sheets_dir !Config
   default: !Path "{label_babel_dir}/herbarium-sheets-small"
@@ -268,26 +267,32 @@ ocr_ensemble:
 
 
 ocr_expedition:
-  ensemble_images:  *ensemble_image_dir
-  ensemble_text:    *ensemble_text_dir
+  ensemble_images: *ensemble_image_dir
+  ensemble_text:   *ensemble_text_dir
+  label_dir:       *label_dir
   expedition_dir: !Config
-    default: !Path data/temp/expedition_{curr_model_name}b
-    help:
+    type: !Path .
+    help: Where the expedition files are.
   filter_rulers: !Config
     default: 2.0
-    help:
+    help: |-
+      Consider a label to be a ruler if the height:width (or width:height)
+      ratio is above this.
   largest_labels: !Config
     default: 1
-    help:
-  word_threshold: !Config
+    help: Keep the N largest labels.
+  word_count_threshold: !Config
     default: 20
-    help:
+    help: Skip labels with fewer than this many words.
+  vocab_count_threshold: !Config
+    default: 10
+    help: Skip labels with fewer than this vocabulary hits.
   filter_types: !Config
     default:
       - Barcode
       - Both
       - Handwritten
-    help:
+    help: Remove labels if they fall into any of these categories.
 
 
 ocr_in_house_qc:

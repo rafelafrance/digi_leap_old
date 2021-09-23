@@ -86,7 +86,7 @@ def text_hits(text: str) -> int:
     - A data like: 1/22/34 or 11-2-34
     """
     words = text.lower().split()
-    hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab.VOCAB)
+    hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab.VOCAB and len(w) > 2)
     hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
     hits += sum(1 for w in words if re.match(r"^\d\d?[/-]\d\d?[/-]\d\d$", w))
     return hits

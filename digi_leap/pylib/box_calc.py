@@ -90,7 +90,7 @@ def nms(boxes, threshold=0.3, scores=None):
 
 
 def small_box_overlap(boxes, threshold=0.5):
-    """Get overlapping box groups using the interection over area of the smaller box.
+    """Get overlapping box groups using the intersection over area of the smaller box.
 
     This is analogous to the classic "non-maximum suppression" algorithm except:
         1. I return the groups of boxes rather than prune the overlapping ones.

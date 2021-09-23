@@ -38,9 +38,9 @@ def sample_sheets(args):
 
         # Shorten file names
         name = stem
-        name = name.replace("static_VascularPlant_originals_", "")
-        name = name.replace("_format_large", "")
-        name = name.replace("_http", "")
+        # name = name.replace("static_VascularPlant_originals_", "")
+        # name = name.replace("_format_large", "")
+        # name = name.replace("_http", "")
 
         sheet_dir = qc_dir / name
         os.makedirs(sheet_dir, exist_ok=True)

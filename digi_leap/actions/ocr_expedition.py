@@ -12,6 +12,8 @@ from typing import Optional
 import pandas as pd
 from PIL import Image
 
+from digi_leap.pylib.ocr_results import text_hits
+
 
 @dataclass
 class Label:
@@ -28,8 +30,13 @@ def build_expedition(args: Namespace) -> None:
     """Group OCR output paths by label."""
     makedirs(args.expedition_dir, exist_ok=True)
 
-    sheets = get_sheets(args.ensemble_image_dir, args.ensemble_text_dir, args.label_dir)
-    sheets = sort_sheet_labels(sheets, args.word_threshold)
+    sheets = get_sheets(args.ensemble_images, args.ensemble_text, args.label_dir)
+
+    sheets = filter_labels_by_words(
+        sheets, args.word_count_threshold, args.vocab_count_threshold
+    )
+
+    sheets = sort_sheet_labels(sheets)
 
     # The order of the following 3 filters matters
     # Remove rulers before getting the largest labels
@@ -88,23 +95,39 @@ def filter_rulers(sheets, threshold):
     return sheets
 
 
-def sort_sheet_labels(sheets, word_threshold):
-    """Sort each sheet's labels by word count [descending]."""
+def filter_labels_by_words(sheets, word_threshold, vocab_threshold):
+    """Filter labels by word count and vocabulary hit count."""
     for name, labels in sheets.items():
         if not labels:
             continue
 
-        # Sort by word count
+        new_labels = []
+
         for label in labels:
             with open(label.text) as text_file:
                 text = text_file.read()
                 words = text.split()
-                label.size = len(words)
-        labels = sorted(labels, key=lambda x: -x.size)
 
-        # Check word count
-        if labels[0].size >= word_threshold:
-            sheets[name] = labels
+                # Skip labels with too few words
+                if len(words) < word_threshold:
+                    continue
+
+                # Skip labels with too few vocab hits
+                hits = text_hits(text)
+                if hits < vocab_threshold:
+                    continue
+
+            new_labels.append(label)
+
+        sheets[name] = new_labels
+
+    return sheets
+
+
+def sort_sheet_labels(sheets):
+    """Sort each sheet's labels by image size [descending]."""
+    for name, labels in sheets.items():
+        if not labels:
             continue
 
         # Sort by image size
@@ -115,10 +138,10 @@ def sort_sheet_labels(sheets, word_threshold):
     return sheets
 
 
-def get_sheets(ensemble_image_dir, ensemble_text_dir, label_dir):
+def get_sheets(ensemble_images, ensemble_text, label_dir):
     """Build a dictionary of expedition sheets with lists of their labels."""
-    images = ensemble_image_dir.glob("*.jpg")
-    texts = ensemble_text_dir.glob("*.txt")
+    images = ensemble_images.glob("*.jpg")
+    texts = ensemble_text.glob("*.txt")
 
     # Create a dict of labels
     ensemble_labels = defaultdict(Label)
@@ -137,30 +160,3 @@ def get_sheets(ensemble_image_dir, ensemble_text_dir, label_dir):
         sheets[name].append(label)
 
     return sheets
-
-# def parse_args() -> Namespace:
-#     """Process command-line arguments."""
-#     description = """Build build an expedition from OCR ensemble output."""
-#     parser = ArgParser(description)
-#
-#     parser.ensemble_image_dir()
-#     parser.ensemble_text_dir()
-#     parser.expedition_dir()
-#     parser.label_dir(action="read")
-#     parser.filter_rulers()
-#     parser.largest_labels()
-#     parser.filter_types()
-#     parser.word_threshold()
-#     parser.limit()
-#
-#     args = parser.parse_args()
-#     return args
-#
-#
-# if __name__ == "__main__":
-#     log.started()
-#
-#     ARGS = parse_args()
-#     build_expedition(ARGS)
-#
-#     log.finished()
