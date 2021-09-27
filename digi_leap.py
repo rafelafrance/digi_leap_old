@@ -15,8 +15,7 @@ import digi_leap.actions.ocr_expedition as ocr_expedition
 import digi_leap.actions.ocr_in_house_qc as ocr_in_house_qc
 import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.actions.ocr_prepare as ocr_prepare
-import digi_leap.pylib.config as conf
-import digi_leap.pylib.const as const
+import digi_leap.pylib.args as arguments
 from digi_leap.pylib.util import kabob
 
 DISPATCH = {
@@ -32,7 +31,7 @@ DISPATCH = {
 }
 
 
-def parse_args(configs) -> Namespace:
+def parse_args() -> Namespace:
     """Process the command-line."""
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
@@ -49,40 +48,37 @@ def parse_args(configs) -> Namespace:
 
     list_params(subparsers)
 
-    for key, value in configs.items():
-        if isinstance(value, conf.Config):
-            continue
-        add_subparser(subparsers, configs[key], key)
+    for key, value in arguments.ARGS.items():
+        add_subparser(subparsers, key, arguments.ARGS[key])
 
     args = parser.parse_args()
     return args
 
 
-def add_subparser(subparsers, section, name):
+def add_subparser(subparsers, name, section):
     """Add a subparser for a module."""
     subparser = subparsers.add_parser(kabob(name), help=section.get("help"))
     subparser.set_defaults(func=name)
 
-    for key, config in section.items():
-        if isinstance(config, conf.Config):
-            arg_dict = config.argument_dict()
-            subparser.add_argument(f"--{kabob(key)}", **arg_dict)
+    # for key, config in section.items():
+    #     if isinstance(config, conf.Config):
+    #         arg_dict = config.argument_dict()
+    #         subparser.add_argument(f"--{kabob(key)}", **arg_dict)
 
 
 def list_params(subparsers):
     """Add a list parameter values."""
 
-    def func(args, configs):
+    def func(args):
         """Perform the list params action."""
-        if args.action == "all":
-            conf.display(configs)
-        else:
-            try:
-                sect = configs[args.action]
-            except KeyError:
-                sys.exit(f"Could not find action: {args.action}")
-            print(args.action)
-            conf.display(sect)
+        if args.action != "all" and args.action not in arguments.ARGS:
+            sys.exit(f"Unknown action: {args.action}")
+
+        for action, params in arguments.ARGS.items():
+            if args.action == 'all' or action == args.action:
+                print()
+                print(action)
+                arguments.display(params)
 
     subparser = subparsers.add_parser("list", help="""List parameters for actions.""")
     subparser.set_defaults(func=func)
@@ -97,10 +93,7 @@ def list_params(subparsers):
 
 def main():
     """Run the script."""
-    configs = conf.read_configs(const.CONFIG_PATH)
-
-    args = parse_args(configs)
-
+    args = parse_args()
     if not hasattr(args, "func"):
         name = Path(sys.argv[0]).name
         sys.exit(f"You need to choose an action. See: {name} -h")
@@ -108,7 +101,7 @@ def main():
     if args.func in DISPATCH:
         DISPATCH[args.func](args)
     else:
-        args.func(args, configs)
+        args.func(args)
 
 
 if __name__ == "__main__":

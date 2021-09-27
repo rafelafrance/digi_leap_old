@@ -23,9 +23,6 @@ class BestScore:
     winners: list[str]
 
 
-# Best = namedtuple("Best", "text method winners")
-
-
 def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
     """Get the data frame for the image.
 

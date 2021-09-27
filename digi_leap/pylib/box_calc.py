@@ -96,7 +96,7 @@ def small_box_overlap(boxes, threshold=0.5):
         1. I return the groups of boxes rather than prune the overlapping ones.
         2. The measure is: intersection over the area of the smaller box.
 
-    Also see: small_box_suppression()
+    Also see: small_box_suppression().
     """
     if len(boxes) == 0:
         return np.array([])
