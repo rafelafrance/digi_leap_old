@@ -16,7 +16,6 @@ import digi_leap.actions.ocr_in_house_qc as ocr_in_house_qc
 import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.args as arguments
-from digi_leap.pylib.util import kabob
 
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,
@@ -57,13 +56,12 @@ def parse_args() -> Namespace:
 
 def add_subparser(subparsers, name, section):
     """Add a subparser for a module."""
-    subparser = subparsers.add_parser(kabob(name), help=section.get("help"))
+    subparser = subparsers.add_parser(name, help=section.get("help"))
     subparser.set_defaults(func=name)
 
-    # for key, config in section.items():
-    #     if isinstance(config, conf.Config):
-    #         arg_dict = config.argument_dict()
-    #         subparser.add_argument(f"--{kabob(key)}", **arg_dict)
+    for key, config in section.items():
+        if isinstance(config, dict):
+            subparser.add_argument(f"--{key}", **config)
 
 
 def list_params(subparsers):
