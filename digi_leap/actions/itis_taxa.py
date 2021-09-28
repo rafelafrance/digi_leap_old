@@ -66,39 +66,3 @@ def filter_names(names: set[str]) -> list[str]:
     names = [n for n in names if len(n) > 1]
     names = sorted(names)
     return names
-
-# def parse_args() -> Namespace:
-#     """Process command-line arguments."""
-#     description = """
-#     Create a vocabulary file of all plant taxon names.
-#     """
-#     arg_parser = ArgumentParser(
-#         description=textwrap.dedent(description), fromfile_prefix_chars="@"
-#     )
-#
-#     defaults = Config().module_defaults()
-#
-#     arg_parser.add_argument(
-#         "--itis-db",
-#         default=defaults["itis_db"],
-#         type=Path,
-#         help="""The ITIS SQLite3 database. (default: %(default)s)""",
-#     )
-#
-#     # arg_parser.add_argument(
-#     #     "--lang",
-#     #     default=module_defaults['lang'],
-#     #     help="""Which language to use. (default: %(default)s)""",
-#     # )
-#
-#     args = arg_parser.parse_args()
-#     return args
-
-
-# if __name__ == "__main__":
-#     log.started()
-#
-#     ARGS = parse_args()
-#     get_itis_data(ARGS)
-#
-#     log.finished()

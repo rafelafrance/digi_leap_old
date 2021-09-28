@@ -100,6 +100,7 @@ def insert(zip_file, csv_params, db_params):
         with zipfile.ZipFile(zip_file) as zipped:
             with zipped.open(csv_params.file_name) as in_file:
 
+                # Pandas handles the broken CSV files better than the csv module
                 reader = pd.read_csv(
                     in_file,
                     dtype=str,
@@ -159,7 +160,8 @@ def insert(zip_file, csv_params, db_params):
 #         "--zip-file",
 #         default=defaults.idigbio_zip_file,
 #         type=Path,
-#         help="""The zip file containing the iDigBio snapshot. (default: %(default)s)""",
+#         help="""The zip file containing the iDigBio snapshot.
+#           (default: %(default)s)""",
 #     )
 #
 #     arg_parser.add_argument(
@@ -204,7 +206,8 @@ def insert(zip_file, csv_params, db_params):
 #         help=f"""Rows must contain these patterns in the given fields. You may use
 #             more than one filter. The format is regex@column. For example,
 #             --row-filters=plant@dwc:kingdom will only choose rows that have 'plant'
-#             somewhere in the 'dwc:kingdom' field and --row-filters=.@dwc:scientificName
+#             somewhere in the 'dwc:kingdom' field and
+#             --row-filters=.@dwc:scientificName
 #             will look for a non-blank 'dwc:scientificName' field. If you use more than
 #             one filter the row must match all of the filters to get into the
 #             database. It's an 'and' condition. (default: {default})""",

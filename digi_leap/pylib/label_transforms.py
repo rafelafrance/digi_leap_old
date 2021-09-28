@@ -34,7 +34,6 @@ class LabelTransform(ABC):
     @staticmethod
     def to_pil(image: npt.ArrayLike) -> Image:
         """Convert a numpy array to a PIL image."""
-        """Convert the label data into a PIL image"""
         if hasattr(image, "dtype") and image.dtype == "float64":
             mode = "L" if len(image.shape) < 3 else "RGB"
             return Image.fromarray(image * 255.0, mode)
