@@ -15,11 +15,11 @@ def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
     # labels = filter_labels(args.glob, args.limit)
 
-    if args.ocr_engine == "tesseract":
-        ocr_tesseract(labels, args.output_dir, args.cpus, args.batch_size)
-
-    elif args.ocr_engine == "easyocr":
-        ocr_easyocr(labels, args.output_dir)
+    # if args.ocr_engine == "tesseract":
+    #     ocr_tesseract(labels, args.output_dir, args.cpus, args.batch_size)
+    #
+    # elif args.ocr_engine == "easyocr":
+    #     ocr_easyocr(labels, args.output_dir)
 
 
 # def filter_labels(image_filter, limit):
@@ -51,23 +51,23 @@ def ocr_tesseract(labels, tesseract_dir, cpus, batch_size):
 
 def tesseract_batch(batch, tesseract_dir):
     """OCR one set of labels with tesseract."""
-    for label in batch:
-        path = name_output_file(tesseract_dir, label)
-        image = Image.open(label)
-        df = ocr.tesseract_dataframe(image)
-        df.to_csv(path, index=False)
+    # for label in batch:
+    #     path = name_output_file(tesseract_dir, label)
+    #     image = Image.open(label)
+    #     df = ocr.tesseract_dataframe(image)
+    #     df.to_csv(path, index=False)
 
 
 def ocr_easyocr(labels, easyocr_dir):
     """OCR the label with easyocr."""
     # Because EasyOCR uses the GPU I cannot use subprocesses on a laptop :(
-    logging.info("OCR with EasyOCR")
-    for label in tqdm(labels):
-        image = Image.open(label)
-        results = ocr.easyocr_engine(image)
-
-        path = name_output_file(easyocr_dir, label)
-        to_csv(path, results)
+    # logging.info("OCR with EasyOCR")
+    # for label in tqdm(labels):
+    #     image = Image.open(label)
+    #     results = ocr.easyocr_engine(image)
+    #
+    #     path = name_output_file(easyocr_dir, label)
+    #     to_csv(path, results)
 
 
 # def name_output_file(dir_path, label):
