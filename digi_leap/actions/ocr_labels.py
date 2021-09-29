@@ -2,10 +2,8 @@
 
 import csv
 import logging
-import os
 from argparse import Namespace
 from multiprocessing import Pool
-from os.path import basename, join, splitext
 
 from PIL import Image
 from tqdm import tqdm
@@ -15,9 +13,7 @@ import digi_leap.pylib.ocr as ocr
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
-    labels = filter_labels(args.prepared_dir, args.glob, args.limit)
-
-    os.makedirs(args.output_dir, exist_ok=True)
+    # labels = filter_labels(args.glob, args.limit)
 
     if args.ocr_engine == "tesseract":
         ocr_tesseract(labels, args.output_dir, args.cpus, args.batch_size)
@@ -26,13 +22,13 @@ def ocr_labels(args: Namespace) -> None:
         ocr_easyocr(labels, args.output_dir)
 
 
-def filter_labels(prepared_label_dir, image_filter, limit):
-    """Filter labels that do not meet argument criteria."""
-    logging.info("filtering labels")
-    paths = sorted(prepared_label_dir.glob(image_filter))
-    paths = [str(p) for p in paths]
-    paths = paths[:limit] if limit else paths
-    return paths
+# def filter_labels(image_filter, limit):
+#     """Filter labels that do not meet argument criteria."""
+#     logging.info("filtering labels")
+#     paths = sorted(prepared_label_dir.glob(image_filter))
+#     paths = [str(p) for p in paths]
+#     paths = paths[:limit] if limit else paths
+#     return paths
 
 
 def ocr_tesseract(labels, tesseract_dir, cpus, batch_size):
@@ -74,11 +70,11 @@ def ocr_easyocr(labels, easyocr_dir):
         to_csv(path, results)
 
 
-def name_output_file(dir_path, label):
-    """Generate the output file name."""
-    path = splitext(basename(label))[0]
-    path = join(dir_path, f"{path}.csv")
-    return path
+# def name_output_file(dir_path, label):
+#     """Generate the output file name."""
+#     path = splitext(basename(label))[0]
+#     path = join(dir_path, f"{path}.csv")
+#     return path
 
 
 def to_csv(path, results):

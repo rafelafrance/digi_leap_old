@@ -16,7 +16,6 @@ import digi_leap.actions.ocr_in_house_qc as ocr_in_house_qc
 import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.args as arguments
-# import digi_leap.pylib.util as util
 
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,

@@ -1,7 +1,6 @@
 """Use a trained model to cut out labels on herbarium sheets."""
 
 import logging
-import os
 
 import torch
 import torchvision
@@ -12,13 +11,12 @@ from torchvision.ops import batched_nms
 from tqdm import tqdm
 
 import digi_leap.pylib.box_calc as calc
+import digi_leap.pylib.db as db
 import digi_leap.pylib.subject as sub
 
 
 def use(args):
     """Train the neural net."""
-    os.makedirs(args.label_dir, exist_ok=True)
-
     torch.multiprocessing.set_sharing_strategy("file_system")
 
     state = torch.load(args.load_model)
@@ -31,18 +29,16 @@ def use(args):
 
     model.eval()
 
-    paths = list(args.sheets_dir.glob(args.glob))
-    if args.limit:
-        paths = paths[: args.limit]
+    paths = db.select_sheet_paths(args.database, limit=args.limit)
+    db.create_label_table(args.database, drop=True)
+
+    label_batch = []
 
     for path in tqdm(paths):
-        try:
-            with Image.open(path) as image:
-                image = image.convert("L")
-                data = transforms.ToTensor()(image)
-        except UnidentifiedImageError:
-            logging.warning(f"{path} is not an image")
-            continue
+
+        with Image.open(path) as image:
+            image = image.convert("L")
+            data = transforms.ToTensor()(image)
 
         with torch.no_grad():
             preds = model([data.to(device)])
@@ -61,11 +57,20 @@ def use(args):
             labels = labels[idx]
 
             for i, (box, label) in enumerate(zip(boxes, labels)):
-                label_image = image.crop(box.tolist())
-                class_name = sub.CLASS2NAME[label.item()]
-                label_name = f"{path.stem}_{i}_{class_name}{path.suffix}"
-                label_path = args.label_dir / label_name
-                label_image.save(label_path, "JPEG")
+                box = box.tolist()
+                label_batch.append(
+                    {
+                        "path": str(path),
+                        "class": sub.CLASS2NAME[label.item()],
+                        "offset": i,
+                        "left": round(box[0]),
+                        "top": round(box[1]),
+                        "right": round(box[2]),
+                        "bottom": round(box[3]),
+                    }
+                )
+
+    db.insert_labels(args.database, label_batch)
 
 
 def get_model():

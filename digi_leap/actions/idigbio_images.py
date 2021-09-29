@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sqlite3
 from urllib.error import HTTPError
 from urllib.request import urlretrieve
 
@@ -35,21 +34,20 @@ def verify_images(args):
     """Put valid image paths into a database."""
     images = []
     errors = []
-    glob = args.sheets_dir.glob(args.glob)
-    for path in tqdm.tqdm(glob):
+    for path in args.sheets_dir.glob(args.glob):
+        image = None
         try:
             image = Image.open(path)
-            _ = image.size  # This should be enough to see if it's valid
-            images.append((str(path), ))
+            width, height = image.size
+            images.append({"path": str(path), "width": width, "height": height})
         except UnidentifiedImageError:
             logging.warning(f"{path} is not an image")
-            errors.append((str(path), ))
-            continue
+            errors.append({"path": str(path)})
         finally:
-            image.close()
+            if image:
+                image.close()
 
-    with sqlite3.connect(args.database) as cxn:
-        db.create_sheets_table(cxn)
-        db.create_sheet_errors_table(cxn)
-        db.insert_sheets_batch(cxn, images)
-        db.insert_sheet_errors_batch(cxn, errors)
+    db.create_sheets_table(args.database)
+    db.create_sheet_errors_table(args.database)
+    db.insert_sheets(args.database, images)
+    db.insert_sheet_errors(args.database, errors)

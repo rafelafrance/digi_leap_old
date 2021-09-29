@@ -4,19 +4,6 @@ from pathlib import Path
 
 DEFAULT = {
     # Root dir for the label babel data
-    "label_babel_dir": {
-        "type": Path,
-        "help": "Base directory for Label Babel data.",
-    },
-    # The most recent models
-    "curr_model_name": {
-        "default": "faster_rcnn_2021-08-18",
-        "help": "The name of the model being used to find labels on herbarium sheets.",
-    },
-    "prev_model_name": {
-        "type": Path,
-        "help": "Name of the model previous used to find labels on herbarium sheets.",
-    },
     "image_filter": {
         "default": "*.jpg",
         "help": "Glob images in the given directory with this pattern.",
@@ -43,10 +30,6 @@ DEFAULT = {
         "default": 10,
         "help": "How many items to put in each spawned CPU batch.",
     },
-    "threads": {
-        "default": 20,
-        "help": "",
-    },
     "row_batch": {
         "default": 1_000_000,
         "help": "Batch size when loading large data sets.",
@@ -63,10 +46,6 @@ DEFAULT = {
         "type": int,
         "help": "Limit the input to this many records.",
     },
-    "label_babel": {
-        "default": "17633_label_babel_2",
-        "help": "Name of a Label Babel expedition.",
-    },
     "digi_leap_db": {
         "type": Path,
         "help": "Path to the digi-leap database.",
@@ -74,10 +53,6 @@ DEFAULT = {
     "sheets_dir": {
         "type": Path,
         "help": "The directory containing the herbarium sheet images.",
-    },
-    "unreconciled_csv": {
-        "type": Path,
-        "help": "Unreconciled CSV data from a Label Babel expedition.",
     },
     "reconciled_jsonl": {
         "type": Path,
@@ -103,10 +78,6 @@ DEFAULT = {
         "type": Path,
         "help": "Zip file that holds raw iDigBio data.",
     },
-    "itis_db": {
-        "type": Path,
-        "help": "ITIS database.",
-    },
     "label_dir": {
         "type": Path,
         "help": "Directory containing cropped labels from herbarium sheets.",
@@ -119,15 +90,16 @@ DEFAULT = {
         "default": "deskew",
         "help": "A pipeline of image transformations that help with the OCR process.",
     },
-    "ocr_engine": {
-        "default": "tesseract",
-        "choices": ["tesseract", "easyocr"],
-        "help": "Which OCR engine to use.",
+    "ocr_engines": {
+        "default": ["tesseract", "easy", "paddle", "keras"],
+        "choices": ["tesseract", "easy", "paddle", "keras"],
+        "nargs": "+",
+        "help": "Which OCR engines to use.",
     },
 }
 
 # ###################################################################################
-# Default arguments for scripts
+# Arguments for scripts
 
 ARGS = {
     "faster_rcnn_test": {
@@ -149,7 +121,7 @@ ARGS = {
         "sheets_dir": DEFAULT["sheets_dir"],
         "save_model": DEFAULT["curr_model"],
         "load_model": {
-            "default": "",
+            "type": Path,
             "help": "Load this model to continue training.",
         },
         "batch_size": DEFAULT["gpu_batch"],
@@ -173,9 +145,7 @@ ARGS = {
     },
     "faster_rcnn_use": {
         "help": """Use a model that finds labels on herbarium sheets (inference).""",
-        "sheets_dir": DEFAULT["sheets_dir"],
-        "label_dir": DEFAULT["label_dir"],
-        "glob": DEFAULT["image_filter"],
+        "database": DEFAULT["digi_leap_db"],
         "load_model": DEFAULT["curr_model"],
         "device": DEFAULT["device"],
         "nms_threshold": DEFAULT["nms_threshold"],
@@ -250,96 +220,76 @@ ARGS = {
                         output/ocr/run2/label1.csv
                         output/ocr/run3/label1.csv
                 """,
-        "ocr_dir": {
-            "default": "output/ocr_*",
-            "help": "The set of OCR output directories to use for the ensemble.",
-        },
-        "label_filter": {},
-        "ensemble_text": DEFAULT["ensemble_text_dir"],
-        "prepared_dir": DEFAULT["prep_dir"],
-        "winners_jsonl": {
-            "type": Path,
-            "help": "Save data on which OCR results were used in the output.",
-        },
         "cpus": DEFAULT["proc_cpus"],
         "batch_size": DEFAULT["proc_batch"],
         "limit": DEFAULT["limit"],
-        "line_space": {
-            "default": 8,
-            "help": "Margin between lines of text in the reconstructed label output.",
-        },
     },
-    "ocr_expedition": {
-        "ensemble_images": DEFAULT["ensemble_image_dir"],
-        "ensemble_text": DEFAULT["ensemble_text_dir"],
-        "label_dir": DEFAULT["label_dir"],
-        "expedition_dir": {
-            "type": Path,
-            "help": "Where the expedition files are.",
-        },
-        "filter_rulers": {
-            "default": 2.0,
-            "help": """Consider a label to be a ruler if the height:width
-                      (or width:height) ratio is above this.""",
-        },
-        "largest_labels": {
-            "default": 1,
-            "help": "Keep the N largest labels.",
-        },
-        "word_count_threshold": {
-            "default": 20,
-            "help": "Skip labels with fewer than this many words.",
-        },
-        "vocab_count_threshold": {
-            "default": 10,
-            "help": "Skip labels with fewer than this vocabulary hits.",
-        },
-        "filter_types": {
-            "choices": ["Barcode", "Handwritten", "Typewritten", "Both"],
-            "nargs": "*",
-            "default": ["Typewritten"],
-            "help": "Keep labels if they fall into any of these categories.",
-        },
-    },
-    "ocr_in_house_qc": {
-        "help": """Build a single "best" label from the ensemble of OCR outputs.""",
-        "qc_dir": {
-            "type": Path,
-            "help": "",
-        },
-        "ensemble_images": DEFAULT["ensemble_image_dir"],
-        "ensemble_text": DEFAULT["ensemble_text_dir"],
-        "reconciled_jsonl": DEFAULT["reconciled_jsonl"],
-        "sheets_dir": DEFAULT["sheets_dir"],
-        "sample_size": {
-            "default": 25,
-            "help": "",
-        },
-    },
+    # "ocr_expedition": {
+    #     "ensemble_images": DEFAULT["ensemble_image_dir"],
+    #     "ensemble_text": DEFAULT["ensemble_text_dir"],
+    #     "label_dir": DEFAULT["label_dir"],
+    #     "expedition_dir": {
+    #         "type": Path,
+    #         "help": "Where the expedition files are.",
+    #     },
+    #     "filter_rulers": {
+    #         "default": 2.0,
+    #         "help": """Consider a label to be a ruler if the height:width
+    #                   (or width:height) ratio is above this.""",
+    #     },
+    #     "largest_labels": {
+    #         "default": 1,
+    #         "help": "Keep the N largest labels.",
+    #     },
+    #     "word_count_threshold": {
+    #         "default": 20,
+    #         "help": "Skip labels with fewer than this many words.",
+    #     },
+    #     "vocab_count_threshold": {
+    #         "default": 10,
+    #         "help": "Skip labels with fewer than this vocabulary hits.",
+    #     },
+    #     "filter_types": {
+    #         "choices": ["Barcode", "Handwritten", "Typewritten", "Both"],
+    #         "nargs": "*",
+    #         "default": ["Typewritten"],
+    #         "help": "Keep labels if they fall into any of these categories.",
+    #     },
+    # },
+    # "ocr_in_house_qc": {
+    #     "help": """Build a single "best" label from the ensemble of OCR outputs.""",
+    #     "qc_dir": {
+    #         "type": Path,
+    #         "help": "",
+    #     },
+    #     "ensemble_images": DEFAULT["ensemble_image_dir"],
+    #     "ensemble_text": DEFAULT["ensemble_text_dir"],
+    #     "reconciled_jsonl": DEFAULT["reconciled_jsonl"],
+    #     "sheets_dir": DEFAULT["sheets_dir"],
+    #     "sample_size": {
+    #         "default": 25,
+    #         "help": "",
+    #     },
+    # },
     "ocr_labels": {
         "help": """OCR images of labels.""",
-        "prepared_dir": DEFAULT["prep_dir"],
-        "output_dir": {
-            "type": Path,
-            "help": "Put OCR output for labels into this directory.",
-        },
-        "ocr_engine": DEFAULT["ocr_engine"],
-        "glob": DEFAULT["image_filter"],
-        "cpus": DEFAULT["proc_cpus"],
-        "batch_size": DEFAULT["proc_batch"],
-        "limit": DEFAULT["limit"],
-    },
-    "ocr_prepare": {
-        "help": """Prepare images of labels for OCR. Perform image manipulations on
-                   labels that may help with the OCR process.""",
-        "label_dir": DEFAULT["label_dir"],
-        "output_dir": DEFAULT["prep_dir"],
+        "ocr_engines": DEFAULT["ocr_engines"],
         "pipeline": DEFAULT["pipeline"],
         "cpus": DEFAULT["proc_cpus"],
         "batch_size": DEFAULT["proc_batch"],
-        "glob": DEFAULT["image_filter"],
         "limit": DEFAULT["limit"],
     },
+    # "ocr_prepare": {
+    #     "help": """Prepare images of labels for OCR. Perform image manipulations on
+    #                labels that may help with the OCR process.""",
+    #     "label_dir": DEFAULT["label_dir"],
+    #     "output_dir": DEFAULT["prep_dir"],
+    #     "pipeline": DEFAULT["pipeline"],
+    #     "cpus": DEFAULT["proc_cpus"],
+    #     "batch_size": DEFAULT["proc_batch"],
+    #     "glob": DEFAULT["image_filter"],
+    #     "limit": DEFAULT["limit"],
+    # },
 }
 
 
