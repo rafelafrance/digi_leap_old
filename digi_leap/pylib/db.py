@@ -71,13 +71,8 @@ def insert_sheet_errors(database, batch):
 
 def select_sheets(database, limit=0):
     """Get herbarium sheet image data."""
-    sql = """select sheet_id, path, width, height from sheets"""
+    sql = """select * from sheets"""
     return select_records(database, sql, limit)
-
-
-def select_sheet_paths(database, limit=0):
-    """Get herbarium sheet image paths."""
-    return [p["path"] for p in select_sheets(database, limit)]
 
 
 # ############ label table ##########################################################
@@ -88,7 +83,7 @@ def create_label_table(database, drop=False):
     sql = """
         create table if not exists labels (
             label_id integer primary key autoincrement,
-            path     text,
+            sheet_id integer,
             offset   integer,
             class    text,
             left     integer,
@@ -96,6 +91,8 @@ def create_label_table(database, drop=False):
             right    integer,
             bottom   integer
         );
+
+        create index labels_sheet_id on labels(sheet_id);
         """
     create_table(database, sql, "labels", drop=drop)
 
@@ -104,17 +101,15 @@ def insert_labels(database, batch):
     """Insert a batch of label records."""
     sql = """
         insert into labels
-               ( path,  offset,  class,  left,  top,  right,  bottom)
-        values (:path, :offset, :class, :left, :top, :right, :bottom);
+               ( sheet_id,  offset,  class,  left,  top,  right,  bottom)
+        values (:sheet_id, :offset, :class, :left, :top, :right, :bottom);
     """
     insert_batch(database, sql, batch)
 
 
 def select_labels(database, limit=0):
     """Get label records."""
-    sql = """
-        select label_id, path, offset, class, left, top, right, bottom from labels
-    """
+    sql = """select labels.*, sheets.* from labels join sheets using (sheet_id)"""
     return select_records(database, sql, limit)
 
 
@@ -126,9 +121,8 @@ def create_ocr_results_table(database, drop=False):
     sql = """
         create table if not exists ocr_results (
             ocr_id   integer primary key autoincrement,
+            label_id integer,
             run      text,
-            path     text,
-            offset   integer,
             engine   text,
             pipeline text,
             conf     real,
@@ -137,7 +131,9 @@ def create_ocr_results_table(database, drop=False):
             right    integer,
             bottom   integer,
             text     text
-        );
+
+        create index ocr_results_label_id on ocr_results(label_id);
+      );
         """
     create_table(database, sql, "ocr_results", drop=drop)
 
@@ -146,9 +142,9 @@ def insert_ocr_results(database, batch):
     """Insert a batch of label records."""
     sql = """
         insert into ocr_results
-               ( run,   path,  offset,  engine,  pipeline,  conf,
+               (labels_id,  run,   engine,  pipeline,  conf,
                  left,  top,   right,   bottom,  text)
-        values (:run,  :path, :offset, :engine, :pipeline, :conf,
+        values (:label_id, :run,  :engine, :pipeline, :conf,
                 :left, :top,  :right,  :bottom, :text);
     """
     insert_batch(database, sql, batch)
@@ -157,8 +153,13 @@ def insert_ocr_results(database, batch):
 def select_ocr_results(database, limit=0):
     """Get ocr_results records."""
     sql = """
-        select ocr_id, run, path,  offset, engine, pipeline, conf,
-               left,   top, right, bottom, text
+        select ocr_results.*, sheets.*, offset, class,
+               labels.left   as label_left,
+               labels.top    as label_top,
+               labels.right  as label_right,
+               labels.bottom as label_bottom
           from ocr_results
+          join labels using (label_id)
+          join sheets using (sheet_id)
     """
     return select_records(database, sql, limit)

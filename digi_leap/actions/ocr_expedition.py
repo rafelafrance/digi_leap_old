@@ -68,9 +68,7 @@ def write_expedition(sheets, expedition_dir):
 
 def filter_types(sheets, types):
     """Remove labels without the given types."""
-    return {
-        nm: [lb for lb in lbs if lb.type_ in types] for nm, lbs in sheets.items()
-    }
+    return {nm: [lb for lb in lbs if lb.type_ in types] for nm, lbs in sheets.items()}
 
 
 def take_n_largest(sheets, n):

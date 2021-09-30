@@ -298,7 +298,7 @@ def display(args):
         if isinstance(settings, dict):
             print(f"    {arg}")
             for key, value in settings.items():
-                if key == 'type':
+                if key == "type":
                     value = str(value).replace("<class '", "").replace("'>", "")
                 print(f"        {key:<12} {value}")
 
@@ -307,8 +307,8 @@ def update_defaults(defaults):
     """Update arguments with reasonable defaults."""
     for name, params in defaults.items():
 
-        if defaults[name].get('help') and 'default' in params:
-            defaults[name]['help'] += f" (default {defaults[name]['default']})"
+        if defaults[name].get("help") and "default" in params:
+            defaults[name]["help"] += f" (default {defaults[name]['default']})"
 
 
 def update_args(args):
@@ -317,12 +317,12 @@ def update_args(args):
         for name, arg in params.items():
 
             # Skip module help
-            if name == 'help':
+            if name == "help":
                 continue
 
             # Process the argument
-            if 'type' not in arg and 'default' in arg:
-                params[name]['type'] = type(params[name]['default'])
+            if "type" not in arg and "default" in arg:
+                params[name]["type"] = type(params[name]["default"])
 
 
 update_defaults(DEFAULT)

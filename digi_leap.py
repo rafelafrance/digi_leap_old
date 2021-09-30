@@ -39,7 +39,7 @@ def parse_args() -> Namespace:
             sheets. It searches for labels on the sheets, extracts them, OCRs the
             labels, and extracts information from the OCR text.
             """
-        )
+        ),
     )
 
     subparsers = parser.add_subparsers()
@@ -72,7 +72,7 @@ def list_params(subparsers):
             sys.exit(f"Unknown action: {args.action}")
 
         for action, params in arguments.ARGS.items():
-            if args.action == 'all' or action == args.action:
+            if args.action == "all" or action == args.action:
                 print()
                 print(action)
                 arguments.display(params)

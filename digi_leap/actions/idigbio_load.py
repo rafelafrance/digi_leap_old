@@ -134,6 +134,7 @@ def insert(zip_file, csv_params, db_params):
 
                     if_exists = "append"
 
+
 # def parse_args():
 #     """Process command-line arguments."""
 #     description = """

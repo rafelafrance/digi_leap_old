@@ -29,4 +29,4 @@ def as_list(values: Any) -> list:
 
 def kabob(string):
     """Convert snake case to kabob case."""
-    return string.replace('_', '-')
+    return string.replace("_", "-")

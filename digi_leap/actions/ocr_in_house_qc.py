@@ -64,7 +64,7 @@ def score_label_text(texts, sheet_dir):
         parts = path.stem.split("_")
         score = {
             "index": int(parts[-2]),
-            "type":  parts[-1],
+            "type": parts[-1],
         }
         with open(path) as text_file:
             text = text_file.read()
@@ -104,6 +104,7 @@ def output_herbarium_sheet(sheet, sheet_dir, sheets_dir):
         draw.rectangle(box, outline="red", width=4)
     out_path = sheet_dir / f"herbarium_sheet.{in_path.suffix}"
     image.save(out_path)
+
 
 # def parse_args() -> Namespace:
 #     """Process command-line arguments."""

@@ -1,6 +1,5 @@
 """OCR a set of labels."""
 
-import csv
 import itertools
 import warnings
 from argparse import Namespace
@@ -24,7 +23,11 @@ def ocr_labels(args: Namespace) -> None:
     db.create_ocr_results_table(args.database)
 
     sheets = get_sheet_labels(
-        args.database, args.limit, args.classes, args.ruler_ratio, args.keep_n_largest,
+        args.database,
+        args.limit,
+        args.classes,
+        args.ruler_ratio,
+        args.keep_n_largest,
     )
 
     run = datetime.now().isoformat(sep="_", timespec="seconds")

@@ -27,14 +27,14 @@ def use(args):
 
     model.eval()
 
-    paths = db.select_sheet_paths(args.database, limit=args.limit)
+    sheets = db.select_sheets(args.database, limit=args.limit)
     db.create_label_table(args.database, drop=True)
 
     label_batch = []
 
-    for path in tqdm(paths):
+    for sheet in tqdm(sheets):
 
-        with Image.open(path) as image:
+        with Image.open(sheet['path']) as image:
             image = image.convert("L")
             data = transforms.ToTensor()(image)
 
@@ -58,9 +58,9 @@ def use(args):
                 box = box.tolist()
                 label_batch.append(
                     {
-                        "path": str(path),
-                        "class": sub.CLASS2NAME[label.item()],
+                        "sheet_id": sheet["sheet_id"],
                         "offset": i,
+                        "class": sub.CLASS2NAME[label.item()],
                         "left": round(box[0]),
                         "top": round(box[1]),
                         "right": round(box[2]),
