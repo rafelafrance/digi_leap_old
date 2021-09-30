@@ -20,7 +20,7 @@ ENGINE = {
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
-    db.create_ocr_results_table(args.database)
+    db.create_ocr_table(args.database)
 
     sheets = get_sheet_labels(
         args.database,
@@ -50,15 +50,14 @@ def ocr_labels(args: Namespace) -> None:
                         if results:
                             for result in results:
                                 result |= {
+                                    "label_id": lb["label_id"],
                                     "run": run,
-                                    "path": path,
-                                    "offset": lb["offset"],
                                     "engine": engine,
                                     "pipeline": pipeline,
                                 }
                             batch += results
 
-            db.insert_ocr_results(args.database, batch)
+            db.insert_ocr(args.database, batch)
 
 
 def get_sheet_labels(database, limit, classes, ruler_ratio, keep_n_largest):

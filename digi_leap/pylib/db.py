@@ -113,13 +113,13 @@ def select_labels(database, limit=0):
     return select_records(database, sql, limit)
 
 
-# ############ ocr_results table ######################################################
+# ############ ocr table #############################################################
 
 
-def create_ocr_results_table(database, drop=False):
+def create_ocr_table(database, drop=False):
     """Create a table with the label crops of the herbarium images."""
     sql = """
-        create table if not exists ocr_results (
+        create table if not exists ocr (
             ocr_id   integer primary key autoincrement,
             label_id integer,
             run      text,
@@ -131,34 +131,34 @@ def create_ocr_results_table(database, drop=False):
             right    integer,
             bottom   integer,
             text     text
+        );
 
-        create index ocr_results_label_id on ocr_results(label_id);
-      );
+        create index ocr_label_id on ocr(label_id);
         """
-    create_table(database, sql, "ocr_results", drop=drop)
+    create_table(database, sql, "ocr", drop=drop)
 
 
-def insert_ocr_results(database, batch):
-    """Insert a batch of label records."""
+def insert_ocr(database, batch):
+    """Insert a batch of ocr records."""
     sql = """
-        insert into ocr_results
-               (labels_id,  run,   engine,  pipeline,  conf,
-                 left,  top,   right,   bottom,  text)
-        values (:label_id, :run,  :engine, :pipeline, :conf,
-                :left, :top,  :right,  :bottom, :text);
+        insert into ocr
+               (labels_id,  run,   engine,  pipeline, 
+                 conf,  left,  top,   right,   bottom,  text)
+        values (:label_id, :run,  :engine, :pipeline,
+                :conf, :left, :top,  :right,  :bottom, :text);
     """
     insert_batch(database, sql, batch)
 
 
-def select_ocr_results(database, limit=0):
-    """Get ocr_results records."""
+def select_ocr(database, limit=0):
+    """Get ocr records."""
     sql = """
-        select ocr_results.*, sheets.*, offset, class,
+        select ocr.*, sheets.*, offset, class,
                labels.left   as label_left,
                labels.top    as label_top,
                labels.right  as label_right,
                labels.bottom as label_bottom
-          from ocr_results
+          from ocr
           join labels using (label_id)
           join sheets using (sheet_id)
     """
