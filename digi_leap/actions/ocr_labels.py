@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 import digi_leap.pylib.db as db
 import digi_leap.pylib.ocr as ocr
-from digi_leap.pylib.label_transforms import LabelTransform, transform_label
+from digi_leap.pylib.label_transforms import transform_label
 
 ENGINE = {
     "tesseract": ocr.tesseract_engine,
@@ -105,24 +105,3 @@ def filter_n_largest(labels, keep_n_largest):
         key=lambda lb: (lb["right"] - lb["left"]) * (lb["bottom"] - lb["top"]),
     )
     return labels[:keep_n_largest]
-
-
-def to_csv(path, results):
-    """Write the results to a CSV file."""
-    headers = "conf left top right bottom text".split()
-
-    with open(path, "w") as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(headers)
-
-        for box in results:
-            writer.writerow(
-                [
-                    box["conf"],
-                    box["left"],
-                    box["top"],
-                    box["right"],
-                    box["bottom"],
-                    box["text"],
-                ]
-            )
