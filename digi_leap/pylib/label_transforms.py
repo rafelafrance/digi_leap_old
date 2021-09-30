@@ -345,4 +345,4 @@ def transform_image(pipeline: list[Callable], image: Image) -> Image:
         actions.append(action)
 
     image = LabelTransform.to_pil(image)
-    return image, actions
+    return image

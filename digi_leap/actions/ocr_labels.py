@@ -1,80 +1,110 @@
 """OCR a set of labels."""
 
 import csv
-import logging
+import itertools
+import warnings
 from argparse import Namespace
-from multiprocessing import Pool
+from datetime import datetime
 
 from PIL import Image
 from tqdm import tqdm
 
+import digi_leap.pylib.db as db
 import digi_leap.pylib.ocr as ocr
+from digi_leap.pylib.label_transforms import LabelTransform, transform_label
+
+ENGINE = {
+    "tesseract": ocr.tesseract_engine,
+    "easy": ocr.easyocr_engine,
+}
 
 
 def ocr_labels(args: Namespace) -> None:
     """OCR the label images."""
-    # labels = filter_labels(args.glob, args.limit)
+    db.create_ocr_results_table(args.database)
 
-    # if args.ocr_engine == "tesseract":
-    #     ocr_tesseract(labels, args.output_dir, args.cpus, args.batch_size)
-    #
-    # elif args.ocr_engine == "easyocr":
-    #     ocr_easyocr(labels, args.output_dir)
+    sheets = get_sheet_labels(
+        args.database, args.limit, args.classes, args.ruler_ratio, args.keep_n_largest,
+    )
 
+    run = datetime.now().isoformat(sep="_", timespec="seconds")
 
-# def filter_labels(image_filter, limit):
-#     """Filter labels that do not meet argument criteria."""
-#     logging.info("filtering labels")
-#     paths = sorted(prepared_label_dir.glob(image_filter))
-#     paths = [str(p) for p in paths]
-#     paths = paths[:limit] if limit else paths
-#     return paths
+    with warnings.catch_warnings():  # Turn off EXIF warnings
+        warnings.filterwarnings("ignore", category=UserWarning)
 
+        for path, labels in tqdm(sheets.items()):
+            sheet = Image.open(path)
+            batch = []
 
-def ocr_tesseract(labels, tesseract_dir, cpus, batch_size):
-    """OCR the labels with tesseract."""
-    logging.info("OCR with Tesseract")
+            for lb in labels:
+                label = sheet.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
 
-    batches = [labels[i:i + batch_size] for i in range(0, len(labels), batch_size)]
+                for pipeline in args.pipelines:
+                    image = transform_label(pipeline, label)
 
-    with Pool(processes=cpus) as pool, tqdm(total=len(batches)) as bar:
-        results = [
-            pool.apply_async(
-                tesseract_batch,
-                (b, tesseract_dir),
-                callback=lambda _: bar.update(),
-            )
-            for b in batches
-        ]
-        _ = [r.get() for r in results]
+                    for engine in args.ocr_engines:
+                        results = ENGINE[engine](image)
+                        if results:
+                            for result in results:
+                                result |= {
+                                    "run": run,
+                                    "path": path,
+                                    "offset": lb["offset"],
+                                    "engine": engine,
+                                    "pipeline": pipeline,
+                                }
+                            batch += results
 
-
-def tesseract_batch(batch, tesseract_dir):
-    """OCR one set of labels with tesseract."""
-    # for label in batch:
-    #     path = name_output_file(tesseract_dir, label)
-    #     image = Image.open(label)
-    #     df = ocr.tesseract_dataframe(image)
-    #     df.to_csv(path, index=False)
+            db.insert_ocr_results(args.database, batch)
 
 
-def ocr_easyocr(labels, easyocr_dir):
-    """OCR the label with easyocr."""
-    # Because EasyOCR uses the GPU I cannot use subprocesses on a laptop :(
-    # logging.info("OCR with EasyOCR")
-    # for label in tqdm(labels):
-    #     image = Image.open(label)
-    #     results = ocr.easyocr_engine(image)
-    #
-    #     path = name_output_file(easyocr_dir, label)
-    #     to_csv(path, results)
+def get_sheet_labels(database, limit, classes, ruler_ratio, keep_n_largest):
+    """get the labels for each herbarium sheet and filter them."""
+    sheets = {}
+    labels = db.select_labels(database)
+    labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))
+    grouped = itertools.groupby(labels, lambda lb: lb["path"])
+
+    for path, labels in grouped:
+        labels = list(labels)
+
+        if classes:
+            labels = [lb for lb in labels if lb["class"] in classes]
+
+        if ruler_ratio > 0.0 and labels:
+            labels = filter_rulers(labels, ruler_ratio)
+
+        if keep_n_largest and labels:
+            labels = filter_n_largest(labels, keep_n_largest)
+
+        if labels:
+            sheets[path] = labels
+
+    if limit:
+        sheets = {p: lb for i, (p, lb) in enumerate(sheets.items()) if i < limit}
+
+    return sheets
 
 
-# def name_output_file(dir_path, label):
-#     """Generate the output file name."""
-#     path = splitext(basename(label))[0]
-#     path = join(dir_path, f"{path}.csv")
-#     return path
+def filter_rulers(labels, ruler_ratio):
+    """Remove rulers from the labels."""
+    new = []
+    for lb in labels:
+        d1, d2 = (lb["right"] - lb["left"]), (lb["bottom"] - lb["top"])
+        d1, d2 = (d1, d2) if d1 > d2 else (d2, d1)
+        if d1 / d2 <= ruler_ratio:
+            new.append(lb)
+    return new
+
+
+def filter_n_largest(labels, keep_n_largest):
+    """Keep the N largest labels for each sheet."""
+    labels = sorted(
+        labels,
+        reverse=True,
+        key=lambda lb: (lb["right"] - lb["left"]) * (lb["bottom"] - lb["top"]),
+    )
+    return labels[:keep_n_largest]
 
 
 def to_csv(path, results):

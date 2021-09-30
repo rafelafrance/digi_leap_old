@@ -14,7 +14,6 @@ import digi_leap.actions.ocr_ensemble as ocr_ensemble
 import digi_leap.actions.ocr_expedition as ocr_expedition
 import digi_leap.actions.ocr_in_house_qc as ocr_in_house_qc
 import digi_leap.actions.ocr_labels as ocr_labels
-import digi_leap.actions.ocr_prepare as ocr_prepare
 import digi_leap.pylib.args as arguments
 
 DISPATCH = {
@@ -23,11 +22,10 @@ DISPATCH = {
     "faster_rcnn_use": faster_rcnn_use.use,
     "idigbio_images": idigbio_images.download_images,
     "idigbio_verify_images": idigbio_images.verify_images,
+    "ocr": ocr_labels.ocr_labels,
     "ocr_ensemble": ocr_ensemble.build_all_ensembles,
     "ocr_expedition": ocr_expedition.build_expedition,
     "ocr_in_house_qc": ocr_in_house_qc.sample_sheets,
-    "ocr_labels": ocr_labels.ocr_labels,
-    "ocr_prepare": ocr_prepare.prepare_labels,
 }
 
 

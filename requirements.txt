@@ -6,11 +6,9 @@ jupyter
 matplotlib
 nltk
 numpy
-paddleocr
 pandas
 pyenchant
 pytesseract
-pytorch-lightning
 opencv-python
 scikit-image
 scikit-learn
@@ -21,3 +19,5 @@ tqdm
 # torchvision==0.9.1+cu111
 # nlp
 # transformers
+# pytorch-lightning
+# paddleocr

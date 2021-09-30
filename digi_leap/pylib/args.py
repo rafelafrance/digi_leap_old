@@ -86,15 +86,23 @@ DEFAULT = {
         "type": Path,
         "help": "Path, to the current model for finding labels on a herbarium sheet.",
     },
-    "pipeline": {
-        "default": "deskew",
-        "help": "A pipeline of image transformations that help with the OCR process.",
+    "pipelines": {
+        "default": ["deskew", "binarize"],
+        "choices": ["deskew", "binarize"],
+        "nargs": "+",
+        "help": "Pipelines of image transformations that help with the OCR process.",
     },
     "ocr_engines": {
-        "default": ["tesseract", "easy", "paddle", "keras"],
-        "choices": ["tesseract", "easy", "paddle", "keras"],
+        "default": ["tesseract", "easy"],
+        "choices": ["tesseract", "easy"],
         "nargs": "+",
         "help": "Which OCR engines to use.",
+    },
+    "classes": {
+        "choices": ["Barcode", "Handwritten", "Typewritten", "Both"],
+        "nargs": "*",
+        "default": ["Typewritten"],
+        "help": "Keep labels if they fall into any of these categories.",
     },
 }
 
@@ -210,6 +218,23 @@ ARGS = {
             "help": "",
         },
     },
+    "ocr": {
+        "help": """OCR images of labels.""",
+        "database": DEFAULT["digi_leap_db"],
+        "pipelines": DEFAULT["pipelines"],
+        "ocr_engines": DEFAULT["ocr_engines"],
+        "classes": DEFAULT["classes"],
+        "ruler_ratio": {
+            "type": float,
+            "help": """Consider a label to be a ruler if the height:width
+                      (or width:height) ratio is above this.""",
+        },
+        "keep_n_largest": {
+            "type": int,
+            "help": "Keep the N largest labels for each sheet.",
+        },
+        "limit": DEFAULT["limit"],
+    },
     "ocr_ensemble": {
         "help": """Build a single "best" label from the ensemble of OCR outputs.
                    An ensemble is a list of OCR outputs with the same name contained
@@ -220,8 +245,6 @@ ARGS = {
                         output/ocr/run2/label1.csv
                         output/ocr/run3/label1.csv
                 """,
-        "cpus": DEFAULT["proc_cpus"],
-        "batch_size": DEFAULT["proc_batch"],
         "limit": DEFAULT["limit"],
     },
     # "ocr_expedition": {
@@ -231,11 +254,6 @@ ARGS = {
     #     "expedition_dir": {
     #         "type": Path,
     #         "help": "Where the expedition files are.",
-    #     },
-    #     "filter_rulers": {
-    #         "default": 2.0,
-    #         "help": """Consider a label to be a ruler if the height:width
-    #                   (or width:height) ratio is above this.""",
     #     },
     #     "largest_labels": {
     #         "default": 1,
@@ -270,25 +288,6 @@ ARGS = {
     #         "default": 25,
     #         "help": "",
     #     },
-    # },
-    "ocr_labels": {
-        "help": """OCR images of labels.""",
-        "ocr_engines": DEFAULT["ocr_engines"],
-        "pipeline": DEFAULT["pipeline"],
-        "cpus": DEFAULT["proc_cpus"],
-        "batch_size": DEFAULT["proc_batch"],
-        "limit": DEFAULT["limit"],
-    },
-    # "ocr_prepare": {
-    #     "help": """Prepare images of labels for OCR. Perform image manipulations on
-    #                labels that may help with the OCR process.""",
-    #     "label_dir": DEFAULT["label_dir"],
-    #     "output_dir": DEFAULT["prep_dir"],
-    #     "pipeline": DEFAULT["pipeline"],
-    #     "cpus": DEFAULT["proc_cpus"],
-    #     "batch_size": DEFAULT["proc_batch"],
-    #     "glob": DEFAULT["image_filter"],
-    #     "limit": DEFAULT["limit"],
     # },
 }
 

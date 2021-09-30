@@ -1,10 +1,8 @@
 """Use a trained model to cut out labels on herbarium sheets."""
 
-import logging
-
 import torch
 import torchvision
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 from torchvision import transforms
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms

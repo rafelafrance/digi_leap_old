@@ -20,7 +20,7 @@ TESS_CONFIG = " ".join(
 )
 
 
-def tesseract_dataframe(image: Image) -> pd.DataFrame:
+def tesseract_engine(image: Image) -> pd.DataFrame:
     """OCR the image with tesseract and return a data frame."""
     df = pytesseract.image_to_data(image, config=TESS_CONFIG, output_type="data.frame")
 
@@ -37,7 +37,9 @@ def tesseract_dataframe(image: Image) -> pd.DataFrame:
         df["bottom"] = None
 
     df = df.loc[:, KEYS]
-    return df
+
+    results = df.to_dict("records")
+    return results
 
 
 def easyocr_engine(image: Image) -> list[dict]:

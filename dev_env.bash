@@ -16,9 +16,11 @@ virtualenv -p python3.9 .venv
 source ./.venv/bin/activate
 
 python -m pip install --upgrade pip setuptools wheel
-if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 pip3 install -U torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+
+if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
 # pip install -U tensorboard
 python -c 'import nltk; nltk.download("words")'
 
