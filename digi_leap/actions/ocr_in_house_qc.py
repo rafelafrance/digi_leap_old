@@ -14,7 +14,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image, ImageDraw
 
-import digi_leap.pylib.ocr_results as results
+from digi_leap.pylib import ocr_results as results
 
 
 def sample_sheets(args):

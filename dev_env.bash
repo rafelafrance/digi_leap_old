@@ -17,7 +17,7 @@ source ./.venv/bin/activate
 
 python -m pip install --upgrade pip setuptools wheel
 
-pip3 install -U torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+pip3 install -U torch==1.9.1+cu111 torchvision==0.10.1+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 
 if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 

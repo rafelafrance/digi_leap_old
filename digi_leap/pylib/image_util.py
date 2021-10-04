@@ -7,7 +7,7 @@ from PIL import Image
 
 def profile_projection(image: Image, axis: int = 1) -> npt.ArrayLike:
     """Get a profile projection of a binary image."""
-    array = np.asarray(image)
+    array = np.asarray(image).copy()
 
     array[array == 0] = 1
     array[array == 255] = 0

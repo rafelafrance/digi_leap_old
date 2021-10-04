@@ -8,8 +8,7 @@ from datetime import datetime
 from PIL import Image
 from tqdm import tqdm
 
-import digi_leap.pylib.db as db
-import digi_leap.pylib.ocr as ocr
+from digi_leap.pylib import db, ocr
 from digi_leap.pylib.label_transforms import transform_label
 
 ENGINE = {

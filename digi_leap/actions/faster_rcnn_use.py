@@ -8,9 +8,11 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 from tqdm import tqdm
 
-import digi_leap.pylib.box_calc as calc
-import digi_leap.pylib.db as db
-import digi_leap.pylib.subject as sub
+from digi_leap.pylib import (
+    box_calc as calc,
+    db,
+    subject as sub,
+)
 
 
 def use(args):

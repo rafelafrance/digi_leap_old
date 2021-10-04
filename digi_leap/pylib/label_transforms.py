@@ -323,6 +323,9 @@ BASE_PIPELINE: list[LabelTransform] = [
 PIPELINES: dict[str, list[LabelTransform]] = {
     "deskew": BASE_PIPELINE,
     "binarize": BASE_PIPELINE + [BinarizeSauvola()],
+    "clean":  BASE_PIPELINE + [
+        BinarizeSauvola(), BinaryRemoveSmallHoles(), BinaryOpening(),
+    ],
 }
 
 

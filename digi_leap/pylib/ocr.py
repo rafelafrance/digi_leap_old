@@ -10,7 +10,7 @@ EASY_OCR = easyocr.Reader(["en"])
 
 KEYS = """conf left top right bottom text""".split()
 
-CHAR_BLACKLIST = "¥€£¢$«»®©§{}[]<>|"
+CHAR_BLACKLIST = "¥€£¢$«»®©™§{}[]<>|"
 TESS_LANG = "eng"
 TESS_CONFIG = " ".join(
     [

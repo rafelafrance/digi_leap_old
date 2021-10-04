@@ -9,7 +9,7 @@ import pandas as pd
 import tqdm
 from PIL import Image, UnidentifiedImageError
 
-import digi_leap.pylib.db as db
+from digi_leap.pylib import db
 
 
 def download_images(args):

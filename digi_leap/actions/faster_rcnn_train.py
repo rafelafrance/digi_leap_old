@@ -9,11 +9,13 @@ from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
-import digi_leap.pylib.box_calc as calc
-import digi_leap.pylib.faster_rcnn_data as data
-import digi_leap.pylib.mean_avg_precision as mAP
-import digi_leap.pylib.subject as sub
-import digi_leap.pylib.util as util
+from digi_leap.pylib import (
+    box_calc as calc,
+    faster_rcnn_data as data,
+    mean_avg_precision as mAP,
+    subject as sub,
+    util,
+)
 
 
 def train(args):

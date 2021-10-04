@@ -6,15 +6,17 @@ import textwrap
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from pathlib import Path
 
-import digi_leap.actions.faster_rcnn_test as faster_rcnn_test
-import digi_leap.actions.faster_rcnn_train as faster_rcnn_train
-import digi_leap.actions.faster_rcnn_use as faster_rcnn_use
-import digi_leap.actions.idigbio_images as idigbio_images
-import digi_leap.actions.ocr_ensemble as ocr_ensemble
-import digi_leap.actions.ocr_expedition as ocr_expedition
-import digi_leap.actions.ocr_in_house_qc as ocr_in_house_qc
-import digi_leap.actions.ocr_labels as ocr_labels
 import digi_leap.pylib.args as arguments
+from digi_leap.actions import (
+    faster_rcnn_test,
+    faster_rcnn_train,
+    faster_rcnn_use,
+    idigbio_images,
+    ocr_ensemble,
+    ocr_expedition,
+    ocr_in_house_qc,
+    ocr_labels,
+)
 
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,
