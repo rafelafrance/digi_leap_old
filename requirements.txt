@@ -1,19 +1,19 @@
-Pillow
+Pillow>=8.2.0
 PyYAML
-easyocr
+easyocr>=1.4.1
 flake8
 jupyter
 matplotlib
-nltk
-numpy
-pandas
+nltk>=3.6.3
+numpy>=1.21.2
+pandas>=1.3.3
 pyenchant
-pytesseract
+pytesseract>=0.3.8
 opencv-python
-scikit-image
-scikit-learn
-scipy
-tqdm
+scikit-image>=0.18.3
+scikit-learn>=1.0
+scipy>=1.7.1
+tqdm>=4.62.3
 
 # torch==1.8.1+cu111
 # torchvision==0.9.1+cu111

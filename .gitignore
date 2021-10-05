@@ -47,3 +47,5 @@ papers/
 # C++
 build/
 extern/
+.rendered.*.cpp
+*.so

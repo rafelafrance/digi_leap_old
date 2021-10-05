@@ -142,7 +142,7 @@ def insert_ocr(database, batch):
     """Insert a batch of ocr records."""
     sql = """
         insert into ocr
-               (labels_id,  run,   engine,  pipeline, 
+               (labels_id,  run,   engine,  pipeline,
                  conf,  left,  top,   right,   bottom,  text)
         values (:label_id, :run,  :engine, :pipeline,
                 :conf, :left, :top,  :right,  :bottom, :text);
