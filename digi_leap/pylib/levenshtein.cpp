@@ -74,7 +74,7 @@ PYBIND11_MODULE(levenshtein, m) {
 
 /*
 <%
-cfg['compiler_args'] = ['-std=c++20']
+cfg['compiler_args'] = ['-std=c++17']
 setup_pybind11(cfg)
 %>
 */
