@@ -14,7 +14,12 @@
 
 namespace py = pybind11;
 
-size_t distance(std::u32string& str1, std::u32string& str2) {
+//std::string align(std::u32string& str1, std::u32string& str2) {
+//    std::vector<std::string> temp = {"one ", "two ", "three"};
+//    return concat(begin(temp), end(temp));
+//}
+
+size_t levenshtein(std::u32string& str1, std::u32string& str2) {
     const size_t len1 = str1.length();
     const size_t len2 = str2.length();
 
@@ -37,20 +42,15 @@ size_t distance(std::u32string& str1, std::u32string& str2) {
     return dist[len2];
 }
 
-//std::string align(std::u32string& str1, std::u32string& str2) {
-//    std::vector<std::string> temp = {"one ", "two ", "three"};
-//    return concat(begin(temp), end(temp));
-//}
-
 std::vector<std::tuple<size_t, size_t, size_t>>
-distance_all(std::vector<std::u32string> lines) {
+levenshtein_all(std::vector<std::u32string> lines) {
     const size_t len = lines.size();
 
     std::vector<std::tuple<size_t, size_t, size_t>> results;
 
     for (size_t i = 0; i < len - 1; ++i) {
         for (size_t j = i + 1; j < len; ++j) {
-            auto dist = distance(lines[i], lines[j]);
+            auto dist = levenshtein(lines[i], lines[j]);
             results.push_back(std::make_tuple(i, j, dist));
         }
     }
@@ -64,11 +64,11 @@ distance_all(std::vector<std::u32string> lines) {
 }
 
 
-PYBIND11_MODULE(levenshtein, m) {
-  m.doc() = "Levenshtein distance for multiple sequences.";
+PYBIND11_MODULE(string_align, m) {
+  m.doc() = "Align multiple strings.";
 //  m.def("align", &align, "Get the alignment string for a pair of strings.");
-  m.def("distance", &distance, "Get the levenshtein distance for 2 strings.");
-  m.def("distance_all", &distance_all,
+  m.def("levenshtein", &levenshtein, "Get the levenshtein distance for 2 strings.");
+  m.def("levenshtein_all", &levenshtein_all,
     "Get the levenshtein distance for all pairs of strings in the list.");
 }
 

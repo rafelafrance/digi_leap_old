@@ -1,9 +1,9 @@
-"""Test the distance function in the levenshtein module."""
+"""Test the distance function in the string_align module."""
 
 # import unittest
 
 # import cppimport.import_hook
-# import digi_leap.pylib.levenshtein as lev
+# import digi_leap.pylib.string_align as lev
 
 # class TestAlignAll(unittest.TestCase):
 
