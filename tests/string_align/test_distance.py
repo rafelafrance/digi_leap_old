@@ -2,7 +2,6 @@
 
 import unittest
 
-import cppimport.import_hook
 from digi_leap.pylib import string_align as sa
 
 
