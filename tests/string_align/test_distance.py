@@ -6,7 +6,6 @@ from digi_leap.pylib import string_align as sa
 
 
 class TestDistance(unittest.TestCase):
-
     def test_distance_01(self):
         self.assertEqual(sa.levenshtein("aa", "bb"), 2)
 

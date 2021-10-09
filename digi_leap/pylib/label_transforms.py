@@ -114,7 +114,7 @@ def rank_mean(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLik
     """Filter the image using a mean filter."""
     selem = selem if selem else morph.disk(2)
     image = filters.rank.mean(image, selem=selem)
-    return image,
+    return image
 
 
 def rank_median(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:

@@ -71,7 +71,7 @@ def process_batches(
     """Process batches of label ensembles."""
     all_records = []
 
-    batches = [paths[i: i + batch_size] for i in range(0, len(paths), batch_size)]
+    batches = [paths[i : i + batch_size] for i in range(0, len(paths), batch_size)]
     with Pool(processes=cpus) as pool, tqdm.tqdm(total=len(batches)) as bar:
         all_results = [
             pool.apply_async(
@@ -222,7 +222,7 @@ def group_files(
     for ocr_dir in util.as_list(ocr_dirs):
         path = Path(ocr_dir)
         root = Path(path.root) if path.root else Path(".")
-        pattern = ocr_dir[len(path.root):]
+        pattern = ocr_dir[len(path.root) :]
         dirs.extend([p for p in root.glob(pattern)])
 
     for ocr_dir in dirs:

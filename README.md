@@ -55,4 +55,3 @@ OCR output is often dirty itself. There are spaces inside of words, and the engi
 This is a project unto itself and is in another repository.
 
 ## Scripts
-

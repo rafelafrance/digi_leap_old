@@ -36,7 +36,7 @@ def use(args):
 
     for sheet in tqdm(sheets):
 
-        with Image.open(sheet['path']) as image:
+        with Image.open(sheet["path"]) as image:
             image = image.convert("L")
             data = transforms.ToTensor()(image)
 

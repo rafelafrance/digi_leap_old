@@ -6,7 +6,6 @@ import digi_leap.pylib.string_align as sa
 
 
 class TestAlignAll(unittest.TestCase):
-
     def test_align_01(self):
         self.assertEqual(sa.align("aba", "aba"), [(0, "aba", "aba")])
 

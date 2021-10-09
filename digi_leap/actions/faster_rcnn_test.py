@@ -115,30 +115,3 @@ def get_model():
         in_features, num_classes=len(sub.CLASSES) + 1
     )
     return model
-
-# def parse_args():
-#     """Process command-line arguments."""
-#     description = """Test a model that finds labels on herbarium sheets."""
-#     parser = ArgParser(description)
-#
-#     parser.reconciled_jsonl()
-#     parser.sheets_dir()
-#     parser.curr_model(action="load")
-#     parser.device()
-#     parser.gpu_batch()
-#     parser.workers()
-#     parser.nms_threshold()
-#     parser.sbs_threshold()
-#     parser.limit()
-#
-#     args = parser.parse_args()
-#     return args
-#
-#
-# if __name__ == "__main__":
-#     log.started()
-#
-#     ARGS = parse_args()
-#     test(ARGS)
-#
-#     log.finished()
