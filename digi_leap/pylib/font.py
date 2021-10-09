@@ -4,7 +4,8 @@ from digi_leap.pylib.const import ROOT_DIR
 from PIL import ImageFont
 
 FONTS_DIR = ROOT_DIR / "fonts"
-FONT = FONTS_DIR / "print" / "Source_Code_Pro" / "SourceCodePro-Regular.ttf"
+FONT = FONTS_DIR / "SourceCodePro-Regular.ttf"
+FONT2 = FONTS_DIR / "NotoSerif-Regular.ttf"
 BASE_FONT_SIZE = 36
 
 
