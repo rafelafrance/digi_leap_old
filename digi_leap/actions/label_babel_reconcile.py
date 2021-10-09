@@ -1,5 +1,4 @@
 """Reconcile data from a Label Babel expedition."""
-
 import csv
 import json
 import logging
@@ -7,7 +6,8 @@ from collections import defaultdict
 
 import numpy as np
 import torch
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
+from PIL import UnidentifiedImageError
 from torchvision.ops import clip_boxes_to_image
 from tqdm import tqdm
 

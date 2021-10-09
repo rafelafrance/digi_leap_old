@@ -1,10 +1,10 @@
 """Test the mean average precision."""
-
 import unittest
 
 import torch
 
-from digi_leap.pylib.mean_avg_precision import mAP, mAP_iou
+from digi_leap.pylib.mean_avg_precision import mAP
+from digi_leap.pylib.mean_avg_precision import mAP_iou
 
 
 class TestMeanAvgPrecision(unittest.TestCase):

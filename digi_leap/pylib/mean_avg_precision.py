@@ -1,5 +1,4 @@
 """Calculate the mean average precision for scoring object detection results."""
-
 import torch
 from torchvision.ops import box_iou
 

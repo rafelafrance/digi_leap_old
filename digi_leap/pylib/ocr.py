@@ -1,10 +1,7 @@
 """OCR images."""
-
 import easyocr
 import numpy as np
-import pandas as pd
 import pytesseract
-from PIL import Image
 
 EASY_OCR = easyocr.Reader(["en"])
 
@@ -20,7 +17,7 @@ TESS_CONFIG = " ".join(
 )
 
 
-def tesseract_engine(image: Image) -> pd.DataFrame:
+def tesseract_engine(image) -> list[dict]:
     """OCR the image with tesseract and return a data frame."""
     df = pytesseract.image_to_data(image, config=TESS_CONFIG, output_type="data.frame")
 
@@ -42,7 +39,7 @@ def tesseract_engine(image: Image) -> pd.DataFrame:
     return results
 
 
-def easyocr_engine(image: Image) -> list[dict]:
+def easyocr_engine(image) -> list[dict]:
     """OCR the image with easyOCR."""
     results = []
     image = np.asarray(image)

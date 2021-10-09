@@ -1,5 +1,4 @@
 """Generate training data."""
-
 import json
 from pathlib import Path
 
@@ -8,10 +7,8 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from . import (
-    augmentations as aug,
-    subject as sub,
-)
+from . import augmentations as aug
+from . import subject as sub
 
 
 class FasterRcnnData(Dataset):

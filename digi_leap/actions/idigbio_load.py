@@ -1,9 +1,9 @@
 """Load iDigBio Data into a database."""
-
 import re
 import sqlite3
 import zipfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 
 import pandas as pd

@@ -1,7 +1,9 @@
 """A utility class to calculate average subject boxes."""
-
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -39,7 +41,7 @@ class Subject:
 
     subject_id: str = ""
     image_file: str = ""
-    image_size: tuple[int, int] = field(default_factory=tuple)
+    image_size: tuple[int, ...] = field(default_factory=tuple)
     groups: np.ndarray = field(default_factory=lambda: np.array([]))
     boxes: np.ndarray = field(default_factory=lambda: np.empty((0, 4), dtype=np.int32))
     types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
@@ -152,9 +154,10 @@ class Subject:
 
         mins = [np.min(g, axis=0).round() for g in box_groups]
         maxs = [np.max(g, axis=0).round() for g in box_groups]
-        self.merged_boxes = [
-            np.hstack((mn[:2], mx[2:])).tolist() for mn, mx in zip(mins, maxs)
-        ]
+        self.merged_boxes = cast(
+            np.ndarray[Any, Any],
+            [np.hstack((mn[:2], mx[2:])).tolist() for mn, mx in zip(mins, maxs)],
+        )
         # self.merged_boxes = [np.mean(g, axis=0).round() for g in box_groups]
 
         # Select box type for the merged box
@@ -165,10 +168,11 @@ class Subject:
 
     def _filter_merged_boxes(self, threshold: int = 12) -> None:
         """Remove degenerate merged boxes."""
-        boxes, types = [], []
+        boxes = []
+        types = []
         for box, type_ in zip(self.merged_boxes, self.merged_types):
             if box[2] - box[0] >= threshold and box[3] - box[1] >= threshold:
                 boxes.append(box)
                 types.append(type_)
-        self.merged_boxes = boxes
-        self.merged_types = types
+        self.merged_boxes = cast(np.ndarray[Any, Any], boxes)
+        self.merged_types = cast(np.ndarray[Any, Any], types)

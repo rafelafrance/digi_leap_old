@@ -1,5 +1,4 @@
 """Test the distance function in the string_align module."""
-
 import unittest
 
 from digi_leap.pylib import string_align as sa

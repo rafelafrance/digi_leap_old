@@ -1,5 +1,4 @@
 """Given a CSV file of iDigBio records, download the images."""
-
 import logging
 import os
 from urllib.error import HTTPError
@@ -7,7 +6,8 @@ from urllib.request import urlretrieve
 
 import pandas as pd
 import tqdm
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
+from PIL import UnidentifiedImageError
 
 from digi_leap.pylib import db
 

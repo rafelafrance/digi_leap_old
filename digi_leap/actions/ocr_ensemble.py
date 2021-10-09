@@ -1,5 +1,4 @@
 """Find "best" labels from ensembles of OCR results of each label."""
-
 import json
 import os
 import re
@@ -10,14 +9,13 @@ from pathlib import Path
 
 import pandas as pd
 import tqdm
-from PIL import Image, ImageDraw
+from PIL import Image
+from PIL import ImageDraw
 
-from digi_leap.pylib import (
-    font,
-    ocr_results as results,
-    ocr_rows as rows,
-    util,
-)
+from digi_leap.pylib import font
+from digi_leap.pylib import ocr_results as results
+from digi_leap.pylib import ocr_rows as rows
+from digi_leap.pylib import util
 
 
 def build_all_ensembles(args: Namespace) -> None:
@@ -223,13 +221,13 @@ def group_files(
         path = Path(ocr_dir)
         root = Path(path.root) if path.root else Path(".")
         pattern = ocr_dir[len(path.root) :]
-        dirs.extend([p for p in root.glob(pattern)])
+        dirs += [p for p in root.glob(pattern)]
 
     for ocr_dir in dirs:
         paths = ocr_dir.glob(glob)
         for path in paths:
             label = path.stem
-            path_dict[label].append(str(path))
+            path_dict[label].append(path)
     path_tuples = [(k, v) for k, v in path_dict.items()]
     path_tuples = sorted(path_tuples, key=lambda p: p[0])
     return path_tuples

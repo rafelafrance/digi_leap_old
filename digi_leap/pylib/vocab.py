@@ -1,5 +1,4 @@
 """Utilities for working with vocabularies."""
-
 import nltk
 
 from . import const

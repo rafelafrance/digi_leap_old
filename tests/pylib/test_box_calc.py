@@ -1,5 +1,4 @@
 """Test box calculations."""
-
 import unittest
 
 import numpy as np

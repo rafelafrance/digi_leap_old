@@ -1,5 +1,4 @@
 """Test functions in subject.py."""
-
 import unittest
 
 import numpy as np

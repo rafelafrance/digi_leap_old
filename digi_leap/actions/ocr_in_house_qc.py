@@ -4,7 +4,6 @@ Sample reconciled herbarium sheets, mark the reconciled labels on those sheets,
 get all of the ensemble labels for those sheets, score them, and output all of
 the data for that sheet in a directory bundle.
 """
-
 import json
 import os
 import random
@@ -12,7 +11,8 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
-from PIL import Image, ImageDraw
+from PIL import Image
+from PIL import ImageDraw
 
 from digi_leap.pylib import ocr_results as results
 

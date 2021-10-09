@@ -1,14 +1,16 @@
 """Functions for manipulating OCR result ensembles."""
-
 import re
-from collections import defaultdict, namedtuple  # Counter
+from collections import defaultdict
+from collections import namedtuple
 from dataclasses import dataclass
 from pathlib import Path
-from typing import DefaultDict, Union
+from typing import DefaultDict
+from typing import Union
 
 import pandas as pd
 
-from . import box_calc as calc, vocab
+from . import box_calc as calc
+from . import vocab
 
 DocText = namedtuple("DocText", "text ocr")
 
@@ -32,8 +34,8 @@ def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
     """
     df = pd.read_csv(path).fillna("")
     df["ocr_dir"] = Path(path).parent.stem
-    df.text = df.text.astype(str)
-    df.text = df.text.str.strip()
+    df["text"] = df.text.astype(str)
+    df["text"] = df.text.str.strip()
     df = df.loc[df.text != ""]
     return df
 
@@ -123,10 +125,10 @@ def reconcile_text(doc_texts: list[DocText]) -> BestScore:
         scores[score].append(doc_text)
 
     top = [(s, d) for s, d in sorted(scores.items(), key=lambda i: -i[0])]
-    score, doc_text = top[0]
-    text = doc_text[0].text  # If there are equal scores choose the first text
-    winners = [d.ocr for d in doc_text]
-    return BestScore(text, "score", score, winners)
+    top_score, top_doc_text = top[0]
+    text = top_doc_text[0].text  # If there are equal scores choose the first text
+    winners = [d.ocr for d in top_doc_text]
+    return BestScore(text, "score", top_score, winners)
 
 
 def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFrame:
@@ -173,7 +175,7 @@ def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFr
         )
 
     df = pd.DataFrame(merged)
-    df.text = df.text.astype(str)
+    df["text"] = df.text.astype(str)
     return df
 
 
@@ -189,5 +191,5 @@ def merge_rows_of_text(df: pd.DataFrame) -> pd.DataFrame:
         }
     )
     df = df.sort_values("top").reset_index(drop=True)
-    df["row"] = df.index + 1
+    df["row"] = df.index + 1  # type: ignore
     return df

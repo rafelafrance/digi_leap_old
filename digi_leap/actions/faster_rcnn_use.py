@@ -1,5 +1,4 @@
 """Use a trained model to cut out labels on herbarium sheets."""
-
 import torch
 import torchvision
 from PIL import Image
@@ -8,11 +7,9 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 from tqdm import tqdm
 
-from digi_leap.pylib import (
-    box_calc as calc,
-    db,
-    subject as sub,
-)
+from digi_leap.pylib import box_calc as calc
+from digi_leap.pylib import db
+from digi_leap.pylib import subject as sub
 
 
 def use(args):

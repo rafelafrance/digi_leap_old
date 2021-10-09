@@ -1,7 +1,7 @@
 """Utilities and constants for working with fonts."""
+from PIL import ImageFont
 
 from digi_leap.pylib.const import ROOT_DIR
-from PIL import ImageFont
 
 FONTS_DIR = ROOT_DIR / "fonts"
 FONT = FONTS_DIR / "SourceCodePro-Regular.ttf"

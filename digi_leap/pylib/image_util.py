@@ -1,11 +1,9 @@
 """Manipulate images to help with the OCR process."""
-
 import numpy as np
 from numpy import typing as npt
-from PIL import Image
 
 
-def profile_projection(image: Image, axis: int = 1) -> npt.ArrayLike:
+def profile_projection(image, axis: int = 1) -> npt.ArrayLike:
     """Get a profile projection of a binary image."""
     array = np.asarray(image).copy()
 

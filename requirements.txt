@@ -1,13 +1,11 @@
 Pillow
 cppimport
 easyocr
-flake8
 jupyter
 matplotlib
 nltk
 numpy
 pandas
-pre-commit
 pybind11
 pyenchant
 pytesseract

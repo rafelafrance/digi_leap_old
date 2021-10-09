@@ -1,5 +1,4 @@
 """Command line arguments."""
-
 from pathlib import Path
 
 DEFAULT = {

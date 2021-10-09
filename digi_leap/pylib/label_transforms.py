@@ -1,8 +1,9 @@
 """Image transforms performed on labels before OCR."""
-
+# type: ignore
 import functools
 import re
-from typing import Callable, Union
+from typing import Callable
+from typing import Union
 
 import numpy as np
 import pytesseract
@@ -24,13 +25,13 @@ def compose(*functions: Transformation) -> Transformation:
     return functools.reduce(lambda f, g: lambda x: g(f(x)), functions)
 
 
-def image_to_array(image: Image) -> npt.ArrayLike:
+def image_to_array(image) -> npt.ArrayLike:
     """Convert a PIL image to a gray scale numpy array."""
     image = image.convert("L")
     return np.asarray(image)
 
 
-def array_to_image(image: npt.ArrayLike) -> Image:
+def array_to_image(image: npt.ArrayLike):
     """Convert a numpy array to a PIL image."""
     if hasattr(image, "dtype") and image.dtype == "float64":
         mode = "L" if len(image.shape) < 3 else "RGB"
@@ -207,6 +208,6 @@ PIPELINES: dict[str, Transformation] = {
 }
 
 
-def transform_label(pipeline: str, image: Image) -> Image:
+def transform_label(pipeline: str, image):
     """Transform the label to improve OCR results."""
     return PIPELINES[pipeline](image)

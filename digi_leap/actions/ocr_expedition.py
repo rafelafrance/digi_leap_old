@@ -1,5 +1,4 @@
 """Build an expedition for scoring OCR output."""
-
 import logging
 from argparse import Namespace
 from collections import defaultdict

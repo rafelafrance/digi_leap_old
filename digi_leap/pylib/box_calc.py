@@ -2,7 +2,6 @@
 
 This module mostly contains variants of bounding box non-maximum suppression (NMS).
 """
-
 import numpy as np
 import torch
 

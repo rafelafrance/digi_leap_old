@@ -1,5 +1,4 @@
 """OCR a set of labels."""
-
 import itertools
 import warnings
 from argparse import Namespace
@@ -8,7 +7,8 @@ from datetime import datetime
 from PIL import Image
 from tqdm import tqdm
 
-from digi_leap.pylib import db, ocr
+from digi_leap.pylib import db
+from digi_leap.pylib import ocr
 from digi_leap.pylib.label_transforms import transform_label
 
 ENGINE = {
@@ -36,7 +36,7 @@ def ocr_labels(args: Namespace) -> None:
 
         for path, labels in tqdm(sheets.items()):
             sheet = Image.open(path)
-            batch = []
+            batch: list[dict] = []
 
             for lb in labels:
                 label = sheet.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))

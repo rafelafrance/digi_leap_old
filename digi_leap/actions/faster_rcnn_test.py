@@ -1,5 +1,4 @@
 """Test a model recognizes labels on herbarium sheets."""
-
 import logging
 
 import torch
@@ -8,13 +7,11 @@ from torch.utils.data import DataLoader
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
-from digi_leap.pylib import (
-    box_calc as calc,
-    faster_rcnn_data as data,
-    mean_avg_precision as mAP,
-    subject as sub,
-    util,
-)
+from digi_leap.pylib import box_calc as calc
+from digi_leap.pylib import faster_rcnn_data as data
+from digi_leap.pylib import mean_avg_precision as mAP
+from digi_leap.pylib import subject as sub
+from digi_leap.pylib import util
 
 
 def test(args):

@@ -1,5 +1,4 @@
 """Utilities for digi_leap.sqlite databases."""
-
 import sqlite3
 
 

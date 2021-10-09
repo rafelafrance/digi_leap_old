@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 """Run digi-leap."""
-
 import sys
 import textwrap
-from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
+from argparse import ArgumentParser
+from argparse import Namespace
+from argparse import RawDescriptionHelpFormatter
 from pathlib import Path
 
 import digi_leap.pylib.args as arguments
-from digi_leap.actions import (
-    faster_rcnn_test,
-    faster_rcnn_train,
-    faster_rcnn_use,
-    idigbio_images,
-    ocr_ensemble,
-    ocr_expedition,
-    ocr_in_house_qc,
-    ocr_labels,
-)
+from digi_leap.actions import faster_rcnn_test
+from digi_leap.actions import faster_rcnn_train
+from digi_leap.actions import faster_rcnn_use
+from digi_leap.actions import idigbio_images
+from digi_leap.actions import ocr_ensemble
+from digi_leap.actions import ocr_expedition
+from digi_leap.actions import ocr_in_house_qc
+from digi_leap.actions import ocr_labels
 
 DISPATCH = {
     "faster_rcnn_test": faster_rcnn_test.test,

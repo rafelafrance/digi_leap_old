@@ -1,5 +1,4 @@
 """Get plant taxon names from ITIS."""
-
 import re
 import sqlite3
 import string
@@ -63,6 +62,6 @@ def filter_names(names: set[str]) -> list[str]:
     """Only put new names into the output list."""
     # vocab = enchant.Dict(lang)
     # names = [n for n in names if not vocab.check(n)]
-    names = [n for n in names if len(n) > 1]
-    names = sorted(names)
-    return names
+    filtered = [n for n in names if len(n) > 1]
+    filtered = sorted(filtered)
+    return filtered

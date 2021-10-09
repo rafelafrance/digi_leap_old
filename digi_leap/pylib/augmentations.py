@@ -1,5 +1,4 @@
 """Common label augmentations for model training."""
-
 import random
 
 from PIL import ImageFilter
