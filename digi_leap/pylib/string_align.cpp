@@ -1,5 +1,10 @@
 // cppimport
 
+/*
+    Naive implementations based on Gusfield 1997
+*/
+
+
 #include <algorithm>
 #include <codecvt>
 #include <cstddef>
@@ -17,9 +22,13 @@
 
 namespace py = pybind11;
 
+const char32_t gap = U'⋄';
 
-typedef std::tuple<long, std::u32string, std::u32string> Alignment;
+
+typedef std::tuple<long, std::u32string, std::u32string, long> Alignment;
+typedef std::tuple<long, std::u32string, std::u32string> Result;
 typedef std::vector<Alignment> Alignments;
+typedef std::vector<Result> Results;
 
 
 struct Traceback {
@@ -33,8 +42,7 @@ struct Traceback {
 typedef std::vector<std::vector<Traceback>> TraceMatrix;
 
 
-template<typename Iter>
-std::string concat(Iter first, Iter last)
+template<typename Iter> std::string concat(Iter first, Iter last)
 {
     if (first == last) { return ""; }
 
@@ -100,6 +108,19 @@ levenshtein_all(std::vector<std::u32string> lines) {
 }
 
 
+long count_gaps(const std::u32string& str) {
+    long end = str.length() - 1;
+    long gaps = 0;
+
+    for (unsigned long i = 1; i < str.length(); ++i) {
+        gaps += (str[i-1] == gap && str[i] != gap) ? 1 : 0;
+    }
+    gaps += (str[end-1] != gap && str[end] == gap) ? 1 : 0;
+
+    return gaps;
+}
+
+
 void backtrace(
     TraceMatrix &trace,
     const long row,
@@ -114,7 +135,8 @@ void backtrace(
     if (row <= 0 && col <= 0) {
         std::reverse(out1.begin(), out1.end());
         std::reverse(out2.begin(), out2.end());
-        Alignment a = std::tuple(score, out1, out2);
+        long gaps = count_gaps(out1) + count_gaps(out2);
+        Alignment a = std::tuple(score, out1, out2, gaps);
         aligns.push_back(a);
     }
 
@@ -134,17 +156,32 @@ void backtrace(
     }
     if (cell.left) {
         backtrace(
-            trace, row, col-1, in1, in2, out1+U"-", out2+in2[col-1], aligns, score);
+            trace,
+            row,
+            col-1,
+            in1,
+            in2,
+            out1+gap,
+            out2+in2[col-1],
+            aligns,
+            score);
     }
     if (cell.up) {
         backtrace(
-            trace, row-1, col, in1, in2, out1+in1[row-1], out2+U"-", aligns, score);
+            trace,
+            row-1,
+            col,
+            in1,
+            in2,
+            out1+in1[row-1],
+            out2+gap,
+            aligns,
+            score);
     }
 }
 
 
-// A naive implementation based on Gusfield 1997
-Alignments align(std::u32string& str1, std::u32string& str2) {
+Results align(std::u32string& str1, std::u32string& str2) {
     const long len1 = str1.length();
     const long len2 = str2.length();
 
@@ -183,27 +220,27 @@ Alignments align(std::u32string& str1, std::u32string& str2) {
         }
     }
 
-    // for (long r = 0; r <= len1; ++r) {
-    //     for (long c = 0; c <= len2; ++c) {
-    //         std::cout << "u=" << trace[r][c].up
-    //                   << " l=" << trace[r][c].left
-    //                   << " d=" << trace[r][c].diag
-    //                   << " s=" << trace[r][c].score
-    //                   << "\t\t";
-    //     }
-    //     std::cout << "\n";
-    // }
-    // std::cout << "\n";
-
     Alignments aligns;
+    Results results;
 
     backtrace(trace, len1, len2, str1, str2, U"", U"", aligns, trace[len1][len2].score);
 
-    // std::u32string out1, out2;
+    std::stable_sort(begin(aligns), end(aligns),
+        [](auto const &a1, auto const &a2) {
+            return std::get<0>(a1) < std::get<0>(a2);
+        });
 
-    return aligns;
+    long gaps = std::get<3>(aligns[0]);
+    for (auto a : aligns) {
+        if (std::get<3>(a) != gaps) {
+            break;
+        }
+        Result result = std::make_tuple(std::get<0>(a), std::get<1>(a), std::get<2>(a));
+        results.push_back(result);
+    }
+
+    return results;
 }
-
 
 
 PYBIND11_MODULE(string_align, m) {
