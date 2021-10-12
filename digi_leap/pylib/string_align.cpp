@@ -2,6 +2,39 @@
 
 /*
     Naive implementations based on Gusfield 1997
+    I.e. There's plenty of room for improvement.
+
+    This code is for a singular use, to perform a multiple sequence alignment on
+    similar short text fragments. That is if I am given a set of text lines like:
+
+        MOJAVE DESERT, PROVIDENCE MTS.: canyon above
+        E. MOJAVE DESERT , PROVIDENCE MTS . : canyon above
+        Be ‘MOJAVE DESERT, PROVIDENCE canyon “above
+        E MOJAVE DESERT PROVTDENCE MTS. # canyon above
+
+    I should get back something similar to:
+
+        ⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄.⋄: canyon ⋄above
+        ⋄E. MOJAVE DESERT , PROVIDENCE MTS . : canyon ⋄above
+        Be ‘MOJAVE DESERT⋄, PROVIDENCE ⋄⋄⋄⋄⋄⋄⋄⋄canyon “above
+        ⋄E⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon ⋄above
+
+    Where "⋄" characters are used to represent gaps in the alignments.
+
+    The ultimate goal is to use this alignment to build a consensus sequence.
+
+    To do this I am using a modified Needleman-Wunsch global alignment algorithm.
+    Some of the changes are:
+
+        - The similarity matrix is based upon visual similarity and, obviously,
+          not on anything biological.
+        - I build the multiple alignment up from the strings in order where most
+          multiple alignment algorithms use phylogeny to guide the process.
+          Note that, elsewhere, I use the Levenshtein distance to create a
+          pseudo-phylogeny to order the strings.
+        - I actually align one sequence to many vs. pairwise build ups.
+        - The trace back matrix is built in reverse so I don't have to reverse
+          the strings. Maybe I should move to buffered c-strings instead.
 */
 
 
@@ -11,6 +44,7 @@
 #include <exception>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <locale>
 #include <numeric>
 #include <sstream>
@@ -22,25 +56,13 @@
 
 namespace py = pybind11;
 
-const char32_t gap = U'⋄';
-
-
-typedef std::tuple<long, std::u32string, std::u32string, long> Alignment;
-typedef std::tuple<long, std::u32string, std::u32string> Result;
-typedef std::vector<Alignment> Alignments;
-typedef std::vector<Result> Results;
-
-
-struct Traceback {
-    long score;
-    bool up;
-    bool diag;
-    bool left;
-    Traceback(): score(0), up(false), diag{false}, left(false) {}
+std::unordered_map<std::u32string, float> weight = {
+    {U"aa", 1.0},
+    {U"ab", 0.475},
+    {U"ba", 0.475},
 };
 
-typedef std::vector<std::vector<Traceback>> TraceMatrix;
-
+const char32_t gap_char = U'⋄';
 
 template<typename Iter> std::string concat(Iter first, Iter last)
 {
@@ -107,136 +129,130 @@ levenshtein_all(std::vector<std::u32string> lines) {
     return results;
 }
 
+typedef std::tuple<long, std::u32string, std::u32string, long> Alignment;
+typedef std::vector<Alignment> Alignments;
 
-long count_gaps(const std::u32string& str) {
-    long end = str.length() - 1;
-    long gaps = 0;
+struct Traceback {
+    float V;
+    float G;
+    float E;
+    float F;
+    Traceback(): V(0.0), G(0.0), E(0.0), F(0.0) {}
+};
+typedef std::vector<std::vector<Traceback>> TraceMatrix;
 
-    for (unsigned long i = 1; i < str.length(); ++i) {
-        gaps += (str[i-1] == gap && str[i] != gap) ? 1 : 0;
-    }
-    gaps += (str[end-1] != gap && str[end] == gap) ? 1 : 0;
-
-    return gaps;
-}
-
-
-void backtrace(
-    TraceMatrix &trace,
-    const long row,
-    const long col,
-    const std::u32string &in1,
-    const std::u32string &in2,
-    std::u32string out1,
-    std::u32string out2,
-    Alignments &aligns,
-    long score)
-{
-    if (row <= 0 && col <= 0) {
-        std::reverse(out1.begin(), out1.end());
-        std::reverse(out2.begin(), out2.end());
-        long gaps = count_gaps(out1) + count_gaps(out2);
-        Alignment a = std::tuple(score, out1, out2, gaps);
-        aligns.push_back(a);
-    }
-
-    Traceback cell = trace[row][col];
-
-    if (cell.diag){
-        backtrace(
-            trace,
-            row-1,
-            col-1,
-            in1,
-            in2,
-            out1+in1[row-1],
-            out2+in2[col-1],
-            aligns,
-            score);
-    }
-    if (cell.left) {
-        backtrace(
-            trace,
-            row,
-            col-1,
-            in1,
-            in2,
-            out1+gap,
-            out2+in2[col-1],
-            aligns,
-            score);
-    }
-    if (cell.up) {
-        backtrace(
-            trace,
-            row-1,
-            col,
-            in1,
-            in2,
-            out1+in1[row-1],
-            out2+gap,
-            aligns,
-            score);
-    }
-}
-
-
-Results align(std::u32string& str1, std::u32string& str2) {
-    const long len1 = str1.length();
-    const long len2 = str2.length();
-
-    TraceMatrix trace(len1+1, std::vector<Traceback>(len2+1));
-
-    for (long r = 1; r <= len1; ++r) {
-        trace[r][0].score = r;
-        trace[r][0].up = true;
-    }
-
-    for (long c = 1; c <= len2; ++c) {
-        trace[0][c].score = c;
-        trace[0][c].left = true;
-    }
-
-    for (long r = 1; r <= len1; ++r) {
-        for (long c = 1; c <= len2; ++c) {
-            long up = trace[r-1][c].score + 1;
-            long left = trace[r][c-1].score + 1;
-            long diag = trace[r-1][c-1].score + (str1[r-1] == str2[c-1] ? 0 : 1);
-
-            if (up <= left && up <= diag) {
-                trace[r][c].score = up;
-                trace[r][c].up = true;
-            }
-
-            if (left <= up && left <= diag) {
-                trace[r][c].score = left;
-                trace[r][c].left = true;
-            }
-
-            if (diag <= up && diag <= left) {
-                trace[r][c].score = diag;
-                trace[r][c].diag = true;
-            }
-        }
+std::vector<std::u32string> align(
+        std::vector<std::u32string> strings,
+        float gap_open = 5.0,
+        float gap_extend = 1.0
+) {
+    if (strings.size() < 1) {
+        throw std::invalid_argument("You must enter at least one string.");
     }
 
     Alignments aligns;
-    Results results;
+    std::vector<std::u32string> results;
 
-    backtrace(trace, len1, len2, str1, str2, U"", U"", aligns, trace[len1][len2].score);
+    results.push_back(strings[0]);
 
-    std::stable_sort(begin(aligns), end(aligns),
-        [](auto const &a1, auto const &a2) {
-            return std::get<0>(a1) < std::get<0>(a2);
-        });
+    for (size_t s = 1; s < strings.size(); ++s) {
 
-    long gaps = std::get<3>(aligns[0]);
-    for (auto a : aligns) {
-        if (std::get<3>(a) != gaps) {
-            break;
+        // Build the matrix
+
+        TraceMatrix trace(
+            results[0].length()+1,
+            std::vector<Traceback>(strings[s].length()+1));
+
+        float g = -gap_open;
+        for (size_t i = 1; i <= results[0].length(); ++i) {
+            trace[i][0].V = g;
+            trace[i][0].E = g;
+            g -= gap_extend;
         }
-        Result result = std::make_tuple(std::get<0>(a), std::get<1>(a), std::get<2>(a));
-        results.push_back(result);
+
+        g = -gap_open;
+        for (size_t j = 1; j <= strings[s].length(); ++j) {
+            trace[0][j].V = g;
+            trace[0][j].F = g;
+            g -= gap_extend;
+        }
+
+        for (size_t i = 1; i <= results[0].length(); ++i) {
+            for (size_t j = 1; j <= strings[s].length(); ++j) {
+
+                trace[i][j].E = std::max({
+                    trace[i][j-1].E, trace[i][j-1].V - gap_open}) - gap_extend;
+
+                trace[i][j].F = std::max({
+                    trace[i-1][j].F, trace[i-1][j].V - gap_open}) - gap_extend;
+
+                float max = std::numeric_limits<float>::min();
+                for (size_t k = 0; k < strings.size(); ++k) {
+                    char32_t results_char = results[k][i];
+
+                    if (results_char == gap_char) { continue; }
+
+                    std::u32string key = U"";
+                    key += results_char + strings[s][j];
+                    std::cout << convert(key) << "\n";
+                    float value;
+                    try {
+                        value = weight.at(key);
+                    } catch (std::out_of_range& e) {
+                        std::stringstream err;
+                        err << "Either '" << results_char << "' or '"
+                            << strings[s][j-1] << "' are missing from the "
+                            << "substitution table.";
+                        throw std::invalid_argument(err.str());
+                    }
+                    max = value > max ? value : max;
+                }
+                trace[i][j].G = trace[i-1][j-1].G + max;
+
+                trace[i][j].V = std::max({
+                    trace[i][j].G,
+                    trace[i][j].E,
+                    trace[i][j].F,
+                });
+            }
+        }
+
+        // Trace-back
+        size_t i = results[0].length();
+        size_t j = strings[s].length();
+        std::u32string new_string;
+
+        std::vector<std::u32string> new_results;
+        for (size_t k; k < results.size(); ++k) {
+            new_results.push_back(U"");
+        }
+
+        while (i > 0 && j > 0) {
+            Traceback cell = trace[i][j];
+
+            if (cell.G >= cell.E && cell.G >= cell.F) {
+                for (size_t k = 0; k < results.size(); ++k) {
+                    new_results[k] += results[k][j];
+                }
+                new_string += strings[s][j];
+                --i;
+                --j;
+            } else if (cell.E >= cell.G && cell.E >= cell.F) {
+                for (size_t k = 0; k < results.size(); ++k) {
+                    new_results[k] += gap_char;
+                }
+                new_string += strings[s][j];
+                --j;
+            } else {
+                for (size_t k = 0; k < results.size(); ++k) {
+                    new_results[k] += results[k][j];
+                }
+                new_string += gap_char;
+                --i;
+            }
+        }
+        results = new_results;
+        results.push_back(new_string);
     }
 
     return results;
@@ -245,7 +261,8 @@ Results align(std::u32string& str1, std::u32string& str2) {
 
 PYBIND11_MODULE(string_align, m) {
     m.doc() = "Align multiple strings.";
-    m.def("align", &align, "Get the alignment string for a pair of strings.");
+    m.def("align", &align, "Get the alignment string for a pair of strings.",
+          py::arg("gap_open") = 5.0, py::arg("gap_extend") = 1.0);
     m.def("levenshtein", &levenshtein, "Get the levenshtein distance for 2 strings.");
     m.def("levenshtein_all", &levenshtein_all,
         "Get the levenshtein distance for all pairs of strings in the list.");

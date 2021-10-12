@@ -9,6 +9,7 @@ import numpy as np
 import pytesseract
 from numpy import typing as npt
 from PIL import Image
+from PIL.Image import Image as ImageType
 from pytesseract.pytesseract import TesseractError
 from scipy import ndimage
 from scipy.ndimage import interpolation as interp
@@ -16,7 +17,7 @@ from skimage import exposure as ex
 from skimage import filters
 from skimage import morphology as morph
 
-ImageOrNumpy = Union[Image, npt.ArrayLike]
+ImageOrNumpy = Union[ImageType, npt.ArrayLike]
 Transformation = Callable[[ImageOrNumpy], ImageOrNumpy]
 
 
@@ -25,13 +26,13 @@ def compose(*functions: Transformation) -> Transformation:
     return functools.reduce(lambda f, g: lambda x: g(f(x)), functions)
 
 
-def image_to_array(image) -> npt.ArrayLike:
+def image_to_array(image: ImageType) -> npt.ArrayLike:
     """Convert a PIL image to a gray scale numpy array."""
     image = image.convert("L")
     return np.asarray(image)
 
 
-def array_to_image(image: npt.ArrayLike):
+def array_to_image(image: npt.ArrayLike) -> ImageType:
     """Convert a numpy array to a PIL image."""
     if hasattr(image, "dtype") and image.dtype == "float64":
         mode = "L" if len(image.shape) < 3 else "RGB"
@@ -208,6 +209,6 @@ PIPELINES: dict[str, Transformation] = {
 }
 
 
-def transform_label(pipeline: str, image):
+def transform_label(pipeline: str, image: ImageType) -> ImageType:
     """Transform the label to improve OCR results."""
     return PIPELINES[pipeline](image)

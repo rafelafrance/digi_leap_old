@@ -27,7 +27,7 @@ python -c 'import nltk; nltk.download("words")'
 # Commonly used for dev
 pip install -U pynvim
 pip install -U 'python-lsp-server[all]'
-pip install -U pre-commit
+pip install -U pre-commit pre-commit-hooks
 pip install -U autopep8 flake8 isort pylint yapf pydocstyle black
 pip install -U jupyter jupyter_nbextensions_configurator ipyparallel
 pip install -U jupyterlab_code_formatter
