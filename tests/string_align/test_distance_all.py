@@ -12,3 +12,16 @@ class TestDistanceAll(unittest.TestCase):
         self.assertEqual(
             sa.levenshtein_all(["aa", "bb", "ab"]), [(1, 0, 2), (1, 1, 2), (2, 0, 1)]
         )
+
+    def test_distance_all_03(self):
+        self.assertEqual(
+            sa.levenshtein_all(
+                [
+                    "MOJAVE DESERT, PROVIDENCE MTS.: canyon above",
+                    "E. MOJAVE DESERT , PROVIDENCE MTS . : canyon above",
+                    "E MOJAVE DESERT PROVTDENCE MTS. # canyon above",
+                    "Be ‘MOJAVE DESERT, PROVIDENCE canyon “above",
+                ]
+            ),
+            [(6, 0, 1), (6, 0, 2), (6, 1, 2), (11, 0, 3), (13, 1, 3), (13, 2, 3)],
+        )
