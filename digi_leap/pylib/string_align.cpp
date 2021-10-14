@@ -1,27 +1,9 @@
 // cppimport
 
-/*
-    Naive implementations based on Gusfield 1997
-    I.e. There's plenty of room for improvement.
-
-    This code is for a singular use, to perform a multiple sequence alignment on
-    similar short text fragments. That is if I am given a set of text lines like:
-
-        MOJAVE DESERT, PROVIDENCE MTS.: canyon above
-        E. MOJAVE DESERT , PROVIDENCE MTS . : canyon above
-        Be ‘MOJAVE DESERT, PROVIDENCE canyon “above
-        E MOJAVE DESERT PROVTDENCE MTS. # canyon above
-
-    I should get back something similar to:
-
-        ⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄⋄.: canyon⋄⋄⋄⋄⋄⋄⋄
-        E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon⋄⋄⋄⋄⋄⋄⋄
-        E⋄⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon⋄⋄⋄⋄⋄⋄⋄
-        Be ‘MOJAVE DESERT⋄, PROVIDENCE⋄⋄⋄⋄⋄⋄⋄⋄ canyon “above
-
-    Where "⋄" characters are used to represent gaps in the alignments.
-
-    The ultimate goal is to use this alignment to build a consensus sequence.
+/**
+ * Naive implementations of string algorithms based on Gusfield, 1997.
+ * I.e. There's plenty of room for improvement.
+ *
 */
 
 
@@ -45,33 +27,31 @@
 
 namespace py = pybind11;
 
+/**
+ * The character used to represent gaps in alignment output.
+ */
 const char32_t gap_char = U'⋄';
 
-template<typename Iter> std::string concat(Iter first, Iter last)
-{
-    if (first == last) { return ""; }
-
-    std::stringstream ss;
-
-    while (first != last) {
-        ss << *first;
-        ++first;
-    }
-
-    return ss.str();
-}
-
-
+// This is a utility function for converting a string from UTF-32 to UTF-8
 std::string convert_32_8(const std::u32string &bytes) {
     std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> conv;
     return conv.to_bytes(bytes);
 }
 
+// This is a utility function for converting a string from UTF-8 to UTF-32
 std::u32string convert_8_32(const std::string &wide) {
     std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> conv;
     return conv.from_bytes(wide);
 }
 
+/**
+ * Compute the Levenshtein distance for 2 strings.
+ *
+ * @param str1 Is a string to compare.
+ * @param str2 The other string to compare.
+ * @return The Levenshtein distance as an integer. The lower the number the more
+ * similar the strings.
+ */
 long levenshtein(std::u32string& str1, std::u32string& str2) {
     const long len1 = str1.length();
     const long len2 = str2.length();
@@ -95,15 +75,25 @@ long levenshtein(std::u32string& str1, std::u32string& str2) {
     return dist[len2];
 }
 
+/**
+ * Compute a Levenshtein distance for every pair of strings in list.
+ *
+ * @param strings A list of strings to compare.
+ * @return A sorted list of tuples. The tuple contains:
+ *     - The Levenshtein distance of the pair of strings.
+ *     - The index of the first string compared.
+ *     - The index of the second string compared.
+ * The tuples are sorted by distance.
+ */
 std::vector<std::tuple<long, long, long>>
-levenshtein_all(std::vector<std::u32string> lines) {
-    const long len = lines.size();
+levenshtein_all(std::vector<std::u32string> strings) {
+    const long len = strings.size();
 
     std::vector<std::tuple<long, long, long>> results;
 
     for (long r = 0; r < len - 1; ++r) {
         for (long c = r + 1; c < len; ++c) {
-            auto dist = levenshtein(lines[r], lines[c]);
+            auto dist = levenshtein(strings[r], strings[c]);
             results.push_back(std::make_tuple(dist, r, c));
         }
     }
@@ -116,6 +106,7 @@ levenshtein_all(std::vector<std::u32string> lines) {
     return results;
 }
 
+// Structures supporting the align_all() function.
 enum TraceDir { none, diag, up, left };
 struct Trace {
     float val;
@@ -126,10 +117,41 @@ struct Trace {
 };
 typedef std::vector<std::vector<Trace>> TraceMatrix;
 
+/**
+ * Create a multiple sequence alignment of a set of similar short text fragments.
+ * That is if I am given a set of strings like:
+ *
+ *     MOJAVE DESERT, PROVIDENCE MTS.: canyon above
+ *     E. MOJAVE DESERT , PROVIDENCE MTS . : canyon above
+ *     E MOJAVE DESERT PROVTDENCE MTS. # canyon above
+ *     Be ‘MOJAVE DESERT, PROVIDENCE canyon “above
+ *
+ * I should get back something similar to the following. The exact return value
+ * will depend on the substitution matrix, gap, and skew penalties passed to the
+ * function.
+ *
+ *     ⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄⋄.: canyon⋄⋄⋄⋄⋄⋄⋄
+ *     E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon⋄⋄⋄⋄⋄⋄⋄
+ *     E⋄⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon⋄⋄⋄⋄⋄⋄⋄
+ *     Be ‘MOJAVE DESERT⋄, PROVIDENCE⋄⋄⋄⋄⋄⋄⋄⋄ canyon “above
+ *
+ * Where "⋄" characters are used to represent gaps in the alignments.
+ *
+ * @param strings A list of strings to align.
+ * @param weight The substitution matrix given as a map, with the key as a two
+ * character string representing the two character being substituted. Symmetry
+ * is assumed so you only need to give the lexically first of a pair, i.e. for
+ * "ab" and "ba" you only need to send in "ab". The value of the map is the
+ * cost of substituting the two characters.
+ * @param gap The gap open penalty for alignments. This is typically negative.
+ * @param skew The gap extension penalty for the alignments. Also negative.
+ *
+ */
+// TODO Make sure that pybind11 strings and weight matrix are not copied every time
 std::vector<std::u32string>
 align_all(
-        std::vector<std::u32string> strings,
-        std::unordered_map<std::u32string, float> weight,
+        std::vector<std::u32string>& strings,
+        std::unordered_map<std::u32string, float>& weight,
         float gap,
         float skew
 ) {
@@ -141,11 +163,10 @@ align_all(
     std::vector<std::u32string> results;
 
     results.push_back(strings[0]);
-    size_t rows = results[0].length();
 
     for (size_t s = 1; s < strings.size(); ++s) {
-
         // Build the matrix
+        size_t rows = results[0].length();
         size_t cols = strings[s].length();
 
         TraceMatrix trace(rows + 1, std::vector<Trace>(cols + 1));
@@ -180,10 +201,9 @@ align_all(
                 float diagonal = std::numeric_limits<float>::lowest();
                 for (size_t k = 0; k < results.size(); ++k) {
                     char32_t results_char = results[k][r-1];
+                    char32_t strings_char = strings[s][c-1];
 
                     if (results_char == gap_char) { continue; }
-
-                    char32_t strings_char = strings[s][c-1];
 
                     if (results_char > strings_char) {
                         std::swap(strings_char, results_char);
@@ -216,18 +236,6 @@ align_all(
                 }
             }
         }
-        // std::cout << "\n";
-        // for (size_t r = 0; r <= rows; ++r) {
-        //     for (size_t c = 0; c <= cols; ++c) {
-        //         Trace cell = trace[r][c];
-        //         std::cout << "val=" << cell.val
-        //                   << " up=" << cell.up
-        //                   << " left=" << cell.left
-        //                   << " dir=" << cell.dir
-        //                   << "\t\t";
-        //     }
-        //     std::cout << "\n";
-        // }
 
         // Trace-back
         long r = rows;
@@ -267,6 +275,7 @@ align_all(
             }
         }
         new_results.push_back(new_string);
+        // TODO prevent string reversals with a better use of indexing
         results.clear();
         for (auto s : new_results) {
             std::reverse(s.begin(), s.end());

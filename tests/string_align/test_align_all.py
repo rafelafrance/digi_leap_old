@@ -83,9 +83,9 @@ class TestAlignAll(unittest.TestCase):
         self.assertEqual(
             results,
             [
-                "⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄⋄.: canyon⋄⋄⋄⋄⋄⋄⋄",
-                "E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon⋄⋄⋄⋄⋄⋄⋄",
-                "E⋄⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon⋄⋄⋄⋄⋄⋄⋄",
+                "⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄⋄.: canyon ⋄above",
+                "E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon ⋄above",
+                "E⋄⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon ⋄above",
                 "Be ‘MOJAVE DESERT⋄, PROVIDENCE⋄⋄⋄⋄⋄⋄⋄⋄ canyon “above",
             ],
         )
