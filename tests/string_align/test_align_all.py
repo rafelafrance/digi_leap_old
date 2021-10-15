@@ -4,7 +4,7 @@ import unittest
 import cppimport.import_hook  # noqa: F401
 
 from digi_leap.pylib import string_align_py as sa
-from digi_leap.pylib import string_align_weights as wt
+from digi_leap.pylib import string_align_subs as subs
 
 
 class TestAlignAll(unittest.TestCase):
@@ -78,9 +78,7 @@ class TestAlignAll(unittest.TestCase):
                 "E MOJAVE DESERT PROVTDENCE MTS. # canyon above",
                 "Be ‘MOJAVE DESERT, PROVIDENCE canyon “above",
             ],
-            wt.WEIGHTS,
-            -5.0,
-            -0.5,
+            subs.SUBS,
         )
         # print()
         # for r in results:

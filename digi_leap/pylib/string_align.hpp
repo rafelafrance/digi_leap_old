@@ -72,7 +72,7 @@ levenshtein_all(const std::vector<std::u32string>& strings);
 std::vector<std::u32string>
 align_all(
         const std::vector<std::u32string>& strings,
-        const std::unordered_map<std::u32string, float>& weight,
-        const float gap,
-        const float skew
+        const std::unordered_map<std::u32string, float>& substitutions,
+        const float gap=-5.0,
+        const float skew=-0.5
 );

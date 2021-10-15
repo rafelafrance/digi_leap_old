@@ -1,7 +1,7 @@
 """Weights for sequence alignment."""
 # Thie file is automacically generated
 
-WEIGHTS = {
+SUBS = {
     "  ": 2.0,
     " !": -1.0,
     ' "': 0.0,

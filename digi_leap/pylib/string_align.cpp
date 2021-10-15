@@ -78,11 +78,11 @@ struct Trace {
 };
 typedef std::vector<std::vector<Trace>> TraceMatrix;
 
-// TODO Make sure that pybind11 strings and weight matrix are not copied every time
+// TODO Make sure that pybind11 strings & substitutions matrix are not copied in
 std::vector<std::u32string>
 align_all(
         const std::vector<std::u32string>& strings,
-        const std::unordered_map<std::u32string, float>& weight,
+        const std::unordered_map<std::u32string, float>& substitutions,
         const float gap,
         const float skew
 ) {
@@ -145,7 +145,7 @@ align_all(
                     key += strings_char;
                     float value;
                     try {
-                        value = weight.at(key);
+                        value = substitutions.at(key);
                     } catch (std::out_of_range& e) {
                         std::stringstream err;
                         err << "Either of '" << convert_32_8(key)
