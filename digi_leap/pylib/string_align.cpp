@@ -183,8 +183,8 @@ align_all(
         g = gap;
         for (size_t c = 1; c <= cols; ++c) {
             trace[0][c].val = g;
-            trace[0][c].left = g;
             trace[0][c].up = g;
+            trace[0][c].left = g;
             trace[0][c].dir = left;
             g += skew;
         }
@@ -200,8 +200,8 @@ align_all(
 
                 float diagonal = std::numeric_limits<float>::lowest();
                 for (size_t k = 0; k < results.size(); ++k) {
-                    char32_t results_char = results[k][r-1];
-                    char32_t strings_char = strings[s][c-1];
+                    char32_t results_char = results[k][rows-r];
+                    char32_t strings_char = strings[s][cols-c];
 
                     if (results_char == gap_char) { continue; }
 
@@ -255,14 +255,14 @@ align_all(
 
             if (cell.dir == diag) {
                 for (size_t k = 0; k < results.size(); ++k) {
-                    new_results[k] += results[k][r-1];
+                    new_results[k] += results[k][rows-r];
                 }
-                new_string += strings[s][c-1];
+                new_string += strings[s][cols-c];
                 --r;
                 --c;
             } else if (cell.dir == up) {
                 for (size_t k = 0; k < results.size(); ++k) {
-                    new_results[k] += results[k][r-1];
+                    new_results[k] += results[k][rows-r];
                 }
                 new_string += gap_char;
                 --r;
@@ -270,17 +270,12 @@ align_all(
                 for (size_t k = 0; k < results.size(); ++k) {
                     new_results[k] += gap_char;
                 }
-                new_string += strings[s][c-1];
+                new_string += strings[s][cols-c];
                 --c;
             }
         }
         new_results.push_back(new_string);
-        // TODO prevent string reversals with a better use of indexing
-        results.clear();
-        for (auto s : new_results) {
-            std::reverse(s.begin(), s.end());
-            results.push_back(s);
-        }
+        results = new_results;
     }
 
     return results;
