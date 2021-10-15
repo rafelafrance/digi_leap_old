@@ -1,3 +1,4 @@
+fail_fast: false
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
@@ -16,7 +17,7 @@ repos:
     -   id: black
 
 -   repo: https://github.com/PyCQA/flake8
-    rev: 3.9.2
+    rev: 4.0.1
     hooks:
     -   id: flake8
         language_version: python3
@@ -39,3 +40,15 @@ repos:
     -   id: mypy
         files: ^digi_leap/
         args: []
+
+- repo: https://github.com/pocc/pre-commit-hooks
+  rev: master
+  hooks:
+  - id: clang-format
+    args: [--style=Google]
+  - id: clang-tidy
+  - id: oclint
+  - id: uncrustify
+  - id: cppcheck
+  - id: cpplint
+  - id: include-what-you-use
