@@ -9,7 +9,7 @@
 #include <numeric>
 #include <sstream>
 #include <utility>
-#include "string_align.hpp"
+#include "line_align.hpp"
 
 // This is a utility function for converting a string from UTF-32 to UTF-8
 std::string convert_32_8(const std::u32string &bytes) {
