@@ -1,7 +1,9 @@
 """Test the distance function in the string_align module."""
 import unittest
 
-from digi_leap.pylib import string_align as sa
+import cppimport.import_hook  # noqa: F401
+
+from digi_leap.pylib import string_align_py as sa
 
 
 class TestDistanceAll(unittest.TestCase):

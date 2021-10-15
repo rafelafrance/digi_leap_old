@@ -1,8 +1,10 @@
 """Test the align_all function in the string_align module."""
 import unittest
 
-from digi_leap.pylib import string_align as sa
-from digi_leap.pylib import weights
+import cppimport.import_hook  # noqa: F401
+
+from digi_leap.pylib import string_align_py as sa
+from digi_leap.pylib import string_align_weights as wt
 
 
 class TestAlignAll(unittest.TestCase):
@@ -76,7 +78,7 @@ class TestAlignAll(unittest.TestCase):
                 "E MOJAVE DESERT PROVTDENCE MTS. # canyon above",
                 "Be ‘MOJAVE DESERT, PROVIDENCE canyon “above",
             ],
-            weights.WEIGHTS,
+            wt.WEIGHTS,
             -5.0,
             -0.5,
         )
