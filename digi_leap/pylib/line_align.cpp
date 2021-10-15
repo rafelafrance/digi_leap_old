@@ -12,15 +12,15 @@
 #include "line_align.hpp"
 
 // This is a utility function for converting a string from UTF-32 to UTF-8
-std::string convert_32_8(const std::u32string &bytes) {
+std::string convert_32_8(const std::u32string &wides) {
     std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> conv;
-    return conv.to_bytes(bytes);
+    return conv.to_bytes(wides);
 }
 
 // This is a utility function for converting a string from UTF-8 to UTF-32
-std::u32string convert_8_32(const std::string &wide) {
+std::u32string convert_8_32(const std::string &bytes) {
     std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> conv;
-    return conv.from_bytes(wide);
+    return conv.from_bytes(bytes);
 }
 
 long levenshtein(const std::u32string& str1, const std::u32string& str2) {
@@ -78,7 +78,6 @@ struct Trace {
 };
 typedef std::vector<std::vector<Trace>> TraceMatrix;
 
-// TODO Make sure that pybind11 strings & substitutions matrix are not copied in
 std::vector<std::u32string>
 align_all(
         const std::vector<std::u32string>& strings,
