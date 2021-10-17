@@ -88,10 +88,7 @@ align_all(
     if (strings.size() < 1) {
         throw std::invalid_argument("You must enter at least one string.");
     }
-    std::cout.precision(2);
-
     std::vector<std::u32string> results;
-
     results.push_back(strings[0]);
 
     for (size_t s = 1; s < strings.size(); ++s) {
