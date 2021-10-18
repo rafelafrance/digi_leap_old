@@ -4,7 +4,7 @@
  * Naive implementations of string algorithms based on Gusfield, 1997.
  * I.e. There's plenty of room for improvement.
  *
-*/
+ */
 
 #include <string>
 #include <tuple>
@@ -24,7 +24,7 @@ const char32_t gap_char = U'⋄';
  * @return The Levenshtein distance as an integer. The lower the number the more
  * similar the strings.
  */
-long levenshtein(const std::u32string& str1, const std::u32string& str2);
+long levenshtein(const std::u32string &str1, const std::u32string &str2);
 
 /**
  * Compute a Levenshtein distance for every pair of strings in list.
@@ -37,7 +37,7 @@ long levenshtein(const std::u32string& str1, const std::u32string& str2);
  * The tuples are sorted by distance.
  */
 std::vector<std::tuple<long, long, long>>
-levenshtein_all(const std::vector<std::u32string>& strings);
+levenshtein_all(const std::vector<std::u32string> &strings);
 
 /**
  * Create a multiple sequence alignment of a set of similar short text fragments.
@@ -70,9 +70,6 @@ levenshtein_all(const std::vector<std::u32string>& strings);
  *
  */
 std::vector<std::u32string>
-align_all(
-        const std::vector<std::u32string>& strings,
-        const std::unordered_map<std::u32string, float>& substitutions,
-        const float gap=-5.0,
-        const float skew=-0.5
-);
+align_all(const std::vector<std::u32string> &strings,
+          const std::unordered_map<std::u32string, float> &substitutions,
+          const float gap = -5.0, const float skew = -0.5);

@@ -46,10 +46,15 @@ repos:
   rev: v1.3.4
   hooks:
   - id: clang-format
-    args: [--style=Google]
   - id: clang-tidy
-  - id: oclint
-  - id: uncrustify
+    args:
+      - --extra-arg=-I./.venv/lib/python3.9/site-packages/pybind11/include/
+      - --extra-arg=-I/usr/include/python3.9/
   - id: cppcheck
-  - id: cpplint
-  - id: include-what-you-use
+    # - id: include-what-you-use
+    # args:
+    #  - -I./.venv/lib/python3.9/site-packages/pybind11/include/
+    #  - -I/usr/include/python3.9/
+    #  - id: oclint
+    #  - id: uncrustify
+    #  - id: cpplint
