@@ -84,8 +84,8 @@ std::vector<std::u32string>
 align_all(const std::vector<std::u32string> &strings,
           const std::unordered_map<std::u32string, float> &substitutions,
           const float gap, const float skew) {
-    if (strings.size() < 1) {
-        throw std::invalid_argument("You must enter at least one string.");
+    if (strings.size() < 2) {
+        return strings;
     }
     std::vector<std::u32string> results;
     results.push_back(strings[0]);

@@ -81,14 +81,15 @@ def create_label_table(database, drop=False):
     """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists labels (
-            label_id integer primary key autoincrement,
-            sheet_id integer,
-            offset   integer,
-            class    text,
-            left     integer,
-            top      integer,
-            right    integer,
-            bottom   integer
+            label_id  integer primary key autoincrement,
+            sheet_id  integer,
+            label_run text,
+            offset    integer,
+            class     text,
+            left      integer,
+            top       integer,
+            right     integer,
+            bottom    integer
         );
 
         create index labels_sheet_id on labels(sheet_id);
@@ -100,8 +101,8 @@ def insert_labels(database, batch):
     """Insert a batch of label records."""
     sql = """
         insert into labels
-               ( sheet_id,  offset,  class,  left,  top,  right,  bottom)
-        values (:sheet_id, :offset, :class, :left, :top, :right, :bottom);
+               ( sheet_id,  run,  offset,  class,  left,  top,  right,  bottom)
+        values (:sheet_id, :run, :offset, :class, :left, :top, :right, :bottom);
     """
     insert_batch(database, sql, batch)
 
@@ -121,7 +122,7 @@ def create_ocr_table(database, drop=False):
         create table if not exists ocr (
             ocr_id   integer primary key autoincrement,
             label_id integer,
-            run      text,
+            ocr_run  text,
             engine   text,
             pipeline text,
             conf     real,
@@ -150,7 +151,7 @@ def insert_ocr(database, batch):
 
 
 def select_ocr(database, limit=0):
-    """Get ocr records."""
+    """Get ocr box records."""
     sql = """
         select ocr.*, sheets.*, offset, class,
                labels.left   as label_left,

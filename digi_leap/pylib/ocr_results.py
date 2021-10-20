@@ -1,195 +1,135 @@
-"""Functions for manipulating OCR result ensembles."""
-import re
-from collections import defaultdict
-from collections import namedtuple
+"""Find lines of text in the OCR output."""
+import statistics as stat
 from dataclasses import dataclass
-from pathlib import Path
-from typing import DefaultDict
-from typing import Union
+from dataclasses import field
+from itertools import groupby
+from typing import Iterator
 
-import pandas as pd
-
-from . import box_calc as calc
-from . import vocab
-
-DocText = namedtuple("DocText", "text ocr")
+import digi_leap.pylib.line_align_py as la  # type: ignore
 
 
 @dataclass
-class BestScore:
-    """Holds the best scores for a text ensemble."""
+class Line:
+    """Holds data for building an OCR line."""
 
-    text: str
-    method: str
-    score: float
-    winners: list[str]
+    boxes: list[dict] = field(default_factory=list)
 
+    def overlap(self, ocr_box, eps=1):
+        """Find the vertical overlap between a line and an OCR bounding box.
 
-def get_results_df(path: Union[str, Path]) -> pd.DataFrame:
-    """Get the data frame for the image.
-
-    OCR results were stored as a CSV file. Create a data frame from the CSV, remove
-    rows with blank text, and add the directory name to the data frame. The directory
-    name is used later when building the text ensemble.
-    """
-    df = pd.read_csv(path).fillna("")
-    df["ocr_dir"] = Path(path).parent.stem
-    df["text"] = df.text.astype(str)
-    df["text"] = df.text.str.strip()
-    df = df.loc[df.text != ""]
-    return df
+        This is expressed as a fraction of the smallest height of the line
+        & OCR bounding box.
+        """
+        last = self.boxes[-1]  # If self.boxes is empty then we have a bigger problem
+        min_height = min(
+            last["bottom"] - last["top"], ocr_box["bottom"] - ocr_box["top"]
+        )
+        y_min = max(last["top"], ocr_box["top"])
+        y_max = min(last["bottom"], ocr_box["bottom"])
+        inter = max(0, y_max - y_min)
+        return inter / (min_height + eps)
 
 
-def filter_bounding_boxes(
-    df: pd.DataFrame,
+def filter_boxes(
+    ocr_boxes: list[dict],
     image_height: int,
     conf: float = 0.25,
-    height_threshold: float = 0.25,
     std_devs: float = 2.0,
-) -> pd.DataFrame:
-    """Remove problem bounding boxes from the data frame.
+    height_fract: float = 0.25,
+):
+    """Remove problem bounding boxes from the list.
 
-    Excuses for removing boxes include:
+    Reasons for removing boxes include:
     - Remove bounding boxes with no text.
     - Remove boxes with a low confidence score (from the OCR engine) for the text.
     - Remove boxes that are too tall relative to the label.
     - Remove boxes that are really skinny or really short.
     """
-    df["width"] = df.right - df.left + 1
-    df["height"] = df.bottom - df.top + 1
+    if len(ocr_boxes) < 2:
+        return ocr_boxes
 
-    # Remove boxes with nothing in them
-    df = df.loc[df.text != ""]
+    too_tall = round(image_height * height_fract)
 
-    # Remove boxes with low confidence
-    df = df.loc[df.conf > conf]
+    widths = [b["right"] - b["left"] for b in ocr_boxes]
+    heights = [b["bottom"] - b["top"] for b in ocr_boxes]
+    too_short = round(stat.mean(widths) - (std_devs * stat.stdev(widths)))
+    too_thin = round(stat.mean(heights) - (std_devs * stat.stdev(heights)))
 
-    # Remove boxes that are too tall
-    thresh_height = round(image_height * height_threshold)
-    df = df.loc[df.height < thresh_height]
+    filtered = []
+    for box in ocr_boxes:
+        width = box["right"] - box["left"]
+        height = box["bottom"] - box["top"]
+        text = box["text"].strip()
 
-    # Remove boxes that are very thin or very short
-    thresh_width = round(df.width.mean() - (std_devs * df.width.std()))
-    thresh_height = round(df.height.mean() - (std_devs * df.height.std()))
-    df = df.loc[(df.width > thresh_width) & (df.height > thresh_height)]
+        if (
+            text
+            and (box["conf"] >= conf)
+            and (too_tall > height > too_short)
+            and width > too_thin
+        ):
+            filtered.append(box)
 
-    return df
-
-
-def text_hits(text: str) -> int:
-    """Count the number of words in the text that are in our corpus.
-
-    A hit is:
-    - A direct match in the vocabulary
-    - A number like: 99.99
-    - A data like: 1/22/34 or 11-2-34
-    """
-    words = text.lower().split()
-    hits = sum(1 for w in words if re.sub(r"\W", "", w) in vocab.VOCAB and len(w) > 2)
-    hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
-    hits += sum(1 for w in words if re.match(r"^\d\d?[/-]\d\d?[/-]\d\d$", w))
-    return hits
+    return filtered
 
 
-def reconcile_text(doc_texts: list[DocText]) -> BestScore:
-    """Find the single "best" text string from a list of similar texts.
+def get_lines(ocr_boxes, vert_overlap=0.3):
+    """Find lines of text from an OCR bounding boxes."""
+    boxes = sorted(ocr_boxes, key=lambda b: b["left"])
+    lines: list[Line] = []
 
-    First we look for the most common text string in the list. If that
-    occurs more than half of the time, we return that. Otherwise, we look
-    for a string that contains the most words that have a vocabulary hit.
-    """
-    if not doc_texts:
-        return BestScore("", "None", 0.0, [])
+    for box in boxes:
+        overlap = [(r.overlap(box), r) for r in lines]
+        overlap = sorted(overlap, key=lambda o: -o[0])
 
-    # First look if a text appears in the majority of ocr documents
-    counts = defaultdict(list)
-    for text, ocr in doc_texts:
-        text = re.sub(r"\s([.,:])", r"\1", text)  # Remove leading space from punct
-        counts[text].append(ocr)
+        if overlap and overlap[0][0] > vert_overlap:
+            ln = overlap[0][1]
+            ln.boxes.append(box)
+        else:
+            ln = Line()
+            ln.boxes.append(box)
+            lines.append(ln)
 
-    bests = [
-        BestScore(text, "majority", len(ocr) / len(doc_texts), ocr)
-        for text, ocr in sorted(counts.items(), key=lambda x: len(x[1]))
-    ]
-
-    if bests[0].score >= 0.5 and len(bests[0].winners) > 1:
-        return bests[0]
-
-    # Fallback to looking for the text(s) with the best score
-    scores: DefaultDict[float, list[DocText]] = defaultdict(list)
-    for doc_text in doc_texts:
-        words = doc_text.text.split()
-        hits = text_hits(doc_text.text)
-        count = len(words)
-        score = (hits / count) if count > 0 else 0.0
-        scores[score].append(doc_text)
-
-    top = [(s, d) for s, d in sorted(scores.items(), key=lambda i: -i[0])]
-    top_score, top_doc_text = top[0]
-    text = top_doc_text[0].text  # If there are equal scores choose the first text
-    winners = [d.ocr for d in top_doc_text]
-    return BestScore(text, "score", top_score, winners)
+    lines = sorted(lines, key=lambda r: r.boxes[0]["top"])
+    return lines
 
 
-def merge_bounding_boxes(df: pd.DataFrame, threshold: float = 0.50) -> pd.DataFrame:
-    """Merge overlapping bounding boxes and create a new data frame.
+def get_copies(line: Line) -> list[str]:
+    """Get the copies of text lines from the Line() object."""
+    copies = []
 
-    1) Find boxes that overlap and assign overlapping boxes to a group
-    2) For each overlap group find boxes from the same document. This is flagged by
-       by the OCR dir and NOT the file name because, by definition, each ensemble
-       has identical files names but come from different directories.
-        a) Put the text for each document group in left to right order & join the text.
-    3) Merge the bounding boxes into a single bounding box. One per each OCR document.
-    4) Find the "best" text for the new bounding box. "Best" is relative to the other
-       documents.
-    """
-    boxes = df[["left", "top", "right", "bottom"]].to_numpy()
-    groups = calc.small_box_overlap(boxes, threshold=threshold)
-    df["group"] = groups
+    boxes = sorted(line.boxes, key=lambda b: (b["engine"], b["pipeline"], b["left"]))
+    combos: Iterator = groupby(boxes, key=lambda b: (b["engine"], b["pipeline"]))
 
-    merged = []
-    # First find everything that overlaps in all docs
-    for g, box_group in df.groupby("group"):
-        texts = []
-        # Now combine texts by doc
-        for s, subgroup in box_group.groupby("ocr_dir"):
-            subgroup = subgroup.sort_values("left")
-            text = " ".join(subgroup.text)
-            texts.append(DocText(text, str(s)))
+    for _, boxes in combos:
+        text = " ".join([b["text"] for b in boxes])
+        copies.append(text)
 
-        # Find the "best" text & the docs with it
-        best_score = reconcile_text(texts)
-
-        merged.append(
-            {
-                "left": box_group.left.min(),
-                "top": box_group.top.min(),
-                "right": box_group.right.max(),
-                "bottom": box_group.bottom.max(),
-                "text": best_score.text,
-                "ocr_dir": box_group.ocr_dir.iloc[0],
-                "method": best_score.method,
-                "winners": best_score.winners,
-                "score": best_score.score,
-            }
-        )
-
-    df = pd.DataFrame(merged)
-    df["text"] = df.text.astype(str)
-    return df
+    return copies
 
 
-def merge_rows_of_text(df: pd.DataFrame) -> pd.DataFrame:
-    """Merge bounding boxes on the same row of text into a single bounding box."""
-    df = df.groupby("row").agg(
-        {
-            "left": "min",
-            "top": "min",
-            "right": "max",
-            "bottom": "max",
-            "text": " ".join,
-        }
-    )
-    df = df.sort_values("top").reset_index(drop=True)
-    df["row"] = df.index + 1  # type: ignore
-    return df
+def sort_copies(copies: list[str]) -> list[str]:
+    """Sort the copies of the line by Levenshtein distance."""
+    # levenshtein_all() returns a sorted array of tuples (score, index_1, index_2)
+    if len(copies) <= 2:  # Sorting will do nothing
+        return copies
+
+    distances = la.levenshtein_all(copies)
+    _, i, j = distances.pop(0)
+
+    hits = {i, j}
+    ordered = [copies[i], copies[j]]
+
+    while len(hits) < len(copies):
+        for d, dist in enumerate(distances):
+            i, j = dist[1:]
+            if i in hits and j not in hits:
+                hits.add(j)
+                ordered.append(copies[j])
+                distances.pop(d)
+                break
+            elif j in hits and i not in hits:
+                hits.add(i)
+                ordered.append(copies[i])
+                distances.pop(d)
+                break
+    return ordered

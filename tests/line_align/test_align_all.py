@@ -56,7 +56,7 @@ class TestAlignAll(unittest.TestCase):
         self.assertEqual(la.align_all(["aab"], self.two_chars, -1, -1), ["aab"])
 
     def test_align_all_10(self):
-        self.assertRaises(ValueError, la.align_all, [], self.two_chars, -1, -1)
+        self.assertEqual(la.align_all([], self.two_chars, -1, -1), [])
 
     def test_align_all_11(self):
         self.assertEqual(
@@ -71,7 +71,6 @@ class TestAlignAll(unittest.TestCase):
         )
 
     def test_align_all_13(self):
-        self.maxDiff = None
         results = la.align_all(
             [
                 "MOJAVE DESERT, PROVIDENCE MTS.: canyon above",
@@ -80,10 +79,11 @@ class TestAlignAll(unittest.TestCase):
                 "Be ‘MOJAVE DESERT, PROVIDENCE canyon “above",
             ],
             subs.SUBS,
+            gap=-3.0,
         )
         # print()
         # for r in results:
-        #    print(f'"{r}",')
+        #     print(f'"{r}",')
         self.assertEqual(
             results,
             [
@@ -92,8 +92,27 @@ class TestAlignAll(unittest.TestCase):
                 "E⋄⋄ MOJAVE DESERT ⋄⋄PROVTDENCE MTS. #⋄ canyon ⋄above",
                 "Be ‘MOJAVE DESERT⋄, PROVIDENCE ⋄⋄⋄⋄⋄⋄⋄⋄canyon “above",
             ],
-            #   "⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄⋄.: canyon ⋄above",
-            #   "E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon ⋄above",
-            #   "E⋄⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon ⋄above",
-            #   "Be ‘MOJAVE DESERT⋄, PROVIDENCE⋄⋄⋄⋄⋄⋄⋄⋄ canyon “above",
+        )
+
+    def test_align_all_14(self):
+        results = la.align_all(
+            [
+                "Johns Island Sta tion on",
+                " Johns Island Stati on on",
+                "Johns Island Station on i",
+                "Station or",
+            ],
+            subs.SUBS,
+        )
+        # print()
+        # for r in results:
+        #     print(f'"{r}",')
+        self.assertEqual(
+            results,
+            [
+                "⋄Johns Island Sta ti⋄on on⋄⋄",
+                " Johns Island Sta⋄ti on on⋄⋄",
+                "⋄Johns Island Sta⋄ti⋄on on i",
+                "⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄Sta⋄ti⋄on or⋄⋄",
+            ],
         )

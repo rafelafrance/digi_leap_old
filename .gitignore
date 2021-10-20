@@ -49,3 +49,4 @@ build/
 extern/
 .rendered.*.cpp
 *.so
+*.plist

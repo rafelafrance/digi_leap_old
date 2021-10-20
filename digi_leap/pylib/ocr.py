@@ -18,7 +18,7 @@ TESS_CONFIG = " ".join(
 
 
 def tesseract_engine(image) -> list[dict]:
-    """OCR the image with tesseract and return a data frame."""
+    """OCR the image with tesseract."""
     df = pytesseract.image_to_data(image, config=TESS_CONFIG, output_type="data.frame")
 
     df = df.loc[df.conf > 0]
@@ -27,8 +27,8 @@ def tesseract_engine(image) -> list[dict]:
         df.text = df.text.astype(str)
         df.text = df.text.str.strip()
         df.conf /= 100.0
-        df["right"] = df.left + df.width - 1
-        df["bottom"] = df.top + df.height - 1
+        df["right"] = df.left + df.width
+        df["bottom"] = df.top + df.height
     else:
         df["right"] = None
         df["bottom"] = None

@@ -10,6 +10,7 @@ import pytesseract
 from numpy import typing as npt
 from PIL import Image
 from PIL.Image import Image as ImageType
+from PIL.Image import MODES
 from pytesseract.pytesseract import TesseractError
 from scipy import ndimage
 from scipy.ndimage import interpolation as interp
@@ -19,6 +20,8 @@ from skimage import morphology as morph
 
 ImageOrNumpy = Union[ImageType, npt.ArrayLike]
 Transformation = Callable[[ImageOrNumpy], ImageOrNumpy]
+
+IMAGE_MODE = Union[MODES, None]
 
 
 def compose(*functions: Transformation) -> Transformation:
@@ -35,7 +38,7 @@ def image_to_array(image: ImageType) -> npt.ArrayLike:
 def array_to_image(image: npt.ArrayLike) -> ImageType:
     """Convert a numpy array to a PIL image."""
     if hasattr(image, "dtype") and image.dtype == "float64":
-        mode = "L" if len(image.shape) < 3 else "RGB"
+        mode: IMAGE_MODE = "L" if len(image.shape) < 3 else "RGB"
         return Image.fromarray(image * 255.0, mode)
     if hasattr(image, "dtype") and image.dtype == "bool":
         image = (image * 255).astype("uint8")
@@ -188,7 +191,7 @@ def binary_opening(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.Arr
 # Scale(), Orient(), Deskew() in every ensemble member because they change the
 # geometry but you could exclude Blur() because it does not.
 
-COMMON_START: Transformation = compose(
+TRANSFORM_START: Transformation = compose(
     image_to_array,
     functools.partial(blur, sigma=0.5),
     functools.partial(scale, mode="nearest"),
@@ -196,11 +199,11 @@ COMMON_START: Transformation = compose(
     deskew,
 )
 
-PIPELINES: dict[str, Transformation] = {
-    "deskew": compose(COMMON_START, array_to_image),
-    "binarize": compose(COMMON_START, binarize_sauvola, array_to_image),
+TRANSFORM_PIPELINES: dict[str, Transformation] = {
+    "deskew": compose(TRANSFORM_START, array_to_image),
+    "binarize": compose(TRANSFORM_START, binarize_sauvola, array_to_image),
     "denoise": compose(
-        COMMON_START,
+        TRANSFORM_START,
         binarize_sauvola,
         remove_small_holes,
         binary_opening,
@@ -211,4 +214,4 @@ PIPELINES: dict[str, Transformation] = {
 
 def transform_label(pipeline: str, image: ImageType) -> ImageType:
     """Transform the label to improve OCR results."""
-    return PIPELINES[pipeline](image)
+    return TRANSFORM_PIPELINES[pipeline](image)

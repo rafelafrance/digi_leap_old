@@ -3,7 +3,6 @@
 /**
  * Naive implementations of string algorithms based on Gusfield, 1997.
  * I.e. There's plenty of room for improvement.
- *
  */
 
 #include <string>
@@ -67,9 +66,8 @@ levenshtein_all(const std::vector<std::u32string> &strings);
  * cost of substituting the two characters.
  * @param gap The gap open penalty for alignments. This is typically negative.
  * @param skew The gap extension penalty for the alignments. Also negative.
- *
  */
 std::vector<std::u32string>
 align_all(const std::vector<std::u32string> &strings,
           const std::unordered_map<std::u32string, float> &substitutions,
-          const float gap = -5.0, const float skew = -0.5);
+          const float gap = -3.0, const float skew = -0.5);

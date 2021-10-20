@@ -11,7 +11,7 @@ from typing import Optional
 import pandas as pd
 from PIL import Image
 
-from digi_leap.pylib.ocr_results import text_hits
+from digi_leap.pylib.vocab import text_hits
 
 
 @dataclass

@@ -14,7 +14,7 @@ import pandas as pd
 from PIL import Image
 from PIL import ImageDraw
 
-from digi_leap.pylib import ocr_results as results
+import digi_leap.pylib.vocab
 
 
 def sample_sheets(args):
@@ -75,7 +75,7 @@ def score_label_text(texts, sheet_dir):
             score["hit_percent"] = 0
             score["word_count"] = 0
         else:
-            hits = results.text_hits(text)
+            hits = digi_leap.pylib.vocab.text_hits(text)
             score["hit_percent"] = round(100.0 * hits / count)
             score["word_count"] = count
 
