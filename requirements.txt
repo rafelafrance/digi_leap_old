@@ -8,6 +8,7 @@ numpy
 pandas
 pybind11
 pyenchant
+pyspellchecker
 pytesseract
 opencv-python
 scikit-image

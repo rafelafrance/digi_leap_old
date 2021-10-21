@@ -21,7 +21,7 @@ pip3 install -U torch==1.9.1+cu111 torchvision==0.10.1+cu111 -f https://download
 
 if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-# pip install -U tensorboard
+pip install -U tensorboard
 python -c 'import nltk; nltk.download("words")'
 
 # Commonly used for dev

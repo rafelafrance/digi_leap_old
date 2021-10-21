@@ -1,37 +1,74 @@
 """Utilities for working with vocabularies."""
-import re
-from typing import Optional
+from functools import reduce
 
 import nltk
+import regex as re
 
 from . import const
 
 VOCAB_DIR = const.ROOT_DIR / "vocab"
 
 
-# Vocabulary for scoring OCR quality
-def get_vocab() -> set[str]:
-    """Get the vocabulary used for scoring OCR quality."""
-    vocab = set()
-    with open(VOCAB_DIR / "plant_taxa.txt") as in_file:
-        vocab |= {v.strip().lower() for v in in_file.readlines() if len(v) > 1}
-    vocab |= {w.lower() for w in nltk.corpus.words.words() if len(w) > 1}
+def get_word_set(words_list, min_len=2) -> set[str]:
+    """Get a vocabulary used for scoring OCR quality."""
+    with open(words_list) as in_file:
+        vocab = {v.strip().lower() for v in in_file.readlines() if len(v) > min_len}
     return vocab
 
 
-VOCAB = get_vocab()
+def get_nltk_vocab(min_len=2) -> set[str]:
+    """Get common words from NLTK."""
+    vocab = {w.lower() for w in nltk.corpus.words.words() if len(w) > min_len}
+    vocab -= {"wes"}
+    return vocab
 
 
-def text_hits(text: str, vocab: Optional[set] = None) -> int:
+def in_vocab(vocab, word, min_len=2):
+    """Check if the word is in the vocabulary."""
+    return re.sub(r"\W", "", word.lower()) in vocab and len(word) > min_len
+
+
+def is_number(word):
+    """Check if the word is a number."""
+    return bool(re.match(r"^ \d+ [.,]? \d* $", word, flags=re.VERBOSE))
+
+
+def is_date(word):
+    """Check if the word is a date."""
+    return bool(
+        re.match(
+            r"^ \d\d? (?P<sep> [/-] ) \d\d? (?P=sep) (\d\d | \d\d\d\d) $",
+            word,
+            flags=re.VERBOSE,
+        )
+    )
+
+
+VOCAB: dict[str, set] = {
+    "plant_taxa": get_word_set(VOCAB_DIR / "plant_taxa.txt"),
+    "common": get_nltk_vocab(),
+}
+ALL_VOCABS: set = reduce(lambda x, y: x.union(y), VOCAB.values(), set())
+
+
+def in_any_vocab(word, min_len=2):
+    """Check if a word is in any vocabulary."""
+    word = word.lower()
+    return len(word) > min_len and (
+        in_vocab(ALL_VOCABS, word) or is_number(word) or is_date(word)
+    )
+
+
+def vocab_hits(text: str) -> int:
     """Count the number of words in the text that are in our corpus.
 
     A hit is:
-    - A direct match in the vocabulary
+    - A direct match in the vocabularies
     - A number like: 99.99
-    - A data like: 1/22/34 or 11-2-34
+    - A data like: 1/22/34 or 11-2-1934
     """
-    words = text.lower().split()
-    hits = sum(1 for w in words if re.sub(r"\W", "", w) in VOCAB and len(w) > 2)
-    hits += sum(1 for w in words if re.match(r"^\d+[.,]?\d*$", w))
-    hits += sum(1 for w in words if re.match(r"^\d\d?[/-]\d\d?[/-]\d\d$", w))
+    words = text.split()
+    hits = sum(1 for w in words if in_vocab(ALL_VOCABS, w))
+    hits += sum(1 for w in words if is_number(w))
+    hits += sum(1 for w in words if is_date(w))
     return hits

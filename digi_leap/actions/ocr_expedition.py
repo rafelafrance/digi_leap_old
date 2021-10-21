@@ -11,7 +11,7 @@ from typing import Optional
 import pandas as pd
 from PIL import Image
 
-from digi_leap.pylib.vocab import text_hits
+from digi_leap.pylib.vocab import vocab_hits
 
 
 @dataclass
@@ -110,7 +110,7 @@ def filter_labels_by_words(sheets, word_threshold, vocab_threshold):
                     continue
 
                 # Skip labels with too few vocab hits
-                hits = text_hits(text)
+                hits = vocab_hits(text)
                 if hits < vocab_threshold:
                     continue
 

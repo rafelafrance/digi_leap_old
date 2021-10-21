@@ -1,17 +1,77 @@
-"""Find lines of text in the OCR output."""
+"""Build lines of text from the OCR output."""
 import statistics as stat
+import unicodedata
+from collections import Counter
 from dataclasses import dataclass
 from dataclasses import field
+from functools import reduce
 from itertools import groupby
 from typing import Iterator
 
+import regex as re
+
 import digi_leap.pylib.line_align_py as la  # type: ignore
+from digi_leap.pylib import line_align_subs
+from digi_leap.pylib import vocab
+
+_CATEGORY = {
+    "Lu": 20,
+    "Ll": 20,
+    "Lt": 20,
+    "Lm": 20,
+    "Lo": 20,  # Letters
+    "Nd": 30,
+    "Nl": 60,
+    "No": 60,  # Numbers
+    "Pc": 70,
+    "Pd": 40,
+    "Ps": 50,
+    "Pe": 50,
+    "Pi": 50,
+    "Pf": 50,
+    "Po": 10,  # Punctuation
+    "Sm": 99,
+    "Sc": 90,
+    "So": 90,  # Symbols
+    "Zs": 80,  # Space
+}
+
+_PO = {
+    ".": 1,
+    ",": 2,
+    ":": 2,
+    ";": 2,
+    "!": 5,
+    '"': 5,
+    "'": 5,
+    "*": 5,
+    "/": 5,
+    "%": 6,
+    "&": 6,
+}
+
+SUBSTITUTIONS = [
+    # Remove gaps
+    ("⋄", ""),
+    # Replace underscores with spaces
+    ("_", " "),
+    # Remove space before some punct: x . -> x.
+    (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
+    # Trim internal spaces
+    (r"\s\s+", " "),
+    # Convert single capital letter, punct to capital dot: L' -> L.
+    (r"(\p{L}\s\p{Lu})\p{Po}", r"\1."),
+    # Add spaces around an &
+    (r"(\w)&", r"\1 &"),
+    (r"&(\w)", r"& \1"),
+]
 
 
 @dataclass
 class Line:
     """Holds data for building an OCR line."""
 
+    # This list is unordered and may contain several copies of the same text
     boxes: list[dict] = field(default_factory=list)
 
     def overlap(self, ocr_box, eps=1):
@@ -133,3 +193,100 @@ def sort_copies(copies: list[str]) -> list[str]:
                 distances.pop(d)
                 break
     return ordered
+
+
+def align_copies(copies: list[str]) -> list[str]:
+    """Do a multiple alignment of the text copies."""
+    aligned = la.align_all(copies, line_align_subs.SUBS)
+    return aligned
+
+
+def _char_key(char):
+    """Get the character sort order."""
+    order = _CATEGORY[unicodedata.category(char)]
+    order = _PO.get(char, order)
+    return order, char
+
+
+def _char_options(aligned):
+    options = []
+    str_len = len(aligned[0])
+
+    for i in range(str_len):
+        counts = Counter(s[i] for s in aligned).most_common()
+        count = counts[0][1]
+        chars = [c[0] for c in counts if c[1] == count]
+        chars = sorted(chars, key=_char_key)  # Sort order is a fallback
+        options.append(chars)
+    return options
+
+
+def _get_choices(options):
+    all_choices = []
+
+    def _build_choices(opts, choice):
+        if not opts:
+            ln = "".join(choice)
+            all_choices.append(ln)
+            return
+        for o in opts[0]:
+            _build_choices(opts[1:], choice + [o])
+
+    _build_choices(options, [])
+    return all_choices
+
+
+def _word_consensus_key(choice):
+    hits = vocab.vocab_hits(choice)
+    count = sum(1 for c in choice if c not in "⋄_ ")
+    return hits, -count
+
+
+def _word_consensus(options):
+    choices = _get_choices(options)
+    choices = sorted(choices, key=_word_consensus_key)
+    return choices[0]
+
+
+def consensus(aligned: list[str], threshold=2 ** 16) -> str:
+    """Build a consensus string from the aligned copies."""
+    options = _char_options(aligned)
+    count = reduce(lambda x, y: x * len(y), options, 1)
+    if count == 1 or count > threshold:
+        cons = "".join([o[0] for o in options])
+    else:
+        cons = _word_consensus(options)
+
+    return cons
+
+
+def substitute(cons):
+    """Perform simple substitutions on a consensus string."""
+    for old, new in SUBSTITUTIONS:
+        cons = re.sub(old, new, cons)
+    return cons
+
+
+def spaces(ln):
+    """Remove extra spaces in words."""
+    words = ln.split()
+
+    if not words:
+        return ln
+
+    new = [words[0]]
+    for i in range(1, len(words)):
+        prev = re.sub(r"^\W+", "", words[i - 1])
+        curr = re.sub(r"\W+$", "", words[i])
+
+        prev_in_vocab = vocab.in_any_vocab(prev)
+        curr_in_vocab = vocab.in_any_vocab(curr)
+        combo_in_vocab = vocab.in_any_vocab(prev + curr)
+
+        if combo_in_vocab and not prev_in_vocab and not curr_in_vocab:
+            new.pop()
+            new.append(words[i - 1] + words[i])
+        else:
+            new.append(words[i])
+
+    return " ".join(new)
