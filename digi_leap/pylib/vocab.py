@@ -19,7 +19,7 @@ def get_word_set(words_list, min_len=2) -> set[str]:
 def get_nltk_vocab(min_len=2) -> set[str]:
     """Get common words from NLTK."""
     vocab = {w.lower() for w in nltk.corpus.words.words() if len(w) > min_len}
-    vocab -= {"wes"}
+    vocab -= {"wes", "stof"}
     return vocab
 
 

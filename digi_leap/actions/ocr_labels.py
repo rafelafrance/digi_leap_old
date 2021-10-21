@@ -50,7 +50,7 @@ def ocr_labels(args: Namespace) -> None:
                             for result in results:
                                 result |= {
                                     "label_id": lb["label_id"],
-                                    "run": run,
+                                    "ocr_run": run,
                                     "engine": engine,
                                     "pipeline": pipeline,
                                 }

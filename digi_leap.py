@@ -8,25 +8,26 @@ from argparse import RawDescriptionHelpFormatter
 from pathlib import Path
 
 import digi_leap.pylib.args as arguments
-from digi_leap.actions import faster_rcnn_test
-from digi_leap.actions import faster_rcnn_train
-from digi_leap.actions import faster_rcnn_use
+from digi_leap.actions import find_labels
 from digi_leap.actions import idigbio_images
-from digi_leap.actions import ocr_ensemble
-from digi_leap.actions import ocr_expedition
-from digi_leap.actions import ocr_in_house_qc
 from digi_leap.actions import ocr_labels
 
+# from digi_leap.actions import faster_rcnn_test
+# from digi_leap.actions import faster_rcnn_train
+# from digi_leap.actions import ocr_ensemble
+# from digi_leap.actions import ocr_expedition
+# from digi_leap.actions import ocr_in_house_qc
+
 DISPATCH = {
-    "faster_rcnn_test": faster_rcnn_test.test,
-    "faster_rcnn_train": faster_rcnn_train.train,
-    "faster_rcnn_use": faster_rcnn_use.use,
+    # "faster_rcnn_test": faster_rcnn_test.test,
+    # "faster_rcnn_train": faster_rcnn_train.train,
+    "find_labels": find_labels.find,
     "idigbio_images": idigbio_images.download_images,
     "idigbio_verify_images": idigbio_images.verify_images,
     "ocr": ocr_labels.ocr_labels,
-    "ocr_ensemble": ocr_ensemble.build_all_ensembles,
-    "ocr_expedition": ocr_expedition.build_expedition,
-    "ocr_in_house_qc": ocr_in_house_qc.sample_sheets,
+    # "ocr_ensemble": ocr_ensemble.build_all_ensembles,
+    # "ocr_expedition": ocr_expedition.build_expedition,
+    # "ocr_in_house_qc": ocr_in_house_qc.sample_sheets,
 }
 
 

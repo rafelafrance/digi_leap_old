@@ -19,21 +19,21 @@ _CATEGORY = {
     "Ll": 20,
     "Lt": 20,
     "Lm": 20,
-    "Lo": 20,  # Letters
+    "Lo": 20,
     "Nd": 30,
     "Nl": 60,
-    "No": 60,  # Numbers
+    "No": 60,
     "Pc": 70,
     "Pd": 40,
     "Ps": 50,
     "Pe": 50,
     "Pi": 50,
     "Pf": 50,
-    "Po": 10,  # Punctuation
+    "Po": 10,
     "Sm": 99,
     "Sc": 90,
-    "So": 90,  # Symbols
-    "Zs": 80,  # Space
+    "So": 90,
+    "Zs": 80,
 }
 
 _PO = {
@@ -279,9 +279,9 @@ def spaces(ln):
         prev = re.sub(r"^\W+", "", words[i - 1])
         curr = re.sub(r"\W+$", "", words[i])
 
-        prev_in_vocab = vocab.in_any_vocab(prev)
-        curr_in_vocab = vocab.in_any_vocab(curr)
-        combo_in_vocab = vocab.in_any_vocab(prev + curr)
+        prev_in_vocab = vocab.in_vocab(vocab.ALL_VOCABS, prev)
+        curr_in_vocab = vocab.in_vocab(vocab.ALL_VOCABS, curr)
+        combo_in_vocab = vocab.in_vocab(vocab.ALL_VOCABS, prev + curr)
 
         if combo_in_vocab and not prev_in_vocab and not curr_in_vocab:
             new.pop()

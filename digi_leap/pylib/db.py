@@ -81,15 +81,15 @@ def create_label_table(database, drop=False):
     """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists labels (
-            label_id  integer primary key autoincrement,
-            sheet_id  integer,
-            label_run text,
-            offset    integer,
-            class     text,
-            left      integer,
-            top       integer,
-            right     integer,
-            bottom    integer
+            label_id     integer primary key autoincrement,
+            sheet_id     integer,
+            label_run    text,
+            offset       integer,
+            class        text,
+            label_left   integer,
+            label_top    integer,
+            label_right  integer,
+            label_bottom integer
         );
 
         create index labels_sheet_id on labels(sheet_id);
@@ -101,8 +101,10 @@ def insert_labels(database, batch):
     """Insert a batch of label records."""
     sql = """
         insert into labels
-               ( sheet_id,  run,  offset,  class,  left,  top,  right,  bottom)
-        values (:sheet_id, :run, :offset, :class, :left, :top, :right, :bottom);
+               ( sheet_id,    label_run,  offset,       class,
+                 label_left,  label_top,  label_right,  label_bottom)
+        values (:sheet_id,   :label_run, :offset,      :class,
+                :label_left, :label_top, :label_right, :label_bottom);
     """
     insert_batch(database, sql, batch)
 
@@ -120,17 +122,17 @@ def create_ocr_table(database, drop=False):
     """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists ocr (
-            ocr_id   integer primary key autoincrement,
-            label_id integer,
-            ocr_run  text,
-            engine   text,
-            pipeline text,
-            conf     real,
-            left     integer,
-            top      integer,
-            right    integer,
-            bottom   integer,
-            text     text
+            ocr_id     integer primary key autoincrement,
+            label_id   integer,
+            ocr_run    text,
+            engine     text,
+            pipeline   text,
+            conf       real,
+            ocr_left   integer,
+            ocr_top    integer,
+            ocr_right  integer,
+            ocr_bottom integer,
+            text       text
         );
 
         create index ocr_label_id on ocr(label_id);
@@ -142,10 +144,10 @@ def insert_ocr(database, batch):
     """Insert a batch of ocr records."""
     sql = """
         insert into ocr
-               (labels_id,  run,   engine,  pipeline,
-                 conf,  left,  top,   right,   bottom,  text)
-        values (:label_id, :run,  :engine, :pipeline,
-                :conf, :left, :top,  :right,  :bottom, :text);
+               ( labels_id, ocr_run,  engine,  pipeline,
+                 conf,  ocr_left,  ocr_top,   ocr_right,   ocr_bottom,  text)
+        values (:label_id, :ocr_run, :engine, :pipeline,
+                :conf, :ocr_left, :ocr_top,  :ocr_right,  :ocr_bottom, :text);
     """
     insert_batch(database, sql, batch)
 
@@ -153,7 +155,46 @@ def insert_ocr(database, batch):
 def select_ocr(database, limit=0):
     """Get ocr box records."""
     sql = """
-        select ocr.*, sheets.*, offset, class,
+        select *
+          from ocr
+          join labels using (label_id)
+          join sheets using (sheet_id)
+    """
+    return select_records(database, sql, limit)
+
+
+# ############ consensus table #######################################################
+
+
+def create_cons_table(database, drop=False):
+    """Create a table with the label crops of the herbarium images."""
+    sql = """
+        create table if not exists cons (
+            cons_id  integer primary key autoincrement,
+            label_id integer,
+            ocr_ids  text,
+            cons_run text,
+            text     text
+        );
+        create index cons_label_id on cons(label_id);
+        """
+    create_table(database, sql, "cons", drop=drop)
+
+
+def insert_cons(database, batch):
+    """Insert a batch of consensus records."""
+    sql = """
+        insert into cons
+               ( label_id,  ocr_ids,  cons_run,  text)
+        values (:label_id, :ocr_ids, :cons_run, :text);
+    """
+    insert_batch(database, sql, batch)
+
+
+def select_cons(database, limit=0):
+    """Get consensus records."""
+    sql = """
+        select cons.*, sheets.*, offset, class,
                labels.left   as label_left,
                labels.top    as label_top,
                labels.right  as label_right,

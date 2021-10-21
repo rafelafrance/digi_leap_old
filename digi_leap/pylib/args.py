@@ -150,7 +150,7 @@ ARGS = {
             "help": "The train/validation split for training the model.",
         },
     },
-    "faster_rcnn_use": {
+    "find_labels": {
         "help": """Use a model that finds labels on herbarium sheets (inference).""",
         "database": DEFAULT["digi_leap_db"],
         "load_model": DEFAULT["curr_model"],

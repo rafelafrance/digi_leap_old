@@ -3,6 +3,14 @@
 /**
  * Naive implementations of string algorithms based on Gusfield, 1997.
  * I.e. There's plenty of room for improvement.
+ *
+ * NOTE: The functions are geared towards OCR errors and not human
+ *       errors. OCR engines will often mistake one letter for another
+ *       or drop/add a character (particularly from the ends) but
+ *       will seldom transpose characters, which humans do often.
+ * Therefore: I do not consider transpostions in the Levenshtein or
+ *       Needleman Wunsch distances, substitutions are based
+ *       on visual similarity, etc.
  */
 
 #include <string>
