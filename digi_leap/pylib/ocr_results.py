@@ -55,6 +55,8 @@ SUBSTITUTIONS = [
     ("⋄", ""),
     # Replace underscores with spaces
     ("_", " "),
+    # Replace ™ trademark with a double quote
+    ("™", '"'),
     # Remove space before some punct: x . -> x.
     (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
     # Trim internal spaces
@@ -82,10 +84,11 @@ class Line:
         """
         last = self.boxes[-1]  # If self.boxes is empty then we have a bigger problem
         min_height = min(
-            last["bottom"] - last["top"], ocr_box["bottom"] - ocr_box["top"]
+            last["ocr_bottom"] - last["ocr_top"],
+            ocr_box["ocr_bottom"] - ocr_box["ocr_top"],
         )
-        y_min = max(last["top"], ocr_box["top"])
-        y_max = min(last["bottom"], ocr_box["bottom"])
+        y_min = max(last["ocr_top"], ocr_box["ocr_top"])
+        y_max = min(last["ocr_bottom"], ocr_box["ocr_bottom"])
         inter = max(0, y_max - y_min)
         return inter / (min_height + eps)
 
@@ -110,19 +113,21 @@ def filter_boxes(
 
     too_tall = round(image_height * height_fract)
 
-    widths = [b["right"] - b["left"] for b in ocr_boxes]
-    heights = [b["bottom"] - b["top"] for b in ocr_boxes]
+    widths = [b["ocr_right"] - b["ocr_left"] for b in ocr_boxes]
+    heights = [b["ocr_bottom"] - b["ocr_top"] for b in ocr_boxes]
     too_short = round(stat.mean(widths) - (std_devs * stat.stdev(widths)))
     too_thin = round(stat.mean(heights) - (std_devs * stat.stdev(heights)))
 
     filtered = []
     for box in ocr_boxes:
-        width = box["right"] - box["left"]
-        height = box["bottom"] - box["top"]
-        text = box["text"].strip()
+        width = box["ocr_right"] - box["ocr_left"]
+        height = box["ocr_bottom"] - box["ocr_top"]
+        text = box["ocr_text"].strip()
 
         if (
             text
+            and width > 1
+            and height > 1
             and (box["conf"] >= conf)
             and (too_tall > height > too_short)
             and width > too_thin
@@ -134,7 +139,7 @@ def filter_boxes(
 
 def get_lines(ocr_boxes, vert_overlap=0.3):
     """Find lines of text from an OCR bounding boxes."""
-    boxes = sorted(ocr_boxes, key=lambda b: b["left"])
+    boxes = sorted(ocr_boxes, key=lambda b: b["ocr_left"])
     lines: list[Line] = []
 
     for box in boxes:
@@ -149,7 +154,7 @@ def get_lines(ocr_boxes, vert_overlap=0.3):
             ln.boxes.append(box)
             lines.append(ln)
 
-    lines = sorted(lines, key=lambda r: r.boxes[0]["top"])
+    lines = sorted(lines, key=lambda r: r.boxes[0]["ocr_top"])
     return lines
 
 
@@ -157,11 +162,13 @@ def get_copies(line: Line) -> list[str]:
     """Get the copies of text lines from the Line() object."""
     copies = []
 
-    boxes = sorted(line.boxes, key=lambda b: (b["engine"], b["pipeline"], b["left"]))
+    boxes = sorted(
+        line.boxes, key=lambda b: (b["engine"], b["pipeline"], b["ocr_left"])
+    )
     combos: Iterator = groupby(boxes, key=lambda b: (b["engine"], b["pipeline"]))
 
     for _, boxes in combos:
-        text = " ".join([b["text"] for b in boxes])
+        text = " ".join([b["ocr_text"] for b in boxes])
         copies.append(text)
 
     return copies
@@ -203,7 +210,7 @@ def align_copies(copies: list[str]) -> list[str]:
 
 def _char_key(char):
     """Get the character sort order."""
-    order = _CATEGORY[unicodedata.category(char)]
+    order = _CATEGORY.get(unicodedata.category(char), 100)
     order = _PO.get(char, order)
     return order, char
 
@@ -279,9 +286,9 @@ def spaces(ln):
         prev = re.sub(r"^\W+", "", words[i - 1])
         curr = re.sub(r"\W+$", "", words[i])
 
-        prev_in_vocab = vocab.in_vocab(vocab.ALL_VOCABS, prev)
-        curr_in_vocab = vocab.in_vocab(vocab.ALL_VOCABS, curr)
-        combo_in_vocab = vocab.in_vocab(vocab.ALL_VOCABS, prev + curr)
+        prev_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, prev)
+        curr_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, curr)
+        combo_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, prev + curr)
 
         if combo_in_vocab and not prev_in_vocab and not curr_in_vocab:
             new.pop()

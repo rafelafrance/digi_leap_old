@@ -48,14 +48,14 @@ VOCAB: dict[str, set] = {
     "plant_taxa": get_word_set(VOCAB_DIR / "plant_taxa.txt"),
     "common": get_nltk_vocab(),
 }
-ALL_VOCABS: set = reduce(lambda x, y: x.union(y), VOCAB.values(), set())
+ALL_WORDS: set = reduce(lambda x, y: x.union(y), VOCAB.values(), set())
 
 
 def in_any_vocab(word, min_len=2):
     """Check if a word is in any vocabulary."""
     word = word.lower()
     return len(word) > min_len and (
-        in_vocab(ALL_VOCABS, word) or is_number(word) or is_date(word)
+        in_vocab(ALL_WORDS, word) or is_number(word) or is_date(word)
     )
 
 
@@ -68,7 +68,7 @@ def vocab_hits(text: str) -> int:
     - A data like: 1/22/34 or 11-2-1934
     """
     words = text.split()
-    hits = sum(1 for w in words if in_vocab(ALL_VOCABS, w))
+    hits = sum(1 for w in words if in_vocab(ALL_WORDS, w))
     hits += sum(1 for w in words if is_number(w))
     hits += sum(1 for w in words if is_date(w))
     return hits

@@ -29,7 +29,8 @@ def ocr_labels(args: Namespace) -> None:
         args.keep_n_largest,
     )
 
-    run = datetime.now().isoformat(sep="_", timespec="seconds")
+    if not args.ocr_run:
+        args.ocr_run = datetime.now().isoformat(sep="_", timespec="seconds")
 
     with warnings.catch_warnings():  # Turn off EXIF warnings
         warnings.filterwarnings("ignore", category=UserWarning)
@@ -50,7 +51,7 @@ def ocr_labels(args: Namespace) -> None:
                             for result in results:
                                 result |= {
                                     "label_id": lb["label_id"],
-                                    "ocr_run": run,
+                                    "ocr_run": args.ocr_run,
                                     "engine": engine,
                                     "pipeline": pipeline,
                                 }

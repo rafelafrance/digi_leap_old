@@ -8,6 +8,7 @@ from argparse import RawDescriptionHelpFormatter
 from pathlib import Path
 
 import digi_leap.pylib.args as arguments
+from digi_leap.actions import build_labels
 from digi_leap.actions import find_labels
 from digi_leap.actions import idigbio_images
 from digi_leap.actions import ocr_labels
@@ -22,6 +23,7 @@ DISPATCH = {
     # "faster_rcnn_test": faster_rcnn_test.test,
     # "faster_rcnn_train": faster_rcnn_train.train,
     "find_labels": find_labels.find,
+    "build_labels": build_labels.build_labels,
     "idigbio_images": idigbio_images.download_images,
     "idigbio_verify_images": idigbio_images.verify_images,
     "ocr": ocr_labels.ocr_labels,

@@ -35,6 +35,16 @@ def tesseract_engine(image) -> list[dict]:
 
     df = df.loc[:, KEYS]
 
+    df = df.rename(
+        columns={
+            "left": "ocr_left",
+            "top": "ocr_top",
+            "right": "ocr_right",
+            "bottom": "ocr_bottom",
+            "text": "ocr_text",
+        }
+    )
+
     results = df.to_dict("records")
     return results
 
@@ -49,11 +59,11 @@ def easyocr_engine(image) -> list[dict]:
         results.append(
             {
                 "conf": item[2],
-                "left": int(pos[0][0]),
-                "top": int(pos[0][1]),
-                "right": int(pos[1][0]),
-                "bottom": int(pos[2][1]),
-                "text": item[1],
+                "ocr_left": int(pos[0][0]),
+                "ocr_top": int(pos[0][1]),
+                "ocr_right": int(pos[1][0]),
+                "ocr_bottom": int(pos[2][1]),
+                "ocr_text": item[1],
             }
         )
     return results

@@ -61,14 +61,6 @@ DEFAULT = {
         "type": Path,
         "help": "The directory that holds prepared label images.",
     },
-    "ensemble_image_dir": {
-        "type": Path,
-        "help": "OCR ensemble images are in this directory.",
-    },
-    "ensemble_text_dir": {
-        "type": Path,
-        "help": "OCR ensemble text is in directory.",
-    },
     "idigbio_db": {
         "type": Path,
         "help": "Database that holds processed iDigBio data.",
@@ -97,6 +89,16 @@ DEFAULT = {
         "nargs": "+",
         "help": "Which OCR engines to use.",
     },
+    "ocr_run": {
+        "help": "Name the OCR run. Default is today's date & time.",
+    },
+    "ocr_runs": {
+        "nargs": "*",
+        "help": "Which OCR runs contain the label ensembles.",
+    },
+    "cons_run": {
+        "help": "Name the consensus construction run. Default is today's date & time.",
+    },
     "classes": {
         "choices": ["Barcode", "Handwritten", "Typewritten", "Both"],
         "nargs": "*",
@@ -109,6 +111,45 @@ DEFAULT = {
 # Arguments for scripts
 
 ARGS = {
+    "find_labels": {
+        "help": """Use a model that finds labels on herbarium sheets (inference).""",
+        "database": DEFAULT["digi_leap_db"],
+        "load_model": DEFAULT["curr_model"],
+        "device": DEFAULT["device"],
+        "nms_threshold": DEFAULT["nms_threshold"],
+        "sbs_threshold": DEFAULT["sbs_threshold"],
+        "limit": DEFAULT["limit"],
+    },
+    "ocr": {
+        "help": """OCR images of labels.""",
+        "database": DEFAULT["digi_leap_db"],
+        "ocr_run": DEFAULT["ocr_run"],
+        "pipelines": DEFAULT["pipelines"],
+        "ocr_engines": DEFAULT["ocr_engines"],
+        "classes": DEFAULT["classes"],
+        "ruler_ratio": {
+            "type": float,
+            "help": """Consider a label to be a ruler if the height:width
+                      (or width:height) ratio is above this.""",
+        },
+        "keep_n_largest": {
+            "type": int,
+            "help": "Keep the N largest labels for each sheet.",
+        },
+        "limit": DEFAULT["limit"],
+    },
+    "build_labels": {
+        "help": """Build a single "best" label from an ensemble of OCR outputs for
+                   every selected label. An ensemble is a set of OCR outputs of
+                   the same label using various image processing pipelines and OCR
+                   engines. They are grouped by OCR "runs".
+                """,
+        "database": DEFAULT["digi_leap_db"],
+        "cons_run": DEFAULT["cons_run"],
+        "ocr_runs": DEFAULT["ocr_runs"],
+        "classes": DEFAULT["classes"],
+        "limit": DEFAULT["limit"],
+    },
     "faster_rcnn_test": {
         "help": """Test a model that finds labels on herbarium sheets
                    (inference with scoring).""",
@@ -149,15 +190,6 @@ ARGS = {
             "default": 0.25,
             "help": "The train/validation split for training the model.",
         },
-    },
-    "find_labels": {
-        "help": """Use a model that finds labels on herbarium sheets (inference).""",
-        "database": DEFAULT["digi_leap_db"],
-        "load_model": DEFAULT["curr_model"],
-        "device": DEFAULT["device"],
-        "nms_threshold": DEFAULT["nms_threshold"],
-        "sbs_threshold": DEFAULT["sbs_threshold"],
-        "limit": DEFAULT["limit"],
     },
     "idigbio_images": {
         "help": """Use iDigBio records to download images. You should extract an
@@ -216,35 +248,6 @@ ARGS = {
         "nothing": {
             "help": "",
         },
-    },
-    "ocr": {
-        "help": """OCR images of labels.""",
-        "database": DEFAULT["digi_leap_db"],
-        "pipelines": DEFAULT["pipelines"],
-        "ocr_engines": DEFAULT["ocr_engines"],
-        "classes": DEFAULT["classes"],
-        "ruler_ratio": {
-            "type": float,
-            "help": """Consider a label to be a ruler if the height:width
-                      (or width:height) ratio is above this.""",
-        },
-        "keep_n_largest": {
-            "type": int,
-            "help": "Keep the N largest labels for each sheet.",
-        },
-        "limit": DEFAULT["limit"],
-    },
-    "ocr_ensemble": {
-        "help": """Build a single "best" label from the ensemble of OCR outputs.
-                   An ensemble is a list of OCR outputs with the same name contained
-                   in parallel directories. For instance, if you have OCR output
-                   (from the ocr_labels action) for three different runs then an
-                   ensemble will be:
-                        output/ocr/run1/label1.csv
-                        output/ocr/run2/label1.csv
-                        output/ocr/run3/label1.csv
-                """,
-        "limit": DEFAULT["limit"],
     },
     # "ocr_expedition": {
     #     "ensemble_images": DEFAULT["ensemble_image_dir"],
