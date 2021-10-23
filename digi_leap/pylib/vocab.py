@@ -1,5 +1,6 @@
 """Utilities for working with vocabularies."""
 from functools import reduce
+from sys import intern
 
 import nltk
 import regex as re
@@ -12,20 +13,22 @@ VOCAB_DIR = const.ROOT_DIR / "vocab"
 def get_word_set(words_list, min_len=2) -> set[str]:
     """Get a vocabulary used for scoring OCR quality."""
     with open(words_list) as in_file:
-        vocab = {v.strip().lower() for v in in_file.readlines() if len(v) > min_len}
+        vocab = {
+            intern(v.strip().lower()) for v in in_file.readlines() if len(v) > min_len
+        }
     return vocab
 
 
 def get_nltk_vocab(min_len=2) -> set[str]:
     """Get common words from NLTK."""
-    vocab = {w.lower() for w in nltk.corpus.words.words() if len(w) > min_len}
+    vocab = {intern(w.lower()) for w in nltk.corpus.words.words() if len(w) > min_len}
     vocab -= {"wes", "stof"}
     return vocab
 
 
 def in_vocab(vocab, word, min_len=2):
     """Check if the word is in the vocabulary."""
-    return re.sub(r"\W", "", word.lower()) in vocab and len(word) > min_len
+    return intern(re.sub(r"\W", "", word.lower())) in vocab and len(word) > min_len
 
 
 def is_number(word):

@@ -14,6 +14,8 @@ import digi_leap.pylib.line_align_py as la  # type: ignore
 from digi_leap.pylib import line_align_subs
 from digi_leap.pylib import vocab
 
+# When there is no clear "winner" for a character in the multiple alignment of
+# a set of strings I sort the characters by unicode category as a tiebreaker
 _CATEGORY = {
     "Lu": 20,
     "Ll": 20,
@@ -36,6 +38,8 @@ _CATEGORY = {
     "Zs": 80,
 }
 
+# As, above, but if a character has a category of "punctuation other" then I sort
+# by the character itself
 _PO = {
     ".": 1,
     ",": 2,
@@ -50,6 +54,7 @@ _PO = {
     "&": 6,
 }
 
+# Substitutions performed on a consensus sequence
 SUBSTITUTIONS = [
     # Remove gaps
     ("⋄", ""),
@@ -73,7 +78,7 @@ SUBSTITUTIONS = [
 class Line:
     """Holds data for building an OCR line."""
 
-    # This list is unordered and may contain several copies of the same text
+    # This list is unordered and will contain several copies of the same text
     boxes: list[dict] = field(default_factory=list)
 
     def overlap(self, ocr_box, eps=1):
@@ -177,7 +182,7 @@ def get_copies(line: Line) -> list[str]:
 def sort_copies(copies: list[str]) -> list[str]:
     """Sort the copies of the line by Levenshtein distance."""
     # levenshtein_all() returns a sorted array of tuples (score, index_1, index_2)
-    if len(copies) <= 2:  # Sorting will do nothing
+    if len(copies) <= 2:  # Sorting will do nothing in this case
         return copies
 
     distances = la.levenshtein_all(copies)
@@ -189,14 +194,10 @@ def sort_copies(copies: list[str]) -> list[str]:
     while len(hits) < len(copies):
         for d, dist in enumerate(distances):
             i, j = dist[1:]
-            if i in hits and j not in hits:
-                hits.add(j)
-                ordered.append(copies[j])
-                distances.pop(d)
-                break
-            elif j in hits and i not in hits:
-                hits.add(i)
-                ordered.append(copies[i])
+            if i in hits or j in hits:
+                k = i if j in hits else j
+                hits.add(k)
+                ordered.append(copies[k])
                 distances.pop(d)
                 break
     return ordered
@@ -229,6 +230,7 @@ def _char_options(aligned):
 
 
 def _get_choices(options):
+    """Recursively build all of the choices presented by a multiple alignment."""
     all_choices = []
 
     def _build_choices(opts, choice):
@@ -243,26 +245,28 @@ def _get_choices(options):
     return all_choices
 
 
-def _word_consensus_key(choice):
+def _consensus_key(choice):
     hits = vocab.vocab_hits(choice)
     count = sum(1 for c in choice if c not in "⋄_ ")
-    return hits, -count
-
-
-def _word_consensus(options):
-    choices = _get_choices(options)
-    choices = sorted(choices, key=_word_consensus_key)
-    return choices[0]
+    return hits, count
 
 
 def consensus(aligned: list[str], threshold=2 ** 16) -> str:
-    """Build a consensus string from the aligned copies."""
+    """Build a consensus string from the aligned copies.
+
+    Look at all options of the multiple alignment and choose
+    the one that makes a string with the best score, or if there
+    are too few or too many choices just look choose characters
+    by their sort order.
+    """
     options = _char_options(aligned)
     count = reduce(lambda x, y: x * len(y), options, 1)
     if count == 1 or count > threshold:
         cons = "".join([o[0] for o in options])
     else:
-        cons = _word_consensus(options)
+        choices = _get_choices(options)
+        choices = sorted(choices, key=_consensus_key, reverse=True)
+        cons = choices[0]
 
     return cons
 
@@ -275,7 +279,11 @@ def substitute(cons):
 
 
 def spaces(ln):
-    """Remove extra spaces in words."""
+    """Remove extra spaces in words.
+
+    OCR engines will put spaces where there shouldn't be any. This is a simple
+    scanner that looks for 2 non-words that make a new word when a space is removed.
+    """
     words = ln.split()
 
     if not words:
@@ -290,7 +298,7 @@ def spaces(ln):
         curr_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, curr)
         combo_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, prev + curr)
 
-        if combo_in_vocab and not prev_in_vocab and not curr_in_vocab:
+        if combo_in_vocab and not (prev_in_vocab or curr_in_vocab):
             new.pop()
             new.append(words[i - 1] + words[i])
         else:
