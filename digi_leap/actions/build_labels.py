@@ -14,7 +14,10 @@ def build_labels(args):
 
     limit = args.limit if args.limit else 999_999_999
 
-    cons_run = datetime.now().isoformat(sep="_", timespec="seconds")
+    cons_run = args.cons_run
+    if not cons_run:
+        cons_run = datetime.now().isoformat(sep="_", timespec="seconds")
+
     ocr_runs = get_ocr_runs(args.database, args.ocr_runs)
 
     ocr_labels = {
@@ -57,14 +60,22 @@ def build_label_text(label, ocr_fragments):
         if len(copies) <= 1:
             continue
 
-        copies = ocr_results.sort_copies(copies)
-        aligned = ocr_results.align_copies(copies)
-        cons = ocr_results.consensus(aligned)
-        ln = ocr_results.substitute(cons)
+        ln = consensus(copies)
+        # ln = ocr_results.choose_best_copy(copies)
+
+        ln = ocr_results.substitute(ln)
         ln = ocr_results.spaces(ln)
         text.append(ln)
 
     return "\n".join(text)
+
+
+def consensus(copies):
+    """Build a multiple-alignment consensus sequence from the copies of lines."""
+    copies = ocr_results.sort_copies(copies)
+    aligned = ocr_results.align_copies(copies)
+    cons = ocr_results.consensus(aligned)
+    return cons
 
 
 def get_ocr_fragments(ocr_labels, database, ocr_runs=None, classes=None):

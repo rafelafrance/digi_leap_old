@@ -62,11 +62,11 @@ SUBSTITUTIONS = [
     ("_", " "),
     # Replace ™ trademark with a double quote
     ("™", '"'),
-    # Remove space before some punct: x . -> x.
+    # Remove space before some punctuation: x . -> x.
     (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
     # Trim internal spaces
     (r"\s\s+", " "),
-    # Convert single capital letter, punct to capital dot: L' -> L.
+    # Convert single capital letter, punctuation to capital dot: L' -> L.
     (r"(\p{L}\s\p{Lu})\p{Po}", r"\1."),
     # Add spaces around an &
     (r"(\w)&", r"\1 &"),
@@ -102,8 +102,8 @@ def filter_boxes(
     ocr_boxes: list[dict],
     image_height: int,
     conf: float = 0.25,
-    std_devs: float = 2.0,
-    height_fract: float = 0.25,
+    std_dev: float = 2.0,
+    height_fraction: float = 0.25,
 ):
     """Remove problem bounding boxes from the list.
 
@@ -116,12 +116,12 @@ def filter_boxes(
     if len(ocr_boxes) < 2:
         return ocr_boxes
 
-    too_tall = round(image_height * height_fract)
+    too_tall = round(image_height * height_fraction)
 
     widths = [b["ocr_right"] - b["ocr_left"] for b in ocr_boxes]
     heights = [b["ocr_bottom"] - b["ocr_top"] for b in ocr_boxes]
-    too_short = round(stat.mean(widths) - (std_devs * stat.stdev(widths)))
-    too_thin = round(stat.mean(heights) - (std_devs * stat.stdev(heights)))
+    too_short = round(stat.mean(widths) - (std_dev * stat.stdev(widths)))
+    too_thin = round(stat.mean(heights) - (std_dev * stat.stdev(heights)))
 
     filtered = []
     for box in ocr_boxes:
@@ -245,10 +245,16 @@ def _get_choices(options):
     return all_choices
 
 
-def _consensus_key(choice):
+def _copies_key(choice):
     hits = vocab.vocab_hits(choice)
     count = sum(1 for c in choice if c not in "⋄_ ")
-    return hits, count
+    return hits, count, choice
+
+
+def choose_best_copy(copies):
+    """Find the copy with the best score."""
+    copies = sorted(copies, key=_copies_key, reverse=True)
+    return copies[0]
 
 
 def consensus(aligned: list[str], threshold=2 ** 16) -> str:
@@ -265,7 +271,7 @@ def consensus(aligned: list[str], threshold=2 ** 16) -> str:
         cons = "".join([o[0] for o in options])
     else:
         choices = _get_choices(options)
-        choices = sorted(choices, key=_consensus_key, reverse=True)
+        choices = sorted(choices, key=_copies_key, reverse=True)
         cons = choices[0]
 
     return cons
@@ -291,14 +297,14 @@ def spaces(ln):
 
     new = [words[0]]
     for i in range(1, len(words)):
-        prev = re.sub(r"^\W+", "", words[i - 1])
-        curr = re.sub(r"\W+$", "", words[i])
+        pre = re.sub(r"^\W+", "", words[i - 1])
+        cur = re.sub(r"\W+$", "", words[i])
 
-        prev_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, prev)
-        curr_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, curr)
-        combo_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, prev + curr)
+        pre_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, pre)
+        cur_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, cur)
+        combo_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, pre + cur)
 
-        if combo_in_vocab and not (prev_in_vocab or curr_in_vocab):
+        if combo_in_vocab and not (pre_in_vocab or cur_in_vocab):
             new.pop()
             new.append(words[i - 1] + words[i])
         else:
