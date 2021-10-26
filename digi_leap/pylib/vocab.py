@@ -1,25 +1,24 @@
 """Utilities for working with vocabularies."""
-from functools import reduce
+from sqlite3 import OperationalError
 
-import nltk
 import regex as re
 
 from . import const
+from . import db
 
-VOCAB_DIR = const.ROOT_DIR / "vocab"
+VOCAB_DB = const.ROOT_DIR / "data" / "vocab.sqlite"
 
 
-def get_word_set(words_list, min_len=2) -> set[str]:
+def get_vocab(min_len=3, min_freq=2) -> dict[str, int]:
     """Get a vocabulary used for scoring OCR quality."""
-    with open(words_list) as in_file:
-        vocab = {v.strip().lower() for v in in_file.readlines() if len(v) > min_len}
-    return vocab
-
-
-def get_nltk_vocab(min_len=2) -> set[str]:
-    """Get common words from NLTK."""
-    vocab = {w.lower() for w in nltk.corpus.words.words() if len(w) > min_len}
-    vocab -= {"wes", "stof"}
+    vocab = {}
+    try:
+        for row in db.select_vocab(VOCAB_DB):
+            word, freq = row["word"], int(row["freq"])
+            if len(word) >= min_len and freq >= min_freq:
+                vocab[word] = freq
+    except OperationalError:
+        db.create_vocab_table(VOCAB_DB)
     return vocab
 
 
@@ -30,7 +29,13 @@ def in_vocab(vocab, word, min_len=2):
 
 def is_number(word):
     """Check if the word is a number."""
-    return bool(re.match(r"^ \d+ [.,]? \d* $", word, flags=re.VERBOSE))
+    # return bool(re.match(r"^ \d+ [.,]? \d* $", word, flags=re.VERBOSE))
+    return bool(re.match(r"^ \d+ $", word, flags=re.VERBOSE))
+
+
+def text_to_words(text):
+    """Convert a line of text to words."""
+    return re.sub(r"[\W_]+", " ", text.lower()).split()
 
 
 def is_date(word):
@@ -44,21 +49,6 @@ def is_date(word):
     )
 
 
-VOCAB: dict[str, set] = {
-    "plant_taxa": get_word_set(VOCAB_DIR / "plant_taxa.txt"),
-    "common": get_nltk_vocab(),
-}
-ALL_WORDS: set = reduce(lambda x, y: x.union(y), VOCAB.values(), set())
-
-
-def in_any_vocab(word, min_len=2):
-    """Check if a word is in any vocabulary."""
-    word = word.lower()
-    return len(word) > min_len and (
-        in_vocab(ALL_WORDS, word) or is_number(word) or is_date(word)
-    )
-
-
 def vocab_hits(text: str) -> int:
     """Count the number of words in the text that are in our corpus.
 
@@ -67,8 +57,11 @@ def vocab_hits(text: str) -> int:
     - A number like: 99.99
     """
     # words = re.sub(r"[⋄ _-]+", " ", text.lower()).split()
-    words = re.sub(r"\W+", " ", text.lower()).split()
+    words = text_to_words(text)
     hits = sum(1 for w in words if in_vocab(ALL_WORDS, w))
     hits += sum(1 for w in words if is_number(w))
     # hits += sum(1 for w in words if is_date(w))
     return hits
+
+
+ALL_WORDS = get_vocab()

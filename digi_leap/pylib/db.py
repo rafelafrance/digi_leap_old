@@ -41,6 +41,32 @@ def create_table(database, sql, table, *, drop=False):
         cxn.executescript(sql)
 
 
+# ############## Vocab table ##########################################################
+
+
+def create_vocab_table(database, drop=False):
+    """Create a table with vocabulary words and their frequencies."""
+    sql = """
+        create table if not exists vocab (
+            word  text,
+            freq  integer
+        );
+        """
+    create_table(database, sql, "vocab", drop=drop)
+
+
+def insert_vocabulary_words(database, batch):
+    """Insert a batch of sheets records."""
+    sql = """insert into vocab (word, freq) values (:word, :freq);"""
+    insert_batch(database, sql, batch)
+
+
+def select_vocab(database, limit=0):
+    """Get herbarium sheet image data."""
+    sql = """select * from vocab"""
+    return select_records(database, sql, limit=limit)
+
+
 # ############ Sheets tables ##########################################################
 
 
@@ -59,9 +85,7 @@ def create_sheets_table(database, drop=False):
 
 def insert_sheets(database, batch):
     """Insert a batch of sheets records."""
-    sql = """
-        insert into sheets (path, width, height) values (:path, :width, :height);
-    """
+    sql = "insert into sheets (path, width, height) values (:path, :width, :height);"
     insert_batch(database, sql, batch)
 
 

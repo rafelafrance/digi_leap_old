@@ -45,11 +45,11 @@ def people_names(itis_db: Path) -> set[str]:
 def taxonomic_names(itis_db: Path) -> set[str]:
     """Get taxonomic names."""
     sql = """
-    select unit_name1 as name from taxonomic_units where unit_name1 is not null
-    union select unit_name2 from taxonomic_units where unit_name2 is not null
-    union select unit_name3 from taxonomic_units where unit_name3 is not null
-    union select unit_name4 from taxonomic_units where unit_name4 is not null
-    """
+        select unit_name1 as name from taxonomic_units where unit_name1 is not null
+        union select unit_name2 from taxonomic_units where unit_name2 is not null
+        union select unit_name3 from taxonomic_units where unit_name3 is not null
+        union select unit_name4 from taxonomic_units where unit_name4 is not null
+        """
     with sqlite3.connect(itis_db) as cxn:
         df = pd.read_sql(sql, cxn)
     df["name"] = df["name"].str.lower()
