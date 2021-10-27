@@ -12,7 +12,9 @@ import regex as re
 
 import digi_leap.pylib.line_align_py as la  # type: ignore
 from digi_leap.pylib import line_align_subs
-from digi_leap.pylib import vocab
+from digi_leap.pylib.vocab import to_words
+from digi_leap.pylib.vocab import vocab_hits
+from digi_leap.pylib.vocab import WORDS
 
 # When there is no clear "winner" for a character in the multiple alignment of
 # a set of strings I sort the characters by unicode category as a tiebreaker
@@ -246,7 +248,7 @@ def _get_choices(options):
 
 
 def _copies_key(choice):
-    hits = vocab.vocab_hits(choice)
+    hits = vocab_hits(choice)
     count = sum(1 for c in choice if c not in "⋄_ ")
     return hits, count, choice
 
@@ -290,21 +292,15 @@ def spaces(ln):
     OCR engines will put spaces where there shouldn't be any. This is a simple
     scanner that looks for 2 non-words that make a new word when a space is removed.
     """
-    words = ln.split()
+    words = to_words(ln)
 
-    if not words:
-        return ln
+    new = [words[0]] if words else []
 
-    new = [words[0]]
     for i in range(1, len(words)):
-        pre = re.sub(r"^\W+", "", words[i - 1])
-        cur = re.sub(r"\W+$", "", words[i])
+        prev = words[i - 1]
+        curr = words[i]
 
-        pre_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, pre)
-        cur_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, cur)
-        combo_in_vocab = vocab.in_vocab(vocab.ALL_WORDS, pre + cur)
-
-        if combo_in_vocab and not (pre_in_vocab or cur_in_vocab):
+        if prev + curr in WORDS and not (prev in WORDS or curr in WORDS):
             new.pop()
             new.append(words[i - 1] + words[i])
         else:
