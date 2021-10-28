@@ -1,10 +1,26 @@
 """Utilities for digi_leap.sqlite databases."""
 import sqlite3
+from pathlib import Path
+from typing import Optional
+from typing import Union
+
+DbPath = Union[Path, str]
 
 
-def select_records(database, sql, *, limit=0, **kwargs):
-    """Get ocr_results records."""
-    values, where = [], []
+def build_select(sql: str, *, limit: int = 0, **kwargs) -> tuple[str, list]:
+    """Select records given a base SQL statement and keyword parameters."""
+    sql, params = build_where(sql, **kwargs)
+
+    if limit:
+        sql += " limit ?"
+        params.append(limit)
+
+    return sql, params
+
+
+def build_where(sql: str, **kwargs) -> tuple[str, list]:
+    """Build a simple-mined where clause."""
+    params, where = [], []
 
     for key, value in kwargs.items():
         key = key.strip("_")
@@ -12,27 +28,31 @@ def select_records(database, sql, *, limit=0, **kwargs):
             pass
         elif isinstance(value, list) and value:
             where.append(f"{key} in ({','.join(['?'] * len(value))})")
-            values += value
+            params += value
         else:
             where.append("{key} = ?")
-            values.append(value)
+            params.append(value)
 
     sql += (" where " + " and ".join(where)) if where else ""
-    sql += f" limit {limit}" if limit else ""
+    return sql, params
 
+
+def rows_as_dicts(database: DbPath, sql: str, params: list):
+    """Convert the SQL execute cursor to a list of dicts."""
     with sqlite3.connect(database) as cxn:
         cxn.row_factory = sqlite3.Row
-        return cxn.execute(sql, values)
+        rows = [dict(r) for r in cxn.execute(sql, params)]
+    return rows
 
 
-def insert_batch(database, sql, batch):
+def insert_batch(database: DbPath, sql: str, batch: list) -> None:
     """Insert a batch of sheets records."""
     if batch:
         with sqlite3.connect(database) as cxn:
             cxn.executemany(sql, batch)
 
 
-def create_table(database, sql, table, *, drop=False):
+def create_table(database: DbPath, sql: str, table: str, *, drop: bool = False) -> None:
     """Create a table with paths to the valid herbarium sheet images."""
     with sqlite3.connect(database) as cxn:
         if drop:
@@ -44,7 +64,7 @@ def create_table(database, sql, table, *, drop=False):
 # ############## Vocab table ##########################################################
 
 
-def create_vocab_table(database, drop=False):
+def create_vocab_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with vocabulary words and their frequencies."""
     sql = """
         create table if not exists vocab (
@@ -55,22 +75,22 @@ def create_vocab_table(database, drop=False):
     create_table(database, sql, "vocab", drop=drop)
 
 
-def insert_vocabulary_words(database, batch):
+def insert_vocabulary_words(database: DbPath, batch: list) -> None:
     """Insert a batch of sheets records."""
     sql = """insert into vocab (word, freq) values (:word, :freq);"""
     insert_batch(database, sql, batch)
 
 
-def select_vocab(database, limit=0):
+def select_vocab(database: DbPath, min_freq=2, min_len=3) -> list[dict]:
     """Get herbarium sheet image data."""
-    sql = """select * from vocab"""
-    return select_records(database, sql, limit=limit)
+    sql = """select * from vocab where freq >= ? and length(word) >= ?"""
+    return rows_as_dicts(database, sql, [min_freq, min_len])
 
 
 # ############ Sheets tables ##########################################################
 
 
-def create_sheets_table(database, drop=False):
+def create_sheets_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with paths to the valid herbarium sheet images."""
     sql = """
         create table if not exists sheets (
@@ -83,13 +103,13 @@ def create_sheets_table(database, drop=False):
     create_table(database, sql, "sheets", drop=drop)
 
 
-def insert_sheets(database, batch):
+def insert_sheets(database: DbPath, batch: list) -> None:
     """Insert a batch of sheets records."""
     sql = "insert into sheets (path, width, height) values (:path, :width, :height);"
     insert_batch(database, sql, batch)
 
 
-def create_sheet_errors_table(database, drop=False):
+def create_sheet_errors_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with paths to the invalid herbarium sheet images."""
     sql = """
         create table if not exists sheet_errors (
@@ -100,22 +120,23 @@ def create_sheet_errors_table(database, drop=False):
     create_table(database, sql, "sheet_errors", drop=drop)
 
 
-def insert_sheet_errors(database, batch):
+def insert_sheet_errors(database: DbPath, batch: list) -> None:
     """Insert a batch of sheets error records."""
     sql = """insert into sheet_errors (path) values (:path);"""
     insert_batch(database, sql, batch)
 
 
-def select_sheets(database, limit=0):
+def select_sheets(database: DbPath, *, limit: int = 0) -> list[dict]:
     """Get herbarium sheet image data."""
     sql = """select * from sheets"""
-    return select_records(database, sql, limit=limit)
+    sql, params = build_select(sql, limit=limit)
+    return rows_as_dicts(database, sql, params)
 
 
 # ############ label table ##########################################################
 
 
-def create_label_table(database, drop=False):
+def create_label_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists labels (
@@ -135,7 +156,7 @@ def create_label_table(database, drop=False):
     create_table(database, sql, "labels", drop=drop)
 
 
-def insert_labels(database, batch):
+def insert_labels(database: DbPath, batch: list) -> None:
     """Insert a batch of label records."""
     sql = """
         insert into labels
@@ -147,18 +168,23 @@ def insert_labels(database, batch):
     insert_batch(database, sql, batch)
 
 
-def select_labels(database, limit=0, label_runs=None, classes=None):
+def select_labels(
+    database: DbPath,
+    *,
+    limit: int = 0,
+    label_runs: Optional[str] = None,
+    classes: Optional[str] = None,
+) -> list[dict]:
     """Get label records."""
     sql = """select * from labels join sheets using (sheet_id)"""
-    return select_records(
-        database, sql, limit=limit, class_=classes, label_run=label_runs
-    )
+    sql, params = build_select(sql, limit=limit, class_=classes, label_run=label_runs)
+    return rows_as_dicts(database, sql, params)
 
 
 # ############ ocr table #############################################################
 
 
-def create_ocr_table(database, drop=False):
+def create_ocr_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists ocr (
@@ -180,7 +206,7 @@ def create_ocr_table(database, drop=False):
     create_table(database, sql, "ocr", drop=drop)
 
 
-def insert_ocr(database, batch):
+def insert_ocr(database: DbPath, batch: list) -> None:
     """Insert a batch of ocr records."""
     sql = """
         insert into ocr
@@ -192,7 +218,9 @@ def insert_ocr(database, batch):
     insert_batch(database, sql, batch)
 
 
-def select_ocr(database, ocr_runs=None, classes=None, limit=0):
+def select_ocr(
+    database: DbPath, ocr_runs=None, classes=None, limit: int = 0
+) -> list[dict]:
     """Get ocr box records."""
     sql = """
         select *
@@ -200,19 +228,21 @@ def select_ocr(database, ocr_runs=None, classes=None, limit=0):
           join labels using (label_id)
           join sheets using (sheet_id)
     """
-    return select_records(database, sql, limit=limit, class_=classes, ocr_run=ocr_runs)
+    sql, params = build_select(sql, limit=limit, class_=classes, ocr_run=ocr_runs)
+    return rows_as_dicts(database, sql, params)
 
 
-def get_ocr_runs(database):
+def get_ocr_runs(database: DbPath) -> list[dict]:
     """Get all of the OCR runs in the database."""
     sql = """select distinct ocr_run from ocr"""
-    return select_records(database, sql)
+    sql, params = build_select(sql)
+    return rows_as_dicts(database, sql, params)
 
 
 # ############ consensus table #######################################################
 
 
-def create_cons_table(database, drop=False):
+def create_cons_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists cons (
@@ -227,7 +257,7 @@ def create_cons_table(database, drop=False):
     create_table(database, sql, "cons", drop=drop)
 
 
-def insert_cons(database, batch):
+def insert_cons(database: DbPath, batch: list) -> None:
     """Insert a batch of consensus records."""
     sql = """
         insert into cons
@@ -237,7 +267,11 @@ def insert_cons(database, batch):
     insert_batch(database, sql, batch)
 
 
-def select_cons(database, cons_runs=None, limit=0):
+def select_cons(
+    database: DbPath,
+    cons_runs: Optional[list[str]] = None,
+    limit: int = 0,
+) -> list[dict]:
     """Get consensus records."""
     sql = """
         select *
@@ -245,4 +279,5 @@ def select_cons(database, cons_runs=None, limit=0):
           join labels using (label_id)
           join sheets using (sheet_id)
     """
-    return select_records(database, sql, limit=limit, cons_run=cons_runs)
+    sql, params = build_select(sql, limit=limit, cons_run=cons_runs)
+    return rows_as_dicts(database, sql, params)

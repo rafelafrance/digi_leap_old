@@ -75,7 +75,7 @@ def score_label_text(texts, sheet_dir):
             score["hit_percent"] = 0
             score["word_count"] = 0
         else:
-            hits = digi_leap.pylib.vocab.vocab_hits(text)
+            hits = digi_leap.pylib.vocab.hits(text)
             score["hit_percent"] = round(100.0 * hits / count)
             score["word_count"] = count
 

@@ -1,12 +1,13 @@
 """Utilities for working with vocabularies.
 
-There is plenty of help from: Copyright (c) 2007-2016 Peter Norvig
+Modified from: Copyright (c) 2007-2016 Peter Norvig
 See http://norvig.com/spell-correct.html
 MIT license: www.opensource.org/licenses/mit-license.php
-All mistakes are mine.
 """
+import logging
+import sqlite3
 import string
-from sqlite3 import OperationalError
+from typing import Iterable
 
 import regex as re
 
@@ -15,22 +16,26 @@ from . import db
 
 VOCAB_DB = const.ROOT_DIR / "data" / "vocab.sqlite"
 
+LETTERS = string.ascii_lowercase + "INSERT CHARS"
 
-def get_vocab(min_len=3, min_freq=2) -> dict[str, int]:
+
+def get_vocab(min_freq=5, min_len=3) -> dict[str, float]:
     """Get a vocabulary used for scoring OCR quality."""
     vocab = {}
 
     try:
-        for row in db.select_vocab(VOCAB_DB):
-            word, freq = row["word"], int(row["freq"])
+        vocab = {
+            str(r["word"]): float(r["freq"])
+            for r in db.select_vocab(VOCAB_DB, min_freq, min_len)
+        }
 
-            if len(word) >= min_len and freq >= min_freq:
-                vocab[word] = freq
+    except sqlite3.OperationalError:
+        logging.warning("No vocabulary database found.")
 
-    except OperationalError:
-        # Need to create test data to load for testing
-        pass
     return vocab
+
+
+WORDS = get_vocab()
 
 
 def is_number(word):
@@ -50,61 +55,64 @@ def is_date(word):
     )
 
 
-def vocab_hits(text: str) -> int:
+def hits(text: str) -> int:
     """Count the number of words in the text that are in our corpus.
 
     A hit is:
     - A direct match in the vocabularies
     - A number like: 99.99
     """
-    words = to_words(text)
-    hits = sum(1 for w in words if w in WORDS)
-    hits += sum(1 for w in words if is_number(w))
-    return hits
+    words = split(text)
+    count = sum(1 for w in words if w.lower() in WORDS)
+    count += sum(1 for w in words if is_number(w))
+    return count
 
 
-WORDS = get_vocab()
+def split(text: str) -> list[str]:
+    """Split the text into words."""
+    words = re.split(r"([^\p{L}]+)", text)
+    return words
 
 
 # #####################################################################################
 
 
-def to_words(text):
-    """Convert a line of text to words."""
-    return re.findall(r"\w+", text.lower())
-
-
-def prob(word, count=sum(WORDS.values())):
+def prob(word: str, count: float = sum(WORDS.values())) -> float:
     """Probability of `word`."""
-    return WORDS[word] / count
+    return WORDS.get(word.lower(), 0) / count
 
 
-def correction(word):
+def correction(word: str) -> str:
     """Most probable spelling correction for word."""
-    return max(candidates(word), key=prob)
+    best = max(candidates(word), key=prob)
+    if word[0].isupper() and word[-1].isupper():
+        best = best.upper()
+    elif word[0].isupper() and word[-1].lower():
+        best = best.title()
+    return best
 
 
-def candidates(word):
+def candidates(word: str) -> set:
     """Generate possible spelling corrections for word."""
-    return known([word]) or known(edits1(word)) or known(edits2(word)) or [word]
+    word = word.lower()
+    return known([word]) | known(edits1(word)) | known(edits2(word))
 
 
-def known(words_):
+def known(words: Iterable) -> set:
     """The subset of `words` that appear in the dictionary of WORDS."""
-    return {w for w in words_ if w in WORDS}
+    return {w for w in words if w in WORDS}
 
 
-def edits1(word):
+def edits1(word: str) -> set:
     """All edits that are one edit away from `word`."""
-    letters = string.ascii_lowercase
     splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
     deletes = [L + R[1:] for L, R in splits if R]
+    inserts = [L + c + R for L, R in splits for c in LETTERS]
+    replaces = [L + c + R[1:] for L, R in splits if R for c in LETTERS]
     # transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R)>1]
-    replaces = [L + c + R[1:] for L, R in splits if R for c in letters]
-    inserts = [L + c + R for L, R in splits for c in letters]
-    return set(deletes + replaces + inserts)  # + transposes)
+    return set(deletes + inserts + replaces)  # + transposes)
 
 
-def edits2(word):
+def edits2(word: str):
     """All edits that are two edits away from `word`."""
     return (e2 for e1 in edits1(word) for e2 in edits1(e1))

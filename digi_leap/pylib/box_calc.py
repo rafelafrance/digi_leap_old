@@ -10,6 +10,9 @@ def iou(box1, box2):
     """Calculate the intersection over union of a pair of boxes.
 
     The boxes are expected to be in [x_min, y_min, x_max, y_max] format.
+
+    Modified from Matlab code:
+    https://www.computervisionblog.com/2011/08/blazing-fast-nmsm-from-exemplar-svm.html
     """
     # These are inner (overlapping) box dimensions so we want
     # the maximum of the mins and the minimum of the maxs
