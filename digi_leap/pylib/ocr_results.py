@@ -1,5 +1,4 @@
 """Build lines of text from the OCR output."""
-import statistics as stat
 import unicodedata
 from collections import Counter
 from dataclasses import dataclass
@@ -100,10 +99,11 @@ class Line:
 
 def filter_boxes(
     ocr_boxes: list[dict],
-    image_height: int,
+    *,
     conf: float = 0.25,
-    std_dev: float = 2.0,
-    height_fraction: float = 0.25,
+    too_tall: float = 4.0,
+    too_short: int = 10,
+    too_thin: int = 10,
 ):
     """Remove problem bounding boxes from the list.
 
@@ -116,27 +116,16 @@ def filter_boxes(
     if len(ocr_boxes) < 2:
         return ocr_boxes
 
-    too_tall = round(image_height * height_fraction)
-
-    widths = [b["ocr_right"] - b["ocr_left"] for b in ocr_boxes]
-    heights = [b["ocr_bottom"] - b["ocr_top"] for b in ocr_boxes]
-    too_short = round(stat.mean(widths) - (std_dev * stat.stdev(widths)))
-    too_thin = round(stat.mean(heights) - (std_dev * stat.stdev(heights)))
-
     filtered = []
     for box in ocr_boxes:
+        text = box["ocr_text"].strip()
         width = box["ocr_right"] - box["ocr_left"]
         height = box["ocr_bottom"] - box["ocr_top"]
-        text = box["ocr_text"].strip()
 
-        if (
-            text
-            and width > 1
-            and height > 1
-            and (box["conf"] >= conf)
-            and (too_tall > height > too_short)
-            and width > too_thin
-        ):
+        if not text or width < too_thin or height < too_short:
+            continue
+
+        if box["conf"] >= conf and height / width <= too_tall:
             filtered.append(box)
 
     return filtered
@@ -290,7 +279,7 @@ def spaces(ln):
     OCR engines will put spaces where there shouldn't be any. This is a simple
     scanner that looks for 2 non-words that make a new word when a space is removed.
     """
-    words = vocab.split(ln)
+    words = vocab.word_split(ln)
 
     if len(words) < 3:
         return ln
@@ -313,4 +302,4 @@ def spaces(ln):
         else:
             new.append(words[i])
 
-    return " ".join(new)
+    return "".join(new)

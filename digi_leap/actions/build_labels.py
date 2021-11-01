@@ -33,8 +33,7 @@ def build_labels(args):
     for i, (label_id, fragments) in tqdm(enumerate(ocr_fragments.items())):
         if i == limit:
             break
-        label = ocr_labels[label_id]
-        text = build_label_text(label, fragments)
+        text = build_label_text(fragments)
         batch.append(
             {
                 "label_id": label_id,
@@ -47,11 +46,11 @@ def build_labels(args):
     db.insert_cons(args.database, batch)
 
 
-def build_label_text(label, ocr_fragments):
+def build_label_text(ocr_fragments):
     """Build a label text from a ensemble of OCR output."""
     text = []
 
-    ocr_fragments = ocr_results.filter_boxes(ocr_fragments, label["height"])
+    ocr_fragments = ocr_results.filter_boxes(ocr_fragments)
     lines = ocr_results.get_lines(ocr_fragments)
 
     for line in lines:

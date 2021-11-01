@@ -144,7 +144,7 @@ def get_sheets(ensemble_images, ensemble_text, label_dir):
     ensemble_labels = defaultdict(Label)
     for image in images:
         ensemble_labels[image.stem].image = image
-        ensemble_labels[image.stem].type_ = image.stem.split("_")[-1]
+        ensemble_labels[image.stem].type_ = image.stem.word_split("_")[-1]
         ensemble_labels[image.stem].raw = label_dir / image.name
 
     for text in texts:
@@ -153,7 +153,7 @@ def get_sheets(ensemble_images, ensemble_text, label_dir):
     # Merge labels by herbarium sheet
     sheets = defaultdict(list)
     for key, label in ensemble_labels.items():
-        name = " ".join(key.split("_")[:-2])
+        name = " ".join(key.word_split("_")[:-2])
         sheets[name].append(label)
 
     return sheets

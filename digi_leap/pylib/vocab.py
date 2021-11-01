@@ -16,7 +16,7 @@ from . import db
 
 VOCAB_DB = const.ROOT_DIR / "data" / "vocab.sqlite"
 
-LETTERS = string.ascii_lowercase + "INSERT CHARS"
+LETTERS = string.ascii_lowercase + "ªµºßàáâãäåæçèéêëìíîïðñóôõöøùúûüýčěšū"
 
 
 def get_vocab(min_freq=5, min_len=3) -> dict[str, float]:
@@ -38,12 +38,6 @@ def get_vocab(min_freq=5, min_len=3) -> dict[str, float]:
 WORDS = get_vocab()
 
 
-def is_number(word):
-    """Check if the word is a number."""
-    # return bool(re.match(r"^ \d+ [.,]? \d* $", word, flags=re.VERBOSE))
-    return bool(re.match(r"^ \d+ $", word, flags=re.VERBOSE))
-
-
 def is_date(word):
     """Check if the word is a date."""
     return bool(
@@ -55,6 +49,29 @@ def is_date(word):
     )
 
 
+def number_split(text: str) -> list[str]:
+    """Split the text into numbers and non-numbers."""
+    words = re.split(r"([^\d]+)", text)
+    return words
+
+
+def is_number(word):
+    """Check if the word is a number."""
+    # return bool(re.match(r"^ \d+ [.,]? \d* $", word, flags=re.VERBOSE))
+    return bool(re.match(r"^ \d+ $", word, flags=re.VERBOSE))
+
+
+def word_split(text: str) -> list[str]:
+    """Split the text into words and non-words."""
+    words = re.split(r"([^\p{L}]+)", text)
+    return words
+
+
+def is_word(word):
+    """Determine if this is a word or a separator after a word_split()."""
+    return re.match(r"^\p{L}+$", word)
+
+
 def hits(text: str) -> int:
     """Count the number of words in the text that are in our corpus.
 
@@ -62,16 +79,9 @@ def hits(text: str) -> int:
     - A direct match in the vocabularies
     - A number like: 99.99
     """
-    words = split(text)
-    count = sum(1 for w in words if w.lower() in WORDS)
-    count += sum(1 for w in words if is_number(w))
+    count = sum(1 for w in word_split(text) if w.lower() in WORDS)
+    count += sum(1 for w in number_split(text) if is_number(w))
     return count
-
-
-def split(text: str) -> list[str]:
-    """Split the text into words."""
-    words = re.split(r"([^\p{L}]+)", text)
-    return words
 
 
 # #####################################################################################
@@ -95,7 +105,7 @@ def correction(word: str) -> str:
 def candidates(word: str) -> set:
     """Generate possible spelling corrections for word."""
     word = word.lower()
-    return known([word]) | known(edits1(word)) | known(edits2(word))
+    return known([word]) or known(edits1(word)) or known(edits2(word)) or {word}
 
 
 def known(words: Iterable) -> set:
