@@ -296,10 +296,32 @@ def spaces(ln):
             and prev + curr in vocab.WORDS
             and not (prev in vocab.WORDS or curr in vocab.WORDS)
         ):
-            new.pop()
-            new.pop()
-            new.append(words[i - 2] + words[i])
+            new.pop()  # Remove between
+            new.pop()  # Remove prev
+            new.append(prev + curr)
         else:
             new.append(words[i])
+
+    return "".join(new)
+
+
+def misspellings(line, min_len=3):
+    """Word misspellings."""
+    words = vocab.word_split(line)
+
+    new = []
+
+    for word in words:
+
+        if not vocab.is_word(word):
+            w = word
+
+        elif len(word) < min_len or word in vocab.WORDS:
+            w = word
+
+        else:
+            w = vocab.correction(word)
+
+        new.append(w)
 
     return "".join(new)
