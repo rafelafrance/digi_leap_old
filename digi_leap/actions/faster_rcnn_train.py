@@ -39,7 +39,7 @@ def train(args):
     train_loader, score_loader = get_loaders(
         args.reconciled_jsonl,
         args.sheets_dir,
-        args.word_split,
+        args.split,
         args.batch_size,
         args.workers,
         args.limit,

@@ -63,11 +63,11 @@ SUBSTITUTIONS = [
     ("™", '"'),
     # Remove space before some punctuation: x . -> x.
     (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
-    # Trim internal spaces
+    # Compress spaces
     (r"\s\s+", " "),
     # Convert single capital letter, punctuation to capital dot: L' -> L.
     (r"(\p{L}\s\p{Lu})\p{Po}", r"\1."),
-    # Add spaces around an &
+    # Add spaces around an ampersand &
     (r"(\w)&", r"\1 &"),
     (r"&(\w)", r"& \1"),
 ]
@@ -80,21 +80,22 @@ class Line:
     # This list is unordered and will contain several copies of the same text
     boxes: list[dict] = field(default_factory=list)
 
-    def overlap(self, ocr_box, eps=1):
-        """Find the vertical overlap between a line and an OCR bounding box.
 
-        This is expressed as a fraction of the smallest height of the line
-        & OCR bounding box.
-        """
-        last = self.boxes[-1]  # If self.boxes is empty then we have a bigger problem
-        min_height = min(
-            last["ocr_bottom"] - last["ocr_top"],
-            ocr_box["ocr_bottom"] - ocr_box["ocr_top"],
-        )
-        y_min = max(last["ocr_top"], ocr_box["ocr_top"])
-        y_max = min(last["ocr_bottom"], ocr_box["ocr_bottom"])
-        inter = max(0, y_max - y_min)
-        return inter / (min_height + eps)
+def find_overlap(line: Line, ocr_box, eps=1):
+    """Find the vertical overlap between a line and an OCR bounding box.
+
+    This is expressed as a fraction of the smallest height of the line
+    & OCR bounding box.
+    """
+    last = line.boxes[-1]  # If self.boxes is empty then we have a bigger problem
+    min_height = min(
+        last["ocr_bottom"] - last["ocr_top"],
+        ocr_box["ocr_bottom"] - ocr_box["ocr_top"],
+    )
+    y_min = max(last["ocr_top"], ocr_box["ocr_top"])
+    y_max = min(last["ocr_bottom"], ocr_box["ocr_bottom"])
+    inter = max(0, y_max - y_min)
+    return inter / (min_height + eps)
 
 
 def filter_boxes(
@@ -137,16 +138,16 @@ def get_lines(ocr_boxes, vert_overlap=0.3):
     lines: list[Line] = []
 
     for box in boxes:
-        overlap = [(r.overlap(box), r) for r in lines]
+        overlap = [(find_overlap(line, box), line) for line in lines]
         overlap = sorted(overlap, key=lambda o: -o[0])
 
         if overlap and overlap[0][0] > vert_overlap:
-            ln = overlap[0][1]
-            ln.boxes.append(box)
+            line = overlap[0][1]
+            line.boxes.append(box)
         else:
-            ln = Line()
-            ln.boxes.append(box)
-            lines.append(ln)
+            line = Line()
+            line.boxes.append(box)
+            lines.append(line)
 
     lines = sorted(lines, key=lambda r: r.boxes[0]["ocr_top"])
     return lines
@@ -266,62 +267,47 @@ def consensus(aligned: list[str], threshold=2 ** 16) -> str:
     return cons
 
 
-def substitute(cons):
+def substitute(line: str) -> str:
     """Perform simple substitutions on a consensus string."""
     for old, new in SUBSTITUTIONS:
-        cons = re.sub(old, new, cons)
-    return cons
+        line = re.sub(old, new, line)
+    return line
 
 
-def spaces(ln):
+def spaces(line):
     """Remove extra spaces in words.
 
     OCR engines will put spaces where there shouldn't be any. This is a simple
     scanner that looks for 2 non-words that make a new word when a space is removed.
+    For example: "w est" becomes "west".
     """
-    words = vocab.word_split(ln)
+    tokens = vocab.tokenize(line)
 
-    if len(words) < 3:
-        return ln
+    if len(tokens) <= 2:
+        return line
 
-    new = [words[0], words[1]]
+    new = tokens[:2]
 
-    for i in range(2, len(words)):
-        prev = words[i - 2]
-        between = words[-1]
-        curr = words[i]
+    for i in range(2, len(tokens)):
+        prev = tokens[i - 2]
+        between = tokens[i - 1]
+        curr = tokens[i]
 
         if (
             between.isspace()
-            and prev + curr in vocab.WORDS
-            and not (prev in vocab.WORDS or curr in vocab.WORDS)
+            and vocab.is_word(prev + curr)
+            and not (vocab.is_word(prev) or vocab.is_word(curr))
         ):
             new.pop()  # Remove between
             new.pop()  # Remove prev
             new.append(prev + curr)
         else:
-            new.append(words[i])
+            new.append(tokens[i])
 
     return "".join(new)
 
 
-def misspellings(line, min_len=3):
-    """Word misspellings."""
-    words = vocab.word_split(line)
-
-    new = []
-
-    for word in words:
-
-        if not vocab.is_word(word):
-            w = word
-
-        elif len(word) < min_len or word in vocab.WORDS:
-            w = word
-
-        else:
-            w = vocab.correction(word)
-
-        new.append(w)
-
+def spell_correct(line):
+    """Fix spelling."""
+    new = [vocab.spell_correct(t) for t in vocab.tokenize(line)]
     return "".join(new)

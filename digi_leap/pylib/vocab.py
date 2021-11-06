@@ -61,15 +61,15 @@ def is_number(word):
     return bool(re.match(r"^ \d+ $", word, flags=re.VERBOSE))
 
 
-def word_split(text: str) -> list[str]:
+def tokenize(text: str) -> list[str]:
     """Split the text into words and non-words."""
-    words = re.split(r"([^\p{L}]+)", text)
-    return words
+    tokens = re.split(r"([^\p{L}]+)", text)
+    return tokens
 
 
-def is_word(word):
-    """Determine if this is a word or a separator after a word_split()."""
-    return re.match(r"^\p{L}+$", word)
+def is_word(word: str) -> bool:
+    """Determine if this is a word or a separator after tokenize()."""
+    return word.lower() in WORDS
 
 
 def hits(text: str) -> int:
@@ -79,7 +79,7 @@ def hits(text: str) -> int:
     - A direct match in the vocabularies
     - A number like: 99.99
     """
-    count = sum(1 for w in word_split(text) if w.lower() in WORDS)
+    count = sum(1 for w in tokenize(text) if is_word(w))
     count += sum(1 for w in number_split(text) if is_number(w))
     return count
 
@@ -92,13 +92,20 @@ def prob(word: str, count: float = sum(WORDS.values())) -> float:
     return WORDS.get(word.lower(), 0) / count
 
 
-def correction(word: str) -> str:
-    """Most probable spelling correction for word."""
+def spell_correct(word: str) -> str:
+    """Most probable spelling spell_correct for word."""
+    if is_word(word):
+        return word
+
     best = max(candidates(word), key=prob)
+
+    # Handle the case of the word
+    # TODO: Efficiently handle mixed case words like TnT
     if word[0].isupper() and word[-1].isupper():
         best = best.upper()
     elif word[0].isupper() and word[-1].lower():
         best = best.title()
+
     return best
 
 

@@ -186,9 +186,9 @@ ARGS = {
             "default": 0.005,
             "help": "The learning rate for training the model.",
         },
-        "word_split": {
+        "split": {
             "default": 0.25,
-            "help": "The train/validation word_split for training the model.",
+            "help": "The train/validation split for training the model.",
         },
     },
     "idigbio_images": {

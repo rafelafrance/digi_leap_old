@@ -61,7 +61,7 @@ def score_label_text(texts, sheet_dir):
     """Return the scores for all of the predicted labels on the herbarium sheet."""
     scores = []
     for path in texts:
-        parts = path.stem.word_split("_")
+        parts = path.stem.split("_")
         score = {
             "index": int(parts[-2]),
             "type": parts[-1],
@@ -90,7 +90,7 @@ def score_label_text(texts, sheet_dir):
 def copy_label_images(images, sheet_dir):
     """Copy labels images into the QC directory."""
     for src in images:
-        parts = src.stem.word_split("_")
+        parts = src.stem.split("_")
         dst = sheet_dir / f"label_{parts[-2]}_{parts[-1]}.{src.suffix}"
         shutil.copy(src, dst)
 

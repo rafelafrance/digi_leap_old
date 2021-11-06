@@ -116,7 +116,7 @@ def insert(zip_file, csv_params, db_params):
 
                     if csv_params.row_filters:
                         for f in csv_params.row_filters:
-                            regex, col = f.word_split("@")
+                            regex, col = f.split("@")
                             mask = df[col].str.contains(regex, regex=True, case=False)
                             df = df.loc[mask, :]
 
