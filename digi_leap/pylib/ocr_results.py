@@ -75,7 +75,7 @@ SUBSTITUTIONS = [
 
 @dataclass
 class Line:
-    """Holds data for building an OCR line."""
+    """Holds data for building one line from several OCR scans of the same text."""
 
     # This list is unordered and will contain several copies of the same text
     boxes: list[dict] = field(default_factory=list)
