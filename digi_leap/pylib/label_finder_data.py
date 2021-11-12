@@ -8,7 +8,6 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 from . import augmentations as aug
-from . import subject as sub
 
 
 class FasterRcnnData(Dataset):
@@ -27,7 +26,8 @@ class FasterRcnnData(Dataset):
         subject = self.subjects[idx]
         path = self.image_dir / subject["image_file"]
 
-        labels = [sub.CLASS2INT[t] for t in subject["merged_types"]]
+        # labels = [sub.CLASS2INT[t] for t in subject["merged_types"]]
+        labels = [1] * len(subject["merged_types"])
 
         boxes = torch.tensor(subject["merged_boxes"], dtype=torch.float32)
         if boxes.shape[0] == 0:

@@ -9,7 +9,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 
 from digi_leap.pylib import box_calc as calc
-from digi_leap.pylib import faster_rcnn_data as data
+from digi_leap.pylib import label_finder_data as data
 from digi_leap.pylib import mean_avg_precision as mAP
 from digi_leap.pylib import subject as sub
 from digi_leap.pylib import util
@@ -36,14 +36,11 @@ def train(args):
     if state.get("optimizer_state"):
         optimizer.load_state_dict(state["optimizer_state"])
 
-    train_loader, score_loader = get_loaders(
-        args.reconciled_jsonl,
-        args.sheets_dir,
-        args.split,
-        args.batch_size,
-        args.workers,
-        args.limit,
+    train_dataset, valid_dataset = get_subjects(
+        args.reconciled_jsonl, args.sheets_dir, args.split, args.limit
     )
+    train_loader = get_loader(train_dataset, args.batch_size, args.workers, True)
+    valid_loader = get_loader(valid_dataset, args.batch_size, args.workers)
 
     start_epoch = state["epoch"] + 1 if state.get("epoch") else 1
     end_epoch = start_epoch + args.epochs + 1
@@ -55,7 +52,7 @@ def train(args):
         train_loss = train_epoch(model, train_loader, device, optimizer)
 
         score = score_epoch(
-            model, score_loader, device, args.nms_threshold, args.sbs_threshold
+            model, valid_loader, device, args.nms_threshold, args.sbs_threshold
         )
 
         log_results(epoch, train_loss, best_loss, score, best_score)
@@ -70,6 +67,52 @@ def train(args):
             best_score,
             args.curr_model,
         )
+
+
+def test(args):
+    """Train the neural net."""
+    torch.multiprocessing.set_sharing_strategy("file_system")
+
+    state = torch.load(args.curr_model)
+
+    model = get_model()
+    model.load_state_dict(state["model_state"])
+
+    device = torch.device(args.device)
+    model.to(device)
+
+    _, dataset = get_subjects(args.reconciled_jsonl, args.sheets_dir, 1.0, args.limit)
+    loader = get_loader(dataset, args.batch_size, args.workers)
+
+    test_score = state["best_score"] if state.get("best_score") else -1.0
+
+    score = score_epoch(model, loader, device, args.nms_threshold, args.sbs_threshold)
+
+    logging.info(f"Train mAP: {test_score:0.3f}, test mAP: {score:0.3f}")
+
+
+def get_subjects(reconciled_jsonl, sheets_dir, split, limit):
+    """Get the subjects."""
+    subjects = data.FasterRcnnData.read_jsonl(reconciled_jsonl)
+
+    if limit:
+        subjects = subjects[:limit]
+
+    train_subjects, valid_subjects = train_test_split(subjects, test_size=split)
+    train_dataset = data.FasterRcnnData(train_subjects, sheets_dir, augment=True)
+    valid_dataset = data.FasterRcnnData(valid_subjects, sheets_dir)
+    return train_dataset, valid_dataset
+
+
+def get_loader(dataset, batch_size, workers, shuffle=False):
+    """Get the data loaders."""
+    return DataLoader(
+        dataset,
+        shuffle=shuffle,
+        batch_size=batch_size,
+        num_workers=workers,
+        collate_fn=util.collate_fn,
+    )
 
 
 def train_epoch(model, loader, device, optimizer):
@@ -165,35 +208,6 @@ def save_state(
         return best_loss, score
 
     return best_loss, best_score
-
-
-def get_loaders(reconciled_jsonl, sheets_dir, split, batch_size, workers, limit):
-    """Get the data loaders."""
-    subjects = data.FasterRcnnData.read_jsonl(reconciled_jsonl)
-
-    if limit:
-        subjects = subjects[:limit]
-
-    train_subjects, score_subjects = train_test_split(subjects, test_size=split)
-    train_dataset = data.FasterRcnnData(train_subjects, sheets_dir, augment=True)
-    score_dataset = data.FasterRcnnData(score_subjects, sheets_dir)
-
-    train_loader = DataLoader(
-        train_dataset,
-        shuffle=True,
-        batch_size=batch_size,
-        num_workers=workers,
-        collate_fn=util.collate_fn,
-    )
-
-    score_loader = DataLoader(
-        score_dataset,
-        batch_size=batch_size,
-        num_workers=workers,
-        collate_fn=util.collate_fn,
-    )
-
-    return train_loader, score_loader
 
 
 def get_model():
