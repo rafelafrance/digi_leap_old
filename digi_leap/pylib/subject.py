@@ -42,17 +42,21 @@ class Subject:
     subject_id: str = ""
     image_file: str = ""
     image_size: tuple[int, ...] = field(default_factory=tuple)
-    groups: np.ndarray = field(default_factory=lambda: np.array([]))
+    groups: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.int32))
     boxes: np.ndarray = field(default_factory=lambda: np.empty((0, 4), dtype=np.int32))
-    types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
+    types: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.str_))
     merged_boxes: np.ndarray = field(
         default_factory=lambda: np.empty((0, 4), dtype=np.int32)
     )
-    merged_types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
+    merged_types: np.ndarray = field(
+        default_factory=lambda: np.array([], dtype=np.str_)
+    )
     removed_boxes: np.ndarray = field(
         default_factory=lambda: np.empty((0, 4), dtype=np.int32)
     )
-    removed_types: np.ndarray = field(default_factory=lambda: np.array([], dtype=str))
+    removed_types: np.ndarray = field(
+        default_factory=lambda: np.array([], dtype=np.str_)
+    )
 
     def to_dict(self):
         """Custom as dict."""
@@ -132,7 +136,7 @@ class Subject:
     def _remove_boxes(self, groups, removes):
         """Remove boxes."""
         if len(removes) > 0:
-            mask = np.zeros_like(groups, dtype=bool)
+            mask = np.zeros_like(groups, dtype=np.bool_)
             mask[removes] = True
             self.removed_boxes = self.boxes[mask]
             self.removed_types = self.types[mask]
@@ -152,11 +156,11 @@ class Subject:
         wheres = np.where(self.groups[:-1] != self.groups[1:])[0] + 1
         box_groups = np.split(self.boxes, wheres)
 
-        mins = [np.min(g, axis=0).round() for g in box_groups]
-        maxs = [np.max(g, axis=0).round() for g in box_groups]
+        min_ = [np.min(g, axis=0).round() for g in box_groups]
+        max_ = [np.max(g, axis=0).round() for g in box_groups]
         self.merged_boxes = cast(
             np.ndarray[Any, Any],
-            [np.hstack((mn[:2], mx[2:])).tolist() for mn, mx in zip(mins, maxs)],
+            [np.hstack((mn[:2], mx[2:])).tolist() for mn, mx in zip(min_, max_)],
         )
         # self.merged_boxes = [np.mean(g, axis=0).round() for g in box_groups]
 
