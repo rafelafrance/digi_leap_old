@@ -23,18 +23,15 @@ std::u32string convert_8_32(const std::string &bytes) {
     return conv.from_bytes(bytes);
 }
 
-// Based off of accepted and by L.F.:
+// Based off of accepted answer by L.F.:
 // https://codereview.stackexchange.com/questions/238641/
 // an-implementation-of-levenshtein-distance-algorithm-in-modern-c
 int64_t levenshtein(const std::u32string &str1, const std::u32string &str2) {
     const int64_t len1 = str1.length();
     const int64_t len2 = str2.length();
 
-    if (len1 == 0) {
-        return len2;
-    }
-    if (len2 == 0) {
-        return len1;
+    if (len1 == 0 || len2 == 0) {
+        return len1 + len2;
     }
 
     std::vector<int64_t> dist(len2 + 1);
