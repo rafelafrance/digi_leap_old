@@ -210,7 +210,7 @@ def insert_ocr(database: DbPath, batch: list) -> None:
     """Insert a batch of ocr records."""
     sql = """
         insert into ocr
-               ( labels_id, ocr_run,  engine,  pipeline,
+               ( label_id,  ocr_run,  engine,  pipeline,
                  conf,  ocr_left,  ocr_top,   ocr_right,   ocr_bottom,  ocr_text)
         values (:label_id, :ocr_run, :engine, :pipeline,
                 :conf, :ocr_left, :ocr_top,  :ocr_right,  :ocr_bottom, :ocr_text);

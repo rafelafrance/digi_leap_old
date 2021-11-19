@@ -79,13 +79,15 @@ DEFAULT = {
     },
     "pipelines": {
         "default": ["deskew", "binarize"],
-        "choices": ["deskew", "binarize"],
+        "choices": ["deskew", "binarize", "denoise"],
+        "type": str,
         "nargs": "+",
         "help": "Pipelines of image transformations that help with the OCR process.",
     },
     "ocr_engines": {
         "default": ["tesseract", "easy"],
         "choices": ["tesseract", "easy"],
+        "type": str,
         "nargs": "+",
         "help": "Which OCR engines to use.",
     },
@@ -93,6 +95,7 @@ DEFAULT = {
         "help": "Name the OCR run. Default is today's date & time.",
     },
     "ocr_runs": {
+        "type": str,
         "nargs": "*",
         "help": "Which OCR runs contain the label ensembles.",
     },
@@ -101,6 +104,7 @@ DEFAULT = {
     },
     "classes": {
         "choices": ["Barcode", "Handwritten", "Typewritten", "Both"],
+        "type": str,
         "nargs": "*",
         "default": ["Typewritten"],
         "help": "Keep labels if they fall into any of these categories.",

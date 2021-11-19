@@ -3,6 +3,7 @@
 import functools
 import re
 from typing import Callable
+from typing import Literal
 from typing import Union
 
 import numpy as np
@@ -35,7 +36,7 @@ def image_to_array(image: ImageType) -> npt.ArrayLike:
 def array_to_image(image: npt.ArrayLike) -> ImageType:
     """Convert a numpy array to a PIL image."""
     if hasattr(image, "dtype") and image.dtype == "float64":
-        mode = "L" if len(image.shape) < 3 else "RGB"
+        mode: Union[None, Literal] = "L" if len(image.shape) < 3 else "RGB"
         return Image.fromarray(image * 255.0, mode)
     if hasattr(image, "dtype") and image.dtype == "bool":
         image = (image * 255).astype("uint8")

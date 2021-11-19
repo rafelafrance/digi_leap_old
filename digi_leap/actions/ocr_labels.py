@@ -40,7 +40,14 @@ def ocr_labels(args: Namespace) -> None:
             batch: list[dict] = []
 
             for lb in labels:
-                label = sheet.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
+                label = sheet.crop(
+                    (
+                        lb["label_left"],
+                        lb["label_top"],
+                        lb["label_right"],
+                        lb["label_bottom"],
+                    )
+                )
 
                 for pipeline in args.pipelines:
                     image = transform_label(pipeline, label)
@@ -92,7 +99,8 @@ def filter_rulers(labels, ruler_ratio):
     """Remove rulers from the labels."""
     new = []
     for lb in labels:
-        d1, d2 = (lb["right"] - lb["left"]), (lb["bottom"] - lb["top"])
+        d1 = lb["label_right"] - lb["label_left"]
+        d2 = lb["label_bottom"] - lb["label_top"]
         d1, d2 = (d1, d2) if d1 > d2 else (d2, d1)
         if d1 / d2 <= ruler_ratio:
             new.append(lb)
@@ -104,6 +112,9 @@ def filter_n_largest(labels, keep_n_largest):
     labels = sorted(
         labels,
         reverse=True,
-        key=lambda lb: (lb["right"] - lb["left"]) * (lb["bottom"] - lb["top"]),
+        key=lambda lb: (
+            (lb["label_right"] - lb["label_left"])
+            * (lb["label_bottom"] - lb["label_top"])
+        ),
     )
     return labels[:keep_n_largest]
