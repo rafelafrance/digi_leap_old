@@ -88,18 +88,18 @@ def hits(text: str) -> int:
 
 
 def prob(word: str, count: float = sum(WORDS.values())) -> float:
-    """Probability of `word`."""
+    """Probability of 'word'."""
     return WORDS.get(word.lower(), 0) / count
 
 
 def spell_correct(word: str) -> str:
-    """Most probable spelling spell_correct for word."""
-    if is_word(word):
+    """Most probable spelling spell_correct for 'word'."""
+    if not word or is_word(word):
         return word
 
     best = max(candidates(word), key=prob)
 
-    # Handle the case of the word
+    # Handle the case of the 'word'
     # TODO: Efficiently handle mixed case words like TnT
     if word[0].isupper() and word[-1].isupper():
         best = best.upper()
@@ -110,18 +110,18 @@ def spell_correct(word: str) -> str:
 
 
 def candidates(word: str) -> set:
-    """Generate possible spelling corrections for word."""
+    """Generate possible spelling corrections for 'word'."""
     word = word.lower()
     return known([word]) or known(edits1(word)) or known(edits2(word)) or {word}
 
 
 def known(words: Iterable) -> set:
-    """The subset of `words` that appear in the dictionary of WORDS."""
+    """The subset of 'words' that appear in the dictionary of WORDS."""
     return {w for w in words if w in WORDS}
 
 
 def edits1(word: str) -> set:
-    """All edits that are one edit away from `word`."""
+    """All edits that are one edit away from 'word'."""
     splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
     deletes = [L + R[1:] for L, R in splits if R]
     inserts = [L + c + R for L, R in splits for c in LETTERS]
@@ -131,5 +131,5 @@ def edits1(word: str) -> set:
 
 
 def edits2(word: str):
-    """All edits that are two edits away from `word`."""
+    """All edits that are two edits away from 'word'."""
     return (e2 for e1 in edits1(word) for e2 in edits1(e1))

@@ -64,6 +64,8 @@ def build_label_text(ocr_fragments):
 
         ln = ocr_results.substitute(ln)
         ln = ocr_results.spaces(ln)
+        ln = ocr_results.spell_correct(ln)
+
         text.append(ln)
 
     return "\n".join(text)
@@ -89,6 +91,7 @@ def get_ocr_fragments(ocr_labels, database, ocr_runs=None, classes=None):
 
 def get_ocr_runs(database, ocr_runs):
     """Get the OCR runs included in this cons_run."""
-    ocr_runs = ocr_runs if ocr_runs else [r[0] for r in db.get_ocr_runs(database)]
+    if not ocr_runs:
+        ocr_runs = [r["ocr_run"] for r in db.get_ocr_runs(database)]
     ocr_runs = ",".join(ocr_runs)
     return ocr_runs
