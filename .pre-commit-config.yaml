@@ -45,17 +45,17 @@ repos:
 - repo: https://github.com/pocc/pre-commit-hooks
   rev: v1.3.4
   hooks:
-  - id: clang-format
   - id: clang-tidy
     args:
       - --extra-arg=-I./.venv/lib/python3.9/site-packages/pybind11/include/
       - --extra-arg=-I/usr/include/python3.9/
   - id: cppcheck
-  - id: include-what-you-use
-    exclude: '.*_py.cpp'
-    args:
-      - -I./.venv/lib/python3.9/site-packages/pybind11/include/
-      - -I/usr/include/python3.9/
+  # - id: include-what-you-use
+  #   exclude: '.*_py.cpp'
+  #   args:
+  #     - -I./.venv/lib/python3.9/site-packages/pybind11/include/
+  #     - -I/usr/include/python3.9/
+# - id: clang-format
 # - id: uncrustify
 # - id: oclint
 #   args:

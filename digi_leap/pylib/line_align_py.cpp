@@ -11,14 +11,18 @@ PYBIND11_MODULE(line_align_py, m) {
 
     m.attr("gap_char") = gap_char;
 
-    m.def("align_all", &align_all, "Get the alignment string for a pair of strings.",
-          py::arg("strings"), py::arg("substitutions"), py::arg("gap") = -3.0,
-          py::arg("skew") = -0.5);
-
-    m.def("levenshtein", &levenshtein, "Get the levenshtein distance for 2 strings.");
-
-    m.def("levenshtein_all", &levenshtein_all,
-          "Get the levenshtein distance for all pairs of strings in the list.");
+    py::class_<LineAlign>(m, "LineAlign")
+        .def(py::init<const std::unordered_map<std::u32string, float>&, float, float>(),
+             py::arg("substitutions") = NoSubs,
+             py::arg("gap") = -3.0,
+             py::arg("skew") = -0.5)
+        .def("align", &LineAlign::align,
+             "Get the alignment string for a pair of strings.",
+             py::arg("strings"))
+        .def("levenshtein", &LineAlign::levenshtein,
+             "Get the levenshtein distance for 2 strings.")
+        .def("levenshtein_all", &LineAlign::levenshtein_all,
+             "Get the levenshtein distance for all pairs of strings in the list.");
 }
 
 /*

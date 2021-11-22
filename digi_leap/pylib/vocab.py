@@ -24,13 +24,10 @@ def get_vocab(min_freq=5, min_len=3) -> dict[str, float]:
     vocab = {}
 
     try:
-        vocab = {
-            str(r["word"]): float(r["freq"])
-            for r in db.select_vocab(VOCAB_DB, min_freq, min_len)
-        }
-
-    except sqlite3.OperationalError:
-        logging.warning("No vocabulary database found.")
+        for row in db.select_vocab(VOCAB_DB, min_freq, min_len):
+            vocab[row["word"]] = row["freq"]
+    except sqlite3.OperationalError as e:
+        logging.error(e)
 
     return vocab
 
@@ -51,8 +48,7 @@ def is_date(word):
 
 def number_split(text: str) -> list[str]:
     """Split the text into numbers and non-numbers."""
-    words = re.split(r"([^\d]+)", text)
-    return words
+    return re.split(r"([^\d]+)", text)
 
 
 def is_number(word):
@@ -63,8 +59,7 @@ def is_number(word):
 
 def tokenize(text: str) -> list[str]:
     """Split the text into words and non-words."""
-    tokens = re.split(r"([^\p{L}]+)", text)
-    return tokens
+    return re.split(r"([^\p{L}]+)", text)
 
 
 def is_word(word: str) -> bool:
@@ -87,24 +82,26 @@ def hits(text: str) -> int:
 # #####################################################################################
 
 
+def usage(word):
+    """Get the number of times 'word' appears in the corpus."""
+    return WORDS.get(word.lower(), 0)
+
+
 def prob(word: str, count: float = sum(WORDS.values())) -> float:
     """Probability of 'word'."""
-    return WORDS.get(word.lower(), 0) / count
+    return usage(word) / count
 
 
 def spell_correct(word: str) -> str:
-    """Most probable spelling spell_correct for 'word'."""
-    if not word or is_word(word):
-        return word
+    """Most probable spelling for 'word'."""
+    if not word:
+        return ""
 
-    best = max(candidates(word), key=prob)
+    best = max(candidates(word), key=usage)
 
     # Handle the case of the 'word'
-    # TODO: Efficiently handle mixed case words like TnT
-    if word[0].isupper() and word[-1].isupper():
-        best = best.upper()
-    elif word[0].isupper() and word[-1].lower():
-        best = best.title()
+    if word[0].isupper():
+        best = best.upper() if word[-1].isupper() else best.title()
 
     return best
 

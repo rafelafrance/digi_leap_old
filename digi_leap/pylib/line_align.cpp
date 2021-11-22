@@ -11,6 +11,7 @@
 #include <sstream>
 #include <utility>
 
+
 // This is a utility function for converting a string from UTF-32 to UTF-8
 std::string convert_32_8(const std::u32string &wides) {
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
@@ -23,10 +24,18 @@ std::u32string convert_8_32(const std::string &bytes) {
     return conv.from_bytes(bytes);
 }
 
+LineAlign::LineAlign(const std::unordered_map<std::u32string, float>& substitutions,
+            float gap, float skew)
+{
+    this->substitutions = substitutions;
+    this->gap = gap;
+    this->skew = skew;
+}
+
 // Based off of accepted answer by L.F.:
 // https://codereview.stackexchange.com/questions/238641/
 // an-implementation-of-levenshtein-distance-algorithm-in-modern-c
-int64_t levenshtein(const std::u32string &str1, const std::u32string &str2) {
+int64_t LineAlign::levenshtein(const std::u32string &str1, const std::u32string &str2) {
     const int64_t len1 = str1.length();
     const int64_t len2 = str2.length();
 
@@ -49,7 +58,7 @@ int64_t levenshtein(const std::u32string &str1, const std::u32string &str2) {
 }
 
 std::vector<std::tuple<int64_t, int64_t, int64_t>>
-levenshtein_all(const std::vector<std::u32string> &strings) {
+ LineAlign::levenshtein_all(const std::vector<std::u32string> &strings) {
     const int64_t len = strings.size();
 
     std::vector<std::tuple<int64_t, int64_t, int64_t>> results;
@@ -81,9 +90,7 @@ struct Trace {
 typedef std::vector<std::vector<Trace>> TraceMatrix;
 
 std::vector<std::u32string>
-align_all(const std::vector<std::u32string> &strings,
-          const std::unordered_map<std::u32string, float> &substitutions,
-          const float gap, const float skew) {
+LineAlign::align(const std::vector<std::u32string> &strings) {
     if (strings.size() < 2) {
         return strings;
     }
@@ -97,22 +104,22 @@ align_all(const std::vector<std::u32string> &strings,
 
         TraceMatrix trace(rows + 1, std::vector<Trace>(cols + 1));
 
-        float penalty = gap;
+        float penalty = this->gap;
         for (size_t row = 1; row <= rows; ++row) {
             trace[row][0].val = penalty;
             trace[row][0].up = penalty;
             trace[row][0].left = penalty;
             trace[row][0].dir = up;
-            penalty += skew;
+            penalty += this->skew;
         }
 
-        penalty = gap;
+        penalty = this->gap;
         for (size_t col = 1; col <= cols; ++col) {
             trace[0][col].val = penalty;
             trace[0][col].up = penalty;
             trace[0][col].left = penalty;
             trace[0][col].dir = left;
-            penalty += skew;
+            penalty += this->skew;
         }
 
         for (size_t row = 1; row <= rows; ++row) {
@@ -121,8 +128,9 @@ align_all(const std::vector<std::u32string> &strings,
                 Trace &cell_up = trace[row - 1][col];
                 Trace &cell_left = trace[row][col - 1];
 
-                cell.up = std::max({cell_up.up + skew, cell_up.val + gap});
-                cell.left = std::max({cell_left.left + skew, cell_left.val + gap});
+                cell.up = std::max({cell_up.up + this->skew, cell_up.val + this->gap});
+                cell.left = std::max({
+                    cell_left.left + this->skew, cell_left.val + this->gap});
 
                 float diagonal = std::numeric_limits<float>::lowest();
                 for (size_t k = 0; k < results.size(); ++k) {
@@ -142,7 +150,7 @@ align_all(const std::vector<std::u32string> &strings,
                     key += strings_char;
                     float value;
                     try {
-                        value = substitutions.at(key);
+                        value = this->substitutions.at(key);
                     } catch (std::out_of_range &e) {
                         std::stringstream err;
                         err << "Either of '" << convert_32_8(key)
