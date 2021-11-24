@@ -23,7 +23,7 @@
  */
 const char32_t gap_char = U'⋄';
 
-const std::unordered_map<std::u32string, float> NoSubs = {};
+const std::unordered_map<std::u32string, float> noSubs = {};
 
 struct LineAlign {
     /** Constructor.
@@ -35,7 +35,7 @@ struct LineAlign {
      * @param gap The gap open penalty for alignments. This is typically negative.
      * @param skew The gap extension penalty for the alignments. Also negative.
     */
-    LineAlign(const std::unordered_map<std::u32string, float>& substitutions = NoSubs,
+    LineAlign(const std::unordered_map<std::u32string, float>& substitutions = noSubs,
               float gap = -3.0, float skew = -0.5);
         // ) : substitutions(substitutions), gap(gap), skew(skew) {};
 
@@ -47,7 +47,7 @@ struct LineAlign {
      * @return The Levenshtein distance as an integer. The lower the number the more
      * similar the strings.
      */
-    long levenshtein(const std::u32string &str1, const std::u32string &str2);
+    long levenshtein(const std::u32string &str1, const std::u32string &str2) const;
 
     /**
      * Compute a Levenshtein distance for every pair of strings in list.
@@ -60,7 +60,7 @@ struct LineAlign {
      * The tuples are sorted by distance.
      */
     std::vector<std::tuple<long, long, long>>
-    levenshtein_all(const std::vector<std::u32string> &strings);
+    levenshtein_all(const std::vector<std::u32string> &strings) const;
 
     /**
      * Create a multiple sequence alignment of a set of similar short text fragments.
@@ -84,7 +84,7 @@ struct LineAlign {
      *
      * @param strings A list of strings to align.
      */
-    std::vector<std::u32string> align(const std::vector<std::u32string> &strings);
+    std::vector<std::u32string> align(const std::vector<std::u32string> &strings) const;
 
 private:
     std::unordered_map<std::u32string, float> substitutions;

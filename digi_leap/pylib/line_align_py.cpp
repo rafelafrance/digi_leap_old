@@ -13,7 +13,7 @@ PYBIND11_MODULE(line_align_py, m) {
 
     py::class_<LineAlign>(m, "LineAlign")
         .def(py::init<const std::unordered_map<std::u32string, float>&, float, float>(),
-             py::arg("substitutions") = NoSubs,
+             py::arg("substitutions") = noSubs,
              py::arg("gap") = -3.0,
              py::arg("skew") = -0.5)
         .def("align", &LineAlign::align,

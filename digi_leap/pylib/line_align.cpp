@@ -35,7 +35,8 @@ LineAlign::LineAlign(const std::unordered_map<std::u32string, float>& substituti
 // Based off of accepted answer by L.F.:
 // https://codereview.stackexchange.com/questions/238641/
 // an-implementation-of-levenshtein-distance-algorithm-in-modern-c
-int64_t LineAlign::levenshtein(const std::u32string &str1, const std::u32string &str2) {
+int64_t LineAlign::levenshtein(
+        const std::u32string &str1, const std::u32string &str2) const {
     const int64_t len1 = str1.length();
     const int64_t len2 = str2.length();
 
@@ -58,7 +59,7 @@ int64_t LineAlign::levenshtein(const std::u32string &str1, const std::u32string 
 }
 
 std::vector<std::tuple<int64_t, int64_t, int64_t>>
- LineAlign::levenshtein_all(const std::vector<std::u32string> &strings) {
+ LineAlign::levenshtein_all(const std::vector<std::u32string> &strings) const {
     const int64_t len = strings.size();
 
     std::vector<std::tuple<int64_t, int64_t, int64_t>> results;
@@ -90,7 +91,7 @@ struct Trace {
 typedef std::vector<std::vector<Trace>> TraceMatrix;
 
 std::vector<std::u32string>
-LineAlign::align(const std::vector<std::u32string> &strings) {
+LineAlign::align(const std::vector<std::u32string> &strings) const {
     if (strings.size() < 2) {
         return strings;
     }
