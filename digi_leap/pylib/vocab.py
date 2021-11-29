@@ -1,12 +1,11 @@
 """Utilities for working with vocabularies.
 
-Modified from: Copyright (c) 2007-2016 Peter Norvig
-See http://norvig.com/spell-correct.html
-MIT license: www.opensource.org/licenses/mit-license.php
+Based off of symmetric deletes method from SeekStorm. MIT license.
+https://seekstorm.com/blog/1000x-spelling-correction/
 """
 import logging
 import sqlite3
-import string
+from collections import namedtuple
 from typing import Iterable
 
 import regex as re
@@ -16,117 +15,72 @@ from . import db
 
 VOCAB_DB = const.ROOT_DIR / "data" / "vocab.sqlite"
 
-LETTERS = string.ascii_lowercase + "ªµºßàáâãäåæçèéêëìíîïðñóôõöøùúûüýčěšū"
+Spell = namedtuple("Spell", "word dist freq")
 
 
-def get_vocab(min_freq=5, min_len=3) -> dict[str, float]:
-    """Get a vocabulary used for scoring OCR quality."""
-    vocab = {}
+class SpellWell:
+    """A simple spell checker."""
 
-    try:
-        for row in db.select_vocab(VOCAB_DB, min_freq, min_len):
-            vocab[row["word"]] = row["freq"]
-    except sqlite3.OperationalError as e:
-        logging.error(e)
+    null_spell = Spell("", 99, -1.0)
 
-    return vocab
+    def __init__(self, min_freq=5, min_len=3):
+        self.min_len = min_len
+        self.min_freq = min_freq
 
+        self.spell = {}
+        try:
+            for row in db.select_misspellings(VOCAB_DB, min_freq, min_len):
+                self.spell[row["miss"]] = Spell(row["word"], row["dist"], row["freq"])
+        except sqlite3.OperationalError as e:
+            logging.error(e)
 
-WORDS = get_vocab()
+    @staticmethod
+    def tokenize(text: str) -> list[str]:
+        """Split the text into words and non-words."""
+        return re.split(r"([^\p{L}]+)", text)
 
+    def is_word(self, word: str) -> bool:
+        """Determine if this is a word or a separator after tokenize()."""
+        spell = self.spell.get(word, self.null_spell)
+        return spell.dist == 0
 
-def is_date(word):
-    """Check if the word is a date."""
-    return bool(
-        re.match(
-            r"^ \d\d? (?P<sep> [/-] ) \d\d? (?P=sep) (\d\d | \d\d\d\d) $",
-            word,
-            flags=re.VERBOSE,
+    def hits(self, text: str) -> int:
+        """Count the number of words in the text that are in our corpus.
+
+        A hit is:
+        - A direct match in the vocabularies
+        - A number like: 99.99
+        """
+        count = sum(1 for w in self.tokenize(text) if self.is_word(w))
+        count += sum(1 for _ in re.findall(r"\d+", text))
+        return count
+
+    @staticmethod
+    def deletes1(word: str) -> set[str]:
+        """Generate all one character deletes for a word."""
+        return {word[:i] + word[i + 1 :] for i in range(len(word))}
+
+    def deletes2(self, word: str) -> set[str]:
+        """Generate two character deletes for a word."""
+        return {d2 for d1 in self.deletes1(word) for d2 in self.deletes1(d1)}
+
+    def spell_correct(self, word: str) -> str:
+        """Most probable spelling for 'word'."""
+        word = word if word else ""
+
+        best = max(self.candidates(word), key=lambda w: w.freq)
+
+        return best.word
+
+    def known(self, words: Iterable) -> set:
+        """The subset of 'words' that appear in the dictionary of misspellings."""
+        return {w for w in words if w in self.spell}
+
+    def candidates(self, word: str) -> set:
+        """Generate possible spelling corrections for 'word'."""
+        return (
+            self.known([word])
+            or self.known(self.deletes1(word))
+            or self.known(self.deletes2(word))
+            or {word}
         )
-    )
-
-
-def number_split(text: str) -> list[str]:
-    """Split the text into numbers and non-numbers."""
-    return re.split(r"([^\d]+)", text)
-
-
-def is_number(word):
-    """Check if the word is a number."""
-    # return bool(re.match(r"^ \d+ [.,]? \d* $", word, flags=re.VERBOSE))
-    return bool(re.match(r"^ \d+ $", word, flags=re.VERBOSE))
-
-
-def tokenize(text: str) -> list[str]:
-    """Split the text into words and non-words."""
-    return re.split(r"([^\p{L}]+)", text)
-
-
-def is_word(word: str) -> bool:
-    """Determine if this is a word or a separator after tokenize()."""
-    return word.lower() in WORDS
-
-
-def hits(text: str) -> int:
-    """Count the number of words in the text that are in our corpus.
-
-    A hit is:
-    - A direct match in the vocabularies
-    - A number like: 99.99
-    """
-    count = sum(1 for w in tokenize(text) if is_word(w))
-    count += sum(1 for w in number_split(text) if is_number(w))
-    return count
-
-
-# #####################################################################################
-
-
-def usage(word):
-    """Get the number of times 'word' appears in the corpus."""
-    return WORDS.get(word.lower(), 0)
-
-
-def prob(word: str, count: float = sum(WORDS.values())) -> float:
-    """Probability of 'word'."""
-    return usage(word) / count
-
-
-def spell_correct(word: str) -> str:
-    """Most probable spelling for 'word'."""
-    if not word:
-        return ""
-
-    best = max(candidates(word), key=usage)
-
-    # Handle the case of the 'word'
-    if word[0].isupper():
-        best = best.upper() if word[-1].isupper() else best.title()
-
-    return best
-
-
-def candidates(word: str) -> set:
-    """Generate possible spelling corrections for 'word'."""
-    word = word.lower()
-    return known([word]) or known(edits1(word)) or known(edits2(word)) or {word}
-
-
-def known(words: Iterable) -> set:
-    """The subset of 'words' that appear in the dictionary of WORDS."""
-    return {w for w in words if w in WORDS}
-
-
-def edits1(word: str) -> set:
-    """All edits that are one edit away from 'word'."""
-    splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
-    deletes = [L + R[1:] for L, R in splits if R]
-    inserts = [L + c + R for L, R in splits for c in LETTERS]
-    replaces = [L + c + R[1:] for L, R in splits if R for c in LETTERS]
-    # transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R)>1]
-    return set(deletes + inserts + replaces)  # + transposes)
-
-
-def edits2(word: str):
-    """All edits that are two edits away from 'word'."""
-    return (e2 for e1 in edits1(word) for e2 in edits1(e1))

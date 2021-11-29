@@ -37,8 +37,9 @@ def build_where(sql: str, **kwargs) -> tuple[str, list]:
     return sql, params
 
 
-def rows_as_dicts(database: DbPath, sql: str, params: list):
+def rows_as_dicts(database: DbPath, sql: str, params: Optional[list] = None):
     """Convert the SQL execute cursor to a list of dicts."""
+    params = params if params else []
     with sqlite3.connect(database) as cxn:
         cxn.row_factory = sqlite3.Row
         rows = [dict(r) for r in cxn.execute(sql, params)]
@@ -84,6 +85,34 @@ def insert_vocabulary_words(database: DbPath, batch: list) -> None:
 def select_vocab(database: DbPath, min_freq=2, min_len=3) -> list[dict]:
     """Get herbarium sheet image data."""
     sql = """select * from vocab where freq >= ? and length(word) >= ?"""
+    return rows_as_dicts(database, sql, [min_freq, min_len])
+
+
+# ############## Misspellings table ###################################################
+
+
+def create_misspellings_table(database: DbPath, drop: bool = False) -> None:
+    """Create a table with vocabulary words and their frequencies."""
+    sql = """
+        create table if not exists misspellings (
+            miss  text,
+            word  text,
+            dist  integer,
+            freq  integer
+        );
+        """
+    create_table(database, sql, "misspellings", drop=drop)
+
+
+def insert_misspellings(database: DbPath, batch: list) -> None:
+    """Insert a batch of sheets records."""
+    sql = """insert into misspellings (miss, word, dist, freq) values (?, ?, ?, ?);"""
+    insert_batch(database, sql, batch)
+
+
+def select_misspellings(database: DbPath, min_freq=5, min_len=3) -> list[dict]:
+    """Get herbarium sheet image data."""
+    sql = """select * from misspellings where freq >= ? and length(miss) >= ?"""
     return rows_as_dicts(database, sql, [min_freq, min_len])
 
 
