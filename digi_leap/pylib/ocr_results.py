@@ -3,15 +3,12 @@ import unicodedata
 from collections import Counter
 from dataclasses import dataclass
 from dataclasses import field
+from functools import partial
 from functools import reduce
 from itertools import groupby
 from typing import Iterator
 
 import regex as re
-
-import digi_leap.pylib.line_align_py as la  # type: ignore
-from digi_leap.pylib import line_align_subs
-from digi_leap.pylib import vocab
 
 # When there is no clear "winner" for a character in the multiple alignment of
 # a set of strings I sort the characters by unicode category as a tiebreaker
@@ -169,13 +166,13 @@ def get_copies(line: Line) -> list[str]:
     return copies
 
 
-def sort_copies(copies: list[str]) -> list[str]:
+def sort_copies(copies: list[str], line_align) -> list[str]:
     """Sort the copies of the line by Levenshtein distance."""
-    # levenshtein_all() returns a sorted array of tuples (score, index_1, index_2)
     if len(copies) <= 2:  # Sorting will do nothing in this case
         return copies
 
-    distances = la.levenshtein_all(copies)
+    # levenshtein_all() returns a sorted array of tuples (score, index_1, index_2)
+    distances = line_align.levenshtein_all(copies)
     _, i, j = distances.pop(0)
 
     hits = {i, j}
@@ -193,9 +190,9 @@ def sort_copies(copies: list[str]) -> list[str]:
     return ordered
 
 
-def align_copies(copies: list[str]) -> list[str]:
+def align_copies(copies: list[str], line_align) -> list[str]:
     """Do a multiple alignment of the text copies."""
-    aligned = la.align_all(copies, line_align_subs.SUBS)
+    aligned = line_align.align(copies)
     return aligned
 
 
@@ -235,19 +232,20 @@ def _get_choices(options):
     return all_choices
 
 
-def _copies_key(choice):
-    hits = vocab.hits(choice)
+def _copies_key(choice, spell_well=None):
+    hits = spell_well.hits(choice)
     count = sum(1 for c in choice if c not in "⋄_ ")
     return hits, count, choice
 
 
-def choose_best_copy(copies):
+def choose_best_copy(copies, spell_well):
     """Find the copy with the best score."""
-    copies = sorted(copies, key=_copies_key, reverse=True)
+    key_func = partial(_copies_key, spell_well=spell_well)
+    copies = sorted(copies, key=key_func, reverse=True)
     return copies[0]
 
 
-def consensus(aligned: list[str], threshold=2 ** 16) -> str:
+def consensus(aligned: list[str], spell_well, threshold=2 ** 16) -> str:
     """Build a consensus string from the aligned copies.
 
     Look at all options of the multiple alignment and choose
@@ -255,13 +253,14 @@ def consensus(aligned: list[str], threshold=2 ** 16) -> str:
     are too few or too many choices just look choose characters
     by their sort order.
     """
+    key_func = partial(_copies_key, spell_well=spell_well)
     options = _char_options(aligned)
     count = reduce(lambda x, y: x * len(y), options, 1)
     if count == 1 or count > threshold:
         cons = "".join([o[0] for o in options])
     else:
         choices = _get_choices(options)
-        choices = sorted(choices, key=_copies_key, reverse=True)
+        choices = sorted(choices, key=key_func, reverse=True)
         cons = choices[0]
 
     return cons
@@ -274,14 +273,14 @@ def substitute(line: str) -> str:
     return line
 
 
-def spaces(line):
+def spaces(line, spell_well):
     """Remove extra spaces in words.
 
     OCR engines will put spaces where there shouldn't be any. This is a simple
     scanner that looks for 2 non-words that make a new word when a space is removed.
     For example: "w est" becomes "west".
     """
-    tokens = vocab.tokenize(line)
+    tokens = spell_well.tokenize(line)
 
     if len(tokens) <= 2:
         return line
@@ -295,8 +294,8 @@ def spaces(line):
 
         if (
             between.isspace()
-            and vocab.is_word(prev + curr)
-            and not (vocab.is_word(prev) or vocab.is_word(curr))
+            and spell_well.is_word(prev + curr)
+            and not (spell_well.is_word(prev) or spell_well.is_word(curr))
         ):
             new.pop()  # Remove between
             new.pop()  # Remove prev
@@ -307,7 +306,10 @@ def spaces(line):
     return "".join(new)
 
 
-def spell_correct(line):
+def correct(line, spell_well):
     """Fix spelling."""
-    new = [vocab.spell_correct(t) for t in vocab.tokenize(line)]
+    new = [
+        spell_well.correct(t) if spell_well.is_letters(t) else t
+        for t in spell_well.tokenize(line)
+    ]
     return "".join(new)

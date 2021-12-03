@@ -11,7 +11,7 @@ from typing import Optional
 import pandas as pd
 from PIL import Image
 
-from digi_leap.pylib import vocab
+from digi_leap.pylib.spell_well import SpellWell
 
 
 @dataclass
@@ -31,8 +31,9 @@ def build_expedition(args: Namespace) -> None:
 
     sheets = get_sheets(args.ensemble_images, args.ensemble_text, args.label_dir)
 
+    spell_well = SpellWell()
     sheets = filter_labels_by_words(
-        sheets, args.word_count_threshold, args.vocab_count_threshold
+        sheets, args.word_count_threshold, args.vocab_count_threshold, spell_well
     )
 
     sheets = sort_sheet_labels(sheets)
@@ -92,7 +93,7 @@ def filter_rulers(sheets, threshold):
     return sheets
 
 
-def filter_labels_by_words(sheets, word_threshold, vocab_threshold):
+def filter_labels_by_words(sheets, word_threshold, vocab_threshold, spell_well):
     """Filter labels by word count and vocabulary hit count."""
     for name, labels in sheets.items():
         if not labels:
@@ -110,7 +111,7 @@ def filter_labels_by_words(sheets, word_threshold, vocab_threshold):
                     continue
 
                 # Skip labels with too few vocab hits
-                hits = vocab.hits(text)
+                hits = spell_well.hits(text)
                 if hits < vocab_threshold:
                     continue
 

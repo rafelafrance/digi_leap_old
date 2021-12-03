@@ -5,12 +5,16 @@ from datetime import datetime
 from tqdm import tqdm
 
 from digi_leap.pylib import db
+from digi_leap.pylib import line_align_py as la  # type: ignore
+from digi_leap.pylib import line_align_subs
 from digi_leap.pylib import ocr_results
+from digi_leap.pylib.spell_well import SpellWell
 
 
 def build_labels(args):
     """Build labels from ensembles of OCR output."""
     db.create_cons_table(args.database)
+    line_align = la.LineAlign(line_align_subs.SUBS)
 
     limit = args.limit if args.limit else 999_999_999
 
@@ -29,11 +33,12 @@ def build_labels(args):
         ocr_labels, args.database, args.ocr_runs, args.classes
     )
 
+    spell_well = SpellWell()
     batch = []
     for i, (label_id, fragments) in tqdm(enumerate(ocr_fragments.items())):
         if i == limit:
             break
-        text = build_label_text(fragments)
+        text = build_label_text(fragments, spell_well, line_align)
         batch.append(
             {
                 "label_id": label_id,
@@ -46,7 +51,7 @@ def build_labels(args):
     db.insert_cons(args.database, batch)
 
 
-def build_label_text(ocr_fragments):
+def build_label_text(ocr_fragments, spell_well, line_align):
     """Build a label text from a ensemble of OCR output."""
     text = []
 
@@ -59,23 +64,23 @@ def build_label_text(ocr_fragments):
         if len(copies) <= 1:
             continue
 
-        ln = consensus(copies)
-        # ln = ocr_results.choose_best_copy(copies)
+        ln = consensus(copies, line_align, spell_well)
+        # ln = ocr_results.choose_best_copy(copies, spell_well)
 
         ln = ocr_results.substitute(ln)
-        ln = ocr_results.spaces(ln)
-        ln = ocr_results.spell_correct(ln)
+        ln = ocr_results.spaces(ln, spell_well)
+        ln = ocr_results.correct(ln, spell_well)
 
         text.append(ln)
 
     return "\n".join(text)
 
 
-def consensus(copies):
+def consensus(copies, line_align, spell_well):
     """Build a multiple-alignment consensus sequence from the copies of lines."""
-    copies = ocr_results.sort_copies(copies)
-    aligned = ocr_results.align_copies(copies)
-    cons = ocr_results.consensus(aligned)
+    copies = ocr_results.sort_copies(copies, line_align)
+    aligned = ocr_results.align_copies(copies, line_align)
+    cons = ocr_results.consensus(aligned, spell_well)
     return cons
 
 

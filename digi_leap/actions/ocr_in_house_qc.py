@@ -14,7 +14,7 @@ import pandas as pd
 from PIL import Image
 from PIL import ImageDraw
 
-import digi_leap.pylib.vocab
+from digi_leap.pylib.spell_well import SpellWell
 
 
 def sample_sheets(args):
@@ -51,13 +51,14 @@ def sample_sheets(args):
         copy_label_images(images, sheet_dir)
 
         texts = [f for f in text_files if f.stem.find(stem) >= 0]
-        score_label_text(texts, sheet_dir)
+        spell_well = SpellWell()
+        score_label_text(texts, sheet_dir, spell_well)
 
         with open(sheet_dir / "reconciled.json", "w") as json_file:
             json.dump(sheet, json_file, indent=2)
 
 
-def score_label_text(texts, sheet_dir):
+def score_label_text(texts, sheet_dir, spell_well):
     """Return the scores for all of the predicted labels on the herbarium sheet."""
     scores = []
     for path in texts:
@@ -75,7 +76,7 @@ def score_label_text(texts, sheet_dir):
             score["hit_percent"] = 0
             score["word_count"] = 0
         else:
-            hits = digi_leap.pylib.vocab.hits(text)
+            hits = spell_well.hits(text)
             score["hit_percent"] = round(100.0 * hits / count)
             score["word_count"] = count
 
