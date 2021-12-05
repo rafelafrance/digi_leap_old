@@ -115,45 +115,6 @@ DEFAULT = {
 # Arguments for scripts
 
 ARGS = {
-    "find_labels": {
-        "help": """Use a model that finds labels on herbarium sheets (inference).""",
-        "database": DEFAULT["digi_leap_db"],
-        "load_model": DEFAULT["curr_model"],
-        "device": DEFAULT["device"],
-        "nms_threshold": DEFAULT["nms_threshold"],
-        "sbs_threshold": DEFAULT["sbs_threshold"],
-        "limit": DEFAULT["limit"],
-    },
-    "ocr": {
-        "help": """OCR images of labels.""",
-        "database": DEFAULT["digi_leap_db"],
-        "ocr_run": DEFAULT["ocr_run"],
-        "pipelines": DEFAULT["pipelines"],
-        "ocr_engines": DEFAULT["ocr_engines"],
-        "classes": DEFAULT["classes"],
-        "ruler_ratio": {
-            "type": float,
-            "help": """Consider a label to be a ruler if the height:width
-                      (or width:height) ratio is above this.""",
-        },
-        "keep_n_largest": {
-            "type": int,
-            "help": "Keep the N largest labels for each sheet.",
-        },
-        "limit": DEFAULT["limit"],
-    },
-    "build_labels": {
-        "help": """Build a single "best" label from an ensemble of OCR outputs for
-                   every selected label. An ensemble is a set of OCR outputs of
-                   the same label using various image processing pipelines and OCR
-                   engines. They are grouped by OCR "runs".
-                """,
-        "database": DEFAULT["digi_leap_db"],
-        "cons_run": DEFAULT["cons_run"],
-        "ocr_runs": DEFAULT["ocr_runs"],
-        "classes": DEFAULT["classes"],
-        "limit": DEFAULT["limit"],
-    },
     "faster_rcnn_test": {
         "help": """Test a model that finds labels on herbarium sheets
                    (inference with scoring).""",

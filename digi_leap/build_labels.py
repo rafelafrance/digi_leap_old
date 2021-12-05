@@ -1,14 +1,18 @@
+#!/usr/bin/env python3
 """Find "best" labels from ensembles of OCR results of each label."""
+import argparse
+import textwrap
 from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
 
 from tqdm import tqdm
 
-from digi_leap.pylib import db
-from digi_leap.pylib import line_align_py as la  # type: ignore
-from digi_leap.pylib import line_align_subs
-from digi_leap.pylib import ocr_results
-from digi_leap.pylib.spell_well import SpellWell
+from .pylib import db
+from .pylib import line_align_py as la  # type: ignore
+from .pylib import line_align_subs
+from .pylib import ocr_results
+from .pylib.spell_well import SpellWell
 
 
 def build_labels(args):
@@ -17,10 +21,6 @@ def build_labels(args):
     line_align = la.LineAlign(line_align_subs.SUBS)
 
     limit = args.limit if args.limit else 999_999_999
-
-    cons_run = args.cons_run
-    if not cons_run:
-        cons_run = datetime.now().isoformat(sep="_", timespec="seconds")
 
     ocr_runs = get_ocr_runs(args.database, args.ocr_runs)
 
@@ -42,7 +42,7 @@ def build_labels(args):
         batch.append(
             {
                 "label_id": label_id,
-                "cons_run": cons_run,
+                "cons_run": args.cons_run,
                 "ocr_run": ocr_runs,
                 "cons_text": text,
             }
@@ -100,3 +100,63 @@ def get_ocr_runs(database, ocr_runs):
         ocr_runs = [r["ocr_run"] for r in db.get_ocr_runs(database)]
     ocr_runs = ",".join(ocr_runs)
     return ocr_runs
+
+
+def parse_args() -> argparse.Namespace:
+    """Process command-line arguments."""
+    description = """
+        Build a single "best" label from an ensemble of OCR outputs for
+        every selected label. An ensemble is a set of OCR outputs of
+        the same label using various image processing pipelines and OCR
+        engines. They are grouped by OCR "runs"."""
+
+    arg_parser = argparse.ArgumentParser(
+        description=textwrap.dedent(description), fromfile_prefix_chars="@"
+    )
+
+    arg_parser.add_argument(
+        "--database",
+        metavar="PATH",
+        type=Path,
+        required=True,
+        help="""Path to the digi-leap database.""",
+    )
+
+    default = datetime.now().isoformat(sep="_", timespec="seconds")
+    arg_parser.add_argument(
+        "--cons_run",
+        "--cons-run",
+        default=default,
+        help="""Name the consensus construction run. (default: %(default)s).""",
+    )
+
+    arg_parser.add_argument(
+        "--ocr_runs",
+        "--ocr-runs",
+        type=str,
+        nargs="*",
+        help="""Which OCR runs contain the label ensembles.""",
+    )
+
+    arg_parser.add_argument(
+        "--classes",
+        choices=["Barcode", "Handwritten", "Typewritten", "Both"],
+        type=str,
+        nargs="*",
+        default=["Typewritten"],
+        help="""Keep labels if they fall into any of these categories.""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit the input to this many records.""",
+    )
+
+    args = arg_parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    ARGS = parse_args()
+    build_labels(ARGS)
