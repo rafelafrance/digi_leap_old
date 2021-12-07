@@ -37,8 +37,6 @@ def find(args):
 
     label_batch = []
 
-    run = datetime.now().isoformat(sep="_", timespec="seconds")
-
     for sheet in tqdm(sheets):
 
         with Image.open(sheet["path"]) as image:
@@ -66,7 +64,7 @@ def find(args):
                 label_batch.append(
                     {
                         "sheet_id": sheet["sheet_id"],
-                        "label_run": run,
+                        "label_run": args.label_run,
                         "offset": i,
                         "class": sub.CLASS2NAME[label.item()],
                         "label_left": round(box[0]),
@@ -107,14 +105,12 @@ def parse_args() -> argparse.Namespace:
 
     default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
-        "--find_run",
-        "--find-run",
+        "--label-run",
         default=default,
         help="""Name the label finder run. (default: %(default)s).""",
     )
 
     arg_parser.add_argument(
-        "--load_model",
         "--load-model",
         type=Path,
         help="""Path, to the current model for finding labels on a herbarium sheet.""",
@@ -127,7 +123,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--nms_threshold",
         "--nms-threshold",
         type=float,
         default=0.3,
@@ -136,7 +131,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--sbs_threshold",
         "--sbs-threshold",
         type=float,
         default=0.95,

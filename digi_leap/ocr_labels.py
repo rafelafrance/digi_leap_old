@@ -32,9 +32,6 @@ def ocr_labels(args: argparse.Namespace) -> None:
         args.keep_n_largest,
     )
 
-    if not args.ocr_run:
-        args.ocr_run = datetime.now().isoformat(sep="_", timespec="seconds")
-
     with warnings.catch_warnings():  # Turn off EXIF warnings
         warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -141,7 +138,6 @@ def parse_args() -> argparse.Namespace:
 
     default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
-        "--ocr_run",
         "--ocr-run",
         default=default,
         help="""Name the label finder run. (default: %(default)s)""",
@@ -158,7 +154,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--ocr_engines",
         "--ocr-engines",
         choices=["tesseract", "easy"],
         default=["tesseract", "easy"],
@@ -173,11 +168,11 @@ def parse_args() -> argparse.Namespace:
         default=["Typewritten"],
         type=str,
         nargs="*",
-        help="""Keep labels if they fall into any of these categories.""",
+        help="""Keep labels if they fall into any of these categories.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
-        "--ruler_ratio",
         "--ruler-ratio",
         type=float,
         help="""Consider a label to be a ruler if the height:width
@@ -185,7 +180,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--keep_n_largest",
         "--keep-n-largest",
         type=int,
         help="""Keep the N largest labels for each sheet.""",

@@ -39,7 +39,9 @@ def train(args):
     train_dataset, valid_dataset = get_subjects(
         args.reconciled_jsonl, args.sheets_dir, args.split, args.limit
     )
-    train_loader = get_loader(train_dataset, args.batch_size, args.workers, True)
+    train_loader = get_loader(
+        train_dataset, args.batch_size, args.workers, shuffle=True
+    )
     valid_loader = get_loader(valid_dataset, args.batch_size, args.workers)
 
     start_epoch = state["epoch"] + 1 if state.get("epoch") else 1

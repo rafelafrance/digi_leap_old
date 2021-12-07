@@ -24,10 +24,9 @@ def build_labels(args):
 
     ocr_runs = get_ocr_runs(args.database, args.ocr_runs)
 
-    ocr_labels = {
-        lb["label_id"]: dict(lb)
-        for lb in db.select_labels(args.database, classes=args.classes)
-    }
+    ocr_labels = {}
+    for lb in db.select_labels(args.database, classes=args.classes):
+        ocr_labels[lb["label_id"]] = dict(lb)
 
     ocr_fragments = get_ocr_fragments(
         ocr_labels, args.database, args.ocr_runs, args.classes
@@ -124,14 +123,12 @@ def parse_args() -> argparse.Namespace:
 
     default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
-        "--cons_run",
         "--cons-run",
         default=default,
         help="""Name the consensus construction run. (default: %(default)s).""",
     )
 
     arg_parser.add_argument(
-        "--ocr_runs",
         "--ocr-runs",
         type=str,
         nargs="*",
@@ -144,7 +141,8 @@ def parse_args() -> argparse.Namespace:
         type=str,
         nargs="*",
         default=["Typewritten"],
-        help="""Keep labels if they fall into any of these categories.""",
+        help="""Keep labels if they fall into any of these categories.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
