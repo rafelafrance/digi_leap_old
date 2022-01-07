@@ -75,7 +75,7 @@ def map_(results, iou_threshold=0.5, eps=1e-8):
                 pre[i - 1] = torch.maximum(pre[i - 1], pre[i])
 
             # Calculate the AUC
-            idx = torch.where(torch.Tensor(rec[1:] != rec[:-1]))[0]
+            idx = torch.where(rec[1:] != rec[:-1])[0]
             ap = torch.sum((rec[idx + 1] - rec[idx]) * pre[idx + 1])
 
             all_ap.append(ap)
