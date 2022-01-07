@@ -4,13 +4,13 @@ import torch
 from torchvision.ops import box_iou
 
 
-def mAP_iou(results, low=0.5, high=0.95, step=0.05, eps=1e-8):
+def map_iou(results, low=0.5, high=0.95, step=0.05, eps=1e-8):
     """Calculate the mean average precision over several IoU thresholds."""
-    scores = [mAP(results, t, eps=eps) for t in torch.arange(low, high + step, step)]
+    scores = [map_(results, t, eps=eps) for t in torch.arange(low, high + step, step)]
     return sum(scores) / (len(scores) + eps)
 
 
-def mAP(results, iou_threshold=0.5, eps=1e-8):
+def map_(results, iou_threshold=0.5, eps=1e-8):
     """Calculate the mean average precision at a specific IoU threshold.
 
     Modified from:
@@ -75,7 +75,7 @@ def mAP(results, iou_threshold=0.5, eps=1e-8):
                 pre[i - 1] = torch.maximum(pre[i - 1], pre[i])
 
             # Calculate the AUC
-            idx = torch.where(rec[1:] != rec[:-1])[0]
+            idx = torch.where(torch.Tensor(rec[1:] != rec[:-1]))[0]
             ap = torch.sum((rec[idx + 1] - rec[idx]) * pre[idx + 1])
 
             all_ap.append(ap)

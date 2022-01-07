@@ -1,5 +1,6 @@
 """Generate training data."""
 import json
+from collections import namedtuple
 from pathlib import Path
 
 import torch
@@ -9,27 +10,29 @@ from torchvision import transforms
 
 from . import augmentations as aug
 
+Sheet = namedtuple("Sheet", "subject_id image_file boxes types")
 
-class FasterRcnnData(Dataset):
+
+class LabelFinderData(Dataset):
     """Generate augmented training data."""
 
-    def __init__(self, subjects: list[dict], image_dir: Path, augment=False):
+    def __init__(self, sheets: list[dict], image_dir: Path, augment=False):
         super().__init__()
         self.image_dir = image_dir
-        self.subjects = subjects
+        self.sheets = sheets
         self.augment = augment
 
     def __len__(self):
-        return len(self.subjects)
+        return len(self.sheets)
 
     def __getitem__(self, idx):
-        subject = self.subjects[idx]
-        path = self.image_dir / subject["image_file"]
+        sheet = self.sheets[idx]
+        path = self.image_dir / sheet["image_file"]
 
-        # labels = [sub.CLASS2INT[t] for t in subject["merged_types"]]
-        labels = [1] * len(subject["merged_types"])
+        # labels = [sub.CLASS2INT[t] for t in sheet["merged_types"]]
+        labels = [1] * len(sheet["merged_types"])
 
-        boxes = torch.tensor(subject["merged_boxes"], dtype=torch.float32)
+        boxes = torch.tensor(sheet["merged_boxes"], dtype=torch.float32)
         if boxes.shape[0] == 0:
             boxes = torch.empty((0, 4), dtype=torch.float32)
 
@@ -44,7 +47,7 @@ class FasterRcnnData(Dataset):
             image = transforms.ToTensor()(image)
 
         target = {
-            "image_id": torch.tensor([int(subject["subject_id"])]),
+            "image_id": torch.tensor([int(sheet["subject_id"])]),
             "boxes": boxes,
             "labels": torch.tensor(labels, dtype=torch.int64),
             "area": area,
@@ -55,6 +58,6 @@ class FasterRcnnData(Dataset):
 
     @staticmethod
     def read_jsonl(jsonl: Path):
-        """Read JSONL file as subject data."""
+        """Read JSONL file as sheet data."""
         with open(jsonl) as f:
             return [json.loads(ln) for ln in f.readlines()]

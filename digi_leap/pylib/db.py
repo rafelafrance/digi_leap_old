@@ -210,6 +210,30 @@ def select_labels(
     return rows_as_dicts(database, sql, params)
 
 
+# ######### Subjects to sheets #######################################################
+
+
+def create_subjects_to_sheets_table(database: DbPath, drop: bool = False) -> None:
+    """Create a table to link subjects to herbarium sheets."""
+    sql = """
+        create table table if not exists subs_to_sheets (
+            subject_id integer primary key,
+            sheet_id   integer
+        );
+        create index if not exists subs_to_sheets_sheet_id on subs_to_sheets(sheet_id);
+    """
+    create_table(database, sql, "subs_to_sheets", drop=drop)
+
+
+def insert_subjects_to_sheets(database: DbPath, batch: list) -> None:
+    """Insert a batch of label records."""
+    sql = """
+        insert into subs_to_sheets ( subject_id,  sheet_id)
+                            values (:subject_id, :sheet_id);
+    """
+    insert_batch(database, sql, batch)
+
+
 # ############ ocr table #############################################################
 
 
@@ -309,4 +333,43 @@ def select_cons(
           join sheets using (sheet_id)
     """
     sql, params = build_select(sql, limit=limit, cons_run=cons_runs)
+    return rows_as_dicts(database, sql, params)
+
+
+# ########### Split table ##########################################################
+
+
+def create_splits_table(database: DbPath, drop: bool = False) -> None:
+    """Create train/validation/test splits of the data.
+
+    This is so I don't wind up training on my test data. Because an image can belong
+    to multiple classes I need to be careful that I don't add any core IDs in the
+    test split to the training/validation splits.
+    """
+    sql = """
+        create table if not exists splits (
+            split_run text,
+            split     text,
+            label_id  text
+        );
+        """
+    create_table(database, sql, "splits", drop=drop)
+
+
+def insert_splits(database: DbPath, batch: list) -> None:
+    """Insert a batch of sheets records."""
+    sql = """insert into splits ( split_run,  split,  label_id)
+                         values (:split_run, :split, :label_id);"""
+    insert_batch(database, sql, batch)
+
+
+def select_split(
+    database: DbPath, split_run: str, split: str, limit: int = 0
+) -> list[dict]:
+    """Select all records for a split_run/split combination."""
+    sql = """select *
+               from splits
+               join labels using (label_id)
+               join sheets using (sheet_id)"""
+    sql, params = build_select(sql, limit=limit, split_run=split_run, split=split)
     return rows_as_dicts(database, sql, params)

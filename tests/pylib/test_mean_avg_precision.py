@@ -3,8 +3,8 @@ import unittest
 
 import torch
 
-from digi_leap.pylib.mean_avg_precision import mAP
-from digi_leap.pylib.mean_avg_precision import mAP_iou
+from digi_leap.pylib.mean_avg_precision import map_
+from digi_leap.pylib.mean_avg_precision import map_iou
 
 
 class TestMeanAvgPrecision(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.8, 0.9]),
             },
         ]
-        self.assertEqual(mAP(results), 1.0)
+        self.assertEqual(map_(results), 1.0)
 
     def test_mAP_02(self):
         """It handles non-overlapping boxes."""
@@ -48,7 +48,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.7, 0.8, 0.9]),
             },
         ]
-        self.assertAlmostEqual(mAP(results).item(), 0.25)
+        self.assertAlmostEqual(map_(results).item(), 0.25)
 
     def test_mAP_03(self):
         """It handles boxes, labels, & scores being equal."""
@@ -66,7 +66,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.8, 0.8]),
             },
         ]
-        self.assertEqual(mAP(results), 1.0)
+        self.assertEqual(map_(results), 1.0)
 
     def test_mAP_04(self):
         """It handles classes being unequal."""
@@ -84,7 +84,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.8, 0.8]),
             },
         ]
-        self.assertEqual(mAP(results), 0.0)
+        self.assertEqual(map_(results), 0.0)
 
     def test_mAP_05(self):
         """It handles false negatives."""
@@ -100,7 +100,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([1.0]),
             },
         ]
-        self.assertEqual(mAP(results), 0.5)
+        self.assertEqual(map_(results), 0.5)
 
     def test_mAP_06(self):
         """It handles multiple samples."""
@@ -142,7 +142,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.8]),
             },
         ]
-        self.assertAlmostEqual(mAP(results).item(), 0.5)
+        self.assertAlmostEqual(map_(results).item(), 0.5)
 
     def test_mAP_iou_01(self):
         """It averages the various thresholds."""
@@ -174,10 +174,10 @@ class TestMeanAvgPrecision(unittest.TestCase):
                 "pred_scores": torch.Tensor([0.8, 0.9, 0.6, 0.8, 0.9, 0.6]),
             },
         ]
-        self.assertEqual(mAP(results, iou_threshold=0.5), 1.0)
-        self.assertEqual(mAP(results, iou_threshold=0.6), 0.75)
-        self.assertEqual(mAP(results, iou_threshold=0.7), 0.5)
-        self.assertEqual(mAP(results, iou_threshold=0.8), 0.25)
+        self.assertEqual(map_(results, iou_threshold=0.5), 1.0)
+        self.assertEqual(map_(results, iou_threshold=0.6), 0.75)
+        self.assertEqual(map_(results, iou_threshold=0.7), 0.5)
+        self.assertEqual(map_(results, iou_threshold=0.8), 0.25)
         self.assertAlmostEqual(
-            mAP_iou(results, low=0.5, high=0.8, step=0.1).item(), 0.625
+            map_iou(results, low=0.5, high=0.8, step=0.1).item(), 0.625
         )
