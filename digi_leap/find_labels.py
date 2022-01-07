@@ -5,7 +5,7 @@ import textwrap
 from datetime import datetime
 from pathlib import Path
 
-from .pylib.find_labels import find_labels
+from .pylib import find_labels
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,6 +69,11 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+def main():
+    """Run it."""
+    args = parse_args()
+    find_labels.find_labels(args)
+
+
 if __name__ == "__main__":
-    ARGS = parse_args()
-    find_labels(ARGS)
+    main()

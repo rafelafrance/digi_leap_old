@@ -7,7 +7,7 @@ from . import db
 from . import line_align_py as la  # type: ignore
 from . import line_align_subs
 from . import ocr_results
-from .spell_well import SpellWell
+from . import spell_well as sw
 
 
 def build_labels(args):
@@ -27,7 +27,7 @@ def build_labels(args):
         ocr_labels, args.database, args.ocr_runs, args.classes
     )
 
-    spell_well = SpellWell()
+    spell_well = sw.SpellWell()
     batch = []
     for i, (label_id, fragments) in tqdm(enumerate(ocr_fragments.items())):
         if i == limit:

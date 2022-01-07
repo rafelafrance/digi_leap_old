@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+"""OCR a set of labels."""
 import argparse
 import textwrap
 from datetime import datetime
 from pathlib import Path
 
-from .pylib.ocr_labels import ocr_labels
+from .pylib import ocr_labels
 
 
 def parse_args() -> argparse.Namespace:
@@ -82,6 +83,11 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+def main():
+    """Run it."""
+    args = parse_args()
+    ocr_labels.ocr_labels(args)
+
+
 if __name__ == "__main__":
-    ARGS = parse_args()
-    ocr_labels(ARGS)
+    main()

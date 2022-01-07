@@ -7,8 +7,8 @@ from PIL import Image
 from tqdm import tqdm
 
 from . import db
+from . import label_transforms as lt
 from . import ocr
-from .label_transforms import transform_label
 
 ENGINE = {
     "tesseract": ocr.tesseract_engine,
@@ -46,7 +46,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                 )
 
                 for pipeline in args.pipelines:
-                    image = transform_label(pipeline, label)
+                    image = lt.transform_label(pipeline, label)
 
                     for engine in args.ocr_engines:
                         results = ENGINE[engine](image)

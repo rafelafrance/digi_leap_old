@@ -14,8 +14,6 @@ from . import subject as sub
 
 def find_labels(args):
     """Train the neural net."""
-    torch.multiprocessing.set_sharing_strategy("file_system")
-
     state = torch.load(args.load_model)
 
     model = get_model()

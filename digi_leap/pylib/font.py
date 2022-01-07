@@ -1,9 +1,9 @@
 """Utilities and constants for working with fonts."""
 from PIL import ImageFont
 
-from digi_leap.pylib.const import ROOT_DIR
+from digi_leap.pylib import const
 
-FONTS_DIR = ROOT_DIR / "fonts"
+FONTS_DIR = const.ROOT_DIR / "fonts"
 FONT = FONTS_DIR / "SourceCodePro-Regular.ttf"
 FONT2 = FONTS_DIR / "NotoSerif-Regular.ttf"
 BASE_FONT_SIZE = 36

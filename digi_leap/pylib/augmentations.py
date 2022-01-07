@@ -1,8 +1,8 @@
 """Common label augmentations for model training."""
 import random
 
+import torchvision as tv
 from PIL import ImageFilter
-from torchvision import transforms
 
 
 def random_blur(image, threshold=0.25):
@@ -15,10 +15,10 @@ def random_blur(image, threshold=0.25):
 
 
 def random_color(image, threshold=0.1):
-    "Random color jitter."
+    """Random color jitter."""
     if random.random() < threshold:
         return image
-    image = transforms.ColorJitter(
+    image = tv.transforms.ColorJitter(
         brightness=(0.5, 2.0),
         contrast=(0.5, 2.0),
         saturation=(0.5, 2.0),

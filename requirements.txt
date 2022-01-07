@@ -9,6 +9,7 @@ numpy
 pandas
 pybind11
 pytesseract
+pytorch-lightning
 opencv-python
 scikit-image
 scikit-learn

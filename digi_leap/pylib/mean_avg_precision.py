@@ -1,7 +1,7 @@
 """Calculate the mean average precision for scoring object detection results."""
 # TODO Fix this mess
 import torch
-from torchvision.ops import box_iou
+from torchvision import ops
 
 
 def map_iou(results, low=0.5, high=0.95, step=0.05, eps=1e-8):
@@ -29,7 +29,7 @@ def map_(results, iou_threshold=0.5, eps=1e-8):
     all_ap = []
 
     for result in results:
-        iou = box_iou(result["true_boxes"], result["pred_boxes"])
+        iou = ops.box_iou(result["true_boxes"], result["pred_boxes"])
         true_labels = result["true_labels"].unique()
 
         if true_labels.numel() == 0:
