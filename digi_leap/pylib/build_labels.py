@@ -17,14 +17,14 @@ def build_labels(args):
 
     limit = args.limit if args.limit else float("inf")
 
-    ocr_runs = get_ocr_runs(args.database, args.ocr_runs)
+    ocr_sets = get_ocr_sets(args.database, args.ocr_sets)
 
     ocr_labels = {}
     for lb in db.select_labels(args.database, classes=args.classes):
         ocr_labels[lb["label_id"]] = dict(lb)
 
     ocr_fragments = get_ocr_fragments(
-        ocr_labels, args.database, args.ocr_runs, args.classes
+        ocr_labels, args.database, args.ocr_sets, args.classes
     )
 
     spell_well = sw.SpellWell()
@@ -36,8 +36,8 @@ def build_labels(args):
         batch.append(
             {
                 "label_id": label_id,
-                "cons_run": args.cons_run,
-                "ocr_run": ocr_runs,
+                "cons_set": args.cons_set,
+                "ocr_set": ocr_sets,
                 "cons_text": text,
             }
         )
@@ -78,9 +78,9 @@ def consensus(copies, line_align, spell_well):
     return cons
 
 
-def get_ocr_fragments(ocr_labels, database, ocr_runs=None, classes=None):
+def get_ocr_fragments(ocr_labels, database, ocr_sets=None, classes=None):
     """Read OCR records and group them by label."""
-    ocr = [dict(o) for o in db.select_ocr(database, ocr_runs, classes)]
+    ocr = [dict(o) for o in db.select_ocr(database, ocr_sets, classes)]
     records = defaultdict(list)
     for o in ocr:
         if o["label_id"] in ocr_labels:
@@ -88,9 +88,9 @@ def get_ocr_fragments(ocr_labels, database, ocr_runs=None, classes=None):
     return records
 
 
-def get_ocr_runs(database, ocr_runs):
-    """Get the OCR runs included in this cons_run."""
-    if not ocr_runs:
-        ocr_runs = [r["ocr_run"] for r in db.get_ocr_runs(database)]
-    ocr_runs = ",".join(ocr_runs)
-    return ocr_runs
+def get_ocr_sets(database, ocr_sets):
+    """Get the OCR runs included in this cons_set."""
+    if not ocr_sets:
+        ocr_sets = [r["ocr_set"] for r in db.get_ocr_sets(database)]
+    ocr_sets = ",".join(ocr_sets)
+    return ocr_sets

@@ -1,78 +1,30 @@
 #!/usr/bin/env python3
 """Use a trained model to cut out labels on herbarium sheets."""
-import argparse
-import textwrap
-from datetime import datetime
-from pathlib import Path
-
-from .pylib import find_labels
+from torch import nn
 
 
-def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
-    description = """Use a model that finds labels on herbarium sheets (inference)."""
+class LabelFinderModel(nn.Module):
+    """Change the pretrained model for out uses."""
 
-    arg_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(description), fromfile_prefix_chars="@"
-    )
-
-    arg_parser.add_argument(
-        "--database",
-        metavar="PATH",
-        type=Path,
-        required=True,
-        help="""Path to the digi-leap database.""",
-    )
-
-    default = datetime.now().isoformat(sep="_", timespec="seconds")
-    arg_parser.add_argument(
-        "--label-run",
-        default=default,
-        help="""Name the label finder run. (default: %(default)s).""",
-    )
-
-    arg_parser.add_argument(
-        "--load-model",
-        type=Path,
-        help="""Path, to the current model for finding labels on a herbarium sheet.""",
-    )
-
-    arg_parser.add_argument(
-        "--device",
-        default="cuda",
-        help="""Which GPU or CPU to use. (default: %(default)s).""",
-    )
-
-    arg_parser.add_argument(
-        "--nms-threshold",
-        type=float,
-        default=0.3,
-        help="""IoU overlap to use for non-maximum suppression.
-            (default: %(default)s).""",
-    )
-
-    arg_parser.add_argument(
-        "--sbs-threshold",
-        type=float,
-        default=0.95,
-        help="""IoU overlap to use for small box suppression.
-            (default: %(default)s).""",
-    )
-
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    args = arg_parser.parse_args()
-    return args
+    # def __init__(self):
+    #     super().__init__()
+    #     self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(
+    #         pretrained=True
+    #     )
+    #     in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+    #     self.model.roi_heads.box_predictor = FastRCNNPredictor(
+    #         in_features, num_classes=len(sub.CLASSES) + 1
+    #     )
+    #
+    # def forward(self, x):
+    #     return self.model(x)
 
 
 def main():
-    """Run it."""
-    args = parse_args()
-    find_labels.find_labels(args)
+    """Find labels on a herbarium sheet."""
+    # model = FastRCNN()
+    # trainer = pl.Trainer(fast_dev_run=True)
+    # trainer.fit(model)
 
 
 if __name__ == "__main__":

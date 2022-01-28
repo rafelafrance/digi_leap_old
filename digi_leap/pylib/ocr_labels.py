@@ -7,7 +7,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from . import db
-from . import label_transforms as lt
+from . import label_transforms_old as lt
 from . import ocr
 
 ENGINE = {
@@ -54,7 +54,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                             for result in results:
                                 result |= {
                                     "label_id": lb["label_id"],
-                                    "ocr_run": args.ocr_run,
+                                    "ocr_set": args.ocr_set,
                                     "engine": engine,
                                     "pipeline": pipeline,
                                 }

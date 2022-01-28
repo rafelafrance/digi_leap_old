@@ -126,8 +126,10 @@ def create_sheets_table(database: DbPath, drop: bool = False) -> None:
             sheet_id integer primary key autoincrement,
             path     text    unique,
             width    integer,
-            height   integer
+            height   integer,
+            coreid   text
         );
+        create unique index if not exists sheets_idx on sheets (coreid);
         """
     create_table(database, sql, "sheets", drop=drop)
 
@@ -171,7 +173,7 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
         create table if not exists labels (
             label_id     integer primary key autoincrement,
             sheet_id     integer,
-            label_run    text,
+            label_set    text,
             offset       integer,
             class        text,
             label_left   integer,
@@ -180,6 +182,7 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
             label_bottom integer
         );
 
+        create unique index labels_idx on labels (label_set, sheet_id, offset);
         create index if not exists labels_sheet_id on labels(sheet_id);
         """
     create_table(database, sql, "labels", drop=drop)
@@ -189,9 +192,9 @@ def insert_labels(database: DbPath, batch: list) -> None:
     """Insert a batch of label records."""
     sql = """
         insert into labels
-               ( sheet_id,    label_run,  offset,       class,
+               ( sheet_id,    label_set,  offset,       class,
                  label_left,  label_top,  label_right,  label_bottom)
-        values (:sheet_id,   :label_run, :offset,      :class,
+        values (:sheet_id,   :label_set, :offset,      :class,
                 :label_left, :label_top, :label_right, :label_bottom);
     """
     insert_batch(database, sql, batch)
@@ -201,12 +204,12 @@ def select_labels(
     database: DbPath,
     *,
     limit: int = 0,
-    label_runs: Optional[str] = None,
+    label_sets: Optional[str] = None,
     classes: Optional[str] = None,
 ) -> list[dict]:
     """Get label records."""
     sql = """select * from labels join sheets using (sheet_id)"""
-    sql, params = build_select(sql, limit=limit, class_=classes, label_run=label_runs)
+    sql, params = build_select(sql, limit=limit, class_=classes, label_set=label_sets)
     return rows_as_dicts(database, sql, params)
 
 
@@ -243,7 +246,7 @@ def create_ocr_table(database: DbPath, drop: bool = False) -> None:
         create table if not exists ocr (
             ocr_id     integer primary key autoincrement,
             label_id   integer,
-            ocr_run    text,
+            ocr_set    text,
             engine     text,
             pipeline   text,
             conf       real,
@@ -263,16 +266,16 @@ def insert_ocr(database: DbPath, batch: list) -> None:
     """Insert a batch of ocr records."""
     sql = """
         insert into ocr
-               ( label_id,  ocr_run,  engine,  pipeline,
+               ( label_id,  ocr_set,  engine,  pipeline,
                  conf,  ocr_left,  ocr_top,   ocr_right,   ocr_bottom,  ocr_text)
-        values (:label_id, :ocr_run, :engine, :pipeline,
+        values (:label_id, :ocr_set, :engine, :pipeline,
                 :conf, :ocr_left, :ocr_top,  :ocr_right,  :ocr_bottom, :ocr_text);
     """
     insert_batch(database, sql, batch)
 
 
 def select_ocr(
-    database: DbPath, ocr_runs=None, classes=None, limit: int = 0
+    database: DbPath, ocr_sets=None, classes=None, limit: int = 0
 ) -> list[dict]:
     """Get ocr box records."""
     sql = """
@@ -281,13 +284,13 @@ def select_ocr(
           join labels using (label_id)
           join sheets using (sheet_id)
     """
-    sql, params = build_select(sql, limit=limit, class_=classes, ocr_run=ocr_runs)
+    sql, params = build_select(sql, limit=limit, class_=classes, ocr_set=ocr_sets)
     return rows_as_dicts(database, sql, params)
 
 
-def get_ocr_runs(database: DbPath) -> list[dict]:
+def get_ocr_sets(database: DbPath) -> list[dict]:
     """Get all of the OCR runs in the database."""
-    sql = """select distinct ocr_run from ocr"""
+    sql = """select distinct ocr_set from ocr"""
     sql, params = build_select(sql)
     return rows_as_dicts(database, sql, params)
 
@@ -296,16 +299,16 @@ def get_ocr_runs(database: DbPath) -> list[dict]:
 
 
 def create_cons_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with the label crops of the herbarium images."""
+    """Create a table with the reconstructed label text."""
     sql = """
         create table if not exists cons (
             cons_id   integer primary key autoincrement,
             label_id  integer,
-            cons_run  text,
-            ocr_run   text,
+            cons_set  text,
+            ocr_set   text,
             cons_text text
         );
-        create index if not exists cons_label_id on cons(label_id);
+        create index if not exists cons_label_id on cons (label_id);
         """
     create_table(database, sql, "cons", drop=drop)
 
@@ -314,15 +317,15 @@ def insert_cons(database: DbPath, batch: list) -> None:
     """Insert a batch of consensus records."""
     sql = """
         insert into cons
-               ( label_id,  cons_run,  ocr_run,  cons_text)
-        values (:label_id, :cons_run, :ocr_run, :cons_text);
+               ( label_id,  cons_set,  ocr_set,  cons_text)
+        values (:label_id, :cons_set, :ocr_set, :cons_text);
     """
     insert_batch(database, sql, batch)
 
 
 def select_cons(
     database: DbPath,
-    cons_runs: Optional[list[str]] = None,
+    cons_sets: Optional[list[str]] = None,
     limit: int = 0,
 ) -> list[dict]:
     """Get consensus records."""
@@ -332,14 +335,14 @@ def select_cons(
           join labels using (label_id)
           join sheets using (sheet_id)
     """
-    sql, params = build_select(sql, limit=limit, cons_run=cons_runs)
+    sql, params = build_select(sql, limit=limit, cons_set=cons_sets)
     return rows_as_dicts(database, sql, params)
 
 
 # ########### Split table ##########################################################
 
 
-def create_splits_table(database: DbPath, drop: bool = False) -> None:
+def create_rec_splits_table(database: DbPath, drop: bool = False) -> None:
     """Create train/validation/test splits of the data.
 
     This is so I don't wind up training on my test data. Because an image can belong
@@ -347,8 +350,8 @@ def create_splits_table(database: DbPath, drop: bool = False) -> None:
     test split to the training/validation splits.
     """
     sql = """
-        create table if not exists splits (
-            split_run text,
+        create table if not exists rec_splits (
+            split_set text,
             split     text,
             label_id  text
         );
@@ -356,20 +359,20 @@ def create_splits_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, "splits", drop=drop)
 
 
-def insert_splits(database: DbPath, batch: list) -> None:
+def insert_rec_splits(database: DbPath, batch: list) -> None:
     """Insert a batch of sheets records."""
-    sql = """insert into splits ( split_run,  split,  label_id)
-                         values (:split_run, :split, :label_id);"""
+    sql = """insert into rec_splits ( split_set,  split,  label_id)
+                             values (:split_set, :split, :label_id);"""
     insert_batch(database, sql, batch)
 
 
 def select_split(
-    database: DbPath, split_run: str, split: str, limit: int = 0
+    database: DbPath, split_set: str, split: str, limit: int = 0
 ) -> list[dict]:
-    """Select all records for a split_run/split combination."""
+    """Select all records for a split_set/split combination."""
     sql = """select *
-               from splits
+               from rec_splits
                join labels using (label_id)
                join sheets using (sheet_id)"""
-    sql, params = build_select(sql, limit=limit, split_run=split_run, split=split)
+    sql, params = build_select(sql, limit=limit, split_set=split_set, split=split)
     return rows_as_dicts(database, sql, params)

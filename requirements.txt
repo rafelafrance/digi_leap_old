@@ -1,7 +1,9 @@
 Pillow
+albumentations
 chardet
 cppimport
 easyocr
+effdet
 jupyter
 matplotlib
 nltk

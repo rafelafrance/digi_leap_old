@@ -56,7 +56,7 @@ def find_labels(args):
                 label_batch.append(
                     {
                         "sheet_id": sheet["sheet_id"],
-                        "label_run": args.label_run,
+                        "label_set": args.label_set,
                         "offset": i,
                         "class": sub.CLASS2NAME[label.item()],
                         "label_left": round(box[0]),
