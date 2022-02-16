@@ -7,9 +7,9 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 from tqdm import tqdm
 
-from . import box_calc as calc
-from . import db
-from . import subject as sub
+from digi_leap.pylib import box_calc as calc
+from digi_leap.pylib import db
+from digi_leap.pylib import subject as sub
 
 
 def find_labels(args):

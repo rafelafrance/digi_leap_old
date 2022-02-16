@@ -127,7 +127,8 @@ def create_sheets_table(database: DbPath, drop: bool = False) -> None:
             path     text    unique,
             width    integer,
             height   integer,
-            coreid   text
+            coreid   text,
+            split    text
         );
         create unique index if not exists sheets_idx on sheets (coreid);
         """
@@ -209,7 +210,16 @@ def select_labels(
 ) -> list[dict]:
     """Get label records."""
     sql = """select * from labels join sheets using (sheet_id)"""
-    sql, params = build_select(sql, limit=limit, class_=classes, label_set=label_sets)
+    sql, params = build_select(sql, class_=classes, label_set=label_sets, limit=limit)
+    return rows_as_dicts(database, sql, params)
+
+
+def select_label_split(
+    database: DbPath, *, split: str, label_set: str, limit: int = 0
+) -> list[dict]:
+    """Get label records for training, validation, or testing."""
+    sql = """ select * from sheets left join labels using (sheet_id) """
+    sql, params = build_select(sql, split=split, label_set=label_set, limit=limit)
     return rows_as_dicts(database, sql, params)
 
 
@@ -219,22 +229,14 @@ def select_labels(
 def create_subjects_to_sheets_table(database: DbPath, drop: bool = False) -> None:
     """Create a table to link subjects to herbarium sheets."""
     sql = """
-        create table table if not exists subs_to_sheets (
+        create table if not exists subs_to_sheets (
             subject_id integer primary key,
-            sheet_id   integer
+            path       text,
+            coreid     text
         );
-        create index if not exists subs_to_sheets_sheet_id on subs_to_sheets(sheet_id);
+        create index if not exists subs_to_sheets_idx on subs_to_sheets (coreid);
     """
     create_table(database, sql, "subs_to_sheets", drop=drop)
-
-
-def insert_subjects_to_sheets(database: DbPath, batch: list) -> None:
-    """Insert a batch of label records."""
-    sql = """
-        insert into subs_to_sheets ( subject_id,  sheet_id)
-                            values (:subject_id, :sheet_id);
-    """
-    insert_batch(database, sql, batch)
 
 
 # ############ ocr table #############################################################
@@ -366,13 +368,16 @@ def insert_rec_splits(database: DbPath, batch: list) -> None:
     insert_batch(database, sql, batch)
 
 
-def select_split(
+def select_rec_splits(
     database: DbPath, split_set: str, split: str, limit: int = 0
 ) -> list[dict]:
-    """Select all records for a split_set/split combination."""
-    sql = """select *
-               from rec_splits
-               join labels using (label_id)
-               join sheets using (sheet_id)"""
+    """Select all label records for a split_set/split combination."""
+    sql = """
+        select sheets.*, labels.*, subs_to_sheets.subject_id
+          from rec_splits
+          join subs_to_sheets using (subject_id)
+          join sheets using (coreid)
+          join labels using (sheet_id)
+      order by sheet_id, offset"""
     sql, params = build_select(sql, limit=limit, split_set=split_set, split=split)
     return rows_as_dicts(database, sql, params)

@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
 
     default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
-        "--cons-run",
+        "--cons-set",
         default=default,
         help="""Name the consensus construction run. (default: %(default)s).""",
     )

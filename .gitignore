@@ -28,7 +28,6 @@ venv/
 # data
 output/
 data/
-models/
 
 # Temp files
 temp/

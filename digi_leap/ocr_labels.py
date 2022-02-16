@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
 
     default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
-        "--ocr-run",
+        "--ocr-set",
         default=default,
         help="""Name the label finder run. (default: %(default)s)""",
     )

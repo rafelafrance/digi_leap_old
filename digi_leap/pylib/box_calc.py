@@ -9,7 +9,7 @@ import torch
 def iou(box1, box2):
     """Calculate the intersection over union of a pair of boxes.
 
-    The boxes are expected to be in [x_min, y_min, x_max, y_max] format.
+    The boxes are expected to be in [x_min, y_min, x_max, y_max] (pascal) format.
 
     Modified from Matlab code:
     https://www.computervisionblog.com/2011/08/blazing-fast-nmsm-from-exemplar-svm.html
@@ -152,7 +152,7 @@ def small_box_suppression(boxes, threshold=0.9, eps=1e-8):
     weed out small boxes that are covered by a bigger bounding box. Just using
     non-maximum suppression is not going to work because it uses the intersection
     over union (IoU) as a filtering metric and a tiny box contained in a larger box
-    will not have an IoU over the threshbold used for NMS. Using the intersection
+    will not have an IoU over the threshold used for NMS. Using the intersection
     over the area of the smaller box gets around the issue.
     """
     if boxes.numel() == 0:

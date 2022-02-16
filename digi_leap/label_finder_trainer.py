@@ -5,7 +5,16 @@ import textwrap
 from datetime import datetime
 from pathlib import Path
 
-from .pylib import find_labels
+from pylib.subject import CLASSES
+
+import digi_leap.pylib.models.label_finder_model as lfm
+
+
+def main():
+    """Find labels on a herbarium sheet."""
+    args = parse_args()
+    model = lfm.create_model(len(CLASSES), backbone=args.backbone)
+    print(model)
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,21 +35,22 @@ def parse_args() -> argparse.Namespace:
 
     default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
-        "--label-run",
+        "--label-set",
         default=default,
-        help="""Name the label finder run. (default: %(default)s).""",
+        help="""Name the label finder set. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
         "--load-model",
         type=Path,
-        help="""Path, to the current model for finding labels on a herbarium sheet.""",
+        help="""Path model to continue training.""",
     )
 
     arg_parser.add_argument(
-        "--device",
-        default="cuda",
-        help="""Which GPU or CPU to use. (default: %(default)s).""",
+        "--backbone",
+        default="tf_efficientnetv2_l",
+        help="""What model to use as the object detector backbone.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
@@ -48,7 +58,7 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.3,
         help="""IoU overlap to use for non-maximum suppression.
-            (default: %(default)s).""",
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
@@ -56,7 +66,7 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.95,
         help="""IoU overlap to use for small box suppression.
-            (default: %(default)s).""",
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
@@ -67,12 +77,6 @@ def parse_args() -> argparse.Namespace:
 
     args = arg_parser.parse_args()
     return args
-
-
-def main():
-    """Run it."""
-    args = parse_args()
-    find_labels.find_labels(args)
 
 
 if __name__ == "__main__":

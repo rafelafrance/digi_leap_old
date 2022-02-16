@@ -7,7 +7,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from . import db
-from . import label_transforms_old as lt
+from . import label_transforms as lt
 from . import ocr
 
 ENGINE = {

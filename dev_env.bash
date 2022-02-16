@@ -34,5 +34,5 @@ pip install -U jupyter jupyter_nbextensions_configurator ipyparallel
 pip install -U jupyter_nbextensions_configurator jupyterlab_code_formatter
 
 # mypy stuff
-pip install -U mypy
-pip install -U data-science-types types-Pillow
+#pip install -U mypy
+#pip install -U data-science-types types-Pillow

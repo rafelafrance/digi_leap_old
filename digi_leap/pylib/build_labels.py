@@ -5,9 +5,9 @@ from tqdm import tqdm
 
 from . import db
 from . import line_align_py as la  # type: ignore
-from . import line_align_subs
 from . import ocr_results
-from . import spell_well as sw
+from .line_align import line_align_subs
+from .spell_well import spell_well as sw
 
 
 def build_labels(args):

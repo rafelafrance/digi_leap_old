@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from . import db
-from . import label_finder_data as lfd
+from .datasets import label_finder_data as lfd
 
 
 def profile_projection(image, axis: int = 1) -> npt.ArrayLike:

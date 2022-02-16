@@ -3,7 +3,7 @@ import unittest
 
 import cppimport.import_hook  # noqa: F401
 
-from digi_leap.pylib import line_align_py as line_align
+from digi_leap.pylib.line_align import line_align_py as line_align
 
 
 class TestDistance(unittest.TestCase):
