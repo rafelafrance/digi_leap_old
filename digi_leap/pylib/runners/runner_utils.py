@@ -1,9 +1,10 @@
 """Common runner functions."""
 import torch
 
-# def collate_fn(batch):
-#     """Fix the batch parameters."""
-#     return tuple(zip(*batch))
+
+def collate_fn_simple(batch):
+    """Fix the batch parameters."""
+    return tuple(zip(*batch))
 
 
 def collate_fn(batch):

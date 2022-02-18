@@ -2,6 +2,7 @@
 import logging
 from argparse import Namespace
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -21,25 +22,34 @@ def train(model, args: Namespace):
     writer = SummaryWriter(args.log_dir)
 
     train_loader = get_train_loader(args)
-    # val_loader = get_val_loader(args)
+    val_loader = get_val_loader(args)
     optimizer = get_optimizer(model, args.learning_rate)
-    # self.criterion = self.configure_criterion(self.train_loader.dataset)
 
     start_epoch = 1  # model.state.get("epoch", 0) + 1
     end_epoch = start_epoch + args.epochs
+
+    best_loss = np.Inf  # model.state.get("best_loss", np.Inf)
 
     logging.info("Training started.")
 
     for epoch in range(start_epoch, end_epoch):
         model.train()
-        one_epoch(model, device, train_loader, optimizer)
+        train_loss = one_epoch(model, device, train_loader, optimizer)
+
+        model.eval()
+        val_loss = one_epoch(model, device, val_loader)
+
+        best_loss = save_checkpoint(
+            model, optimizer, args.save_model, val_loss, best_loss, epoch
+        )
+        log_stats(writer, train_loss, val_loss, best_loss, epoch)
 
     writer.close()
 
 
 def one_epoch(model, device, loader, optimizer=None):
     """Train or validate an epoch."""
-    # running_loss = 0.0
+    running_loss = 0.0
 
     for images, annotations, *_ in loader:
         images = images.to(device)
@@ -56,9 +66,9 @@ def one_epoch(model, device, loader, optimizer=None):
             losses["loss"].backward()
             optimizer.step()
 
-    #     running_loss += loss.item()
+        running_loss += losses["loss"].item()
 
-    # return running_loss / len(loader)
+    return running_loss / len(loader)
 
 
 def get_optimizer(model, lr):
@@ -72,7 +82,7 @@ def get_train_loader(args):
     raw_data = db.select_label_split(
         args.database, split="train", label_set=args.label_set, limit=args.limit
     )
-    dataset = LabelFinderData(raw_data, augment=True)
+    dataset = LabelFinderData(raw_data, args.image_size, augment=True)
     return DataLoader(
         dataset,
         batch_size=args.batch_size,
@@ -89,7 +99,7 @@ def get_val_loader(args):
     raw_data = db.select_label_split(
         args.database, split="val", label_set=args.label_set, limit=args.limit
     )
-    dataset = LabelFinderData(raw_data, augment=False)
+    dataset = LabelFinderData(raw_data, args.image_size, augment=False)
     return DataLoader(
         dataset,
         batch_size=args.batch_size,
@@ -97,3 +107,34 @@ def get_val_loader(args):
         collate_fn=ru.collate_fn,
         pin_memory=True,
     )
+
+
+def save_checkpoint(model, optimizer, save_model, val_loss, best_loss, epoch):
+    """Save the model if it meets criteria for being the current best model."""
+    if val_loss <= best_loss:
+        best_loss = val_loss
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "best_loss": best_loss,
+            },
+            save_model,
+        )
+    return best_loss
+
+
+def log_stats(writer, train_loss, val_loss, best_loss, epoch):
+    """Log results of the epoch."""
+    logging.info(
+        f"{epoch:3}: "
+        f"Train: loss {train_loss:0.6f} Valid: loss {val_loss:0.6f}"
+        f"{' ++' if val_loss == best_loss else ''}"
+    )
+    writer.add_scalars(
+        "Training vs. Validation",
+        {"Training loss": train_loss, "Validation loss": val_loss},
+        epoch,
+    )
+    writer.flush()

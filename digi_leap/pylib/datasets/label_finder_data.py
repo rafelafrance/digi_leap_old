@@ -21,11 +21,12 @@ Sheet = namedtuple("Sheet", "path boxes targets sheet_id")
 class LabelFinderData(Dataset):
     """Generate augmented training data."""
 
-    def __init__(self, labels: list[dict], augment=False):
+    def __init__(self, labels: list[dict], image_size, augment=False):
         super().__init__()
         self.augment = augment
+        self.image_size = image_size
         self.sheets: list[Sheet] = self.build_sheets(labels)
-        self.transform = self.build_transforms(augment)
+        self.transform = self.build_transforms(image_size, augment)
 
     @staticmethod
     def build_sheets(labels) -> list[Sheet]:
@@ -87,11 +88,9 @@ class LabelFinderData(Dataset):
         return sample["image"], target, sheet.sheet_id
 
     @staticmethod
-    def build_transforms(augment=False):
+    def build_transforms(image_size, augment=False):
         """Build a pipeline of image transforms specific to the dataset."""
-        xform = [
-            A.Resize(width=consts.IMAGE_SIZE[0], height=consts.IMAGE_SIZE[1], p=1.0)
-        ]
+        xform = [A.Resize(width=image_size, height=image_size, p=1.0)]
 
         if augment:
             xform += [
@@ -112,9 +111,9 @@ class LabelFinderData(Dataset):
         )
 
     @staticmethod
-    def build_transforms_torch(augment=False):
+    def build_transforms_torch(image_size, augment=False):
         """Build a pipeline of image transforms specific to the dataset."""
-        xform = [transforms.Resize(consts.IMAGE_SIZE)]
+        xform = [transforms.Resize(image_size)]
 
         if augment:
             xform += [

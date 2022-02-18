@@ -4,7 +4,7 @@ import argparse
 import textwrap
 from pathlib import Path
 
-import pylib.models.efficient_det_model as ed
+import pylib.models.efficient_det_model as edm
 from pylib import consts
 from pylib import log
 from pylib.runners import training_runner
@@ -14,8 +14,8 @@ def main():
     """Find labels on a herbarium sheet."""
     log.started()
     args = parse_args()
-    model = ed.create_model(
-        len(consts.CLASSES), image_size=consts.IMAGE_SIZE[0], backbone=args.backbone
+    model = edm.create_model(
+        len(consts.CLASSES), name=args.model, image_size=args.image_size
     )
     training_runner.train(model, args)
     log.finished()
@@ -54,10 +54,17 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--backbone",
-        default="tf_efficientnet_lite0",
-        help="""What model to use as the object detector backbone.
-            (default: %(default)s)""",
+        "--model",
+        default="tf_efficientnetv2_s",
+        help="""What model to use as the object detector. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--image-size",
+        type=int,
+        metavar="PIXELS",
+        default=384,
+        help="""Set the image size to this. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
