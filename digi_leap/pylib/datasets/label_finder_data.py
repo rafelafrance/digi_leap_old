@@ -75,7 +75,11 @@ class LabelFinderData(Dataset):
             boxes = np.array(sample["bboxes"])
 
             _, new_h, new_w = sample["image"].shape
-            boxes[:, [0, 1, 2, 3]] = boxes[:, [1, 0, 3, 2]]  # convert to y x y x
+
+            if boxes.shape[0] > 0:
+                boxes[:, [0, 1, 2, 3]] = boxes[:, [1, 0, 3, 2]]  # convert to y x y x
+            else:
+                boxes = np.empty((0, 4))
 
             target = {
                 "bboxes": torch.tensor(boxes, dtype=torch.float32),
