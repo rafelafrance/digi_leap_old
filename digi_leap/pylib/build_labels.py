@@ -12,7 +12,7 @@ from .spell_well import spell_well as sw
 
 def build_labels(args):
     """Build labels from ensembles of OCR output."""
-    db.create_cons_table(args.database)
+    db.create_consensus_table(args.database)
     line_align = la.LineAlign(line_align_subs.SUBS)
 
     limit = args.limit if args.limit else float("inf")
@@ -42,7 +42,7 @@ def build_labels(args):
             }
         )
 
-    db.insert_cons(args.database, batch)
+    db.insert_consensus(args.database, batch)
 
 
 def build_label_text(ocr_fragments, spell_well, line_align):

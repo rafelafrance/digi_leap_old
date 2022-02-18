@@ -10,9 +10,9 @@ from typing import Iterable
 
 import regex as re
 
-from digi_leap.pylib import const
+from digi_leap.pylib import consts
 
-VOCAB_DB = const.ROOT_DIR / "data" / "vocab.sqlite"
+VOCAB_DB = consts.ROOT_DIR / "data" / "vocab.sqlite"
 
 Spell = namedtuple("Spell", "word dist freq")
 

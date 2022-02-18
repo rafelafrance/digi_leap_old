@@ -13,14 +13,9 @@ from PIL.Image import Image as ImageType
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from digi_leap.pylib import const
-from digi_leap.pylib import subject as sub
+from .. import consts
 
-Sheet = namedtuple("Sheet", "path boxes targets subject_id")
-
-IMAGENET_MEAN = (0.485, 0.456, 0.406)
-IMAGENET_STD = (0.229, 0.224, 0.225)
-IMAGE_SIZE = (512, 512)
+Sheet = namedtuple("Sheet", "path boxes targets sheet_id")
 
 
 class LabelFinderData(Dataset):
@@ -37,8 +32,8 @@ class LabelFinderData(Dataset):
         """Group labels by sheet."""
         old_sheets = defaultdict(lambda: defaultdict(list))
         for lb in labels:
-            key = (lb["subject_id"], lb["path"])
-            old_sheets[key]["targets"].append(sub.CLASS2INT[lb["class"]])
+            key = (lb["sheet_id"], lb["path"])
+            old_sheets[key]["targets"].append(consts.CLASS2INT[lb["class"]])
             old_sheets[key]["boxes"].append(
                 [
                     lb["label_left"],
@@ -49,13 +44,13 @@ class LabelFinderData(Dataset):
             )
 
         new_sheets: list[Sheet] = []
-        for (subject_id, path), value in old_sheets.items():
+        for (sheet_id, path), value in old_sheets.items():
             new_sheets.append(
                 Sheet(
                     path,
                     torch.tensor(value["boxes"], dtype=torch.float32),
                     torch.tensor(value["targets"], dtype=torch.float32),
-                    torch.tensor([subject_id]),
+                    torch.tensor([sheet_id]),
                 )
             )
 
@@ -69,7 +64,7 @@ class LabelFinderData(Dataset):
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-            image = Image.open(const.ROOT_DIR / sheet.path).convert("RGB")
+            image = Image.open(consts.ROOT_DIR / sheet.path).convert("RGB")
             sample = {
                 "image": np.asarray(image),
                 "bboxes": sheet.boxes,
@@ -78,23 +73,25 @@ class LabelFinderData(Dataset):
             sample = self.transform(**sample)
             boxes = np.array(sample["bboxes"])
 
-            _, new_h, new_w = image.shape
+            _, new_h, new_w = sample["image"].shape
             boxes[:, [0, 1, 2, 3]] = boxes[:, [1, 0, 3, 2]]  # convert to y x y x
 
             target = {
                 "bboxes": torch.tensor(boxes, dtype=torch.float32),
                 "labels": torch.tensor(sample["targets"]),
-                "image_id": torch.tensor([sheet.subject_id]),
-                "image_size": (new_h, new_w),
-                "image_scale": torch.tensor([1.0]),
+                "image_id": torch.tensor([sheet.sheet_id]),
+                "img_size": (new_h, new_w),
+                "img_scale": torch.tensor([1.0]),
             }
 
-        return sample["image"], target, sheet.subject_id
+        return sample["image"], target, sheet.sheet_id
 
     @staticmethod
     def build_transforms(augment=False):
         """Build a pipeline of image transforms specific to the dataset."""
-        xform = [A.Resize(width=IMAGE_SIZE[0], height=IMAGE_SIZE[1], p=1.0)]
+        xform = [
+            A.Resize(width=consts.IMAGE_SIZE[0], height=consts.IMAGE_SIZE[1], p=1.0)
+        ]
 
         if augment:
             xform += [
@@ -106,7 +103,7 @@ class LabelFinderData(Dataset):
             ]
 
         xform += [
-            A.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+            A.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),
             ToTensorV2(p=1.0),
         ]
         return A.Compose(
@@ -117,7 +114,7 @@ class LabelFinderData(Dataset):
     @staticmethod
     def build_transforms_torch(augment=False):
         """Build a pipeline of image transforms specific to the dataset."""
-        xform = [transforms.Resize(IMAGE_SIZE)]
+        xform = [transforms.Resize(consts.IMAGE_SIZE)]
 
         if augment:
             xform += [
@@ -129,7 +126,7 @@ class LabelFinderData(Dataset):
         xform += [
             transforms.ToTensor(),
             transforms.ConvertImageDtype(torch.float),
-            transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+            transforms.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),
         ]
 
         return transforms.Compose(xform)
@@ -139,7 +136,7 @@ class LabelFinderData(Dataset):
         sheet = self.sheets[idx]
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-            image = Image.open(const.ROOT_DIR / sheet.path).convert("RGB")
+            image = Image.open(consts.ROOT_DIR / sheet.path).convert("RGB")
             draw = ImageDraw.Draw(image)
 
         for box in sheet.boxes.tolist():

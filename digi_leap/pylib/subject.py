@@ -10,10 +10,6 @@ import numpy.typing as npt
 
 from . import box_calc as calc
 
-CLASSES = "None Barcode Both Handwritten Typewritten".split()
-CLASS2INT = {c: i for i, c in enumerate(CLASSES, 1)}
-CLASS2NAME = {v: k for k, v in CLASS2INT.items()}
-
 RECONCILE_TYPES = {
     tuple(): "None",
     ("Barcode",): "Barcode",

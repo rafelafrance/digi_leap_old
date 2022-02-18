@@ -32,6 +32,7 @@ data/
 # Temp files
 temp/
 junk*
+runs/
 
 # Experiments
 pilot/

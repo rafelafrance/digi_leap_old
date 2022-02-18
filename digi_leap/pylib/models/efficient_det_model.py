@@ -11,7 +11,7 @@ from effdet.efficientdet import HeadNet
 ArgsType = Namespace
 
 
-def create_model(num_classes=1, image_size=512, backbone="tf_efficientnetv2_l"):
+def create_model(num_classes=1, image_size=512, backbone="tf_efficientnet_lite0"):
     """Build an EfficientDet model."""
     efficientdet_model_param_dict[backbone] = dict(
         name=backbone,
@@ -26,5 +26,5 @@ def create_model(num_classes=1, image_size=512, backbone="tf_efficientnetv2_l"):
     config.update({"image_size": (image_size, image_size)})
 
     net = EfficientDet(config, pretrained_backbone=True)
-    net.class_net = HeadNet(config, num_outputs=config.num_classes)
+    net.class_net = HeadNet(config, num_outputs=num_classes)
     return DetBenchTrain(net, config)

@@ -1,0 +1,7 @@
+--database=data/label-babel-2/label-babel-2.sqlite
+--save-model=data/models/tf_efficientnetv2_l_1.pt
+--label-set=old
+--log-dir=data/runs/junk
+--workers=8
+--batch-size=20
+--epochs=20

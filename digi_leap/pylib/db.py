@@ -1,5 +1,7 @@
 """Utilities for digi_leap.sqlite databases."""
+import re
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Optional
 from typing import Union
@@ -30,7 +32,7 @@ def build_where(sql: str, **kwargs) -> tuple[str, list]:
             where.append(f"{key} in ({','.join(['?'] * len(value))})")
             params += value
         else:
-            where.append("{key} = ?")
+            where.append(f"{key} = ?")
             params.append(value)
 
     sql += (" where " + " and ".join(where)) if where else ""
@@ -53,8 +55,16 @@ def insert_batch(database: DbPath, sql: str, batch: list) -> None:
             cxn.executemany(sql, batch)
 
 
-def create_table(database: DbPath, sql: str, table: str, *, drop: bool = False) -> None:
-    """Create a table with paths to the valid herbarium sheet images."""
+def create_table(database: DbPath, sql: str, *, drop: bool = False) -> None:
+    """Create a table."""
+    flags = re.IGNORECASE | re.VERBOSE
+    match = re.search(r" if \s+ not \s+ exists \s+ (\w+) ", sql, flags=flags)
+
+    if not match:
+        sys.exit(f"Could not parse create table for '{sql}'")
+
+    table = match.group(1)
+
     with sqlite3.connect(database) as cxn:
         if drop:
             cxn.executescript(f"""drop table if exists {table};""")
@@ -73,7 +83,7 @@ def create_vocab_table(database: DbPath, drop: bool = False) -> None:
             freq  integer
         );
         """
-    create_table(database, sql, "vocab", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 def insert_vocabulary_words(database: DbPath, batch: list) -> None:
@@ -101,7 +111,7 @@ def create_misspellings_table(database: DbPath, drop: bool = False) -> None:
             freq  integer
         );
         """
-    create_table(database, sql, "misspellings", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 def insert_misspellings(database: DbPath, batch: list) -> None:
@@ -132,7 +142,7 @@ def create_sheets_table(database: DbPath, drop: bool = False) -> None:
         );
         create unique index if not exists sheets_idx on sheets (coreid);
         """
-    create_table(database, sql, "sheets", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 def insert_sheets(database: DbPath, batch: list) -> None:
@@ -149,7 +159,7 @@ def create_sheet_errors_table(database: DbPath, drop: bool = False) -> None:
             path     text    unique
         );
         """
-    create_table(database, sql, "sheet_errors", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 def insert_sheet_errors(database: DbPath, batch: list) -> None:
@@ -186,7 +196,7 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
         create unique index labels_idx on labels (label_set, sheet_id, offset);
         create index if not exists labels_sheet_id on labels(sheet_id);
         """
-    create_table(database, sql, "labels", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 def insert_labels(database: DbPath, batch: list) -> None:
@@ -218,7 +228,11 @@ def select_label_split(
     database: DbPath, *, split: str, label_set: str, limit: int = 0
 ) -> list[dict]:
     """Get label records for training, validation, or testing."""
-    sql = """ select * from sheets left join labels using (sheet_id) """
+    sql = """
+        select *
+        from sheets
+   left join labels using (sheet_id)
+    """
     sql, params = build_select(sql, split=split, label_set=label_set, limit=limit)
     return rows_as_dicts(database, sql, params)
 
@@ -236,7 +250,7 @@ def create_subjects_to_sheets_table(database: DbPath, drop: bool = False) -> Non
         );
         create index if not exists subs_to_sheets_idx on subs_to_sheets (coreid);
     """
-    create_table(database, sql, "subs_to_sheets", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 # ############ ocr table #############################################################
@@ -261,7 +275,7 @@ def create_ocr_table(database: DbPath, drop: bool = False) -> None:
 
         create index if not exists ocr_label_id on ocr(label_id);
         """
-    create_table(database, sql, "ocr", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
 def insert_ocr(database: DbPath, batch: list) -> None:
@@ -300,84 +314,42 @@ def get_ocr_sets(database: DbPath) -> list[dict]:
 # ############ consensus table #######################################################
 
 
-def create_cons_table(database: DbPath, drop: bool = False) -> None:
+def create_consensus_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with the reconstructed label text."""
     sql = """
-        create table if not exists cons (
+        create table if not exists consensus (
             cons_id   integer primary key autoincrement,
             label_id  integer,
             cons_set  text,
             ocr_set   text,
             cons_text text
         );
-        create index if not exists cons_label_id on cons (label_id);
+        create index if not exists cons_label_id on consensus (label_id);
         """
-    create_table(database, sql, "cons", drop=drop)
+    create_table(database, sql, drop=drop)
 
 
-def insert_cons(database: DbPath, batch: list) -> None:
+def insert_consensus(database: DbPath, batch: list) -> None:
     """Insert a batch of consensus records."""
     sql = """
-        insert into cons
+        insert into consensus
                ( label_id,  cons_set,  ocr_set,  cons_text)
         values (:label_id, :cons_set, :ocr_set, :cons_text);
     """
     insert_batch(database, sql, batch)
 
 
-def select_cons(
+def select_consensus(
     database: DbPath,
-    cons_sets: Optional[list[str]] = None,
+    cons_set: str = "",
     limit: int = 0,
 ) -> list[dict]:
     """Get consensus records."""
     sql = """
         select *
-          from cons
+          from consensus
           join labels using (label_id)
           join sheets using (sheet_id)
     """
-    sql, params = build_select(sql, limit=limit, cons_set=cons_sets)
-    return rows_as_dicts(database, sql, params)
-
-
-# ########### Split table ##########################################################
-
-
-def create_rec_splits_table(database: DbPath, drop: bool = False) -> None:
-    """Create train/validation/test splits of the data.
-
-    This is so I don't wind up training on my test data. Because an image can belong
-    to multiple classes I need to be careful that I don't add any core IDs in the
-    test split to the training/validation splits.
-    """
-    sql = """
-        create table if not exists rec_splits (
-            split_set text,
-            split     text,
-            label_id  text
-        );
-        """
-    create_table(database, sql, "splits", drop=drop)
-
-
-def insert_rec_splits(database: DbPath, batch: list) -> None:
-    """Insert a batch of sheets records."""
-    sql = """insert into rec_splits ( split_set,  split,  label_id)
-                             values (:split_set, :split, :label_id);"""
-    insert_batch(database, sql, batch)
-
-
-def select_rec_splits(
-    database: DbPath, split_set: str, split: str, limit: int = 0
-) -> list[dict]:
-    """Select all label records for a split_set/split combination."""
-    sql = """
-        select sheets.*, labels.*, subs_to_sheets.subject_id
-          from rec_splits
-          join subs_to_sheets using (subject_id)
-          join sheets using (coreid)
-          join labels using (sheet_id)
-      order by sheet_id, offset"""
-    sql, params = build_select(sql, limit=limit, split_set=split_set, split=split)
+    sql, params = build_select(sql, limit=limit, cons_set=cons_set)
     return rows_as_dicts(database, sql, params)
