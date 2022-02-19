@@ -1,5 +1,5 @@
 """Calculate the mean average precision for scoring object detection results."""
-# TODO Fix this mess
+# TODO Fix this mess or find a lightweight library
 import torch
 from torchvision import ops
 
@@ -33,7 +33,7 @@ def map_(results, iou_threshold=0.5, eps=1e-8):
         true_labels = result["true_labels"].unique()
 
         if true_labels.numel() == 0:
-            # TODO Should the empty true vs empty predicted case be 1.0?
+            # TODO Should the empty case be true or empty predicted case be 1.0?
             ap = 1.0 if result["pred_labels"].numel() == 0 else 0.0
             all_ap.append(torch.tensor(ap))
             continue

@@ -7,9 +7,9 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import batched_nms
 from tqdm import tqdm
 
-import digi_leap.pylib.consts
-from digi_leap.pylib import box_calc as calc
-from digi_leap.pylib import db
+from ... import box_calc as calc
+from ... import consts
+from ... import db
 
 # from digi_leap.pylib import subject as sub
 
@@ -60,7 +60,7 @@ def find_labels(args):
                         "sheet_id": sheet["sheet_id"],
                         "label_set": args.label_set,
                         "offset": i,
-                        "class": digi_leap.pylib.consts.CLASS2NAME[label.item()],
+                        "class": consts.CLASS2NAME[label.item()],
                         "label_left": round(box[0]),
                         "label_top": round(box[1]),
                         "label_right": round(box[2]),
@@ -76,6 +76,6 @@ def get_model():
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(
-        in_features, num_classes=len(digi_leap.pylib.consts.CLASSES) + 1
+        in_features, num_classes=len(consts.CLASSES) + 1
     )
     return model

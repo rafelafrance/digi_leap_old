@@ -13,23 +13,23 @@ from PIL.Image import Image as ImageType
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from .. import consts
+from ... import consts
 
-Sheet = namedtuple("Sheet", "path boxes targets sheet_id")
+LabeledSheet = namedtuple("LabeledSheet", "path boxes targets sheet_id")
 
 
-class LabelFinderData(Dataset):
+class LabeledData(Dataset):
     """Generate augmented training data."""
 
     def __init__(self, labels: list[dict], image_size, augment=False):
         super().__init__()
         self.augment = augment
         self.image_size = image_size
-        self.sheets: list[Sheet] = self.build_sheets(labels)
+        self.sheets: list[LabeledSheet] = self.build_sheets(labels)
         self.transform = self.build_transforms(image_size, augment)
 
     @staticmethod
-    def build_sheets(labels) -> list[Sheet]:
+    def build_sheets(labels) -> list[LabeledSheet]:
         """Group labels by sheet."""
         old_sheets = defaultdict(lambda: defaultdict(list))
         for lb in labels:
@@ -44,10 +44,10 @@ class LabelFinderData(Dataset):
                 ]
             )
 
-        new_sheets: list[Sheet] = []
+        new_sheets: list[LabeledSheet] = []
         for (sheet_id, path), value in old_sheets.items():
             new_sheets.append(
-                Sheet(
+                LabeledSheet(
                     path,
                     torch.tensor(value["boxes"], dtype=torch.float32),
                     torch.tensor(value["targets"], dtype=torch.float32),

@@ -90,6 +90,10 @@ struct Trace {
 };
 typedef std::vector<std::vector<Trace>> TraceMatrix;
 
+
+/* Implementation notes:
+ * Building the strings backwards in an attempt to prevent a string copy at the end.
+ */
 std::vector<std::u32string>
 LineAlign::align(const std::vector<std::u32string> &strings) const {
     if (strings.size() < 2) {
@@ -154,7 +158,7 @@ LineAlign::align(const std::vector<std::u32string> &strings) const {
                         value = this->substitutions.at(key);
                     } catch (std::out_of_range &e) {
                         std::stringstream err;
-                        err << "Either of '" << convert_32_8(key)
+                        err << "One of '" << convert_32_8(key)
                             << "' these characters are missing from the "
                             << "substitution matrix.";
                         throw std::invalid_argument(err.str());

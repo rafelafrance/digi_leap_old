@@ -7,11 +7,9 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from . import runner_utils as ru
-from .. import db
-from ..datasets.label_finder_data import LabelFinderData
-
-# import numpy as np
+from . import runner_utils
+from ... import db
+from ..datasets.labeled_data import LabeledData
 
 
 def train(model, args: Namespace):
@@ -28,7 +26,7 @@ def train(model, args: Namespace):
     start_epoch = 1  # model.state.get("epoch", 0) + 1
     end_epoch = start_epoch + args.epochs
 
-    best_loss = np.Inf  # model.state.get("best_loss", np.Inf)
+    best_loss = np.Inf  # model.state.get("best_loss", float("Inf"))
 
     logging.info("Training started.")
 
@@ -82,13 +80,13 @@ def get_train_loader(args):
     raw_data = db.select_label_split(
         args.database, split="train", label_set=args.label_set, limit=args.limit
     )
-    dataset = LabelFinderData(raw_data, args.image_size, augment=True)
+    dataset = LabeledData(raw_data, args.image_size, augment=True)
     return DataLoader(
         dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
         shuffle=True,
-        collate_fn=ru.collate_fn,
+        collate_fn=runner_utils.collate_fn,
         pin_memory=True,
     )
 
@@ -99,12 +97,12 @@ def get_val_loader(args):
     raw_data = db.select_label_split(
         args.database, split="val", label_set=args.label_set, limit=args.limit
     )
-    dataset = LabelFinderData(raw_data, args.image_size, augment=False)
+    dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(
         dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
-        collate_fn=ru.collate_fn,
+        collate_fn=runner_utils.collate_fn,
         pin_memory=True,
     )
 

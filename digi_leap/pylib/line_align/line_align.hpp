@@ -2,13 +2,13 @@
 
 /**
  * Naive implementations of string algorithms based on Gusfield, 1997.
- * I.e. There's plenty of room for improvement.
+ * I.e. There's _plenty_ of room for improvement.
  *
  * NOTE: The functions are geared towards OCR errors and not human
  *       errors. OCR engines will often mistake one letter for another
  *       or drop/add a character (particularly from the ends) but
  *       will seldom transpose characters, which humans do often.
- * Therefore: I do not consider transpostions in the Levenshtein or
+ * Therefore: I do not consider transpositions in the Levenshtein or
  *       Needleman Wunsch distances, substitutions are based
  *       on visual similarity, etc.
  */
@@ -25,6 +25,8 @@ const char32_t gap_char = U'⋄';
 
 const std::unordered_map<std::u32string, float> noSubs = {};
 
+// The only reason for the struct is so that I can setup the substitution matrix once
+// at the start of the program.
 struct LineAlign {
     /** Constructor.
      * @param substitutions The substitution matrix given as a map, with the key as
@@ -75,10 +77,10 @@ struct LineAlign {
      * will depend on the substitution matrix, gap, and skew penalties passed to the
      * function.
      *
-     *     ⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄⋄.: canyon⋄⋄⋄⋄⋄⋄⋄
-     *     E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon⋄⋄⋄⋄⋄⋄⋄
-     *     E⋄⋄ MOJAVE DESERT⋄⋄ PROVTDENCE MTS⋄. # canyon⋄⋄⋄⋄⋄⋄⋄
-     *     Be ‘MOJAVE DESERT⋄, PROVIDENCE⋄⋄⋄⋄⋄⋄⋄⋄ canyon “above
+     *     ⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS.⋄⋄: canyon ⋄above
+     *     E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon ⋄above
+     *     E⋄⋄ MOJAVE DESERT ⋄⋄PROVTDENCE MTS. #⋄ canyon ⋄above
+     *     Be ‘MOJAVE DESERT⋄, PROVIDENCE ⋄⋄⋄⋄⋄⋄⋄⋄canyon “above
      *
      * Where "⋄" characters are used to represent gaps in the alignments.
      *

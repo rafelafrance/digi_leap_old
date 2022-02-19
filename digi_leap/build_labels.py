@@ -5,7 +5,7 @@ import textwrap
 from datetime import datetime
 from pathlib import Path
 
-from .pylib import build_labels
+from pylib import build_labels
 
 
 def parse_args() -> argparse.Namespace:

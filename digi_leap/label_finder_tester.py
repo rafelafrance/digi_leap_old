@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train a model to cut out labels on herbarium sheets."""
+"""Test a model for finding labels on herbarium sheets on a holdout set."""
 import argparse
 import textwrap
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 from pylib import consts
 from pylib import log
 
-import digi_leap.pylib.label_finder.models.efficient_det_model as edm
+from digi_leap.pylib.label_finder.models import efficient_det_model
 from digi_leap.pylib.label_finder.runners import training_runner
 
 
@@ -15,7 +15,7 @@ def main():
     """Find labels on a herbarium sheet."""
     log.started()
     args = parse_args()
-    model = edm.create_model(
+    model = efficient_det_model.create_model(
         len(consts.CLASSES), name=args.model, image_size=args.image_size
     )
     training_runner.train(model, args)
@@ -24,7 +24,9 @@ def main():
 
 def parse_args() -> argparse.Namespace:
     """Process command-line arguments."""
-    description = """Train a model to find labels on herbarium sheets."""
+    description = """
+        Test a model for finding labels on herbarium sheets on a holdout set.
+    """
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -37,14 +39,6 @@ def parse_args() -> argparse.Namespace:
         required=True,
         metavar="PATH",
         help="""Path to the digi-leap database.""",
-    )
-
-    arg_parser.add_argument(
-        "--save-model",
-        type=Path,
-        metavar="PATH",
-        required=True,
-        help="""Save best models to this path.""",
     )
 
     arg_parser.add_argument(
@@ -76,15 +70,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--learning-rate",
-        "--lr",
-        type=float,
-        metavar="FLOAT",
-        default=0.001,
-        help="""Initial learning rate. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
         "--batch-size",
         type=int,
         metavar="INT",
@@ -98,21 +83,6 @@ def parse_args() -> argparse.Namespace:
         metavar="INT",
         default=4,
         help="""Number of workers for loading data. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--epochs",
-        type=int,
-        metavar="INT",
-        default=100,
-        help="""How many epochs to train. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--log-dir",
-        type=Path,
-        metavar="DIR",
-        help="""Save tensorboard logs to this directory.""",
     )
 
     arg_parser.add_argument(

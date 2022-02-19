@@ -5,7 +5,7 @@ import textwrap
 from datetime import datetime
 from pathlib import Path
 
-from .pylib import ocr_labels
+from pylib import ocr_labels
 
 
 def parse_args() -> argparse.Namespace:
