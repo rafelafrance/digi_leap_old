@@ -1,8 +1,8 @@
 """Run a label finder model for training, testing, or inference."""
 import logging
 from argparse import Namespace
+from dataclasses import dataclass
 
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -10,6 +10,15 @@ from torch.utils.tensorboard import SummaryWriter
 from . import runner_utils
 from ... import db
 from ..datasets.labeled_data import LabeledData
+
+
+@dataclass
+class Stats:
+    """Gather statistics while training."""
+
+    total_loss: float = float("Inf")
+    class_loss: float = float("Inf")
+    box_loss: float = float("Inf")
 
 
 def train(model, args: Namespace):
@@ -26,7 +35,7 @@ def train(model, args: Namespace):
     start_epoch = 1  # model.state.get("epoch", 0) + 1
     end_epoch = start_epoch + args.epochs
 
-    best_loss = np.Inf  # model.state.get("best_loss", float("Inf"))
+    best_loss = Stats()
 
     logging.info("Training started.")
 
@@ -47,7 +56,11 @@ def train(model, args: Namespace):
 
 def one_epoch(model, device, loader, optimizer=None):
     """Train or validate an epoch."""
-    running_loss = 0.0
+    running_loss = Stats(
+        total_loss=0.0,
+        class_loss=0.0,
+        box_loss=0.0,
+    )
 
     for images, annotations, *_ in loader:
         images = images.to(device)
@@ -64,9 +77,15 @@ def one_epoch(model, device, loader, optimizer=None):
             losses["loss"].backward()
             optimizer.step()
 
-        running_loss += losses["loss"].item()
+        running_loss.total_loss += losses["loss"].item()
+        running_loss.class_loss += losses["class_loss"].item()
+        running_loss.box_loss += losses["box_loss"].item()
 
-    return running_loss / len(loader)
+    return Stats(
+        total_loss=running_loss.total_loss / len(loader),
+        class_loss=running_loss.class_loss / len(loader),
+        box_loss=running_loss.box_loss / len(loader),
+    )
 
 
 def get_optimizer(model, lr):
@@ -109,14 +128,16 @@ def get_val_loader(args):
 
 def save_checkpoint(model, optimizer, save_model, val_loss, best_loss, epoch):
     """Save the model if it meets criteria for being the current best model."""
-    if val_loss <= best_loss:
+    if val_loss.total_loss <= best_loss.total_loss:
         best_loss = val_loss
         torch.save(
             {
                 "epoch": epoch,
                 "model_state": model.state_dict(),
                 "optimizer_state": optimizer.state_dict(),
-                "best_loss": best_loss,
+                "total_loss": best_loss.total_loss,
+                "class_loss": best_loss.class_loss,
+                "box_loss": best_loss.box_loss,
             },
             save_model,
         )
@@ -127,12 +148,22 @@ def log_stats(writer, train_loss, val_loss, best_loss, epoch):
     """Log results of the epoch."""
     logging.info(
         f"{epoch:3}: "
-        f"Train: loss {train_loss:0.6f} Valid: loss {val_loss:0.6f}"
-        f"{' ++' if val_loss == best_loss else ''}"
+        f"Train: total loss {train_loss.total_loss:0.6f} "
+        f"box loss: {train_loss.box_loss:0.6f} class loss: {train_loss.class_loss:0.6f}"
+        f"Validation: total loss {val_loss.total_loss:0.6f} "
+        f"box loss: {val_loss.box_loss:0.6f} class loss: {val_loss.class_loss:0.6f}"
+        f"{' ++' if val_loss.total_loss == best_loss.total_loss else ''}"
     )
     writer.add_scalars(
         "Training vs. Validation",
-        {"Training loss": train_loss, "Validation loss": val_loss},
+        {
+            "Training total loss": train_loss.total_loss,
+            "Training class loss": train_loss.class_loss,
+            "Training box loss": train_loss.box_loss,
+            "Validation total loss": val_loss.total_loss,
+            "Validation class loss": val_loss.class_loss,
+            "Validation box loss": val_loss.box_loss,
+        },
         epoch,
     )
     writer.flush()

@@ -25,4 +25,4 @@ def collate_fn(batch):
         "img_scale": img_scale,
     }
 
-    return images, annotations, targets, image_ids
+    return images, annotations, image_ids

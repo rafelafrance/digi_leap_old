@@ -6,9 +6,8 @@ from pathlib import Path
 
 from pylib import consts
 from pylib import log
-
-from digi_leap.pylib.label_finder.models import efficient_det_model
-from digi_leap.pylib.label_finder.runners import training_runner
+from pylib.label_finder.models import efficient_det_model
+from pylib.label_finder.runners import testing_runner
 
 
 def main():
@@ -16,9 +15,12 @@ def main():
     log.started()
     args = parse_args()
     model = efficient_det_model.create_model(
-        len(consts.CLASSES), name=args.model, image_size=args.image_size
+        len(consts.CLASSES),
+        name=args.model,
+        image_size=args.image_size,
+        pretrained=False,
     )
-    training_runner.train(model, args)
+    testing_runner.test(model, args)
     log.finished()
 
 
@@ -35,17 +37,32 @@ def parse_args() -> argparse.Namespace:
     arg_parser.add_argument(
         "--database",
         "--db",
-        type=Path,
         required=True,
+        type=Path,
         metavar="PATH",
         help="""Path to the digi-leap database.""",
     )
 
     arg_parser.add_argument(
         "--load-model",
+        required=True,
         type=Path,
         metavar="PATH",
         help="""Path model to continue training.""",
+    )
+
+    arg_parser.add_argument(
+        "--label-set",
+        metavar="NAME",
+        required=True,
+        help="""Which which labels to use.""",
+    )
+
+    arg_parser.add_argument(
+        "--test-set",
+        metavar="NAME",
+        required=True,
+        help="""Name this test set.""",
     )
 
     arg_parser.add_argument(
@@ -58,15 +75,8 @@ def parse_args() -> argparse.Namespace:
         "--image-size",
         type=int,
         metavar="PIXELS",
-        default=384,  # To work with the default model
+        default=384,  # To match with the default model
         help="""Set the image size to this. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--label-set",
-        metavar="NAME",
-        required=True,
-        help="""Which which labels to use.""",
     )
 
     arg_parser.add_argument(

@@ -1,0 +1,6 @@
+--database=data/sernec/sernec.sqlite
+--load-model=data/models/efficientnetv2_s_1.pt
+--label-set=old
+--test-set=junk
+--workers=8
+--batch-size=4

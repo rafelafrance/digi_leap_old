@@ -168,13 +168,6 @@ def insert_sheet_errors(database: DbPath, batch: list) -> None:
     insert_batch(database, sql, batch)
 
 
-def select_sheets(database: DbPath, *, limit: int = 0) -> list[dict]:
-    """Get herbarium sheet image data."""
-    sql = """select * from sheets"""
-    sql, params = build_select(sql, limit=limit)
-    return rows_as_dicts(database, sql, params)
-
-
 # ############ label table ##########################################################
 
 
@@ -353,3 +346,38 @@ def select_consensus(
     """
     sql, params = build_select(sql, limit=limit, cons_set=cons_set)
     return rows_as_dicts(database, sql, params)
+
+
+# ############ label finder test table ################################################
+
+
+def create_tests_table(database: DbPath, drop: bool = False) -> None:
+    """Create test runs table."""
+    sql = """
+        create table if not exists tests (
+            test_id     integer primary key autoincrement,
+            test_set    text,
+            sheet_id    integer,
+            pred_class  text,
+            pred_conf   real,
+            pred_left   integer,
+            pred_top    integer,
+            pred_right  integer,
+            pred_bottom integer
+        );
+        """
+    create_table(database, sql, drop=drop)
+
+
+def insert_tests(database: DbPath, batch: list, test_set: str) -> None:
+    """Insert a batch of test set records."""
+    sql = "delete from tests where test_set = ?"
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, (test_set,))
+    sql = """
+        insert into tests
+            ( test_set,   sheet_id,  pred_class,  pred_conf,
+              pred_left,  pred_top,  pred_right,  pred_bottom)
+     values (:test_set,  :sheet_id, :pred_class, :pred_conf,
+             :pred_left, :pred_top, :pred_right, :pred_bottom);"""
+    insert_batch(database, sql, batch)
