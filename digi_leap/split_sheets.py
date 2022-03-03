@@ -16,6 +16,8 @@ def main():
 
 def assign_sheets(args):
     """Assign herbarium sheets to splits."""
+    db.insert_run(args)
+
     select = """
        select sheet_id from sheets where split is null or split = '' order by random()
     """
@@ -79,6 +81,12 @@ def parse_args():
         default=0.2,
         help="""What fraction of records to use for the testing. I.e. the holdout
             data used to evaluate the model after training. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--notes",
+        metavar="TEXT",
+        help="""Notes about this run.""",
     )
 
     args = arg_parser.parse_args()

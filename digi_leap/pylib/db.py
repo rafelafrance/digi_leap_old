@@ -1,4 +1,6 @@
 """Utilities for digi_leap.sqlite databases."""
+import inspect
+import json
 import re
 import sqlite3
 import sys
@@ -381,3 +383,35 @@ def insert_tests(database: DbPath, batch: list, test_set: str) -> None:
      values (:test_set,  :sheet_id, :pred_class, :pred_conf,
              :pred_left, :pred_top, :pred_right, :pred_bottom);"""
     insert_batch(database, sql, batch)
+
+
+# ######################### runs table ################################################
+
+
+def create_runs_table(database: DbPath) -> None:
+    """Create test runs table."""
+    sql = """
+        create table if not exists runs (
+            run_id integer primary key autoincrement,
+            caller text,
+            args   text,
+            notes  text,
+            when_  date default (datetime('now','localtime'))
+        );
+        """
+    create_table(database, sql)
+
+
+def insert_run(args, notes: str = ""):
+    """Format and insert a run."""
+    create_runs_table(args.database)
+
+    __, file_name, line_no, func, *_ = inspect.stack()[1]
+    caller = " ".join([Path(file_name).name, func, str(line_no)])
+
+    json_args = json.dumps({k: str(v) for k, v in vars(args).items()})
+
+    sql = """insert into runs (caller, args, notes) values (:caller, :args, :notes);"""
+
+    with sqlite3.connect(args.database) as cxn:
+        cxn.execute(sql, (caller, json_args, notes))

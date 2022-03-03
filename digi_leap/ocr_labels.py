@@ -8,6 +8,12 @@ from pathlib import Path
 from pylib import ocr_labels
 
 
+def main():
+    """Run it."""
+    args = parse_args()
+    ocr_labels.ocr_labels(args)
+
+
 def parse_args() -> argparse.Namespace:
     """Process command-line arguments."""
     description = """OCR images of labels."""
@@ -79,14 +85,14 @@ def parse_args() -> argparse.Namespace:
         help="""Limit the input to this many records.""",
     )
 
+    arg_parser.add_argument(
+        "--notes",
+        metavar="TEXT",
+        help="""Notes about this run.""",
+    )
+
     args = arg_parser.parse_args()
     return args
-
-
-def main():
-    """Run it."""
-    args = parse_args()
-    ocr_labels.ocr_labels(args)
 
 
 if __name__ == "__main__":

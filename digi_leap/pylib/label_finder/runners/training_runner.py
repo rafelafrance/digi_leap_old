@@ -23,6 +23,8 @@ class Stats:
 
 def train(model, args: Namespace):
     """Train a model."""
+    db.insert_run(args)
+
     device = torch.device("cuda" if torch.has_cuda else "cpu")
     model.to(device)
 

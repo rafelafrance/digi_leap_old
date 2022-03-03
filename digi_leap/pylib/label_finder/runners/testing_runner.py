@@ -25,6 +25,8 @@ class Stats:
 
 def test(model, args: Namespace):
     """Train a model."""
+    db.insert_run(args)
+
     device = torch.device("cuda" if torch.has_cuda else "cpu")
 
     model_utils.load_model_state(model, args.load_model)
@@ -93,7 +95,8 @@ def insert_test_records(database, batch, test_set, image_size):
 
     rows = db.rows_as_dicts(database, "select * from sheets where split = 'test'")
 
-    sheets = {}
+    sheets: dict[str, tuple] = {}
+
     for row in rows:
         wide = row["width"] / image_size
         high = row["height"] / image_size

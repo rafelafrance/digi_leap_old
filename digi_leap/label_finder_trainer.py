@@ -121,6 +121,12 @@ def parse_args() -> argparse.Namespace:
         help="""Limit the input to this many input herbarium images.""",
     )
 
+    arg_parser.add_argument(
+        "--notes",
+        metavar="TEXT",
+        help="""Notes about this run.""",
+    )
+
     args = arg_parser.parse_args()
 
     return args

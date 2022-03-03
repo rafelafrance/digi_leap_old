@@ -18,6 +18,8 @@ ENGINE = {
 
 def ocr_labels(args: argparse.Namespace) -> None:
     """OCR the label images."""
+    db.insert_run(args)
+
     db.create_ocr_table(args.database)
 
     sheets = get_sheet_labels(
