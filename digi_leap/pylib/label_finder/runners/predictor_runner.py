@@ -29,9 +29,9 @@ def predict(model, args: Namespace):
     logging.info("Testing started.")
 
     model.eval()
-    batch, stats = run_prediction(model, device, test_loader)
+    batch = run_prediction(model, device, test_loader)
 
-    insert_label_records(args.database, batch, args.test_set, args.image_size)
+    insert_label_records(args.database, batch, args.label_set, args.image_size)
 
     db.update_run_finished(args.database, run_id)
 
@@ -84,15 +84,15 @@ def insert_label_records(database, batch, label_set, image_size):
 
     for row in batch:
         row["label_set"] = label_set
-        row["pred_class"] = consts.CLASS2NAME[row["pred_class"]]
+        row["class"] = consts.CLASS2NAME[row["class"]]
 
         wide, high = sheets[row["sheet_id"]]
 
-        row["pred_left"] = int(row["pred_left"] * wide)
-        row["pred_right"] = int(row["pred_right"] * wide)
+        row["label_left"] = int(row["label_left"] * wide)
+        row["label_right"] = int(row["label_right"] * wide)
 
-        row["pred_top"] = int(row["pred_top"] * high)
-        row["pred_bottom"] = int(row["pred_bottom"] * high)
+        row["label_top"] = int(row["label_top"] * high)
+        row["label_bottom"] = int(row["label_bottom"] * high)
 
         offset = offset + 1 if row["sheet_id"] == prev_sheet_id else 0
         row["offset"] = offset
@@ -106,6 +106,7 @@ def get_data_loader(args):
     """Load the validation split."""
     logging.info("Loading image data.")
     raw_data = db.rows_as_dicts(args.database, """select * from sheets""")
+    raw_data = raw_data[: args.limit] if args.limit else raw_data
     dataset = UnlabeledData(raw_data, args.image_size)
     return DataLoader(
         dataset,
