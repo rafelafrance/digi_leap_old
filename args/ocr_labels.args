@@ -1,0 +1,3 @@
+--database=data/sernec/sernec.sqlite
+--ocr-set=tf_efficientnetv2_s_2022-03-04
+--label-set=tf_efficientnetv2_s_2022-03-04

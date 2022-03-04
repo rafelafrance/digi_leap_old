@@ -214,13 +214,13 @@ def insert_labels(database: DbPath, batch: list, label_set: str) -> None:
 def select_labels(
     database: DbPath,
     *,
+    label_set: Optional[str] = None,
+    class_: Optional[str] = None,
     limit: int = 0,
-    label_sets: Optional[str] = None,
-    classes: Optional[str] = None,
 ) -> list[dict]:
     """Get label records."""
     sql = """select * from labels join sheets using (sheet_id)"""
-    sql, params = build_select(sql, class_=classes, label_set=label_sets, limit=limit)
+    sql, params = build_select(sql, class_=class_, label_set=label_set, limit=limit)
     return rows_as_dicts(database, sql, params)
 
 

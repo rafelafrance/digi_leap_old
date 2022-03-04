@@ -1,14 +1,15 @@
 """OCR a set of labels."""
 import argparse
 import itertools
+import sqlite3
 import warnings
 
 from PIL import Image
 from tqdm import tqdm
 
-from . import db
-from . import label_transformer as lt
 from . import ocr_runner
+from .. import db
+from .. import label_transformer as lt
 
 ENGINE = {
     "tesseract": ocr_runner.tesseract_engine,
@@ -20,14 +21,13 @@ def ocr_labels(args: argparse.Namespace) -> None:
     """OCR the label images."""
     run_id = db.insert_run(args)
 
+    with sqlite3.connect(args.database) as cxn:
+        cxn.execute("""delete from ocr where ocr_set = ?""", (args.ocr_set,))
+
     db.create_ocr_table(args.database)
 
     sheets = get_sheet_labels(
-        args.database,
-        args.limit,
-        args.classes,
-        args.ruler_ratio,
-        args.keep_n_largest,
+        args.database, args.limit, args.classes, args.label_set, args.label_conf
     )
 
     with warnings.catch_warnings():  # Turn off EXIF warnings
@@ -62,14 +62,15 @@ def ocr_labels(args: argparse.Namespace) -> None:
                                 }
                             batch += results
 
-            db.insert_ocr(args.database, batch)
+                db.insert_ocr(args.database, batch)
+
     db.update_run_finished(args.database, run_id)
 
 
-def get_sheet_labels(database, limit, classes, ruler_ratio, keep_n_largest):
+def get_sheet_labels(database, limit, classes, label_set, label_conf):
     """get the labels for each herbarium sheet and filter them."""
     sheets = {}
-    labels = db.select_labels(database)
+    labels = db.select_labels(database, label_set=label_set)
     labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))
     grouped = itertools.groupby(labels, lambda lb: lb["path"])
 
@@ -79,11 +80,7 @@ def get_sheet_labels(database, limit, classes, ruler_ratio, keep_n_largest):
         if classes:
             labels = [lb for lb in labels if lb["class"] in classes]
 
-        if ruler_ratio > 0.0 and labels:
-            labels = filter_rulers(labels, ruler_ratio)
-
-        if keep_n_largest and labels:
-            labels = filter_n_largest(labels, keep_n_largest)
+        labels = [lb for lb in labels if lb["label_conf"] >= label_conf]
 
         if labels:
             sheets[path] = labels
@@ -92,28 +89,3 @@ def get_sheet_labels(database, limit, classes, ruler_ratio, keep_n_largest):
         sheets = {p: lb for i, (p, lb) in enumerate(sheets.items()) if i < limit}
 
     return sheets
-
-
-def filter_rulers(labels, ruler_ratio):
-    """Remove rulers from the labels."""
-    new = []
-    for lb in labels:
-        d1 = lb["label_right"] - lb["label_left"]
-        d2 = lb["label_bottom"] - lb["label_top"]
-        d1, d2 = (d1, d2) if d1 > d2 else (d2, d1)
-        if d1 / d2 <= ruler_ratio:
-            new.append(lb)
-    return new
-
-
-def filter_n_largest(labels, keep_n_largest):
-    """Keep the N largest labels for each sheet."""
-    labels = sorted(
-        labels,
-        reverse=True,
-        key=lambda lb: (
-            (lb["label_right"] - lb["label_left"])
-            * (lb["label_bottom"] - lb["label_top"])
-        ),
-    )
-    return labels[:keep_n_largest]

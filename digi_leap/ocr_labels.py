@@ -2,10 +2,9 @@
 """OCR a set of labels."""
 import argparse
 import textwrap
-from datetime import datetime
 from pathlib import Path
 
-from pylib import ocr_labels
+from pylib.ocr import ocr_labels
 
 
 def main():
@@ -24,17 +23,24 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--database",
-        metavar="PATH",
-        type=Path,
         required=True,
+        type=Path,
+        metavar="PATH",
         help="""Path to the digi-leap database.""",
     )
 
-    default = datetime.now().isoformat(sep="_", timespec="seconds")
     arg_parser.add_argument(
         "--ocr-set",
-        default=default,
-        help="""Name the label finder run. (default: %(default)s)""",
+        required=True,
+        metavar="NAME",
+        help="""Name this OCR set.""",
+    )
+
+    arg_parser.add_argument(
+        "--label-set",
+        required=True,
+        metavar="NAME",
+        help="""OCR this label set.""",
     )
 
     arg_parser.add_argument(
@@ -67,16 +73,11 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--ruler-ratio",
+        "--label-conf",
         type=float,
-        help="""Consider a label to be a ruler if the height:width
-            (or width:height) ratio is above this.""",
-    )
-
-    arg_parser.add_argument(
-        "--keep-n-largest",
-        type=int,
-        help="""Keep the N largest labels for each sheet.""",
+        default=0.25,
+        help="""Only OCR labels that have a confidence >= to this. Set it to 0.0 to
+            get all of the labels. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

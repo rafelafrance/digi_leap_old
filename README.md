@@ -16,13 +16,13 @@ We are going to treat this as a pipeline of Machine Learning (ML) models with sw
 
 ## Find Labels
 
-### Clean Labels
+## Clean Labels
 
 ![Figure 2: Label with underlines](assets/label_with_underlines.jpg)
 
 ## OCR Labels
 
-### Clean OCR Text
+## Clean OCR Text
 
 ## Extract Information
 

@@ -3,7 +3,7 @@ import easyocr
 import numpy as np
 import pytesseract
 
-EASY_OCR = easyocr.Reader(["en"])
+EASY_OCR = easyocr.Reader(["en"], gpu=True)
 
 KEYS = """conf left top right bottom text""".split()
 
