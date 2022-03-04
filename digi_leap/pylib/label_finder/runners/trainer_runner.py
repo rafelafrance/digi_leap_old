@@ -23,7 +23,7 @@ class Stats:
 
 def train(model, args: Namespace):
     """Train a model."""
-    db.insert_run(args)
+    run_id = db.insert_run(args)
 
     device = torch.device("cuda" if torch.has_cuda else "cpu")
     model.to(device)
@@ -54,6 +54,7 @@ def train(model, args: Namespace):
         log_stats(writer, train_loss, val_loss, best_loss, epoch)
 
     writer.close()
+    db.update_run_comments(args.database, run_id, comments(best_loss))
 
 
 def one_epoch(model, device, loader, optimizer=None):
@@ -169,3 +170,11 @@ def log_stats(writer, train_loss, val_loss, best_loss, epoch):
         epoch,
     )
     writer.flush()
+
+
+def comments(best_loss):
+    """Format a DB comment about the best validation loss for the training run."""
+    return (
+        f"Best validation: total loss {best_loss.total_loss:0.6f} "
+        f"box loss: {best_loss.box_loss:0.6f} class loss: {best_loss.class_loss:0.6f}"
+    )

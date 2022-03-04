@@ -1,0 +1,6 @@
+--database=data/sernec/sernec.sqlite
+--load-model=data/models/efficientnetv2_s_1.pt
+--label-set=tf_efficientnetv2_s_2022-03-04
+--workers=8
+--batch-size=4
+--notes='Prediction using an efficientdet model'

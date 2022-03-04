@@ -7,7 +7,7 @@ from pathlib import Path
 from pylib import consts
 from pylib import log
 from pylib.label_finder.models import efficient_det_model
-from pylib.label_finder.runners import testing_runner
+from pylib.label_finder.runners import tester_runner
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
         image_size=args.image_size,
         pretrained=False,
     )
-    testing_runner.test(model, args)
+    tester_runner.test(model, args)
     log.finished()
 
 

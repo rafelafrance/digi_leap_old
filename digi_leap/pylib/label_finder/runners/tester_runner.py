@@ -25,7 +25,7 @@ class Stats:
 
 def test(model, args: Namespace):
     """Train a model."""
-    db.insert_run(args)
+    run_id = db.insert_run(args)
 
     device = torch.device("cuda" if torch.has_cuda else "cpu")
 
@@ -41,7 +41,7 @@ def test(model, args: Namespace):
 
     insert_test_records(args.database, batch, args.test_set, args.image_size)
 
-    log_stats(stats)
+    log_stats(stats, args.database, run_id)
 
 
 def run_test(model, device, loader):
@@ -133,10 +133,12 @@ def get_data_loader(args):
     )
 
 
-def log_stats(stats):
+def log_stats(stats, database, run_id):
     """Log results of the epoch."""
-    logging.info(
-        f"Test: total loss {stats.total_loss:0.6f}\t"
-        f"class loss {stats.class_loss:0.6f}\t"
+    comments = (
+        f"Test: total loss {stats.total_loss:0.6f}  "
+        f"class loss {stats.class_loss:0.6f}  "
         f"box loss {stats.box_loss:0.6f}"
     )
+    logging.info(comments)
+    db.update_run_comments(database, run_id, comments)

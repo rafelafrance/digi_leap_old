@@ -7,18 +7,18 @@ from PIL import Image
 from tqdm import tqdm
 
 from . import db
-from . import label_transforms as lt
-from . import ocr
+from . import label_transformer as lt
+from . import ocr_runner
 
 ENGINE = {
-    "tesseract": ocr.tesseract_engine,
-    "easy": ocr.easyocr_engine,
+    "tesseract": ocr_runner.tesseract_engine,
+    "easy": ocr_runner.easyocr_engine,
 }
 
 
 def ocr_labels(args: argparse.Namespace) -> None:
     """OCR the label images."""
-    db.insert_run(args)
+    run_id = db.insert_run(args)
 
     db.create_ocr_table(args.database)
 
@@ -63,6 +63,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                             batch += results
 
             db.insert_ocr(args.database, batch)
+    db.update_run_finished(args.database, run_id)
 
 
 def get_sheet_labels(database, limit, classes, ruler_ratio, keep_n_largest):

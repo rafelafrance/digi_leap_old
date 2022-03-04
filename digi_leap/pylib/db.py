@@ -182,6 +182,7 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
             label_set    text,
             offset       integer,
             class        text,
+            label_conf   real,
             label_left   integer,
             label_top    integer,
             label_right  integer,
@@ -194,13 +195,17 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, drop=drop)
 
 
-def insert_labels(database: DbPath, batch: list) -> None:
+def insert_labels(database: DbPath, batch: list, label_set: str) -> None:
     """Insert a batch of label records."""
+    sql = "delete from labels where label_set = ?"
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, (label_set,))
+
     sql = """
         insert into labels
-               ( sheet_id,    label_set,  offset,       class,
+               ( sheet_id,    label_set,  offset,       class,  label_conf,
                  label_left,  label_top,  label_right,  label_bottom)
-        values (:sheet_id,   :label_set, :offset,      :class,
+        values (:sheet_id,   :label_set, :offset,      :class, :label_conf,
                 :label_left, :label_top, :label_right, :label_bottom);
     """
     insert_batch(database, sql, batch)
@@ -393,25 +398,51 @@ def create_runs_table(database: DbPath) -> None:
     sql = """
         create table if not exists runs (
             run_id integer primary key autoincrement,
-            caller text,
-            args   text,
-            notes  text,
-            when_  date default (datetime('now','localtime'))
+            caller   text,
+            args     text,
+            comments text,
+            started  date default (datetime('now','localtime')),
+            finished date
         );
         """
     create_table(database, sql)
 
 
-def insert_run(args, notes: str = ""):
+def insert_run(args, comments: str = "") -> int:
     """Format and insert a run."""
     create_runs_table(args.database)
 
-    __, file_name, line_no, func, *_ = inspect.stack()[1]
-    caller = " ".join([Path(file_name).name, func, str(line_no)])
+    __, file, line, func, *_ = inspect.stack()[1]
+    caller = f"file name: {Path(file).name}, function: {func}, line: {line}"
 
     json_args = json.dumps({k: str(v) for k, v in vars(args).items()})
 
-    sql = """insert into runs (caller, args, notes) values (:caller, :args, :notes);"""
-
+    sql = """
+        insert into runs ( caller,  args,  comments)
+                  values (:caller, :args, :comments);
+    """
     with sqlite3.connect(args.database) as cxn:
-        cxn.execute(sql, (caller, json_args, notes))
+        cxn.execute(sql, (caller, json_args, comments))
+        results = cxn.execute("select seq from sqlite_sequence where name = 'runs';")
+
+    return results.fetchone()[0]
+
+
+def update_run_finished(database: DbPath, run_id: int):
+    """Update the run records with comments."""
+    sql = """
+        update runs set finished = datetime('now', 'localtime') where run_id = ?
+    """
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, (run_id,))
+
+
+def update_run_comments(database: DbPath, run_id: int, comments: str):
+    """Update the run records with comments."""
+    sql = """
+        update runs
+           set comments = ?,
+               finished = datetime('now', 'localtime')
+         where run_id = ?"""
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, (comments, run_id))

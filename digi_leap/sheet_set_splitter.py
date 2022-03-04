@@ -16,7 +16,7 @@ def main():
 
 def assign_sheets(args):
     """Assign herbarium sheets to splits."""
-    db.insert_run(args)
+    run_id = db.insert_run(args)
 
     select = """
        select sheet_id from sheets where split is null or split = '' order by random()
@@ -37,6 +37,8 @@ def assign_sheets(args):
             else:
                 split = "train"
             cxn.execute(update, (split, row["sheet_id"]))
+
+    db.update_run_finished(args.database, run_id)
 
 
 def parse_args():

@@ -65,29 +65,29 @@ class LabeledData(Dataset):
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-            image = Image.open(consts.ROOT_DIR / sheet.path).convert("RGB")
-            sample = {
-                "image": np.asarray(image),
-                "bboxes": sheet.boxes,
-                "targets": sheet.targets,
-            }
-            sample = self.transform(**sample)
-            boxes = np.array(sample["bboxes"])
+            with Image.open(consts.ROOT_DIR / sheet.path).convert("RGB") as image:
+                sample = {
+                    "image": np.asarray(image),
+                    "bboxes": sheet.boxes,
+                    "targets": sheet.targets,
+                }
+                sample = self.transform(**sample)
+                boxes = np.array(sample["bboxes"])
 
-            _, new_h, new_w = sample["image"].shape
+                _, new_h, new_w = sample["image"].shape
 
-            if boxes.shape[0] > 0:
-                boxes[:, [0, 1, 2, 3]] = boxes[:, [1, 0, 3, 2]]  # convert to y x y x
-            else:
-                boxes = np.empty((0, 4))
+                if boxes.shape[0] > 0:
+                    boxes[:, [0, 1, 2, 3]] = boxes[:, [1, 0, 3, 2]]  # to y x y x
+                else:
+                    boxes = np.empty((0, 4))
 
-            target = {
-                "bboxes": torch.tensor(boxes, dtype=torch.float32),
-                "labels": torch.tensor(sample["targets"]),
-                "image_id": torch.tensor([sheet.sheet_id]),
-                "img_size": (new_h, new_w),
-                "img_scale": torch.tensor([1.0]),
-            }
+                target = {
+                    "bboxes": torch.tensor(boxes, dtype=torch.float32),
+                    "labels": torch.tensor(sample["targets"]),
+                    "image_id": torch.tensor([sheet.sheet_id]),
+                    "img_size": (new_h, new_w),
+                    "img_scale": torch.tensor([1.0]),
+                }
 
         return sample["image"], target, sheet.sheet_id
 
