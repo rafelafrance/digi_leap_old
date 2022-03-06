@@ -5,12 +5,17 @@ import textwrap
 from pathlib import Path
 
 from pylib.ocr import ocr_labels
+from pylib.ocr import ocr_labels_muliprocessing
 
 
 def main():
     """Run it."""
     args = parse_args()
-    ocr_labels.ocr_labels(args)
+
+    if args.workers > 1:
+        ocr_labels_muliprocessing.ocr_labels(args)
+    else:
+        ocr_labels.ocr_labels(args)
 
 
 def parse_args() -> argparse.Namespace:
@@ -78,6 +83,22 @@ def parse_args() -> argparse.Namespace:
         default=0.25,
         help="""Only OCR labels that have a confidence >= to this. Set it to 0.0 to
             get all of the labels. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--workers",
+        type=int,
+        metavar="INT",
+        default=1,
+        help="""Number of workers for processing sheets. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--batch-size",
+        type=int,
+        metavar="INT",
+        default=10,
+        help="""Number of sheets per batch. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
