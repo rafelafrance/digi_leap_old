@@ -5,17 +5,12 @@ import textwrap
 from pathlib import Path
 
 from pylib.ocr import ocr_labels
-from pylib.ocr import ocr_labels_muliprocessing
 
 
 def main():
     """Run it."""
     args = parse_args()
-
-    if args.workers > 1:
-        ocr_labels_muliprocessing.ocr_labels(args)
-    else:
-        ocr_labels.ocr_labels(args)
+    ocr_labels.ocr_labels(args)
 
 
 def parse_args() -> argparse.Namespace:
