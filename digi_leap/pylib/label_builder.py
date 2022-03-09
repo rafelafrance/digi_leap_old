@@ -1,10 +1,14 @@
 """Find "best" labels from ensembles of OCR results of each label."""
+import multiprocessing
 from collections import defaultdict
+from itertools import chain
+from multiprocessing import Pool
 
 from tqdm import tqdm
 
 from . import db
 from . import ocr_results
+from . import utils
 from .line_align import line_align_py as la  # type: ignore
 from .line_align import line_align_subs
 from .spell_well import spell_well as sw
@@ -13,31 +17,50 @@ from .spell_well import spell_well as sw
 def build_labels(args):
     """Build labels from ensembles of OCR output."""
     run_id = db.insert_run(args)
+
+    multiprocessing.set_start_method("spawn")
+
     db.create_consensus_table(args.database)
+
+    frags = get_ocr_fragments(args.database, args.ocr_set, args.limit)
+    batches = utils.dict_chunks(frags, args.batch_size)
+
+    results = []
+    with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:
+        for batch in batches:
+            results.append(
+                pool.apply_async(
+                    build_batch,
+                    args=(batch, args.cons_set, args.ocr_set),
+                    callback=lambda _: bar.update(),
+                )
+            )
+        results = [r.get() for r in results]
+
+    results = list(chain(*[r for r in results]))
+
+    db.insert_consensus(args.database, args.cons_set, results)
+    db.update_run_finished(args.database, run_id)
+
+
+def build_batch(labels, cons_set, ocr_set):
+    """Build one batch of labels."""
+    spell_well = sw.SpellWell()
     line_align = la.LineAlign(line_align_subs.SUBS)
 
-    limit = args.limit if args.limit else float("inf")
+    batch: list[dict] = []
 
-    frags = get_ocr_fragments(args.database, args.ocr_set)
-
-    spell_well = sw.SpellWell()
-    batch = []
-
-    for i, (label_id, fragments) in tqdm(enumerate(frags.items()), total=len(frags)):
-        if i >= limit:
-            break
+    for label_id, fragments in labels.items():
         text = build_label_text(fragments, spell_well, line_align)
         batch.append(
             {
                 "label_id": label_id,
-                "cons_set": args.cons_set,
-                "ocr_set": args.ocr_set,
+                "cons_set": cons_set,
+                "ocr_set": ocr_set,
                 "cons_text": text,
             }
         )
-
-    db.insert_consensus(args.database, batch)
-    db.update_run_finished(args.database, run_id)
+    return batch
 
 
 def build_label_text(ocr_fragments, spell_well, line_align):
@@ -73,9 +96,14 @@ def consensus(copies, line_align, spell_well):
     return cons
 
 
-def get_ocr_fragments(database, ocr_set):
+def get_ocr_fragments(database, ocr_set, limit):
     """Read OCR records and group them by label."""
     frags = defaultdict(list)
+
     for ocr in db.select_ocr(database, ocr_set):
         frags[ocr["label_id"]].append(ocr)
+
+    if limit:
+        frags = {k: v for i, (k, v) in enumerate(frags.items()) if i < limit}
+
     return frags

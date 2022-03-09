@@ -1,9 +1,9 @@
 """OCR a set of labels."""
 import argparse
-import itertools
 import multiprocessing
 import sqlite3
 import warnings
+from collections import defaultdict
 from itertools import chain
 from multiprocessing import Pool
 
@@ -13,6 +13,7 @@ from tqdm import tqdm
 from . import ocr_runner
 from .. import db
 from .. import label_transformer as lt
+from ..utils import dict_chunks
 
 ENGINE = {
     "tesseract": ocr_runner.tesseract_engine,
@@ -55,15 +56,6 @@ def ocr_labels(args: argparse.Namespace) -> None:
     db.update_run_finished(args.database, run_id)
 
 
-def dict_chunks(sheets, batch_size) -> list[dict]:
-    """Split sheets dictionary into chunks for subprocesses, can't return iterators."""
-    batches = []
-    keys = list(sheets.keys())
-    for i in range(0, len(sheets), batch_size):
-        batches.append({k: sheets[k] for k in keys[i : i + batch_size]})
-    return batches
-
-
 def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
     """OCR one batch of sheets."""
     batch: list[dict] = []
@@ -104,21 +96,17 @@ def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
 
 def get_sheet_labels(database, limit, classes, label_set, label_conf) -> dict:
     """get the labels for each herbarium sheet and filter them."""
-    sheets = {}
+    sheets = defaultdict(list)
+
     labels = db.select_labels(database, label_set=label_set)
-    labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))
-    grouped = itertools.groupby(labels, lambda lb: lb["path"])
 
-    for path, labels in grouped:
-        labels = list(labels)
+    if classes:
+        labels = [lb for lb in labels if lb["class"] in classes]
 
-        if classes:
-            labels = [lb for lb in labels if lb["class"] in classes]
+    labels = [lb for lb in labels if lb["label_conf"] >= label_conf]
 
-        labels = [lb for lb in labels if lb["label_conf"] >= label_conf]
-
-        if labels:
-            sheets[path] = labels
+    for label in labels:
+        sheets[label["path"]].append(label)
 
     if limit:
         sheets = {p: lb for i, (p, lb) in enumerate(sheets.items()) if i < limit}

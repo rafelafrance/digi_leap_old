@@ -1,3 +1,5 @@
 --database=data/sernec/sernec.sqlite
 --label-set=tf_efficientnetv2_s_2022-03-04
 --ocr-set=tf_efficientnetv2_s_2022-03-04
+--workers=8
+--batch-size=100
