@@ -45,7 +45,7 @@ def parse_args() -> argparse.Namespace:
         "--label-set",
         required=True,
         metavar="NAME",
-        help="""OCR this label set.""",
+        help="""Create this label set.""",
     )
 
     arg_parser.add_argument(
@@ -109,6 +109,7 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--notes",
+        default="",
         metavar="TEXT",
         help="""Notes about this run.""",
     )

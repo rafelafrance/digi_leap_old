@@ -103,6 +103,7 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--notes",
+        default="",
         metavar="TEXT",
         help="""Notes about this run.""",
     )

@@ -4,8 +4,8 @@ from collections import defaultdict
 from tqdm import tqdm
 
 from . import db
-from . import line_align_py as la  # type: ignore
 from . import ocr_results
+from .line_align import line_align_py as la  # type: ignore
 from .line_align import line_align_subs
 from .spell_well import spell_well as sw
 
@@ -18,27 +18,20 @@ def build_labels(args):
 
     limit = args.limit if args.limit else float("inf")
 
-    ocr_sets = get_ocr_sets(args.database, args.ocr_sets)
-
-    ocr_labels = {}
-    for lb in db.select_labels(args.database, classes=args.classes):
-        ocr_labels[lb["label_id"]] = dict(lb)
-
-    ocr_fragments = get_ocr_fragments(
-        ocr_labels, args.database, args.ocr_sets, args.classes
-    )
+    frags = get_ocr_fragments(args.database, args.ocr_set)
 
     spell_well = sw.SpellWell()
     batch = []
-    for i, (label_id, fragments) in tqdm(enumerate(ocr_fragments.items())):
-        if i == limit:
+
+    for i, (label_id, fragments) in tqdm(enumerate(frags.items()), total=len(frags)):
+        if i >= limit:
             break
         text = build_label_text(fragments, spell_well, line_align)
         batch.append(
             {
                 "label_id": label_id,
                 "cons_set": args.cons_set,
-                "ocr_set": ocr_sets,
+                "ocr_set": args.ocr_set,
                 "cons_text": text,
             }
         )
@@ -80,19 +73,9 @@ def consensus(copies, line_align, spell_well):
     return cons
 
 
-def get_ocr_fragments(ocr_labels, database, ocr_sets=None, classes=None):
+def get_ocr_fragments(database, ocr_set):
     """Read OCR records and group them by label."""
-    ocr = [dict(o) for o in db.select_ocr(database, ocr_sets, classes)]
-    records = defaultdict(list)
-    for o in ocr:
-        if o["label_id"] in ocr_labels:
-            records[o["label_id"]].append(o)
-    return records
-
-
-def get_ocr_sets(database, ocr_sets):
-    """Get the OCR runs included in this cons_set."""
-    if not ocr_sets:
-        ocr_sets = [r["ocr_set"] for r in db.get_ocr_sets(database)]
-    ocr_sets = ",".join(ocr_sets)
-    return ocr_sets
+    frags = defaultdict(list)
+    for ocr in db.select_ocr(database, ocr_set):
+        frags[ocr["label_id"]].append(ocr)
+    return frags

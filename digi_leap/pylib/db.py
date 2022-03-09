@@ -215,12 +215,12 @@ def select_labels(
     database: DbPath,
     *,
     label_set: Optional[str] = None,
-    class_: Optional[str] = None,
+    classes: Optional[str] = None,
     limit: int = 0,
 ) -> list[dict]:
     """Get label records."""
     sql = """select * from labels join sheets using (sheet_id)"""
-    sql, params = build_select(sql, class_=class_, label_set=label_set, limit=limit)
+    sql, params = build_select(sql, classes=classes, label_set=label_set, limit=limit)
     return rows_as_dicts(database, sql, params)
 
 
@@ -278,8 +278,12 @@ def create_ocr_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, drop=drop)
 
 
-def insert_ocr(database: DbPath, batch: list) -> None:
+def insert_ocr(database: DbPath, ocr_set, batch: list) -> None:
     """Insert a batch of ocr records."""
+    sql = "delete from ocr where ocr_set = ?"
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, (ocr_set,))
+
     sql = """
         insert into ocr
                ( label_id,  ocr_set,  engine,  pipeline,
@@ -290,9 +294,7 @@ def insert_ocr(database: DbPath, batch: list) -> None:
     insert_batch(database, sql, batch)
 
 
-def select_ocr(
-    database: DbPath, ocr_sets=None, classes=None, limit: int = 0
-) -> list[dict]:
+def select_ocr(database: DbPath, ocr_set, limit: int = 0) -> list[dict]:
     """Get ocr box records."""
     sql = """
         select *
@@ -300,7 +302,7 @@ def select_ocr(
           join labels using (label_id)
           join sheets using (sheet_id)
     """
-    sql, params = build_select(sql, limit=limit, class_=classes, ocr_set=ocr_sets)
+    sql, params = build_select(sql, limit=limit, ocr_set=ocr_set)
     return rows_as_dicts(database, sql, params)
 
 
@@ -317,22 +319,26 @@ def get_ocr_sets(database: DbPath) -> list[dict]:
 def create_consensus_table(database: DbPath, drop: bool = False) -> None:
     """Create a table with the reconstructed label text."""
     sql = """
-        create table if not exists consensus (
+        create table if not exists cons (
             cons_id   integer primary key autoincrement,
             label_id  integer,
             cons_set  text,
             ocr_set   text,
             cons_text text
         );
-        create index if not exists cons_label_id on consensus (label_id);
+        create index if not exists cons_label_id on cons (label_id);
         """
     create_table(database, sql, drop=drop)
 
 
-def insert_consensus(database: DbPath, batch: list) -> None:
+def insert_consensus(database: DbPath, cons_set, batch: list) -> None:
     """Insert a batch of consensus records."""
+    sql = "delete from cons_set where cons_set = ?"
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, (cons_set,))
+
     sql = """
-        insert into consensus
+        insert into cons
                ( label_id,  cons_set,  ocr_set,  cons_text)
         values (:label_id, :cons_set, :ocr_set, :cons_text);
     """
@@ -347,7 +353,7 @@ def select_consensus(
     """Get consensus records."""
     sql = """
         select *
-          from consensus
+          from cons
           join labels using (label_id)
           join sheets using (sheet_id)
     """

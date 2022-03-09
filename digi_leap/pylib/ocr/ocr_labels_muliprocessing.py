@@ -51,7 +51,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
 
     results = list(chain(*[r for r in results]))
 
-    db.insert_ocr(args.database, results)
+    db.insert_ocr(args.database, results, args.ocr_set)
     db.update_run_finished(args.database, run_id)
 
 

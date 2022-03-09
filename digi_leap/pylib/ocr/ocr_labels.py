@@ -62,7 +62,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                                 }
                             batch += results
 
-                db.insert_ocr(args.database, batch)
+                db.insert_ocr(args.database, batch, args.ocr_set)
 
     db.update_run_finished(args.database, run_id)
 

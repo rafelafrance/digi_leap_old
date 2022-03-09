@@ -87,6 +87,7 @@ def parse_args():
 
     arg_parser.add_argument(
         "--notes",
+        default="",
         metavar="TEXT",
         help="""Notes about this run.""",
     )
