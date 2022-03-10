@@ -202,7 +202,7 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, drop=drop)
 
 
-def insert_labels(database: DbPath, batch: list, label_set: str) -> None:
+def insert_labels(database: DbPath, batch: list) -> None:
     """Insert a batch of label records."""
     sql = """
         insert into labels
@@ -342,7 +342,7 @@ def create_consensus_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, drop=drop)
 
 
-def insert_consensus(database: DbPath, cons_set, batch: list) -> None:
+def insert_consensus(database: DbPath, batch: list) -> None:
     """Insert a batch of consensus records."""
     sql = """
         insert into cons
@@ -389,7 +389,7 @@ def create_tests_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, drop=drop)
 
 
-def insert_tests(database: DbPath, batch: list, test_set: str) -> None:
+def insert_tests(database: DbPath, batch: list) -> None:
     """Insert a batch of test set records."""
     sql = """
         insert into tests

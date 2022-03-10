@@ -9,9 +9,9 @@ from tqdm import tqdm
 from . import ocr_results
 from .. import db
 from .. import utils
-from ..line_align import line_align_py as la  # type: ignore
-from ..line_align import line_align_subs
-from ..spell_well import spell_well as sw
+from .line_align import line_align_py as la  # type: ignore
+from .line_align import line_align_subs
+from .spell_well import spell_well as sw
 
 
 def build_labels(args):
@@ -40,7 +40,7 @@ def build_labels(args):
     results = list(chain(*[r for r in results]))
 
     db.delete(args.database, "cons", cons_set=args.cons_set)
-    db.insert_consensus(args.database, args.cons_set, results)
+    db.insert_consensus(args.database, results)
     db.update_run_finished(args.database, run_id)
 
 

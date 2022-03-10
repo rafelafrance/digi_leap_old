@@ -10,7 +10,7 @@ from typing import Iterable
 
 import regex as re
 
-from .. import consts
+from digi_leap.pylib import consts
 
 VOCAB_DB = consts.ROOT_DIR / "data" / "vocab.sqlite"
 

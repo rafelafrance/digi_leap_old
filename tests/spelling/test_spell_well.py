@@ -1,7 +1,7 @@
 """Test the spell checker."""
 import unittest
 
-from digi_leap.pylib.spell_well.spell_well import SpellWell
+from digi_leap.pylib.label_builder.spell_well.spell_well import SpellWell
 
 
 class TestSpellWell(unittest.TestCase):

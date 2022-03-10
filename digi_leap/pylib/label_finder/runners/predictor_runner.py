@@ -100,7 +100,7 @@ def insert_label_records(database, batch, label_set, image_size):
         prev_sheet_id = row["sheet_id"]
 
     db.delete(database, "labels", label_set=label_set)
-    db.insert_labels(database, batch, label_set)
+    db.insert_labels(database, batch)
 
 
 def get_data_loader(args):
