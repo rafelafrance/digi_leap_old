@@ -81,22 +81,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--workers",
-        type=int,
-        metavar="INT",
-        default=1,
-        help="""Number of workers for processing sheets. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--batch-size",
-        type=int,
-        metavar="INT",
-        default=10,
-        help="""Number of sheets per batch. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
         "--limit",
         type=int,
         help="""Limit the input to this many records.""",

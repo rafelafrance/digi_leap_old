@@ -306,6 +306,18 @@ def select_ocr(database: DbPath, ocr_set, limit: int = 0) -> list[dict]:
     return rows_as_dicts(database, sql, params)
 
 
+def select_ocr_frags(database: DbPath, ocr_set, label_id, limit: int = 0) -> list[dict]:
+    """Get ocr box records."""
+    sql = """
+        select *
+          from ocr
+          join labels using (label_id)
+          join sheets using (sheet_id)
+    """
+    sql, params = build_select(sql, limit=limit, ocr_set=ocr_set, label_id=label_id)
+    return rows_as_dicts(database, sql, params)
+
+
 def get_ocr_sets(database: DbPath) -> list[dict]:
     """Get all of the OCR runs in the database."""
     sql = """select distinct ocr_set from ocr"""
@@ -333,7 +345,7 @@ def create_consensus_table(database: DbPath, drop: bool = False) -> None:
 
 def insert_consensus(database: DbPath, cons_set, batch: list) -> None:
     """Insert a batch of consensus records."""
-    sql = "delete from cons_set where cons_set = ?"
+    sql = "delete from cons where cons_set = ?"
     with sqlite3.connect(database) as cxn:
         cxn.execute(sql, (cons_set,))
 

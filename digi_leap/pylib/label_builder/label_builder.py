@@ -6,12 +6,12 @@ from multiprocessing import Pool
 
 from tqdm import tqdm
 
-from . import db
 from . import ocr_results
-from . import utils
-from .line_align import line_align_py as la  # type: ignore
-from .line_align import line_align_subs
-from .spell_well import spell_well as sw
+from .. import db
+from .. import utils
+from ..line_align import line_align_py as la  # type: ignore
+from ..line_align import line_align_subs
+from ..spell_well import spell_well as sw
 
 
 def build_labels(args):
