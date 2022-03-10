@@ -74,6 +74,13 @@ def create_table(database: DbPath, sql: str, *, drop: bool = False) -> None:
         cxn.executescript(sql)
 
 
+def delete(database: DbPath, table: str, **kwargs):
+    """Delete records from the database, usually to clean old runs."""
+    sql, params = build_where(f"""delete from {table}""", **kwargs)
+    with sqlite3.connect(database) as cxn:
+        cxn.execute(sql, params)
+
+
 # ############## Vocab table ##########################################################
 
 
@@ -197,10 +204,6 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
 
 def insert_labels(database: DbPath, batch: list, label_set: str) -> None:
     """Insert a batch of label records."""
-    sql = "delete from labels where label_set = ?"
-    with sqlite3.connect(database) as cxn:
-        cxn.execute(sql, (label_set,))
-
     sql = """
         insert into labels
                ( sheet_id,    label_set,  offset,       class,  label_conf,
@@ -278,12 +281,8 @@ def create_ocr_table(database: DbPath, drop: bool = False) -> None:
     create_table(database, sql, drop=drop)
 
 
-def insert_ocr(database: DbPath, ocr_set, batch: list) -> None:
+def insert_ocr(database: DbPath, batch: list) -> None:
     """Insert a batch of ocr records."""
-    sql = "delete from ocr where ocr_set = ?"
-    with sqlite3.connect(database) as cxn:
-        cxn.execute(sql, (ocr_set,))
-
     sql = """
         insert into ocr
                ( label_id,  ocr_set,  engine,  pipeline,
@@ -345,10 +344,6 @@ def create_consensus_table(database: DbPath, drop: bool = False) -> None:
 
 def insert_consensus(database: DbPath, cons_set, batch: list) -> None:
     """Insert a batch of consensus records."""
-    sql = "delete from cons where cons_set = ?"
-    with sqlite3.connect(database) as cxn:
-        cxn.execute(sql, (cons_set,))
-
     sql = """
         insert into cons
                ( label_id,  cons_set,  ocr_set,  cons_text)
@@ -396,9 +391,6 @@ def create_tests_table(database: DbPath, drop: bool = False) -> None:
 
 def insert_tests(database: DbPath, batch: list, test_set: str) -> None:
     """Insert a batch of test set records."""
-    sql = "delete from tests where test_set = ?"
-    with sqlite3.connect(database) as cxn:
-        cxn.execute(sql, (test_set,))
     sql = """
         insert into tests
             ( test_set,   sheet_id,  pred_class,  pred_conf,

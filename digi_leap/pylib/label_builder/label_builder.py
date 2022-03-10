@@ -39,6 +39,7 @@ def build_labels(args):
 
     results = list(chain(*[r for r in results]))
 
+    db.delete(args.database, "cons", cons_set=args.cons_set)
     db.insert_consensus(args.database, args.cons_set, results)
     db.update_run_finished(args.database, run_id)
 

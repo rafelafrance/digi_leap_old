@@ -114,6 +114,7 @@ def insert_test_records(database, batch, test_set, image_size):
         row["pred_top"] = int(row["pred_top"] * high)
         row["pred_bottom"] = int(row["pred_bottom"] * high)
 
+    db.delete(database, "tests", test_set=test_set)
     db.insert_tests(database, batch, test_set)
 
 

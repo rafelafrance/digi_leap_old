@@ -1,7 +1,6 @@
 """OCR a set of labels."""
 import argparse
 import itertools
-import sqlite3
 import warnings
 
 from PIL import Image
@@ -21,10 +20,8 @@ def ocr_labels(args: argparse.Namespace) -> None:
     """OCR the label images."""
     run_id = db.insert_run(args)
 
-    with sqlite3.connect(args.database) as cxn:
-        cxn.execute("""delete from ocr where ocr_set = ?""", (args.ocr_set,))
-
     db.create_ocr_table(args.database)
+    db.delete(args.database, "ocr", ocr_set=args.ocr_set)
 
     sheets = get_sheet_labels(
         args.database, args.limit, args.classes, args.label_set, args.label_conf
@@ -62,7 +59,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                                 }
                             batch += results
 
-                db.insert_ocr(args.database, args.ocr_set, batch)
+                db.insert_ocr(args.database, batch)
 
     db.update_run_finished(args.database, run_id)
 
