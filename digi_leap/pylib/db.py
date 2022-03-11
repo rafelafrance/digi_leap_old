@@ -368,6 +368,44 @@ def select_consensus(
     return rows_as_dicts(database, sql, params)
 
 
+def get_cons_sets(database: DbPath) -> list[dict]:
+    """Get all of the consensus sets in the database."""
+    sql = """select distinct cons_set from cons"""
+    sql, params = build_select(sql)
+    return rows_as_dicts(database, sql, params)
+
+
+# ############ traits table #########################################################
+
+
+def create_traits_table(database: DbPath, drop: bool = False) -> None:
+    """Create a table with the reconstructed label text."""
+    sql = """
+        create table if not exists traits (
+            trait_id  integer primary key autoincrement,
+            trait_set text
+            cons_id   text,
+            trait     text,
+            value     text,
+            start     integer,
+            end       integer,
+            data      text
+        );
+        create index if not exists traits_label_id on traits (label_id);
+        """
+    create_table(database, sql, drop=drop)
+
+
+def insert_traits(database: DbPath, batch: list) -> None:
+    """Insert a batch of consensus records."""
+    sql = """
+        insert into cons
+               (trait_set,  cons_id,  trait,  value,  start,  end,  data)
+        values (:trait_set, :cons_id, :trait, :value, :start, :end, :data);
+    """
+    insert_batch(database, sql, batch)
+
+
 # ############ label finder test table ################################################
 
 
