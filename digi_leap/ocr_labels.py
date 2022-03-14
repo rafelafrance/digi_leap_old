@@ -4,6 +4,8 @@ import argparse
 import textwrap
 from pathlib import Path
 
+from pylib import consts
+from pylib.ocr import label_transformer as xform
 from pylib.ocr import ocr_labels
 
 
@@ -45,8 +47,8 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--pipelines",
-        choices=["deskew", "binarize", "denoise"],
-        default=["deskew", "binarize"],
+        choices=list(xform.TRANSFORM_PIPELINES.keys()),
+        default=list(xform.TRANSFORM_PIPELINES.keys())[:2],
         type=str,
         nargs="*",
         help="""Pipelines of image transformations that help with the OCR process.
@@ -55,8 +57,8 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--ocr-engines",
-        choices=["tesseract", "easy"],
-        default=["tesseract", "easy"],
+        choices=list(ocr_labels.ENGINE.keys()),
+        default=list(ocr_labels.ENGINE.keys()),
         type=str,
         nargs="*",
         help="""Which OCR engines to use. (default: %(default)s)""",
@@ -64,7 +66,7 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--classes",
-        choices=["Barcode", "Handwritten", "Typewritten", "Both"],
+        choices=consts.CLASSES[1:],
         default=["Typewritten"],
         type=str,
         nargs="*",

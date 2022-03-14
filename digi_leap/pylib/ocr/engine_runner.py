@@ -5,8 +5,6 @@ import pytesseract
 
 EASY_OCR = easyocr.Reader(["en"], gpu=True)
 
-KEYS = """conf left top right bottom text""".split()
-
 CHAR_BLACKLIST = "¥€£¢$«»®©™§{}[]<>|"
 TESS_LANG = "eng"
 TESS_CONFIG = " ".join(
@@ -33,7 +31,7 @@ def tesseract_engine(image) -> list[dict]:
         df["right"] = None
         df["bottom"] = None
 
-    df = df.loc[:, KEYS]
+    df = df.loc[:, ["conf", "left", "top", "right", "bottom", "text"]]
 
     df = df.rename(
         columns={

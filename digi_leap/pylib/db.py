@@ -368,6 +368,25 @@ def select_consensus(
     return rows_as_dicts(database, sql, params)
 
 
+def sample_consensus(
+    database: DbPath,
+    cons_set: str = "",
+    limit: int = 0,
+) -> list[dict]:
+    """Get consensus records."""
+    sql = """
+        select *
+          from cons
+          join labels using (label_id)
+          join sheets using (sheet_id)
+         where cons_set = ?
+      order by random()
+    """
+    sql, params = build_select(sql, limit=limit)
+    params = [cons_set] + params
+    return rows_as_dicts(database, sql, params)
+
+
 def get_cons_sets(database: DbPath) -> list[dict]:
     """Get all of the consensus sets in the database."""
     sql = """select distinct cons_set from cons"""
