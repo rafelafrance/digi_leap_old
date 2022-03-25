@@ -92,25 +92,3 @@ def county_before_state(ent):
     state = entities[1].text.title()
     ent._.data["us_state"] = terms.REPLACE.get(state, state)
     ent._.data["us_county"] = entities[0].text.title()
-
-
-# ADMIN_UNIT = Base(
-#     name='us_county',
-#     rules=[
-#         VOCAB['eol'],
-#         VOCAB.term('skip', r""" of the """.split()),
-#         VOCAB.term('co_label', r""" co | coun[tc]y """, capture=False),
-#         VOCAB.term('st_label', r"""
-#             ( plants | flora ) \s* of """, capture=False),
-#         VOCAB.term('other', r"""alluvial flood river plain """.split()),
-#         VOCAB.part('nope', r""" [(] """),
-#         VOCAB['word'],
-#
-#         VOCAB.producer(convert, ' us_state? eol? co_label comma? us_county '),
-#         VOCAB.producer(convert, ' us_county co_label comma? us_state? '),
-#         VOCAB.producer(convert, ' us_county comma? us_state '),
-#         VOCAB.producer(convert, """
-#             st_label us_state eol? co_label us_county """),
-#         VOCAB.producer(convert, ' st_label eol? us_state '),
-#         VOCAB.producer(convert, ' (?<! skip ) us_state (?! other | nope ) '),
-#     ])
