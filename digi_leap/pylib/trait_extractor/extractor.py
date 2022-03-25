@@ -1,11 +1,11 @@
 """Extract traits from consensus text in a database."""
-from . import pipeline
 from .. import db
+from .pipelines import extractor_pipeline
 
 
 def extract(args):
     """Do the extractions."""
-    nlp = pipeline.pipeline()
+    nlp = extractor_pipeline.pipeline()
 
     for cons in db.select_consensus(args.dabase, args.cons_set, limit=args.limit):
         batch = []

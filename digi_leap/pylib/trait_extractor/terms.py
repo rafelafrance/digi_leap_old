@@ -3,6 +3,7 @@ import os
 import string
 from pathlib import Path
 
+from traiter.const import COMMA
 from traiter.terms.csv_ import Csv
 
 # #########################################################################
@@ -14,10 +15,14 @@ VOCAB_DIR = ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
 
 
 # #########################################################################
-TERMS = Csv.shared("colors plant_treatment")
+TERMS = Csv.shared("colors plant_treatment us_locations")
 TERMS.drop("imperial_length")
 
 REPLACE = TERMS.pattern_dict("replace")
+
+US_STATES = TERMS.patterns_with_label("us_state")
+US_COUNTIES = TERMS.patterns_with_label("us_county")
+
 
 # #########################################################################
 # Tokenizer constants
@@ -41,3 +46,10 @@ ABBREVS = """
     m. var. sect. subsect. ser. subser. subsp. sp. nov.
     """.split()
 ABBREVS += [f"{c}." for c in string.ascii_uppercase]
+
+# #########################################################################
+# Common patterns
+
+COMMON_PATTERNS = {
+    ",": {"TEXT": {"IN": COMMA}},
+}

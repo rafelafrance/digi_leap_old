@@ -4,9 +4,9 @@ from typing import List
 
 from traiter.util import shorten
 
-from digi_leap.pylib.trait_extractor import pipeline
+from digi_leap.pylib.trait_extractor.pipelines import extractor_pipeline
 
-NLP = pipeline.pipeline()  # Singleton for testing
+NLP = extractor_pipeline.pipeline()  # Singleton for testing
 
 
 def test(text: str) -> List[Dict]:
