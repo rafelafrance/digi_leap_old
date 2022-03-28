@@ -68,8 +68,8 @@
 #             'part', r""" [[:alpha:]]+ """, priority=LOWEST, capture=False),
 #
 #         VOCAB.term('other_label', r"""
-#             art artist ass assist assistant auth authors?
-#             cartographer conservator contributor corator curator curatorial
+#             art artist ass assist assistant auth author authors
+#             cartographer conservator contributor curator curatorial
 #             det determiner dir director
 #             ecologist editor entomologist expedition explorer extractor
 #             gardener geographer geologist georeferencer grower
@@ -79,7 +79,7 @@
 #             naturalist
 #             preparator
 #             researcher
-#             volunteers?
+#             volunteer volunteers
 #             writer
 #             """.split(), capture=False),
 #

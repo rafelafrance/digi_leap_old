@@ -12,8 +12,8 @@ from tqdm import tqdm
 
 from . import engine_runner
 from . import label_transformer as lt
-from .. import db
-from ..utils import dict_chunks
+from ..pylib import db
+from ..pylib.utils import dict_chunks
 
 ENGINE = {
     "tesseract": engine_runner.tesseract_engine,

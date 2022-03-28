@@ -13,7 +13,7 @@ from PIL.Image import Image as ImageType
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from ... import consts
+from ...pylib import consts
 
 LabeledSheet = namedtuple("LabeledSheet", "path boxes targets sheet_id")
 

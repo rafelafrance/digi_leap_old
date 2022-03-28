@@ -4,10 +4,10 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib import consts
-from pylib import log
-from pylib.label_finder.models import efficient_det_model
-from pylib.label_finder.runners import tester_runner
+from .label_finder.models import efficient_det_model
+from .label_finder.runners import tester_runner
+from .pylib import consts
+from .pylib import log
 
 
 def main():

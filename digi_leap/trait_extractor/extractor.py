@@ -1,5 +1,5 @@
 """Extract traits from consensus text in a database."""
-from .. import db
+from ..pylib import db
 from .pipelines import extractor_pipeline
 
 

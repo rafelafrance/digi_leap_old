@@ -5,7 +5,7 @@ import sqlite3
 import textwrap
 from pathlib import Path
 
-from pylib import db
+from .pylib import db
 
 
 def main():

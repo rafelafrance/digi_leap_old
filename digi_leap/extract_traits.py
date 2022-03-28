@@ -6,7 +6,8 @@ import textwrap
 from pathlib import Path
 
 from pylib import db
-from pylib.trait_extractor import extractor
+
+from .trait_extractor import extractor
 
 
 def main():
