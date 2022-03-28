@@ -44,7 +44,7 @@ class SpellWell:
             logging.error(e)
 
     def correct(self, word: str) -> str:
-        """Most probable spelling for 'word'."""
+        """Most probable spell_well for 'word'."""
         if not word:
             return ""
 

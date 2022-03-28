@@ -307,7 +307,7 @@ def spaces(line, spell_well):
 
 
 def correct(line, spell_well):
-    """Fix spelling."""
+    """Fix spell_well."""
     new = []
     for token in spell_well.tokenize(line):
         if spell_well.is_letters(token):

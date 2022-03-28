@@ -5,7 +5,7 @@ from digi_leap.label_builder.spell_well.spell_well import SpellWell
 
 
 class TestSpellWell(unittest.TestCase):
-    spell_well = SpellWell(vocab_db="tests/spelling/vocab.sqlite")
+    spell_well = SpellWell(vocab_db="tests/label_builder/spell_well/vocab.sqlite")
 
     def test_correct_01(self):
         self.assertEqual(self.spell_well.correct("Missing"), "Missing")
