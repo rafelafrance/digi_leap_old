@@ -3,6 +3,7 @@ import os
 import string
 from pathlib import Path
 
+from traiter.const import COLON
 from traiter.const import COMMA
 from traiter.terms.csv_ import Csv
 
@@ -15,7 +16,7 @@ VOCAB_DIR = ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
 
 
 # #########################################################################
-TERMS = Csv.shared("colors plant_treatment us_locations")
+TERMS = Csv.shared("colors plant_treatment us_locations time")
 TERMS.drop("imperial_length")
 
 REPLACE = TERMS.pattern_dict("replace")
@@ -51,5 +52,6 @@ ABBREVS += [f"{c}." for c in string.ascii_uppercase]
 # Common patterns
 
 COMMON_PATTERNS = {
+    ":": {"TEXT": {"IN": COLON}},
     ",": {"TEXT": {"IN": COMMA}},
 }
