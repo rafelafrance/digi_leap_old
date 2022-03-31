@@ -1,18 +1,23 @@
 """Find collector notations on herbarium specimen labels."""
+import re
+
 from spacy import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
-from .. import terms
+from ..terms import common_terms
 
+CONJ = ["CCONJ"]
+COL_NO = r"^\w*\d+\w*$"
+COLL_LABEL = """ collector collected coll coll. col col. """.split()
+NO_LABEL = """ number no no. num num. """.split()
 
-DECODER = terms.COMMON_PATTERNS | {
+DECODER = common_terms.COMMON_PATTERNS | {
     "person": {"ENT_TYPE": "PERSON"},
     "by": {"LOWER": {"IN": ["by"]}},
-    "col_label": {"LOWER": {"IN": ["collector", "collected", "coll", "col"]}},
-    "no_label": {"LOWER": {"IN": ["number", "no", "num"]}},
-    "col_no": {"LOWER": {"REGEX": r"^\w+$"}},
-    "and": {"POS": {"IN": ["CCONJ"]}},
-    # "and": {"LOWER": {"IN": ["and", ","]}},
+    "col_label": {"LOWER": {"IN": COLL_LABEL}},
+    "no_label": {"LOWER": {"IN": NO_LABEL}},
+    "col_no": {"LOWER": {"REGEX": COL_NO}},
+    "and": {"POS": {"IN": CONJ}},
 }
 
 COLLECTOR = MatcherPatterns(
@@ -23,8 +28,32 @@ COLLECTOR = MatcherPatterns(
         "person+ col_no",
         "person+ and person+ col_no",
         "person+ and person+ and person+ col_no",
+        "col_label person",
+        "col_label person no_label? col_no",
     ],
 )
+
+
+@registry.misc(COLLECTOR.on_match)
+def collector(ent):
+    """Enrich an administrative unit match."""
+    data = {}
+    people = []
+    for token in ent:
+        if token._.cached_label == "PERSON":
+            people.append(token.text)
+        elif token.pos_ in CONJ:
+            pass
+        elif match := re.search(COL_NO, token.text):
+            col_no = match.group(0)
+            data["collector_no"] = col_no
+
+    data["collector"] = people if len(people) > 1 else people[0]
+    ent._.data = data
+
+    # state = [e.text.title() for e in ent.ents if e.label_ in A_STATE][0]
+    # ent._.data["us_state"] = terms.REPLACE.get(state, state)
+
 
 #         VOCAB.term(
 #             'part', r""" [[:alpha:]]+ """, priority=LOWEST, capture=False),
@@ -59,16 +88,6 @@ COLLECTOR = MatcherPatterns(
 #             (?P<col_name> collector ) (?P<collector_no> col_no)
 #             """),
 #     ])
-
-
-@registry.misc(COLLECTOR.on_match)
-def collector(ent):
-    """Enrich an administrative unit match."""
-    print(ent)
-    for token in ent:
-        print(f"{token=} {token._.cached_label=}")
-    # state = [e.text.title() for e in ent.ents if e.label_ in A_STATE][0]
-    # ent._.data["us_state"] = terms.REPLACE.get(state, state)
 
 
 # def convert(token):

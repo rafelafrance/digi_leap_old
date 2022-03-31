@@ -22,7 +22,7 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install -U spacy
-        python -m spacy download en_core_web_sm
+        python -m spacy download en_core_web_md
         pip install git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
     - name: Test with unittest
       run: |

@@ -7,56 +7,64 @@ from tests.setup import test
 class TestCollector(unittest.TestCase):
     """Test administrative unit patterns."""
 
-    def test_collector_00(self):
-        test("""Sarah Nunn and S. Jacobs and R. Mc Elderry 9480""")
+    # def test_collector_00(self):
+    #     test("""Sarah Nunn and S. Jacobs and R. Mc Elderry 9480""")
 
     def test_collector_01(self):
         """It gets a county notation."""
-        # self.assertEqual(
-        #     test("""Sarah Nunn and S. Jacobs and R. Mc Elderry 9480"""),
-        #     [
-        #         {
-        #             "collector": "Sarah Nunn",
-        #             "trait": "collector",
-        #             "start": 0,
-        #             "end": 16,
-        #         },
-        #         {
-        #             "collector": "S. Jacobs",
-        #             "trait": "collector",
-        #             "start": 0,
-        #             "end": 16,
-        #         },
-        #         {
-        #             "collector": "R. Mc Elderry",
-        #             "trait": "collector",
-        #             "start": 0,
-        #             "end": 16,
-        #         },
-        #     ],
-        # )
+        self.assertEqual(
+            test("""Sarah Nunn and S. Jacobs and R. Mc Elderry 9480"""),
+            [
+                {
+                    "collector_no": "9480",
+                    "collector": ["Sarah Nunn", "S. Jacobs", "R. Mc Elderry"],
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 47,
+                }
+            ],
+        )
+
+    def test_collector_02(self):
+        """It does not parse other fields."""
+        self.assertEqual(
+            test(
+                """
+                Rhus glabra L. "Smooth Sumac"
+                Woodruff Co., Arkansas
+                Vicinity of bridge on Hwy 33, ca. 2 mi. S. of the
+                town of Gregory; S19, T6N; R3W.
+                Det, Edwin B. Smith
+                Coll. Marie P. Locke No. 5595
+                Date June 29, 1985
+                """
+            ),
+            [
+                {
+                    "collector_no": "5595",
+                    "collector": "Marie P. Locke",
+                    "trait": "collector",
+                    "start": 155,
+                    "end": 184,
+                },
+                {
+                    "label_date": "1985-06-29",
+                    "trait": "label_date",
+                    "start": 185,
+                    "end": 203,
+                },
+                {
+                    "us_state": "Arkansas",
+                    "us_county": "Woodruff",
+                    "trait": "admin_unit",
+                    "start": 30,
+                    "end": 52,
+                },
+            ],
+        )
 
 
-#     def test_parse_03(self):
-#         """It does not parse other fields."""
-#         self.assertEqual(
-#             COLLECTOR.parse(
-#                 textwrap.dedent(
-#                     """
-#                 Rhus glabra L. "Smooth Sumac"
-#                 Woodruff Co., Arkansas
-#                 Vicinity of bridge on Hwy 33, ca. 2 mi. S. of the
-#                 town of Gregory; S19, T6N; R3W.
-#                 Det, Edwin B. Smith
-#                 Coll. Marie P. Locke No. 5595
-#                 Date June 29, 1985
-#                 """
-#                 )
-#             ),
-#             [Trait(col_name="Marie P. Locke", col_no="5595", start=156, end=185)],
-#         )
-#
-#     def test_parse_04(self):
+#     def test_collector_04(self):
 #         """It handles a bad name."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -71,7 +79,7 @@ class TestCollector(unittest.TestCase):
 #             [Trait(col_name="Hutchins", start=65, end=95)],
 #         )
 #
-#     def test_parse_05(self):
+#     def test_collector_05(self):
 #         """It handles initials differently."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -86,7 +94,7 @@ class TestCollector(unittest.TestCase):
 #             [Trait(col_name="Marie P. Locke", col_no="5595", start=5, end=34)],
 #         )
 #
-#     def test_parse_06(self):
+#     def test_collector_06(self):
 #         """It handles random words matching names."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -104,7 +112,7 @@ class TestCollector(unittest.TestCase):
 #             [Trait(col_name="Hutchins", start=129, end=159)],
 #         )
 #
-#     def test_parse_07(self):
+#     def test_collector_07(self):
 #         """It handles more random words matching names."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -119,7 +127,7 @@ class TestCollector(unittest.TestCase):
 #             [],
 #         )
 #
-#     def test_parse_08(self):
+#     def test_collector_08(self):
 #         """It handles more random words matching names."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -140,14 +148,14 @@ class TestCollector(unittest.TestCase):
 #             [Trait(col_name="Hugo Churchill", start=280, end=294)],
 #         )
 #
-#     def test_parse_09(self):
+#     def test_collector_09(self):
 #         """It parses with noise at the start of a line."""
 #         self.assertEqual(
 #             COLLECTOR.parse("[| WILLIAM DOUGLAS COUNTRYMAN"),
 #             [Trait(col_name="WILLIAM DOUGLAS COUNTRYMAN", start=0, end=29)],
 #         )
 #
-#     def test_parse_10(self):
+#     def test_collector_10(self):
 #         """It handles more random words matching names."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -161,28 +169,28 @@ class TestCollector(unittest.TestCase):
 #             [Trait(col_name="Andrew Jenkins", col_no="427", start=56, end=74)],
 #         )
 #
-#     def test_parse_11(self):
+#     def test_collector_11(self):
 #         """It parses name suffixes."""
 #         self.assertEqual(
 #             COLLECTOR.parse("Coll. E. E. Dale, Jr. No. 6061"),
 #             [Trait(col_name="E. E. Dale Jr", col_no="6061", start=0, end=30)],
 #         )
 #
-#     def test_parse_12(self):
+#     def test_collector_12(self):
 #         """It removes noise."""
 #         self.assertEqual(
 #             COLLECTOR.parse("""Collected by ....... Marie. HACKS.......ccccee No."""),
 #             [Trait(col_name="Marie. HACKS", start=0, end=46)],
 #         )
 #
-#     def test_parse_13(self):
+#     def test_collector_13(self):
 #         """It parses multi-part collector numbers."""
 #         self.assertEqual(
 #             COLLECTOR.parse("Coll. Stephen W. Bailey No, SWBII 1)"),
 #             [Trait(col_name="Stephen W. Bailey", col_no="SWBII 1", start=0, end=35)],
 #         )
 #
-#     def test_parse_14(self):
+#     def test_collector_14(self):
 #         """It handles newlines between collector and collector number."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -198,7 +206,7 @@ class TestCollector(unittest.TestCase):
 #             [Trait(col_name="Marie P. Locke", col_no="2319", start=1, end=31)],
 #         )
 #
-#     def test_parse_15(self):
+#     def test_collector_15(self):
 #         """It parses collectors separated by 'with'."""
 #         self.assertEqual(
 #             COLLECTOR.parse("Sarah Nunn with Angela Brown 7529 20 October 2002 of"),
@@ -208,7 +216,7 @@ class TestCollector(unittest.TestCase):
 #             ],
 #         )
 #
-#     def test_parse_16(self):
+#     def test_collector_16(self):
 #         """It parses collectors separated by 'with'."""
 #         self.assertEqual(
 #             COLLECTOR.parse(
@@ -225,14 +233,14 @@ class TestCollector(unittest.TestCase):
 #             ],
 #         )
 #
-#     def test_parse_17(self):
+#     def test_collector_17(self):
 #         """It handles a run-on with the label."""
 #         self.assertEqual(
 #             COLLECTOR.parse("""ColMrs. Jim Miller No. 736"""),
 #             [Trait(col_name="Jim Miller", col_no="736", start=0, end=26)],
 #         )
 #
-#     def test_parse_18(self):
+#     def test_collector_18(self):
 #         """It handles a run-on with the label."""
 #         self.assertEqual(
 #             COLLECTOR.parse("""Sarah Nunn and Laura Eason 9834"""),
@@ -242,7 +250,7 @@ class TestCollector(unittest.TestCase):
 #             ],
 #         )
 #
-#     def test_parse_19(self):
+#     def test_collector_19(self):
 #         """This failed."""
 #         self.assertEqual(
 #             COLLECTOR.parse("""George P. Johnson #5689"""),

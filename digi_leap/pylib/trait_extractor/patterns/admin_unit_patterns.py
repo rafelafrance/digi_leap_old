@@ -2,13 +2,14 @@
 from spacy import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
-from .. import terms
+from ..terms import admin_unit_terms
+from ..terms import common_terms
 
-A_STATE = ["us_state", "us_state_or_county"]
+A_STATE = ["us_state", "us_state_or_county", "us_territory"]
 A_COUNTY = ["us_county", "us_state_or_county"]
-ADMIN_UNIT = ["us_state", "us_county", "us_state_or_county"]
+ADMIN_UNIT = ["us_state", "us_county", "us_state_or_county", "us_territory"]
 
-DECODER = terms.COMMON_PATTERNS | {
+DECODER = common_terms.COMMON_PATTERNS | {
     "county_label": {"LOWER": {"IN": ["co", "co.", "county"]}},
     "state_label": {"LOWER": {"IN": ["plants", "flora"]}},
     "us_state": {"ENT_TYPE": {"IN": A_STATE}},
@@ -63,7 +64,7 @@ def state_only(ent):
     """Enrich an administrative unit match."""
     ent._.new_label = "admin_unit"
     state = [e.text.title() for e in ent.ents if e.label_ in A_STATE][0]
-    ent._.data["us_state"] = terms.REPLACE.get(state, state)
+    ent._.data["us_state"] = admin_unit_terms.REPLACE.get(state, state)
 
 
 @registry.misc(COUNTY_ONLY.on_match)
@@ -80,7 +81,7 @@ def state_before_county(ent):
     ent._.new_label = "admin_unit"
     entities = [e for e in ent.ents if e.label_ in ADMIN_UNIT]
     state = entities[0].text.title()
-    ent._.data["us_state"] = terms.REPLACE.get(state, state)
+    ent._.data["us_state"] = admin_unit_terms.REPLACE.get(state, state)
     ent._.data["us_county"] = entities[1].text.title()
 
 
@@ -90,5 +91,5 @@ def county_before_state(ent):
     ent._.new_label = "admin_unit"
     entities = [e for e in ent.ents if e.label_ in ADMIN_UNIT]
     state = entities[1].text.title()
-    ent._.data["us_state"] = terms.REPLACE.get(state, state)
+    ent._.data["us_state"] = admin_unit_terms.REPLACE.get(state, state)
     ent._.data["us_county"] = entities[0].text.title()

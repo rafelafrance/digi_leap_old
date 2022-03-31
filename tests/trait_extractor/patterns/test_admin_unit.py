@@ -35,7 +35,7 @@ class TestAdminUnit(unittest.TestCase):
             [
                 {
                     "us_county": "Mississippi",
-                    "us_state": "AR",
+                    "us_state": "Arkansas",
                     "trait": "admin_unit",
                     "start": 0,
                     "end": 37,
@@ -70,7 +70,7 @@ class TestAdminUnit(unittest.TestCase):
             test("""Desha Co., Ark."""),
             [
                 {
-                    "us_state": "AR",
+                    "us_state": "Arkansas",
                     "us_county": "Desha",
                     "trait": "admin_unit",
                     "start": 0,
@@ -105,7 +105,7 @@ class TestAdminUnit(unittest.TestCase):
             test("""PLANTS OF ARKANSAS"""),
             [
                 {
-                    "us_state": "AR",
+                    "us_state": "Arkansas",
                     "trait": "admin_unit",
                     "start": 0,
                     "end": 18,
@@ -119,7 +119,7 @@ class TestAdminUnit(unittest.TestCase):
             test("""PLANTS OF NORTH CAROLINA"""),
             [
                 {
-                    "us_state": "NC",
+                    "us_state": "North Carolina",
                     "trait": "admin_unit",
                     "start": 0,
                     "end": 24,
@@ -140,7 +140,7 @@ class TestAdminUnit(unittest.TestCase):
             ),
             [
                 {
-                    "us_state": "NC",
+                    "us_state": "North Carolina",
                     "trait": "admin_unit",
                     "start": 39,
                     "end": 63,
@@ -161,7 +161,7 @@ class TestAdminUnit(unittest.TestCase):
             [
                 {
                     "us_county": "Cape May",
-                    "us_state": "NJ",
+                    "us_state": "New Jersey",
                     "trait": "admin_unit",
                     "start": 0,
                     "end": 20,

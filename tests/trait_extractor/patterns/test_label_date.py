@@ -81,6 +81,13 @@ class TestLabelDate(unittest.TestCase):
             test("Brent Baker 11-0297 10/20/2011"),
             [
                 {
+                    "collector_no": "11",
+                    "collector": "Brent Baker",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 14,
+                },
+                {
                     "label_date": "2011-10-20",
                     "trait": "label_date",
                     "start": 20,
@@ -123,9 +130,16 @@ class TestLabelDate(unittest.TestCase):
             test("Andrew Jenkins 631 2/2010"),
             [
                 {
+                    "collector_no": "631",
+                    "collector": "Andrew Jenkins",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 18,
+                },
+                {
                     "label_date": "2010-02",
-                    "trait": "label_date",
                     "missing_day": True,
+                    "trait": "label_date",
                     "start": 19,
                     "end": 25,
                 },

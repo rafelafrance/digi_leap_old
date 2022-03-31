@@ -1,29 +1,29 @@
-"""Literals used in the system."""
+"""Common pipeline functions & constants."""
 import os
 import string
 from pathlib import Path
 
-from traiter.const import COLON
-from traiter.const import COMMA
-from traiter.terms.csv_ import Csv
+from traiter import tokenizer_util
+from traiter.pipes.cleanup import CLEANUP
+from traiter.pipes.debug import DEBUG_ENTITIES
+from traiter.pipes.debug import DEBUG_TOKENS
 
-# #########################################################################
+from ..patterns import forget_patterns
+
+# ##########################################################################
+# Vocabulary locations
 CURR_DIR = Path(os.getcwd())
 IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments")
 ROOT_DIR = Path(".." if IS_SUBDIR else ".")
-
 VOCAB_DIR = ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
 
-
-# #########################################################################
-TERMS = Csv.shared("colors plant_treatment us_locations time")
-TERMS.drop("imperial_length")
-
-REPLACE = TERMS.pattern_dict("replace")
-
-US_STATES = TERMS.patterns_with_label("us_state")
-US_COUNTIES = TERMS.patterns_with_label("us_county")
-
+# ##########################################################################
+# Adjust how the tokenizer splits words
+INFIX = [
+    r"(?<=[0-9])[/,](?=[0-9])",  # digit,digit
+    r"(?<=[A-Z])[/-](?=[0-9])",  # letter-digit
+    "-_",
+]
 
 # #########################################################################
 # Tokenizer constants
@@ -48,10 +48,35 @@ ABBREVS = """
     """.split()
 ABBREVS += [f"{c}." for c in string.ascii_uppercase]
 
-# #########################################################################
-# Common patterns
 
-COMMON_PATTERNS = {
-    ":": {"TEXT": {"IN": COLON}},
-    ",": {"TEXT": {"IN": COMMA}},
-}
+# #########################################################################
+def setup_term_pipe(nlp, terms):
+    """Setup terms"""
+    tokenizer_util.append_prefix_regex(nlp)
+    tokenizer_util.append_infix_regex(nlp, INFIX)
+    tokenizer_util.append_suffix_regex(nlp)
+    tokenizer_util.append_abbrevs(nlp, ABBREVS)
+
+    term_ruler = nlp.add_pipe(
+        "entity_ruler",
+        name="term_ruler",
+        before="parser",
+        config={"phrase_matcher_attr": "LOWER"},
+    )
+    term_ruler.add_patterns(terms.for_entity_ruler())
+
+
+def forget_entities(nlp, forget=None, name=None, after=None):
+    """Remove dangling entities."""
+    forget = forget if forget else forget_patterns.FORGET
+    nlp.add_pipe(CLEANUP, name=name, after=after, config={"forget": forget})
+
+
+def debug_tokens(nlp, name=None):
+    """Add a pipe to see the current tokens."""
+    nlp.add_pipe(DEBUG_TOKENS, name=name)
+
+
+def debug_entities(nlp, name=None):
+    """Add a pipe to see the current tokens."""
+    nlp.add_pipe(DEBUG_ENTITIES, name=name)
