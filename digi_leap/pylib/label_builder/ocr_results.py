@@ -1,11 +1,9 @@
 """Build lines of text from the OCR output."""
+import collections
+import dataclasses
+import functools
+import itertools
 import unicodedata
-from collections import Counter
-from dataclasses import dataclass
-from dataclasses import field
-from functools import partial
-from functools import reduce
-from itertools import groupby
 from typing import Iterator
 
 import regex as re
@@ -70,12 +68,12 @@ SUBSTITUTIONS = [
 ]
 
 
-@dataclass
+@dataclasses.dataclass
 class Line:
     """Holds data for building one line from several OCR scans of the same text."""
 
     # This list is unordered and will contain several copies of the same text
-    boxes: list[dict] = field(default_factory=list)
+    boxes: list[dict] = dataclasses.field(default_factory=list)
 
 
 def find_overlap(line: Line, ocr_box, eps=1):
@@ -157,7 +155,9 @@ def get_copies(line: Line) -> list[str]:
     boxes = sorted(
         line.boxes, key=lambda b: (b["engine"], b["pipeline"], b["ocr_left"])
     )
-    combos: Iterator = groupby(boxes, key=lambda b: (b["engine"], b["pipeline"]))
+    combos: Iterator = itertools.groupby(
+        boxes, key=lambda b: (b["engine"], b["pipeline"])
+    )
 
     for _, boxes in combos:
         text = " ".join([b["ocr_text"] for b in boxes])
@@ -208,7 +208,7 @@ def _char_options(aligned):
     str_len = len(aligned[0])
 
     for i in range(str_len):
-        counts = Counter(s[i] for s in aligned).most_common()
+        counts = collections.Counter(s[i] for s in aligned).most_common()
         count = counts[0][1]
         chars = [c[0] for c in counts if c[1] == count]
         chars = sorted(chars, key=_char_key)  # Sort order is a fallback
@@ -240,7 +240,7 @@ def _copies_key(choice, spell_well=None):
 
 def choose_best_copy(copies, spell_well):
     """Find the copy with the best score."""
-    key_func = partial(_copies_key, spell_well=spell_well)
+    key_func = functools.partial(_copies_key, spell_well=spell_well)
     copies = sorted(copies, key=key_func, reverse=True)
     return copies[0]
 
@@ -253,9 +253,9 @@ def consensus(aligned: list[str], spell_well, threshold=2 ** 16) -> str:
     are too few or too many choices just look choose characters
     by their sort order.
     """
-    key_func = partial(_copies_key, spell_well=spell_well)
+    key_func = functools.partial(_copies_key, spell_well=spell_well)
     options = _char_options(aligned)
-    count = reduce(lambda x, y: x * len(y), options, 1)
+    count = functools.reduce(lambda x, y: x * len(y), options, 1)
     if count == 1 or count > threshold:
         cons = "".join([o[0] for o in options])
     else:

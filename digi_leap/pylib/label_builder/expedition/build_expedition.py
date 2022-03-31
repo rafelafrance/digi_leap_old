@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from tqdm import tqdm
 
-from ...pylib import db
+from ....pylib import db
 
 
 def build(args: Namespace) -> None:

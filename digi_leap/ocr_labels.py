@@ -4,9 +4,9 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from .ocr import label_transformer as xform
-from .ocr import ocr_labels
 from .pylib import consts
+from digi_leap.pylib.ocr import label_transformer as xform
+from digi_leap.pylib.ocr import ocr_labels
 
 
 def main():

@@ -4,6 +4,7 @@
 .vscode/
 .idea/
 .mypy_cache/
+.~*
 
 # Language server protocol
 .lsp_symlink

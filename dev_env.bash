@@ -28,11 +28,11 @@ if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 
 # ##############################################################################
-# NLP datasets
+# NLP datasets - NOTE: we're using a larger than normal spacy model
 
 python -c 'import nltk; nltk.download("words")'
 
-python -m spacy download en_core_web_sm
+python -m spacy download en_core_web_md
 
 
 # ##############################################################################

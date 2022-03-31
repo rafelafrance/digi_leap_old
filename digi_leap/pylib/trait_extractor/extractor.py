@@ -1,6 +1,6 @@
 """Extract traits from consensus text in a database."""
-from ..pylib import db
 from .pipelines import extractor_pipeline
+from digi_leap.pylib import db
 
 
 def extract(args):

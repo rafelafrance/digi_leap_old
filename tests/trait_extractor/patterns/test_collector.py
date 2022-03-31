@@ -1,31 +1,42 @@
-# # pylint: disable=missing-module-docstring,missing-class-docstring
-# # pylint: disable=missing-function-docstring,too-many-public-methods
-# import textwrap
-# import unittest
-#
-# from digi_leap.parsers.collector import COLLECTOR
-# from digi_leap.pylib.trait import Trait
-#
-#
-# class TestCollector(unittest.TestCase):
-#     def test_parse_01(self):
-#         """It parses a collector name & number."""
-#         self.assertEqual(
-#             COLLECTOR.parse("Coll. M. P. Locke No. 4823"),
-#             [Trait(col_name="M. P. Locke", col_no="4823", start=0, end=26)],
-#         )
-#
-#     def test_parse_02(self):
-#         """It parses a several collectors."""
-#         self.assertEqual(
-#             COLLECTOR.parse("Sarah Nunn and S. Jacobs and R. Mc Elderry 9480"),
-#             [
-#                 Trait(col_name="Sarah Nunn", col_no="9480", start=0, end=47),
-#                 Trait(col_name="S. Jacobs", start=0, end=47),
-#                 Trait(col_name="R. Mc Elderry", start=0, end=47),
-#             ],
-#         )
-#
+"""Test collector patterns."""
+import unittest
+
+from tests.setup import test
+
+
+class TestCollector(unittest.TestCase):
+    """Test administrative unit patterns."""
+
+    def test_collector_00(self):
+        test("""Sarah Nunn and S. Jacobs and R. Mc Elderry 9480""")
+
+    def test_collector_01(self):
+        """It gets a county notation."""
+        # self.assertEqual(
+        #     test("""Sarah Nunn and S. Jacobs and R. Mc Elderry 9480"""),
+        #     [
+        #         {
+        #             "collector": "Sarah Nunn",
+        #             "trait": "collector",
+        #             "start": 0,
+        #             "end": 16,
+        #         },
+        #         {
+        #             "collector": "S. Jacobs",
+        #             "trait": "collector",
+        #             "start": 0,
+        #             "end": 16,
+        #         },
+        #         {
+        #             "collector": "R. Mc Elderry",
+        #             "trait": "collector",
+        #             "start": 0,
+        #             "end": 16,
+        #         },
+        #     ],
+        # )
+
+
 #     def test_parse_03(self):
 #         """It does not parse other fields."""
 #         self.assertEqual(

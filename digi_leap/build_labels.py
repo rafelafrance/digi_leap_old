@@ -6,8 +6,7 @@ import textwrap
 from pathlib import Path
 
 from pylib import db
-
-from .label_builder import label_builder
+from pylib.label_builder import label_builder
 
 
 def main():

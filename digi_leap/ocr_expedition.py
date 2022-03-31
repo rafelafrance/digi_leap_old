@@ -5,8 +5,8 @@ import sys
 import textwrap
 from pathlib import Path
 
-from .label_builder.expedition import build_expedition
-from .pylib import db
+from pylib import db
+from pylib.label_builder.expedition import build_expedition
 
 
 def main():

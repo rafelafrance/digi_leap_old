@@ -7,8 +7,8 @@ from multiprocessing import Pool
 from tqdm import tqdm
 
 from . import ocr_results
-from ..pylib import db
-from ..pylib import utils
+from ...pylib import db
+from ...pylib import utils
 from .line_align import line_align_py as la  # type: ignore
 from .line_align import line_align_subs
 from .spell_well import spell_well as sw
