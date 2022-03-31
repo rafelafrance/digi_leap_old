@@ -72,11 +72,11 @@ def forget_entities(nlp, forget=None, name=None, after=None):
     nlp.add_pipe(CLEANUP, name=name, after=after, config={"forget": forget})
 
 
-def debug_tokens(nlp, name=None):
+def debug_tokens(nlp, name=None, after=None):
     """Add a pipe to see the current tokens."""
-    nlp.add_pipe(DEBUG_TOKENS, name=name)
+    nlp.add_pipe(DEBUG_TOKENS, name=name, after=after)
 
 
-def debug_entities(nlp, name=None):
+def debug_entities(nlp, name=None, after=None):
     """Add a pipe to see the current tokens."""
-    nlp.add_pipe(DEBUG_ENTITIES, name=name)
+    nlp.add_pipe(DEBUG_ENTITIES, name=name, after=after)

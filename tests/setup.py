@@ -14,8 +14,10 @@ NLP_ADMIN_UNIT = admin_unit_pipeline.pipeline()  # Singleton for testing
 def test(text: str) -> List[Dict]:
     """Find entities in the doc."""
     text = shorten(text)
+
     extractor_doc = NLP_EXTRACTOR(text)
     admin_unit_doc = NLP_ADMIN_UNIT(text)
+
     traits = [e._.data for e in extractor_doc.ents]
     traits += [e._.data for e in admin_unit_doc.ents]
 

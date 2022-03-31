@@ -4,5 +4,5 @@ FORGET_SPACY = """
     CARDINAL DATE EVENT FAC GPE LANGUAGE LAW LOC MONEY NORP ORDINAL ORG
     PERCENT PERSON PRODUCT QUANTITY TIME WORK_OF_ART""".split()
 
-FORGET = """ us_county us_state us_state_or_county time_units month""".split()
+FORGET = """ us_county us_state us_state_or_county time_units month name """.split()
 FORGET += FORGET_SPACY
