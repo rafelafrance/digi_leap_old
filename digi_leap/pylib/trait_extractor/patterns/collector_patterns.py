@@ -4,58 +4,69 @@ import re
 from spacy import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
-from ..terms import common_terms
-
-CONJ = ["CCONJ", "ADP"]
-COL_NO = r"^\w*\d+\w*$"
-COLL_LABEL = """ collector collected coll coll. col col. """.split()
-NUM_LABEL = """ number no no. num num. # """.split()
+from . import common_patterns
 
 
-DECODER = common_terms.COMMON_PATTERNS | {
-    ":": {"TEXT": {"REGEX": r"^[:._]+$"}},
-    "and": {"POS": {"IN": CONJ}},
-    "by": {"LOWER": {"IN": ["by"]}},
-    "col_label": {"LOWER": {"IN": COLL_LABEL}},
-    "col_no": {"LOWER": {"REGEX": COL_NO}},
-    "no_label": {"LOWER": {"IN": NUM_LABEL}},
-    "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
-    "name": {"ENT_TYPE": "name"},
-    "maybe": {"POS": "PROPN"},
-}
+class Collector:
+    """Constants for collector parsing."""
 
-COLLECTOR = MatcherPatterns(
-    "collector",
-    on_match="digi_leap.collector.v1",
-    decoder=DECODER,
-    patterns=[
-        "col_label? by? :? name+ no_label? :? col_no",
-        "col_label  by? :? name+ no_label? :? col_no?",
-        "col_label? by? :? name+ and name+ no_label? :? col_no",
-        "col_label  by? :? name+ and name+ no_label? :? col_no?",
-        "col_label? by? :? name+ noise name+ no_label? col_no",
-        "col_label  by? :? name+ noise name+ no_label? col_no?",
-        "col_label? by? :? name+ and name+ and name+ no_label? :? col_no",
-        "col_label  by? :? name+ and name+ and name+ no_label? :? col_no?",
-        "col_label  by? :? maybe+ and name+ no_label? col_no?",
-    ],
-)
+    conj = ["CCONJ", "ADP"]
+    collector_no = r"^\w*\d+\w*$"
+    collector_label = """ collector collected coll coll. col col. """.split()
+    number_label = """ number no no. num num. # """.split()
 
 
-@registry.misc(COLLECTOR.on_match)
-def collector(ent):
+ON_COLLECTOR_MATCH = "digi_leap.collector.v1"
+
+
+def build_collector_patterns():
+    """Build patterns for collector traits."""
+    return MatcherPatterns(
+        "collector",
+        on_match=ON_COLLECTOR_MATCH,
+        decoder=common_patterns.get_common_patterns()
+        | {
+            ":": {"TEXT": {"REGEX": r"^[:._]+$"}},
+            "and": {"POS": {"IN": Collector.conj}},
+            "by": {"LOWER": {"IN": ["by"]}},
+            "col_label": {"LOWER": {"IN": Collector.collector_label}},
+            "col_no": {"LOWER": {"REGEX": Collector.collector_no}},
+            "no_label": {"LOWER": {"IN": Collector.number_label}},
+            "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
+            "name": {"ENT_TYPE": "name"},
+            "maybe": {"POS": "PROPN"},
+        },
+        patterns=[
+            "col_label? by? :? name+ no_label? :? col_no",
+            "col_label  by? :? name+ no_label? :? col_no?",
+            "col_label? by? :? name+ and name+ no_label? :? col_no",
+            "col_label  by? :? name+ and name+ no_label? :? col_no?",
+            "col_label? by? :? name+ noise name+ no_label? col_no",
+            "col_label  by? :? name+ noise name+ no_label? col_no?",
+            "col_label? by? :? name+ and name+ and name+ no_label? :? col_no",
+            "col_label  by? :? name+ and name+ and name+ no_label? :? col_no?",
+            #
+            "col_label  by? :? maybe+ and name+ no_label? col_no?",
+        ],
+    )
+
+
+@registry.misc(ON_COLLECTOR_MATCH)
+def on_collector_match(ent):
     """Enrich a collector match."""
     people = []
 
     # Get the names and numbers
     for token in ent:
-        if token.lower_ in NUM_LABEL or token.lower_ in COLL_LABEL:
+        if token.lower_ in Collector.number_label:
+            pass
+        elif token.lower_ in Collector.collector_label:
             pass
         elif token.pos_ == "PROPN":
             people.append(token.text)
-        elif token.pos_ in CONJ:
+        elif token.pos_ in Collector.conj:
             pass
-        elif match := re.search(COL_NO, token.text):
+        elif match := re.search(Collector.collector_no, token.text):
             col_no = match.group(0)
             ent._.data["collector_no"] = col_no
 

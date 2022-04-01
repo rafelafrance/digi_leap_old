@@ -8,64 +8,68 @@ from typing import Iterator
 
 import regex as re
 
-# When there is no clear "winner" for a character in the multiple alignment of
-# a set of strings I sort the characters by unicode category as a tiebreaker
-_CATEGORY = {
-    "Lu": 20,
-    "Ll": 20,
-    "Lt": 20,
-    "Lm": 20,
-    "Lo": 20,
-    "Nd": 30,
-    "Nl": 60,
-    "No": 60,
-    "Pc": 70,
-    "Pd": 40,
-    "Ps": 50,
-    "Pe": 50,
-    "Pi": 50,
-    "Pf": 50,
-    "Po": 10,
-    "Sm": 99,
-    "Sc": 90,
-    "So": 90,
-    "Zs": 80,
-}
 
-# As, above, but if a character has a category of "punctuation other" then I sort
-# by the character itself
-_PO = {
-    ".": 1,
-    ",": 2,
-    ":": 2,
-    ";": 2,
-    "!": 5,
-    '"': 5,
-    "'": 5,
-    "*": 5,
-    "/": 5,
-    "%": 6,
-    "&": 6,
-}
+class OcrResults:
+    """Constants for working with OCR results."""
 
-# Substitutions performed on a consensus sequence
-SUBSTITUTIONS = [
-    # Remove gaps
-    ("⋄", ""),
-    # Replace underscores with spaces
-    ("_", " "),
-    # Replace ™ trademark with a double quote
-    ("™", '"'),
-    # Remove space before some punctuation: x . -> x.
-    (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
-    # Compress spaces
-    (r"\s\s+", " "),
-    # Convert single capital letter, punctuation to capital dot: L' -> L.
-    (r"(\p{L}\s\p{Lu})\p{Po}", r"\1."),
-    # Add spaces around an ampersand &
-    (r"(\w)&", r"\1 &"),
-    (r"&(\w)", r"& \1"),
-]
+    # When there is no clear "winner" for a character in the multiple alignment of
+    # a set of strings I sort the characters by unicode category as a tiebreaker
+    category = {
+        "Lu": 20,
+        "Ll": 20,
+        "Lt": 20,
+        "Lm": 20,
+        "Lo": 20,
+        "Nd": 30,
+        "Nl": 60,
+        "No": 60,
+        "Pc": 70,
+        "Pd": 40,
+        "Ps": 50,
+        "Pe": 50,
+        "Pi": 50,
+        "Pf": 50,
+        "Po": 10,
+        "Sm": 99,
+        "Sc": 90,
+        "So": 90,
+        "Zs": 80,
+    }
+
+    # As, above, but if a character has a category of "punctuation other" then I
+    # sort by the character itself
+    po = {
+        ".": 1,
+        ",": 2,
+        ":": 2,
+        ";": 2,
+        "!": 5,
+        '"': 5,
+        "'": 5,
+        "*": 5,
+        "/": 5,
+        "%": 6,
+        "&": 6,
+    }
+
+    # Substitutions performed on a consensus sequence
+    substitutions = [
+        # Remove gaps
+        ("⋄", ""),
+        # Replace underscores with spaces
+        ("_", " "),
+        # Replace ™ trademark with a double quote
+        ("™", '"'),
+        # Remove space before some punctuation: x . -> x.
+        (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
+        # Compress spaces
+        (r"\s\s+", " "),
+        # Convert single capital letter, punctuation to capital dot: L' -> L.
+        (r"(\p{L}\s\p{Lu})\p{Po}", r"\1."),
+        # Add spaces around an ampersand &
+        (r"(\w)&", r"\1 &"),
+        (r"&(\w)", r"& \1"),
+    ]
 
 
 @dataclasses.dataclass
@@ -198,8 +202,8 @@ def align_copies(copies: list[str], line_align) -> list[str]:
 
 def _char_key(char):
     """Get the character sort order."""
-    order = _CATEGORY.get(unicodedata.category(char), 100)
-    order = _PO.get(char, order)
+    order = OcrResults.category.get(unicodedata.category(char), 100)
+    order = OcrResults.po.get(char, order)
     return order, char
 
 
@@ -268,7 +272,7 @@ def consensus(aligned: list[str], spell_well, threshold=2 ** 16) -> str:
 
 def substitute(line: str) -> str:
     """Perform simple substitutions on a consensus string."""
-    for old, new in SUBSTITUTIONS:
+    for old, new in OcrResults.substitutions:
         line = re.sub(old, new, line)
     return line
 

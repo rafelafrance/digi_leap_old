@@ -6,14 +6,14 @@ from traiter.pipes.simple_entity_data import SIMPLE_ENTITY_DATA
 
 from . import pipeline_utils
 from ..patterns import admin_unit_patterns
-from ..terms import admin_unit_terms
+from ..patterns.terms import AdminUnitTerms
 
 
 def pipeline():
     """Create a pipeline for extracting traits."""
     nlp = spacy.load("en_core_web_md", exclude=["ner"])
 
-    pipeline_utils.setup_term_pipe(nlp, admin_unit_terms.TERMS)
+    pipeline_utils.setup_term_pipe(nlp, AdminUnitTerms.terms)
 
     nlp.add_pipe("merge_entities", name="term_merger", after="parser")
     nlp.add_pipe(SIMPLE_ENTITY_DATA, after="term_merger")
@@ -23,10 +23,10 @@ def pipeline():
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
-                    admin_unit_patterns.STATE_BEFORE_COUNTY,
-                    admin_unit_patterns.COUNTY_BEFORE_STATE,
-                    admin_unit_patterns.COUNTY_ONLY,
-                    admin_unit_patterns.STATE_ONLY,
+                    admin_unit_patterns.build_county_before_state_patterns(),
+                    admin_unit_patterns.build_county_only_patterns(),
+                    admin_unit_patterns.build_state_before_county_patterns(),
+                    admin_unit_patterns.build_state_only_patterns(),
                 ]
             )
         },

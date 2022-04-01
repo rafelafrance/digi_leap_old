@@ -9,61 +9,66 @@ from spacy import registry
 from traiter import actions
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
-SEP = r"[/_-]"
-COMMA = r"[,/_-]"
-ENDER = r"[:=]"
-LABELS = """ date """.split()
-FLAGS = re.IGNORECASE | re.VERBOSE
 
-DECODER = {
-    ",": {"TEXT": {"REGEX": f"^{COMMA}+$"}},
-    "-": {"TEXT": {"REGEX": f"^{SEP}+$"}},
-    ":": {"TEXT": {"REGEX": f"^{ENDER}+$"}},
-    "9_": {"TEXT": {"REGEX": r"^\d\d?$"}},
-    "99": {"TEXT": {"REGEX": r"^\d\d$"}},
-    "label": {"LOWER": {"IN": LABELS}},
-    "month": {"ENT_TYPE": "month"},
-    "9999": {"TEXT": {"REGEX": r"^[12]\d{3}$"}},
-}
+class LabelDate:
+    """Constants for parsing label dates."""
 
-LABEL_DATE = MatcherPatterns(
-    "label_date",
-    on_match="digi_leap.label_date.v1",
-    decoder=DECODER,
-    patterns=[
-        "label? :? 9_    -? 9_    -? 9_",
-        "label? :? 9_    -? 9_    ,? 9999",
-        "label? :? 9_    -? month -? 9_",
-        "label? :? 9_    -? month ,? 9999",
-        "label? :? month ,? 9_    -? 9_",
-        "label? :? month ,? 9_    ,? 9999",
-        "label? :? 9999  -? 9_    -? 9_",
-        "label? :? 9999  -? month -? 9_",
-    ],
-)
-
-SHORT_DATE = MatcherPatterns(
-    "short_date",
-    on_match="digi_leap.short_date.v1",
-    decoder=DECODER,
-    patterns=[
-        "label? :? 9_    -? 99",
-        "label? :? 99    -? 9_",
-        "label? :? 9_    ,? 9999",
-        "label? :? month ,? 9999",
-        "label? :? month ,? 99",
-        "label? :? 9999  ,? 9_",
-        "label? :? 9999  -? month",
-    ],
-)
+    separator = r"[/_-]"
+    comma = r"[,/_-]"
+    label_ender = r"[:=]"
+    labels = """ date """.split()
 
 
-@registry.misc(LABEL_DATE.on_match)
-def label_date(ent):
+# ####################################################################################
+def label_date_decoder():
+    """Get the label date decoder."""
+    return {
+        ",": {"TEXT": {"REGEX": f"^{LabelDate.comma}+$"}},
+        "-": {"TEXT": {"REGEX": f"^{LabelDate.separator}+$"}},
+        ":": {"TEXT": {"REGEX": f"^{LabelDate.label_ender}+$"}},
+        "9_": {"TEXT": {"REGEX": r"^\d\d?$"}},
+        "99": {"TEXT": {"REGEX": r"^\d\d$"}},
+        "label": {"LOWER": {"IN": LabelDate.labels}},
+        "month": {"ENT_TYPE": "month"},
+        "9999": {"TEXT": {"REGEX": r"^[12]\d{3}$"}},
+    }
+
+
+# ####################################################################################
+ON_LABEL_DATE_MATCH = "digi_leap.label_date.v1"
+
+
+def build_label_date_patterns():
+    """Build common label date patterns."""
+    return MatcherPatterns(
+        "label_date",
+        on_match=ON_LABEL_DATE_MATCH,
+        decoder=label_date_decoder(),
+        patterns=[
+            "label? :? 9_    -? 9_    -? 9_",
+            "label? :? 9_    -? 9_    ,? 9999",
+            "label? :? 9_    -? month -? 9_",
+            "label? :? 9_    -? month ,? 9999",
+            "label? :? month ,? 9_    -? 9_",
+            "label? :? month ,? 9_    ,? 9999",
+            "label? :? 9999  -? 9_    -? 9_",
+            "label? :? 9999  -? month -? 9_",
+        ],
+    )
+
+
+@registry.misc(ON_LABEL_DATE_MATCH)
+def on_label_date_match(ent):
     """Parse date notations."""
+    flags = re.IGNORECASE | re.VERBOSE
     text = ent.text
-    text = re.sub(fr" ({'|'.join(LABELS)}) \s* {ENDER}* \s* ", "", text, flags=FLAGS)
-    text = re.sub(f"{COMMA}+", " ", text, flags=FLAGS)
+    text = re.sub(
+        fr" ({'|'.join(LabelDate.labels)}) \s* {LabelDate.label_ender}* \s* ",
+        "",
+        text,
+        flags=flags,
+    )
+    text = re.sub(f"{LabelDate.comma}+", " ", text, flags=flags)
     try:
         date_ = parser.parse(text).date()
     except (parser.ParserError, IllegalMonthError):
@@ -76,10 +81,32 @@ def label_date(ent):
     ent._.data["label_date"] = date_.isoformat()[:10]
 
 
-@registry.misc(SHORT_DATE.on_match)
+# ####################################################################################
+ON_MISSING_DAY_MATCH = "digi_leap.missing_day.v1"
+
+
+def build_missing_day_patterns():
+    """Build label date patterns that are missing a day."""
+    return MatcherPatterns(
+        "short_date",
+        on_match=ON_MISSING_DAY_MATCH,
+        decoder=label_date_decoder(),
+        patterns=[
+            "label? :? 9_    -? 99",
+            "label? :? 99    -? 9_",
+            "label? :? 9_    ,? 9999",
+            "label? :? month ,? 9999",
+            "label? :? month ,? 99",
+            "label? :? 9999  ,? 9_",
+            "label? :? 9999  -? month",
+        ],
+    )
+
+
+@registry.misc(ON_MISSING_DAY_MATCH)
 def short_date(ent):
     """Normalize a month year as all digits notation."""
-    label_date(ent)
+    on_label_date_match(ent)
     ent._.data["label_date"] = ent._.data["label_date"][:7]
     ent._.data["missing_day"] = True
     ent._.new_label = "label_date"

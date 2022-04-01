@@ -10,26 +10,26 @@ from ..patterns import collector_patterns
 from ..patterns import forget_patterns
 from ..patterns import label_date_patterns
 from ..patterns import name_patterns
-from ..terms import extractor_terms
+from ..patterns.terms import ExtractorTerms
 
 
 ADD_DATA = [
-    label_date_patterns.LABEL_DATE,
-    label_date_patterns.SHORT_DATE,
-    collector_patterns.COLLECTOR,
+    label_date_patterns.build_label_date_patterns(),
+    label_date_patterns.build_missing_day_patterns(),
+    collector_patterns.build_collector_patterns(),
 ]
 
-NAME_DATA = [name_patterns.NAME]
+NAME_DATA = [name_patterns.build_name_patterns()]
 
 
 def pipeline():
     """Create a pipeline for extracting traits."""
     nlp = spacy.load("en_core_web_md", disable=["senter"])
 
-    pipeline_utils.setup_term_pipe(nlp, extractor_terms.TERMS)
+    pipeline_utils.setup_term_pipe(nlp, ExtractorTerms.terms)
 
     # We only want the PERSON entities for now
-    forget = forget_patterns.FORGET_SPACY
+    forget = forget_patterns.spacy_entities()
     forget.remove("PERSON")
     pipeline_utils.forget_entities(
         nlp,

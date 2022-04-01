@@ -3,21 +3,27 @@ import easyocr
 import numpy as np
 import pytesseract
 
-EASY_OCR = easyocr.Reader(["en"], gpu=True)
 
-CHAR_BLACKLIST = "¥€£¢$«»®©™§{}[]<>|"
-TESS_LANG = "eng"
-TESS_CONFIG = " ".join(
-    [
-        f"-l {TESS_LANG}",
-        f"-c tessedit_char_blacklist='{CHAR_BLACKLIST}'",
-    ]
-)
+class EngineConfig:
+    """Constants for setting up OCR engines."""
+
+    easy_ocr = easyocr.Reader(["en"], gpu=True)
+
+    char_blacklist = "¥€£¢$«»®©™§{}[]<>|"
+    tess_lang = "eng"
+    tess_config = " ".join(
+        [
+            f"-l {tess_lang}",
+            f"-c tessedit_char_blacklist='{char_blacklist}'",
+        ]
+    )
 
 
 def tesseract_engine(image) -> list[dict]:
     """OCR the image with tesseract."""
-    df = pytesseract.image_to_data(image, config=TESS_CONFIG, output_type="data.frame")
+    df = pytesseract.image_to_data(
+        image, config=EngineConfig.tess_config, output_type="data.frame"
+    )
 
     df = df.loc[df.conf > 0]
 
@@ -51,7 +57,7 @@ def easyocr_engine(image) -> list[dict]:
     """OCR the image with easyOCR."""
     results = []
     image = np.asarray(image)
-    raw = EASY_OCR.readtext(image, blocklist=CHAR_BLACKLIST)
+    raw = EngineConfig.easy_ocr.readtext(image, blocklist=EngineConfig.char_blacklist)
     for item in raw:
         pos = item[0]
         results.append(
