@@ -9,8 +9,8 @@ from .terms import VocabTerms
 ON_TAXON_MATCH = "digi_leap.taxon.v1"
 LEVEL_LOWER = """ species subspecies variety subvariety form subform """.split()
 
-SSP = "ssp subspecies subsp".split()
-VAR = "var variety".split()
+SUBSPECIES = "ssp subspecies subsp".split()
+VARIETY = "var variety".split()
 
 
 def build_taxon_patterns():
@@ -23,8 +23,8 @@ def build_taxon_patterns():
             "auth": {"POS": "PROPN"},
             "maybe": {"POS": "NOUN"},
             "taxon": {"ENT_TYPE": "plant_taxon"},
-            "ssp": {"LOWER": {"IN": SSP}},
-            "var": {"LOWER": {"IN": VAR}},
+            "ssp": {"LOWER": {"IN": SUBSPECIES}},
+            "var": {"LOWER": {"IN": VARIETY}},
             "word": {"LOWER": {"REGEX": r"^[a-z-]+$"}},
         },
         patterns=[
@@ -32,6 +32,8 @@ def build_taxon_patterns():
             "taxon+ (? auth+ maybe auth+ )?",
             "taxon+ (? auth* )?             ssp .? word",
             "taxon+ (? auth+ maybe auth+ )? ssp .? word",
+            "taxon+ (? auth* )?             var .? word",
+            "taxon+ (? auth+ maybe auth+ )? var .? word",
         ],
     )
 
@@ -41,18 +43,18 @@ def on_taxon_match(ent):
     """Enrich a taxon match."""
     auth = []
     used_levels = []
-    next_is_spp, next_is_var = False, False
+    is_spp, is_var = False, False
     for token in ent:
-        if token.lower_ in SSP:
+        if token.lower_ in SUBSPECIES:
+            is_spp = True
+        elif token.lower_ in VARIETY:
+            is_var = True
+        elif is_spp:
             ent._.data["subspecies"] = token.lower_
-            next_is_spp = True
-        elif token.lower_ in VAR:
+            is_spp = False
+        elif is_var:
             ent._.data["variety"] = token.lower_
-            next_is_var = True
-        elif next_is_spp:
-            next_is_spp = False
-        elif next_is_var:
-            next_is_var = False
+            is_var = False
         elif token._.cached_label == "plant_taxon":
             levels = VocabTerms.level.get(token.lower_, ["unknown"])
 
@@ -65,6 +67,8 @@ def on_taxon_match(ent):
                     else:
                         ent._.data[level] = token.lower_.title()
                     break
+            else:
+                ent._.data["unknown_taxon"] = token.text
 
         elif token.pos_ in ["PROPN", "NOUN"]:
             auth.append(token.text)
