@@ -7,4 +7,7 @@ def get_common_patterns():
     return {
         ":": {"TEXT": {"IN": t_const.COLON}},
         ",": {"TEXT": {"IN": t_const.COMMA}},
+        ".": {"TEXT": {"IN": t_const.DOT}},
+        "(": {"TEXT": {"IN": t_const.OPEN}},
+        ")": {"TEXT": {"IN": t_const.CLOSE}},
     }

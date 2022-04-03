@@ -8,11 +8,11 @@ from tests.setup import test
 
 
 class TestLabelDate(unittest.TestCase):
-    """Test administrative unit patterns."""
+    """Test label date patterns."""
 
-    def test_label_date_00(self):
-        """It gets a county notation."""
-        test("""2004 11 05""")
+    # def test_label_date_00(self):
+    #     """It gets a county notation."""
+    #     test("""2004 11 05""")
 
     def test_label_date_01(self):
         """It gets a county notation."""

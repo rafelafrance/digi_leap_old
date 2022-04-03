@@ -10,6 +10,7 @@ def spacy_entities() -> list[str]:
 
 def all_entities() -> list[str]:
     """Forget traits that sub-entities that are not part of a larger entity."""
-    forget = """ us_county us_state us_state_or_county time_units month name """.split()
+    forget = """ us_county us_state us_state_or_county time_units month name
+        plant_taxon """.split()
     forget += spacy_entities()
     return forget

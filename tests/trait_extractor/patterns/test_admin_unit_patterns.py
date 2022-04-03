@@ -91,6 +91,14 @@ class TestAdminUnit(unittest.TestCase):
             ),
             [
                 {
+                    "genus": "Cornus",
+                    "species": "drummondii",
+                    "authority": "C. A. Mey",
+                    "trait": "taxon",
+                    "start": 0,
+                    "end": 27,
+                },
+                {
                     "us_county": "Hempstead",
                     "trait": "admin_unit",
                     "start": 29,

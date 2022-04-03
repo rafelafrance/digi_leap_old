@@ -74,6 +74,8 @@ def pipeline():
         config={"dispatch": matcher_patterns.patterns_to_dispatch(ADD_DATA)},
     )
 
+    # pipeline_utils.debug_tokens(nlp)
+
     pipeline_utils.forget_entities(nlp)
 
     return nlp

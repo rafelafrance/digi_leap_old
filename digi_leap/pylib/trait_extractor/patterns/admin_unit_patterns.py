@@ -3,7 +3,7 @@ from spacy import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
-from .terms import AdminUnitTerms
+from .terms import VocabTerms
 
 
 class AdminUnit:
@@ -50,7 +50,7 @@ def on_county_before_state_match(ent):
     ent._.new_label = "admin_unit"
     entities = [e for e in ent.ents if e.label_ in AdminUnit.any_]
     state = entities[1].text.title()
-    ent._.data["us_state"] = AdminUnitTerms.replace.get(state, state)
+    ent._.data["us_state"] = VocabTerms.replace.get(state, state)
     ent._.data["us_county"] = entities[0].text.title()
 
 
@@ -101,7 +101,7 @@ def on_state_before_county_match(ent):
     ent._.new_label = "admin_unit"
     entities = [e for e in ent.ents if e.label_ in AdminUnit.any_]
     state = entities[0].text.title()
-    ent._.data["us_state"] = AdminUnitTerms.replace.get(state, state)
+    ent._.data["us_state"] = VocabTerms.replace.get(state, state)
     ent._.data["us_county"] = entities[1].text.title()
 
 
@@ -126,4 +126,4 @@ def on_state_only_match(ent):
     """Enrich an administrative unit match."""
     ent._.new_label = "admin_unit"
     state = [e.text.title() for e in ent.ents if e.label_ in AdminUnit.state][0]
-    ent._.data["us_state"] = AdminUnitTerms.replace.get(state, state)
+    ent._.data["us_state"] = VocabTerms.replace.get(state, state)

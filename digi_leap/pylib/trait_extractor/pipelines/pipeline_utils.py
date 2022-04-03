@@ -1,7 +1,5 @@
 """Common pipeline functions & constants."""
-import os
 import string
-from pathlib import Path
 
 from traiter import tokenizer_util
 from traiter.pipes.cleanup import CLEANUP
@@ -9,17 +7,6 @@ from traiter.pipes.debug import DEBUG_ENTITIES
 from traiter.pipes.debug import DEBUG_TOKENS
 
 from ..patterns import forget_patterns
-
-
-# ##########################################################################
-# Vocabulary locations
-class Dir:
-    """File locations."""
-
-    curr_dir = Path(os.getcwd())
-    is_subdir = curr_dir.name in ("notebooks", "experiments")
-    root_dir = Path(".." if is_subdir else ".")
-    vocab_dir = root_dir / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
 
 
 # ##########################################################################

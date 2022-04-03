@@ -5,7 +5,7 @@ from tests.setup import test
 
 
 class TestCollector(unittest.TestCase):
-    """Test administrative unit patterns."""
+    """Test collector patterns."""
 
     # def test_collector_00(self):
     #     test("""Coll. E. E. Dale Jr. No. 6061""")
@@ -52,6 +52,14 @@ class TestCollector(unittest.TestCase):
                     "trait": "label_date",
                     "start": 185,
                     "end": 203,
+                },
+                {
+                    "genus": "Rhus",
+                    "species": "glabra",
+                    "authority": "L.",
+                    "trait": "taxon",
+                    "start": 0,
+                    "end": 14,
                 },
                 {
                     "us_state": "Arkansas",
@@ -114,6 +122,14 @@ class TestCollector(unittest.TestCase):
                     "trait": "collector",
                     "start": 128,
                     "end": 158,
+                },
+                {
+                    "genus": "Woodsia",
+                    "species": "obtusa",
+                    "authority": "Sprengel",
+                    "trait": "taxon",
+                    "start": 0,
+                    "end": 25,
                 },
             ],
         )
