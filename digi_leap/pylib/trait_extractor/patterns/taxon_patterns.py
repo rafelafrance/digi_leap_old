@@ -58,7 +58,7 @@ def on_taxon_match(ent):
         elif token._.cached_label == "plant_taxon":
             levels = VocabTerms.level.get(token.lower_, ["unknown"])
 
-            # Find the highest unused level
+            # Find the highest unused taxon level
             for level in levels:
                 if level not in used_levels:
                     used_levels.append(level)
@@ -73,6 +73,5 @@ def on_taxon_match(ent):
         elif token.pos_ in ["PROPN", "NOUN"]:
             auth.append(token.text)
 
-    # ent._.data["taxon"] = " ".join(taxon)
     if auth:
         ent._.data["authority"] = " ".join(auth)

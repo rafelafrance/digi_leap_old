@@ -19,7 +19,8 @@ python -m pip install --upgrade pip setuptools wheel
 
 # ##############################################################################
 # I want to use the GPU when possible.
-pip3 install torch==1.10.2+cu113 torchvision==0.11.3+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+# pip3 install torch==1.10.2+cu113 torchvision==0.11.3+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+# pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 
 
 # ##############################################################################
@@ -38,8 +39,8 @@ python -m spacy download en_core_web_md
 # ##############################################################################
 # Use the 2nd line if you don't have traiter installed locally
 
-# pip install -e ../../traiter/traiter
- pip install git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
+pip install -e ../../traiter/traiter
+# pip install git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
 
 
 # ##############################################################################
