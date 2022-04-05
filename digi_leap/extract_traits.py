@@ -7,12 +7,15 @@ from pathlib import Path
 
 from pylib import db
 from pylib.trait_extractor import extractor
+from traiter import log
 
 
 def main():
     """Run it."""
+    log.started()
     args = parse_args()
     extractor.extract(args)
+    log.finished()
 
 
 def parse_args() -> argparse.Namespace:
@@ -59,13 +62,13 @@ def parse_args() -> argparse.Namespace:
     )
 
     args = arg_parser.parse_args()
-    validate_cons_set(args.database, args.ocr_set)
+    validate_cons_set(args.database, args.cons_set)
     return args
 
 
 def validate_cons_set(database, cons_set):
     """Get the OCR runs included in this cons_set."""
-    all_cons_sets = [s["ocr_set"] for s in db.get_cons_sets(database)]
+    all_cons_sets = [s["cons_set"] for s in db.get_cons_sets(database)]
     if cons_set in all_cons_sets:
         return
     print(f"{cons_set} is not a valid consensus set.")

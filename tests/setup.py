@@ -8,7 +8,7 @@ from digi_leap.pylib.trait_extractor.pipelines import extractor_pipeline
 from digi_leap.pylib.trait_extractor.pipelines import vocab_pipeline
 
 NLP_EXTRACTOR = extractor_pipeline.pipeline()  # Singleton for testing
-NLP_ADMIN_UNIT = vocab_pipeline.pipeline()  # Singleton for testing
+NLP_VOCAB = vocab_pipeline.pipeline()  # Singleton for testing
 
 
 def test(text: str) -> List[Dict]:
@@ -16,7 +16,7 @@ def test(text: str) -> List[Dict]:
     text = shorten(text)
 
     extractor_doc = NLP_EXTRACTOR(text)
-    admin_unit_doc = NLP_ADMIN_UNIT(text)
+    admin_unit_doc = NLP_VOCAB(text)
 
     traits = [e._.data for e in extractor_doc.ents]
     traits += [e._.data for e in admin_unit_doc.ents]

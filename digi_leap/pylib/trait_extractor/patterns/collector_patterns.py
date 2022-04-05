@@ -2,6 +2,7 @@
 import re
 
 from spacy import registry
+from traiter.actions import RejectMatch
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
@@ -86,5 +87,9 @@ def on_collector_match(ent):
     people = [re.sub(r",", "", p) for p in new]
     people = [re.sub(r"\s\s+", " ", p) for p in people]
 
+    # All that for nothing
+    if not people:
+        raise RejectMatch
+
     # Format output
-    ent._.data["collector"] = people if len(new) > 1 else people[0]
+    ent._.data["collector"] = people if len(people) > 1 else people[0]

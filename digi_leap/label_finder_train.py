@@ -4,10 +4,10 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from .pylib import consts
-from .pylib import log
-from digi_leap.pylib.label_finder.models import efficient_det_model as edm
-from digi_leap.pylib.label_finder.runners import trainer_runner
+from pylib import consts
+from pylib import log
+from pylib.label_finder.models import efficient_det_model as edm
+from pylib.label_finder.runners import trainer_runner
 
 
 def main():

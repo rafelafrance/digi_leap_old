@@ -28,7 +28,7 @@ class VocabTerms:
     """Terms used for parsing traits with a large vocabulary."""
 
     terms = Csv.shared("us_locations")
-    terms += Csv.read_csv(Dir.vocab_dir / "itis_plant_taxa.csv")
+    terms += Csv.read_csv(Dir.vocab_dir / "plant_taxa.csv")
 
     replace = terms.pattern_dict("replace")
 

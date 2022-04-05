@@ -402,15 +402,14 @@ def create_traits_table(database: DbPath, drop: bool = False) -> None:
     sql = """
         create table if not exists traits (
             trait_id  integer primary key autoincrement,
-            trait_set text
+            trait_set text,
             cons_id   text,
             trait     text,
-            value     text,
-            start     integer,
-            end       integer,
             data      text
         );
-        create index if not exists traits_label_id on traits (label_id);
+        create index if not exists traits_trait_set on traits (trait_set);
+        create index if not exists traits_cons_id on traits (cons_id);
+        create index if not exists traits_trait on traits (trait);
         """
     create_table(database, sql, drop=drop)
 
@@ -418,9 +417,9 @@ def create_traits_table(database: DbPath, drop: bool = False) -> None:
 def insert_traits(database: DbPath, batch: list) -> None:
     """Insert a batch of consensus records."""
     sql = """
-        insert into cons
-               (trait_set,  cons_id,  trait,  value,  start,  end,  data)
-        values (:trait_set, :cons_id, :trait, :value, :start, :end, :data);
+        insert into traits
+               ( trait_set,  cons_id,  trait,  data)
+        values (:trait_set, :cons_id, :trait, :data);
     """
     insert_batch(database, sql, batch)
 

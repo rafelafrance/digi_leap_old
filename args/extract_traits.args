@@ -1,0 +1,3 @@
+--database=data/sernec/sernec.sqlite
+--cons-set=tf_efficientnetv2_s_2022-03-13
+--trait-set=traiter_2022-04-05

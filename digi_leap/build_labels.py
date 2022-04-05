@@ -6,13 +6,16 @@ import textwrap
 from pathlib import Path
 
 from pylib import db
+from pylib import log
 from pylib.label_builder import label_builder
 
 
 def main():
     """Run it."""
+    log.started()
     args = parse_args()
     label_builder.build_labels(args)
+    log.finished()
 
 
 def parse_args() -> argparse.Namespace:

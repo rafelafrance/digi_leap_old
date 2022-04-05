@@ -44,6 +44,7 @@ def on_taxon_match(ent):
     auth = []
     used_levels = []
     is_spp, is_var = False, False
+
     for token in ent:
         if token.lower_ in SUBSPECIES:
             is_spp = True
@@ -55,6 +56,7 @@ def on_taxon_match(ent):
         elif is_var:
             ent._.data["variety"] = token.lower_
             is_var = False
+
         elif token._.cached_label == "plant_taxon":
             levels = VocabTerms.level.get(token.lower_, ["unknown"])
 
@@ -75,3 +77,6 @@ def on_taxon_match(ent):
 
     if auth:
         ent._.data["authority"] = " ".join(auth)
+
+    if ent._.data.get("plant_taxon"):
+        del ent._.data["plant_taxon"]
