@@ -5,6 +5,7 @@ cppimport
 python-dateutil
 easyocr
 effdet
+jinja2
 jupyter
 matplotlib
 nltk

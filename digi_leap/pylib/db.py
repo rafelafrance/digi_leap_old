@@ -11,9 +11,14 @@ from typing import Union
 DbPath = Union[Path, str]
 
 
-def build_select(sql: str, *, limit: int = 0, **kwargs) -> tuple[str, list]:
+def build_select(
+    sql: str, *, limit: int = 0, order_by: str = "", **kwargs
+) -> tuple[str, list]:
     """Select records given a base SQL statement and keyword parameters."""
     sql, params = build_where(sql, **kwargs)
+
+    if order_by:
+        sql += " " + order_by
 
     if limit:
         sql += " limit ?"
@@ -422,6 +427,31 @@ def insert_traits(database: DbPath, batch: list) -> None:
         values (:trait_set, :cons_id, :trait, :data);
     """
     insert_batch(database, sql, batch)
+
+
+def select_traits(
+    database: DbPath,
+    trait_set: str = "",
+    limit: int = 0,
+) -> list[dict]:
+    """Get consensus records."""
+    sql = """
+        select *
+          from traits
+          join cons using (cons_id)
+          join labels using (label_id)
+          join sheets using (sheet_id)
+    """
+    order_by = "order by cons_id, trait_id"
+    sql, params = build_select(sql, limit=limit, order_by=order_by, trait_set=trait_set)
+    return rows_as_dicts(database, sql, params)
+
+
+def get_trait_sets(database: DbPath) -> list[dict]:
+    """Get all of the consensus sets in the database."""
+    sql = """select distinct trait_set from traits"""
+    sql, params = build_select(sql)
+    return rows_as_dicts(database, sql, params)
 
 
 # ############ label finder test table ################################################
