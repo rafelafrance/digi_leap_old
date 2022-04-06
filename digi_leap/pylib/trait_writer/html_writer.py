@@ -89,31 +89,32 @@ def format_text(text, rows, classes) -> str:
     return text
 
 
-def format_traits(traits, classes) -> list[collections.namedtuple]:
+def format_traits(rows, classes) -> list[collections.namedtuple]:
     """Format the traits for output."""
     traits = []
 
-    # sortable = []
-    # for trait in datum.traits:
-    #     label = get_label(trait)
-    #     sortable.append(SortableTrait(label, trait["start"], trait))
-    #
-    # sortable = sorted(sortable)
-    #
-    # for label, grouped in itertools.groupby(sortable, key=lambda x: x.label):
-    #     cls = get_class(label, classes)
-    #     label = f'<span class="{cls}">{label}</span>'
-    #     trait_list = []
-    #     for trait in grouped:
-    #         trait_list.append(
-    #             ", ".join(
-    #                 f"{k}:&nbsp;{v}"
-    #                 for k, v in trait.trait.items()
-    #                 if k not in TRAIT_SKIPS
-    #             )
-    #         )
-    #
-    #     traits.append(Trait(label, "<br/>".join(trait_list)))
+    sortable = []
+    for row in rows:
+        trait = json.loads(row["data"])
+        label = get_label(trait)
+        sortable.append(SortableTrait(label, trait["start"], trait))
+
+    sortable = sorted(sortable)
+
+    for label, grouped in itertools.groupby(sortable, key=lambda x: x.label):
+        cls = get_class(label, classes)
+        label = f'<span class="{cls}">{label}</span>'
+        trait_list = []
+        for trait in grouped:
+            trait_list.append(
+                ", ".join(
+                    f"{k}:&nbsp;{v}"
+                    for k, v in trait.trait.items()
+                    if k not in TRAIT_SKIPS
+                )
+            )
+
+        traits.append(Trait(label, "<br/>".join(trait_list)))
 
     return traits
 
