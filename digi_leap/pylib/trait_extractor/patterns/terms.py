@@ -2,33 +2,36 @@
 import os
 from pathlib import Path
 
-from traiter.terms.csv_ import Csv
+from traiter.terms.db import Db
 
 
 # ##########################################################################
 # Vocabulary locations
-class Dir:
+class Locations:
     """File locations."""
 
     curr_dir = Path(os.getcwd())
     is_subdir = curr_dir.name in ("notebooks", "experiments")
     root_dir = Path(".." if is_subdir else ".")
     vocab_dir = root_dir / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
+    data_dir = root_dir / "data"
+    term_db = vocab_dir / "terms.sqlite"
 
 
 # ##########################################################################
 class ExtractorTerms:
     """Terms for all the basic traits."""
 
-    terms = Csv.shared("time")
+    terms = Db.shared("time")
 
 
 # ##########################################################################
 class VocabTerms:
     """Terms used for parsing traits with a large vocabulary."""
 
-    terms = Csv.shared("us_locations")
-    terms += Csv.read_csv(Dir.vocab_dir / "itis_plant_taxa.csv")
+    terms = Db.shared("us_locations")
+    terms += Db.select_term_set(Locations.term_db, "plant_taxa")
+    terms += Db.select_term_set(Locations.term_db, "taxon_levels")
 
     replace = terms.pattern_dict("replace")
 

@@ -15,7 +15,7 @@ BACKGROUNDS = itertools.cycle([f"cc{i}" for i in range(COLOR_COUNT)])
 BORDERS = itertools.cycle([f"bb{i}" for i in range(COLOR_COUNT)])
 
 TITLE_SKIPS = ["start", "end", "trait"]
-TRAIT_SKIPS = TITLE_SKIPS + ["part", "subpart"]
+TRAIT_SKIPS = TITLE_SKIPS
 
 Formatted = collections.namedtuple("Formatted", "text traits")
 Trait = collections.namedtuple("Trait", "label data")

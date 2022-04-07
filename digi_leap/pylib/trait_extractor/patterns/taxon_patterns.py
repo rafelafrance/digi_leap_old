@@ -7,10 +7,8 @@ from .terms import VocabTerms
 
 
 ON_TAXON_MATCH = "digi_leap.taxon.v1"
-LEVEL_LOWER = """ species subspecies variety subvariety form subform """.split()
 
-SUBSPECIES = "ssp subspecies subsp".split()
-VARIETY = "var variety".split()
+LEVEL_LOWER = """ species subspecies variety subvariety form subform """.split()
 
 
 def build_taxon_patterns():
@@ -23,17 +21,14 @@ def build_taxon_patterns():
             "auth": {"POS": "PROPN"},
             "maybe": {"POS": "NOUN"},
             "taxon": {"ENT_TYPE": "plant_taxon"},
-            "ssp": {"LOWER": {"IN": SUBSPECIES}},
-            "var": {"LOWER": {"IN": VARIETY}},
+            "level": {"ENT_TYPE": "level"},
             "word": {"LOWER": {"REGEX": r"^[a-z-]+$"}},
         },
         patterns=[
             "taxon+ (? auth* )?",
             "taxon+ (? auth+ maybe auth+ )?",
-            "taxon+ (? auth* )?             ssp .? word",
-            "taxon+ (? auth+ maybe auth+ )? ssp .? word",
-            "taxon+ (? auth* )?             var .? word",
-            "taxon+ (? auth+ maybe auth+ )? var .? word",
+            "taxon+ (? auth* )?             level .? word",
+            "taxon+ (? auth+ maybe auth+ )? level .? word",
         ],
     )
 
@@ -43,19 +38,14 @@ def on_taxon_match(ent):
     """Enrich a taxon match."""
     auth = []
     used_levels = []
-    is_spp, is_var = False, False
+    is_level = ""
 
     for token in ent:
-        if token.lower_ in SUBSPECIES:
-            is_spp = True
-        elif token.lower_ in VARIETY:
-            is_var = True
-        elif is_spp:
-            ent._.data["subspecies"] = token.lower_
-            is_spp = False
-        elif is_var:
-            ent._.data["variety"] = token.lower_
-            is_var = False
+        if token._.cached_label == "level":
+            is_level = VocabTerms.replace.get(token.lower_, token.lower_)
+        elif is_level:
+            ent._.data[is_level] = token.lower_
+            is_level = ""
 
         elif token._.cached_label == "plant_taxon":
             levels = VocabTerms.level.get(token.lower_, ["unknown"])

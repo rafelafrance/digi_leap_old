@@ -9,9 +9,9 @@ from .terms import VocabTerms
 class AdminUnit:
     """Constants used to parse admin units."""
 
-    state = ["us_state", "us_state_or_county", "us_territory"]
-    county = ["us_county", "us_state_or_county"]
-    any_ = ["us_state", "us_county", "us_state_or_county", "us_territory"]
+    state = ["us_state", "us_state-us_county", "us_territory"]
+    county = ["us_county", "us_state-us_county"]
+    any_ = ["us_state", "us_county", "us_state-us_county", "us_territory"]
 
 
 # ####################################################################################
