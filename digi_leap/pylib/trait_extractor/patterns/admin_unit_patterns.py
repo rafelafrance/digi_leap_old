@@ -116,7 +116,7 @@ def build_state_only_patterns():
         on_match=ON_STATE_ONLY_MATCH,
         decoder=admin_unit_decoder(),
         patterns=[
-            "state_label of? us_state",
+            "state_label of? :? us_state",
         ],
     )
 

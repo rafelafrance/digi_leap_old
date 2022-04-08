@@ -29,7 +29,11 @@ class ExtractorTerms:
 class VocabTerms:
     """Terms used for parsing traits with a large vocabulary."""
 
-    terms = Db.shared("us_locations taxon_levels")
+    terms = Db()
+    terms.no_clobber = True
+    terms.silent = True
+
+    terms += Db.shared("us_locations taxon_levels")
     terms += Db.select_term_set(Locations.term_db, "plant_taxa")
 
     replace = terms.pattern_dict("replace")

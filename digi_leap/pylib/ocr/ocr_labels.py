@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from . import engine_runner
 from . import label_transformer as lt
-from ...pylib import db
+from .. import db
 
 ENGINE = {
     "tesseract": engine_runner.tesseract_engine,

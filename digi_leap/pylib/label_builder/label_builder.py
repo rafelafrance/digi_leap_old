@@ -7,8 +7,8 @@ from multiprocessing import Pool
 from tqdm import tqdm
 
 from . import ocr_results
-from ...pylib import db
-from ...pylib import utils
+from .. import db
+from .. import utils
 from .line_align import line_align_py as la  # type: ignore
 from .line_align import line_align_subs
 from .spell_well import spell_well as sw
@@ -81,7 +81,8 @@ def build_label_text(ocr_fragments, spell_well, line_align):
         # ln = ocr_results.choose_best_copy(copies, spell_well)
 
         ln = ocr_results.substitute(ln)
-        ln = ocr_results.spaces(ln, spell_well)
+        ln = ocr_results.add_spaces(ln, spell_well)
+        ln = ocr_results.remove_spaces(ln, spell_well)
         ln = ocr_results.correct(ln, spell_well)
 
         text.append(ln)

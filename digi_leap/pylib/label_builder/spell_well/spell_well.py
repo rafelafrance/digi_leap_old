@@ -10,7 +10,7 @@ from typing import Iterable
 
 import regex as re
 
-from ....pylib import consts
+from ... import consts
 
 VOCAB_DB = consts.ROOT_DIR / "data" / "vocab.sqlite"
 
@@ -93,6 +93,12 @@ class SpellWell:
         sql = "select word from spells where miss = ? and dist = 0"
         hit = self.cxn.execute(sql, (word,)).fetchone()
         return bool(hit)
+
+    def freq(self, word: str) -> int:
+        """Determine if this is a word ."""
+        sql = "select freq from spells where miss = ? and dist = 0"
+        hit = self.cxn.execute(sql, (word,)).fetchone()
+        return hit[0] if hit else 0
 
     def hits(self, text: str) -> int:
         """Count the number of words in the text that are in our corpus.

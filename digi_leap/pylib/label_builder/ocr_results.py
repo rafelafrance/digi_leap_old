@@ -277,7 +277,40 @@ def substitute(line: str) -> str:
     return line
 
 
-def spaces(line, spell_well):
+def add_spaces(line, spell_well, min_len: int = 3, min_freq: int = 10):
+    """Add spaces between words.
+
+    OCR engines will remove spaces between words. This function looks for a non-word
+    and sees if adding a space will create 2 (or 1) word.
+    For example: "SouthFlorida" becomes "South Florida".
+    """
+    tokens = spell_well.tokenize(line)
+
+    new = []
+    for token in tokens:
+        if token.isspace() or spell_well.is_word(token) or len(token) < min_len:
+            new.append(token)
+        else:
+            candidates = []
+            for i in range(1, len(token) - 1):
+                freq1 = spell_well.freq(token[:i])
+                freq2 = spell_well.freq(token[i:])
+                if freq1 >= min_freq or freq2 >= min_freq:
+                    sum_ = freq1 + freq2
+                    count = int(freq1 > 0) + int(freq2 > 0)
+                    candidates.append((count, sum_, i))
+            if candidates:
+                i = sorted(candidates, reverse=True)[0][2]
+                new.append(token[:i])
+                new.append(" ")
+                new.append(token[i:])
+            else:
+                new.append(token)
+
+    return line
+
+
+def remove_spaces(line, spell_well):
     """Remove extra spaces in words.
 
     OCR engines will put spaces where there shouldn't be any. This is a simple

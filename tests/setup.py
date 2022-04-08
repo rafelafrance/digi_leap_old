@@ -16,10 +16,10 @@ def test(text: str) -> List[Dict]:
     text = shorten(text)
 
     extractor_doc = NLP_EXTRACTOR(text)
-    admin_unit_doc = NLP_VOCAB(text)
+    vocab_doc = NLP_VOCAB(text)
 
     traits = [e._.data for e in extractor_doc.ents]
-    traits += [e._.data for e in admin_unit_doc.ents]
+    traits += [e._.data for e in vocab_doc.ents]
 
     # from pprint import pp
     # pp(traits, compact=True)

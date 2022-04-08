@@ -12,8 +12,8 @@ from tqdm import tqdm
 
 from . import engine_runner
 from . import label_transformer as lt
-from ...pylib import db
-from ...pylib import utils
+from .. import db
+from .. import utils
 
 ENGINE = {
     "tesseract": engine_runner.tesseract_engine,

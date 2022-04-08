@@ -8,8 +8,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from . import runner_utils
-from ....pylib import consts
-from ....pylib import db
+from ... import consts
+from ... import db
 from ..datasets.labeled_data import LabeledData
 from ..models import model_utils
 

@@ -9,7 +9,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from PIL import Image
 from torch.utils.data import Dataset
 
-from digi_leap.pylib import consts
+from ... import consts
 
 UnlabeledSheet = namedtuple("UnlabeledSheet", "path sheet_id")
 
