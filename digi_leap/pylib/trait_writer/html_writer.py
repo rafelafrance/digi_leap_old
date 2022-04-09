@@ -37,6 +37,9 @@ def write(args):
 
     for cons_id, rows in groups:
         rows = list(rows)
+        for row in rows:
+            row["trait"] = json.loads(row["data"])
+        rows = sorted(rows, key=lambda r: r["trait"]["start"])
         formatted.append(
             Formatted(
                 format_text(rows[0]["cons_text"], rows, classes),
@@ -61,7 +64,7 @@ def format_text(text, rows, classes) -> str:
     prev = 0
 
     for row in rows:
-        trait = json.loads(row["data"])
+        trait = row["trait"]
         start = trait["start"]
         end = trait["end"]
 
@@ -95,7 +98,7 @@ def format_traits(rows, classes) -> list[collections.namedtuple]:
 
     sortable = []
     for row in rows:
-        trait = json.loads(row["data"])
+        trait = row["trait"]
         label = get_label(trait)
         sortable.append(SortableTrait(label, trait["start"], trait))
 

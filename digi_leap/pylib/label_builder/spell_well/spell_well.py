@@ -22,23 +22,30 @@ class SpellWell:
 
     null_spell = Spell("", 99, -1.0)
 
-    def __init__(self, min_freq=5, min_len=3, vocab_db=VOCAB_DB):
+    def __init__(self, vocab_db=VOCAB_DB, min_freq=5, min_len=3, vocab_freq=10):
         self.min_len = min_len
         self.min_freq = min_freq
+        self.vocab_freq = vocab_freq
         self.vocab_db = vocab_db
         self.cxn = sqlite3.connect(":memory:")
         self.db_to_memory()
 
     def db_to_memory(self):
         """Move the misspellings table to memory."""
-        create = """
+        create1 = """
             create table spells as
             select * from aux.misspellings where freq >= ? and length(miss) >= ?;"""
-        index = """create index spells_miss on spells (miss);"""
+        create2 = """
+            create table vocab as
+            select * from aux.vocab where freq >= ?;"""
+        indexes = """
+            create index spells_miss on spells (miss);
+            create index vocab_word on vocab (word);"""
         try:
             self.cxn.execute(f"attach database '{self.vocab_db}' as aux")
-            self.cxn.execute(create, (self.min_freq, self.min_len))
-            self.cxn.execute(index)
+            self.cxn.execute(create1, (self.min_freq, self.min_len))
+            self.cxn.execute(create2, (self.vocab_freq,))
+            self.cxn.executescript(indexes)
             self.cxn.execute("detach database aux")
         except sqlite3.OperationalError as e:
             logging.error(e)
@@ -90,13 +97,13 @@ class SpellWell:
 
     def is_word(self, word: str) -> bool:
         """Determine if this is a word ."""
-        sql = "select word from spells where miss = ? and dist = 0"
+        sql = "select word from vocab where word = ?"
         hit = self.cxn.execute(sql, (word,)).fetchone()
         return bool(hit)
 
     def freq(self, word: str) -> int:
         """Determine if this is a word ."""
-        sql = "select freq from spells where miss = ? and dist = 0"
+        sql = "select freq from vocab where word = ?"
         hit = self.cxn.execute(sql, (word,)).fetchone()
         return hit[0] if hit else 0
 

@@ -7,6 +7,7 @@ from traiter.pipes.simple_entity_data import SIMPLE_ENTITY_DATA
 
 from . import pipeline_utils
 from ..patterns import collector_patterns
+from ..patterns import determiner_patterns
 from ..patterns import forget_patterns
 from ..patterns import label_date_patterns
 from ..patterns import name_patterns
@@ -17,6 +18,7 @@ ADD_DATA = [
     label_date_patterns.build_label_date_patterns(),
     label_date_patterns.build_missing_day_patterns(),
     collector_patterns.build_collector_patterns(),
+    determiner_patterns.build_determiner_patterns(),
 ]
 
 NAME_DATA = [name_patterns.build_name_patterns()]

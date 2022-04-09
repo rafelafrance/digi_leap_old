@@ -277,7 +277,7 @@ def substitute(line: str) -> str:
     return line
 
 
-def add_spaces(line, spell_well, min_len: int = 3, min_freq: int = 10):
+def add_spaces(line, spell_well, vocab_len=3):
     """Add spaces between words.
 
     OCR engines will remove spaces between words. This function looks for a non-word
@@ -288,14 +288,14 @@ def add_spaces(line, spell_well, min_len: int = 3, min_freq: int = 10):
 
     new = []
     for token in tokens:
-        if token.isspace() or spell_well.is_word(token) or len(token) < min_len:
+        if token.isspace() or spell_well.is_word(token) or len(token) < vocab_len:
             new.append(token)
         else:
             candidates = []
             for i in range(1, len(token) - 1):
                 freq1 = spell_well.freq(token[:i])
                 freq2 = spell_well.freq(token[i:])
-                if freq1 >= min_freq or freq2 >= min_freq:
+                if freq1 or freq2:
                     sum_ = freq1 + freq2
                     count = int(freq1 > 0) + int(freq2 > 0)
                     candidates.append((count, sum_, i))

@@ -23,6 +23,7 @@ class ExtractorTerms:
     """Terms for all the basic traits."""
 
     terms = Db.shared("time")
+    terms += Db.select_term_set(Locations.term_db, "jobs")
 
 
 # ##########################################################################

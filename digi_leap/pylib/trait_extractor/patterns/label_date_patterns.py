@@ -72,7 +72,7 @@ def on_label_date_match(ent):
     try:
         date_ = parser.parse(text).date()
     except (parser.ParserError, IllegalMonthError):
-        raise actions.RejectMatch
+        raise actions.RejectMatch()
 
     if date_ > date.today():
         date_ -= relativedelta(years=100)

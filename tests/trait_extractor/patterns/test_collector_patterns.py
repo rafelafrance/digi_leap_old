@@ -41,6 +41,12 @@ class TestCollector(unittest.TestCase):
             ),
             [
                 {
+                    "trait": "determiner",
+                    "start": 135,
+                    "end": 154,
+                    "determiner": "Edwin B. Smith",
+                },
+                {
                     "collector_no": "5595",
                     "collector": "Marie P. Locke",
                     "trait": "collector",

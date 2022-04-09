@@ -18,3 +18,9 @@ class TestSpellWell(unittest.TestCase):
 
     def test_correct_04(self):
         self.assertEqual(self.spell_well.correct("abdoman"), "abdomen")
+
+    def test_freq_01(self):
+        self.assertEqual(self.spell_well.freq("acaulescent"), 1050)
+
+    def test_freq_02(self):
+        self.assertEqual(self.spell_well.freq("zebra"), 0)

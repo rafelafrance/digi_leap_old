@@ -13,7 +13,6 @@ class Collector:
 
     conj = ["CCONJ", "ADP"]
     collector_no = r"^\w*\d+\w*$"
-    collector_label = """ collector collected coll coll. col col. """.split()
     number_label = """ number no no. num num. # """.split()
 
 
@@ -30,7 +29,7 @@ def build_collector_patterns():
             ":": {"TEXT": {"REGEX": r"^[:._]+$"}},
             "and": {"POS": {"IN": Collector.conj}},
             "by": {"LOWER": {"IN": ["by"]}},
-            "col_label": {"LOWER": {"IN": Collector.collector_label}},
+            "col_label": {"ENT_TYPE": "col_label"},
             "col_no": {"LOWER": {"REGEX": Collector.collector_no}},
             "no_label": {"LOWER": {"IN": Collector.number_label}},
             "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
@@ -61,7 +60,7 @@ def on_collector_match(ent):
     for token in ent:
         if token.lower_ in Collector.number_label:
             pass
-        elif token.lower_ in Collector.collector_label:
+        elif token._.cached_label == "col_label":
             pass
         elif token.pos_ == "PROPN":
             people.append(token.text)
@@ -89,7 +88,7 @@ def on_collector_match(ent):
 
     # All that for nothing
     if not people:
-        raise RejectMatch
+        raise RejectMatch()
 
     # Format output
     ent._.data["collector"] = people if len(people) > 1 else people[0]
