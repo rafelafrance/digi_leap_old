@@ -48,6 +48,20 @@ def parse_args() -> argparse.Namespace:
         help="""Extract traits from this consensus label set.""",
     )
 
+    # arg_parser.add_argument(
+    #     "--load-patterns",
+    #     metavar="DIR",
+    #     type=Path,
+    #     help="""Load spacy entity patterns from this directory.""",
+    # )
+
+    # arg_parser.add_argument(
+    #     "--save-patterns",
+    #     metavar="DIR",
+    #     type=Path,
+    #     help="""Save spacy entity patterns to this directory.""",
+    # )
+
     arg_parser.add_argument(
         "--limit",
         type=int,

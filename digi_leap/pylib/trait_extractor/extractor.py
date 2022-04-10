@@ -15,8 +15,8 @@ def extract(args):
     db.create_traits_table(args.database)
     db.delete(args.database, "traits", trait_set=args.trait_set)
 
-    nlp_extractor = extractor_pipeline.pipeline()
-    nlp_vocab = vocab_pipeline.pipeline()
+    nlp_extractor = extractor_pipeline.build_pipeline()
+    nlp_vocab = vocab_pipeline.build_pipeline()
 
     records = db.select_consensus(args.database, args.cons_set, limit=args.limit)
 

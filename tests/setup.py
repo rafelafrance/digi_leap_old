@@ -7,8 +7,8 @@ from traiter.util import shorten
 from digi_leap.pylib.trait_extractor.pipelines import extractor_pipeline
 from digi_leap.pylib.trait_extractor.pipelines import vocab_pipeline
 
-NLP_EXTRACTOR = extractor_pipeline.pipeline()  # Singleton for testing
-NLP_VOCAB = vocab_pipeline.pipeline()  # Singleton for testing
+NLP_EXTRACTOR = extractor_pipeline.build_pipeline()  # Singleton for testing
+NLP_VOCAB = vocab_pipeline.build_pipeline()  # Singleton for testing
 
 
 def test(text: str) -> List[Dict]:

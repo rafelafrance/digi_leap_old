@@ -9,8 +9,8 @@ ON_NAME_MATCH = "digi_leap.name.v1"
 
 def build_name_patterns():
     """Build patterns for name traits."""
-    prefixes = " mr mr. mrs mrs. miss dr dr. ".split()
-    suffixes = " filho ii ii. iii iii. jr jr. sr sr. ".split()
+    prefixes = " dr dr. mr mr. mrs mrs. miss ".split()
+    suffixes = " filho ii iii jr jr. sr sr. ".split()
 
     return MatcherPatterns(
         "name",
@@ -18,17 +18,18 @@ def build_name_patterns():
         decoder=common_patterns.get_common_patterns()
         | {
             "jr": {"LOWER": {"IN": suffixes}},
-            "mr": {"LOWER": {"IN": prefixes}},
+            "dr": {"LOWER": {"IN": prefixes}},
             "person": {"ENT_TYPE": "PERSON"},
             "maybe_name": {"POS": "PROPN"},
         },
         patterns=[
-            "mr? person+ ,? jr?",
+            "dr? person+ ,? jr?",
         ],
     )
 
 
 @registry.misc(ON_NAME_MATCH)
-def on_name_match(_):
+def on_name_match(ent):
     """Enrich a collector match."""
-    pass
+    if ent._.data.get("PERSON"):
+        del ent._.data["PERSON"]

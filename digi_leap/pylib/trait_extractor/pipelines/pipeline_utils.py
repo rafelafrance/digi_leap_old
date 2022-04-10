@@ -9,19 +9,8 @@ from traiter.pipes.debug import DEBUG_TOKENS
 from ..patterns import forget_patterns
 
 
-# ##########################################################################
-def infix():
-    """Adjust how the tokenizer splits words."""
-    return [
-        r"(?<=[0-9])[/,](?=[0-9])",  # digit,digit
-        r"(?<=[A-Z])[/-](?=[0-9])",  # letter-digit
-        "-_",
-    ]
-
-
 # #########################################################################
 def abbreviations():
-    """Get abbreviations for the term tokenizer."""
     abbrevs = """
         Jan. Feb. Febr. Mar. Apr. Jun. Jul. Aug. Sep. Sept. Oct. Nov. Dec.
         Acad. Amer. Ann. Arq. Bol. Bot. Bull. Cat. Coll. Com. Contr. Exot. FIG.
@@ -46,29 +35,27 @@ def abbreviations():
 
 
 # #########################################################################
-def setup_term_pipe(nlp, terms):
-    """Setup terms"""
+def infix():
+    """Adjust how the tokenizer splits words."""
+    return [
+        r"(?<=[0-9])[/,](?=[0-9])",  # digit,digit
+        r"(?<=[A-Z])[/-](?=[0-9])",  # letter-digit
+        "-_",
+    ]
+
+
+def setup_tokenizer(nlp):
     tokenizer_util.append_prefix_regex(nlp)
     tokenizer_util.append_infix_regex(nlp, infix())
     tokenizer_util.append_suffix_regex(nlp)
     tokenizer_util.append_abbrevs(nlp, abbreviations())
 
-    term_ruler = nlp.add_pipe(
-        "entity_ruler",
-        name="term_ruler",
-        before="parser",
-        config={"phrase_matcher_attr": "LOWER"},
-    )
-    term_ruler.add_patterns(terms.for_entity_ruler())
-
 
 def debug_tokens(nlp, name=None, after=None):
-    """Add a pipe to see the current tokens."""
     nlp.add_pipe(DEBUG_TOKENS, name=name, after=after)
 
 
 def debug_entities(nlp, name=None, after=None):
-    """Add a pipe to see the current tokens."""
     nlp.add_pipe(DEBUG_ENTITIES, name=name, after=after)
 
 

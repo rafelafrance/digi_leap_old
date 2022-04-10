@@ -36,19 +36,20 @@ def build_taxon_patterns():
 @registry.misc(ON_TAXON_MATCH)
 def on_taxon_match(ent):
     """Enrich a taxon match."""
+    vocab_terms = VocabTerms()
     auth = []
     used_levels = []
     is_level = ""
 
     for token in ent:
         if token._.cached_label == "level":
-            is_level = VocabTerms.replace.get(token.lower_, token.lower_)
+            is_level = vocab_terms.replace.get(token.lower_, token.lower_)
         elif is_level:
             ent._.data[is_level] = token.lower_
             is_level = ""
 
         elif token._.cached_label == "plant_taxon":
-            levels = VocabTerms.level.get(token.lower_, ["unknown"])
+            levels = vocab_terms.level.get(token.lower_, ["unknown"])
 
             # Find the highest unused taxon level
             for level in levels:
