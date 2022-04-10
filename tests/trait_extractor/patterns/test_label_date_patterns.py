@@ -78,20 +78,13 @@ class TestLabelDate(unittest.TestCase):
     def test_label_date_05(self):
         """It handles an all numeric date."""
         self.assertEqual(
-            test("Brent Baker 11-0297 10/20/2011"),
+            test("11-0297 10/20/2011"),
             [
-                {
-                    "collector_no": "11",
-                    "collector": "Brent Baker",
-                    "trait": "collector",
-                    "start": 0,
-                    "end": 14,
-                },
                 {
                     "label_date": "2011-10-20",
                     "trait": "label_date",
-                    "start": 20,
-                    "end": 30,
+                    "start": 8,
+                    "end": 18,
                 },
             ],
         )

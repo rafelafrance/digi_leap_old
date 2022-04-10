@@ -10,19 +10,14 @@ from ..patterns import taxon_patterns
 from ..patterns import terms
 
 
-def build_pipeline(load_patterns=None, save_patterns=None):
+def build_pipeline():
     nlp = spacy.load("en_core_web_md", exclude=["ner"])
 
     pipeline_utils.setup_tokenizer(nlp)
-
-    term_ruler = terms.VocabTerms()
-    if load_patterns:
-        term_ruler.load_terms(nlp, load_patterns)
-    else:
-        term_ruler.build_terms(nlp)
+    pipeline_utils.setup_term_pipe(nlp, terms.VocabTerms.terms)
 
     nlp.add_pipe("merge_entities", name="term_merger", after="parser")
-    nlp.add_pipe(SIMPLE_ENTITY_DATA, after="term_merger")
+    nlp.add_pipe(SIMPLE_ENTITY_DATA)
 
     nlp.add_pipe(
         MERGE_ENTITY_DATA,
@@ -42,8 +37,5 @@ def build_pipeline(load_patterns=None, save_patterns=None):
     # pipeline_utils.debug_tokens(nlp)
 
     pipeline_utils.forget_entities(nlp)
-
-    if save_patterns:
-        term_ruler.save_terms(save_patterns)
 
     return nlp

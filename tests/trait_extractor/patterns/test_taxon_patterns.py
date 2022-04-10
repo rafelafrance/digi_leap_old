@@ -17,7 +17,6 @@ class TestTaxon(unittest.TestCase):
                 """
                 Cornaceae
                 Cornus obliqua Raf.
-                Washington County
                 """
             ),
             [
@@ -30,12 +29,6 @@ class TestTaxon(unittest.TestCase):
                     "start": 0,
                     "end": 28,
                 },
-                {
-                    "us_county": "Washington",
-                    "trait": "admin_unit",
-                    "start": 30,
-                    "end": 47,
-                },
             ],
         )
 
@@ -47,7 +40,6 @@ class TestTaxon(unittest.TestCase):
                 Crowley's Ridge
                 Fabaceae
                 Vicia villosa Roth ssp. varia (Host) Corb.
-                CLAY COUNTY
                 """
             ),
             [
@@ -61,7 +53,6 @@ class TestTaxon(unittest.TestCase):
                     "start": 16,
                     "end": 54,
                 },
-                {"us_county": "Clay", "trait": "admin_unit", "start": 68, "end": 79},
             ],
         )
 

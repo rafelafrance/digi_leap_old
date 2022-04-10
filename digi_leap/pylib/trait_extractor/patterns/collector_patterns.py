@@ -58,14 +58,10 @@ def on_collector_match(ent):
 
     # Get the names and numbers
     for token in ent:
-        if token.lower_ in Collector.number_label:
-            pass
-        elif token._.cached_label == "col_label":
-            pass
-        elif token.pos_ == "PROPN":
+        if token.ent_type_ == "col_label" or token.lower_ in Collector.number_label:
+            continue
+        if token.pos_ == "PROPN" or token.ent_type_ == "name":
             people.append(token.text)
-        elif token.pos_ in Collector.conj:
-            pass
         elif match := re.search(Collector.collector_no, token.text):
             col_no = match.group(0)
             ent._.data["collector_no"] = col_no

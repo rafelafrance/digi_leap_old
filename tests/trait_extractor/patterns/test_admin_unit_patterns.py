@@ -80,34 +80,6 @@ class TestAdminUnit(unittest.TestCase):
         )
 
     def test_admin_unit_07(self):
-        """It works with noisy text."""
-        self.assertEqual(
-            test(
-                """
-                Cornus drummondii C. A. Mey.
-                Hempstead County
-                Grandview Prairie; on CR 35, 10 air miles S/SE of Nashville; in
-                """
-            ),
-            [
-                {
-                    "genus": "Cornus",
-                    "species": "drummondii",
-                    "authority": "C. A. Mey",
-                    "trait": "taxon",
-                    "start": 0,
-                    "end": 27,
-                },
-                {
-                    "us_county": "Hempstead",
-                    "trait": "admin_unit",
-                    "start": 29,
-                    "end": 45,
-                },
-            ],
-        )
-
-    def test_admin_unit_08(self):
         """It gets a state notation."""
         self.assertEqual(
             test("""PLANTS OF ARKANSAS"""),
@@ -121,7 +93,7 @@ class TestAdminUnit(unittest.TestCase):
             ],
         )
 
-    def test_admin_unit_09(self):
+    def test_admin_unit_08(self):
         """It gets a multi word state notation."""
         self.assertEqual(
             test("""PLANTS OF NORTH CAROLINA"""),
@@ -135,7 +107,7 @@ class TestAdminUnit(unittest.TestCase):
             ],
         )
 
-    def test_admin_unit_10(self):
+    def test_admin_unit_09(self):
         """It gets a state notation separated from the county."""
         self.assertEqual(
             test(

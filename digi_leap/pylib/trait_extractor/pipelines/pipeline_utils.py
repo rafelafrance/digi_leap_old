@@ -51,6 +51,16 @@ def setup_tokenizer(nlp):
     tokenizer_util.append_abbrevs(nlp, abbreviations())
 
 
+def setup_term_pipe(nlp, terms):
+    term_ruler = nlp.add_pipe(
+        "entity_ruler",
+        name="term_ruler",
+        before="parser",
+        config={"phrase_matcher_attr": "LOWER"},
+    )
+    term_ruler.add_patterns(terms.for_entity_ruler())
+
+
 def debug_tokens(nlp, name=None, after=None):
     nlp.add_pipe(DEBUG_TOKENS, name=name, after=after)
 

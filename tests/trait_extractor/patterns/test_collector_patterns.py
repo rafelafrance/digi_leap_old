@@ -26,53 +26,27 @@ class TestCollector(unittest.TestCase):
         )
 
     def test_collector_02(self):
-        """It does not parse other fields."""
+        """It does not include the determiner."""
         self.assertEqual(
             test(
                 """
-                Rhus glabra L. "Smooth Sumac"
-                Woodruff Co., Arkansas
-                Vicinity of bridge on Hwy 33, ca. 2 mi. S. of the
-                town of Gregory; S19, T6N; R3W.
                 Det, Edwin B. Smith
                 Coll. Marie P. Locke No. 5595
-                Date June 29, 1985
                 """
             ),
             [
                 {
-                    "trait": "determiner",
-                    "start": 135,
-                    "end": 154,
                     "determiner": "Edwin B. Smith",
+                    "trait": "determiner",
+                    "start": 0,
+                    "end": 19,
                 },
                 {
                     "collector_no": "5595",
                     "collector": "Marie P. Locke",
                     "trait": "collector",
-                    "start": 155,
-                    "end": 184,
-                },
-                {
-                    "label_date": "1985-06-29",
-                    "trait": "label_date",
-                    "start": 185,
-                    "end": 203,
-                },
-                {
-                    "genus": "Rhus",
-                    "species": "glabra",
-                    "authority": "L.",
-                    "trait": "taxon",
-                    "start": 0,
-                    "end": 14,
-                },
-                {
-                    "us_state": "Arkansas",
-                    "us_county": "Woodruff",
-                    "trait": "admin_unit",
-                    "start": 30,
-                    "end": 52,
+                    "start": 20,
+                    "end": 49,
                 },
             ],
         )
@@ -80,25 +54,13 @@ class TestCollector(unittest.TestCase):
     def test_collector_03(self):
         """It handles a bad name."""
         self.assertEqual(
-            test(
-                """
-                APPALACHIAN STATE UNIVERSITY HERBARIUM
-                PLANTS OF NORTH CAROLINA
-                Collected by _Wayne.. Hutchins.
-                """
-            ),
+            test("""Collected by _Wayne.. Hutchins."""),
             [
                 {
                     "collector": "Wayne Hutchins",
                     "trait": "collector",
-                    "start": 64,
-                    "end": 94,
-                },
-                {
-                    "us_state": "North Carolina",
-                    "trait": "admin_unit",
-                    "start": 39,
-                    "end": 63,
+                    "start": 0,
+                    "end": 30,
                 },
             ],
         )
@@ -106,36 +68,13 @@ class TestCollector(unittest.TestCase):
     def test_collector_04(self):
         """It handles random words matching names."""
         self.assertEqual(
-            test(
-                """
-                Woodsia obtusa (Sprengel) Torrey
-                Dry hardwood slope 3 miles south of
-                Isothermal Community College.
-                Altitude 960 ft.
-                Date 6/9/75
-                Collected by _Wayne.. Hutchins.
-                """
-            ),
+            test("""Collected by _Wayne.. Hutchins."""),
             [
-                {
-                    "label_date": "1975-06-09",
-                    "trait": "label_date",
-                    "start": 116,
-                    "end": 127,
-                },
                 {
                     "collector": "Wayne Hutchins",
                     "trait": "collector",
-                    "start": 128,
-                    "end": 158,
-                },
-                {
-                    "genus": "Woodsia",
-                    "species": "obtusa",
-                    "authority": "Sprengel",
-                    "trait": "taxon",
                     "start": 0,
-                    "end": 25,
+                    "end": 30,
                 },
             ],
         )
@@ -179,11 +118,7 @@ class TestCollector(unittest.TestCase):
     def test_collector_07(self):
         """It parses collectors separated by '&'."""
         self.assertEqual(
-            test(
-                """
-                Collector: Christopher Reid & Sarah Nunn 2018
-                """
-            ),
+            test("""Collector: Christopher Reid & Sarah Nunn 2018"""),
             [
                 {
                     "collector_no": "2018",

@@ -25,10 +25,5 @@ def build_determiner_patterns():
 @registry.misc(ON_DETERMINER_MATCH)
 def on_determiner_match(ent):
     """Enrich a determiner match."""
-    name = []
-    for token in ent:
-        if token._.cached_label == "det_label":
-            continue
-        elif token.pos_ == "PROPN":
-            name.append(token.text)
-    ent._.data["determiner"] = " ".join(name)
+    name = [t.text for t in ent if t.ent_type_ == "name"]
+    ent._.data["determiner"] = name[0]
