@@ -3,37 +3,31 @@ from spacy import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
-from .terms import VocabTerms
-
-
-ON_TAXON_MATCH = "digi_leap.taxon.v1"
+from . import terms
 
 LEVEL_LOWER = """ species subspecies variety subvariety form subform """.split()
 
-
-def build_taxon_patterns():
-    """Build taxon patterns."""
-    return MatcherPatterns(
-        "taxon",
-        on_match=ON_TAXON_MATCH,
-        decoder=common_patterns.get_common_patterns()
-        | {
-            "auth": {"POS": "PROPN"},
-            "maybe": {"POS": "NOUN"},
-            "taxon": {"ENT_TYPE": "plant_taxon"},
-            "level": {"ENT_TYPE": "level"},
-            "word": {"LOWER": {"REGEX": r"^[a-z-]+$"}},
-        },
-        patterns=[
-            "taxon+ (? auth* )?",
-            "taxon+ (? auth+ maybe auth+ )?",
-            "taxon+ (? auth* )?             level .? word",
-            "taxon+ (? auth+ maybe auth+ )? level .? word",
-        ],
-    )
+TAXON = MatcherPatterns(
+    "taxon",
+    on_match="digi_leap.taxon.v1",
+    decoder=common_patterns.get_common_patterns()
+    | {
+        "auth": {"POS": "PROPN"},
+        "maybe": {"POS": "NOUN"},
+        "taxon": {"ENT_TYPE": "plant_taxon"},
+        "level": {"ENT_TYPE": "level"},
+        "word": {"LOWER": {"REGEX": r"^[a-z-]+$"}},
+    },
+    patterns=[
+        "taxon+ (? auth* )?",
+        "taxon+ (? auth+ maybe auth+ )?",
+        "taxon+ (? auth* )?             level .? word",
+        "taxon+ (? auth+ maybe auth+ )? level .? word",
+    ],
+)
 
 
-@registry.misc(ON_TAXON_MATCH)
+@registry.misc(TAXON.on_match)
 def on_taxon_match(ent):
     """Enrich a taxon match."""
     auth = []
@@ -42,13 +36,13 @@ def on_taxon_match(ent):
 
     for token in ent:
         if token._.cached_label == "level":
-            is_level = VocabTerms.replace.get(token.lower_, token.lower_)
+            is_level = terms.VOCAB_REPLACE.get(token.lower_, token.lower_)
         elif is_level:
             ent._.data[is_level] = token.lower_
             is_level = ""
 
         elif token._.cached_label == "plant_taxon":
-            levels = VocabTerms.level.get(token.lower_, ["unknown"])
+            levels = terms.LEVEL.get(token.lower_, ["unknown"])
 
             # Find the highest unused taxon level
             for level in levels:

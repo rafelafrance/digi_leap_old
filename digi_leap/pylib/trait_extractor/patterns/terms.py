@@ -6,38 +6,28 @@ from traiter.terms.db import Db
 
 
 # ##########################################################################
-class Locations:
-    curr_dir = Path(os.getcwd())
-    is_subdir = curr_dir.name in ("notebooks", "experiments")
-    root_dir = Path(".." if is_subdir else ".")
-    vocab_dir = root_dir / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
-    data_dir = root_dir / "data"
-    term_db = vocab_dir / "terms.sqlite"
+CURR_DIR = Path(os.getcwd())
+IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments")
+ROOT_DIR = Path(".." if IS_SUBDIR else ".")
+VOCAB_DIR = ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
+DATA_DIR = ROOT_DIR / "data"
+TERM_DB = VOCAB_DIR / "terms.sqlite"
 
 
 # ##########################################################################
-class ExtractorTerms:
-    """Terms for all the basic traits."""
-
-    terms = Db.shared("time")
-    terms += Db.select_term_set(Locations.term_db, "jobs")
+EXTRACTOR_TERMS = Db.shared("time")
+EXTRACTOR_TERMS += Db.select_term_set(TERM_DB, "jobs")
 
 
 # ##########################################################################
-class VocabTerms:
-    """Terms used for parsing traits with a large vocabulary."""
+VOCAB_TERMS = Db()
+VOCAB_TERMS.no_clobber = True
+VOCAB_TERMS.silent = True
 
-    terms = Db()
-    terms.no_clobber = True
-    terms.silent = True
+VOCAB_TERMS += Db.shared("us_locations taxon_levels")
+VOCAB_TERMS += Db.select_term_set(TERM_DB, "plant_taxa")
 
-    terms += Db.shared("us_locations taxon_levels")
-    terms += Db.select_term_set(Locations.term_db, "plant_taxa")
+VOCAB_REPLACE = VOCAB_TERMS.pattern_dict("replace")
 
-    replace = terms.pattern_dict("replace")
-
-    level = terms.pattern_dict("level")
-    level = {k: v.split() for k, v in level.items()}
-
-    us_states = terms.patterns_with_label("us_state")
-    us_counties = terms.patterns_with_label("us_county")
+LEVEL = VOCAB_TERMS.pattern_dict("level")
+LEVEL = {k: v.split() for k, v in LEVEL.items()}

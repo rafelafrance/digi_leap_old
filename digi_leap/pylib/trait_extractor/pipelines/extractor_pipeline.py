@@ -2,6 +2,7 @@
 import spacy
 from traiter.patterns import matcher_patterns
 from traiter.pipes.add_entities import ADD_ENTITIES
+from traiter.pipes.cleanup import CLEANUP
 
 from . import pipeline_utils
 from ..patterns import collector_patterns
@@ -17,33 +18,32 @@ def build_pipeline():
 
     pipeline_utils.setup_tokenizer(nlp)
 
-    pipeline_utils.setup_term_pipe(nlp, terms.ExtractorTerms.terms)
+    pipeline_utils.setup_term_pipe(nlp, terms.EXTRACTOR_TERMS)
 
     # We only want the PERSON
-    forget = forget_patterns.spacy_entities()
-    forget.remove("PERSON")
-    pipeline_utils.forget_entities(nlp, forget=forget, name="forget_spacy_entities")
+    nlp.add_pipe(
+        CLEANUP, name="forget_spacy", config={"forget": forget_patterns.SPACY_ENTITIES}
+    )
 
     # Build up names from PERSON entities
     nlp.add_pipe(
         ADD_ENTITIES,
         name="name_entities",
-        config={
-            "patterns": matcher_patterns.as_dicts([name_patterns.build_name_patterns()])
-        },
+        config={"patterns": matcher_patterns.as_dicts([name_patterns.NAME])},
     )
     nlp.add_pipe("merge_entities", name="name_merger")
 
+    # Build the rest of the entities
     nlp.add_pipe(
         ADD_ENTITIES,
         name="extractor_entities",
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
-                    collector_patterns.build_collector_patterns(),
-                    determiner_patterns.build_determiner_patterns(),
-                    label_date_patterns.build_label_date_patterns(),
-                    label_date_patterns.build_missing_day_patterns(),
+                    collector_patterns.COLLECTOR,
+                    determiner_patterns.DETERMINER,
+                    label_date_patterns.LABEL_DATE,
+                    label_date_patterns.MISSING_DAY,
                 ]
             )
         },
@@ -51,6 +51,6 @@ def build_pipeline():
 
     # pipeline_utils.debug_tokens(nlp)
 
-    pipeline_utils.forget_entities(nlp)
+    nlp.add_pipe(CLEANUP, config={"forget": forget_patterns.ALL_ENTITIES})
 
     return nlp
