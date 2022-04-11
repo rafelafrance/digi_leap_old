@@ -1,9 +1,9 @@
 """Create a trait pipeline."""
 import spacy
 from traiter.patterns import matcher_patterns
-from traiter.pipes.cleanup import CLEANUP
-from traiter.pipes.merge_entity_data import MERGE_ENTITY_DATA
-from traiter.pipes.simple_entity_data import SIMPLE_ENTITY_DATA
+from traiter.pipes.add_traits import ADD_TRAITS
+from traiter.pipes.forget_traits import FORGET_TRAITS
+from traiter.pipes.simple_trait import SIMPLE_TRAITS
 
 from . import pipeline_utils
 from ..patterns import admin_unit_patterns
@@ -18,11 +18,11 @@ def build_pipeline():
     pipeline_utils.setup_tokenizer(nlp)
     pipeline_utils.setup_term_pipe(nlp, terms.VOCAB_TERMS)
 
-    nlp.add_pipe("merge_entities", name="term_merger", after="parser")
-    nlp.add_pipe(SIMPLE_ENTITY_DATA)
+    nlp.add_pipe("merge_entities", after="parser")
+    nlp.add_pipe(SIMPLE_TRAITS)
 
     nlp.add_pipe(
-        MERGE_ENTITY_DATA,
+        ADD_TRAITS,
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
@@ -38,6 +38,6 @@ def build_pipeline():
 
     # pipeline_utils.debug_tokens(nlp)
 
-    nlp.add_pipe(CLEANUP, config={"forget": forget_patterns.ALL_ENTITIES})
+    nlp.add_pipe(FORGET_TRAITS, config={"forget": forget_patterns.PARTIAL_TRAITS})
 
     return nlp

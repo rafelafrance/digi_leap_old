@@ -1,8 +1,8 @@
 """Create a trait pipeline."""
 import spacy
 from traiter.patterns import matcher_patterns
-from traiter.pipes.add_entities import ADD_ENTITIES
-from traiter.pipes.cleanup import CLEANUP
+from traiter.pipes.add_traits import ADD_TRAITS
+from traiter.pipes.forget_traits import FORGET_TRAITS
 
 from . import pipeline_utils
 from ..patterns import collector_patterns
@@ -20,23 +20,24 @@ def build_pipeline():
 
     pipeline_utils.setup_term_pipe(nlp, terms.EXTRACTOR_TERMS)
 
-    # We only want the PERSON
+    # We only want the PERSON entity from spacy
     nlp.add_pipe(
-        CLEANUP, name="forget_spacy", config={"forget": forget_patterns.SPACY_ENTITIES}
+        FORGET_TRAITS,
+        name="forget_spacy",
+        config={"forget": forget_patterns.SPACY_ENTITIES},
     )
 
     # Build up names from PERSON entities
     nlp.add_pipe(
-        ADD_ENTITIES,
-        name="name_entities",
+        ADD_TRAITS,
+        name="name_traits",
         config={"patterns": matcher_patterns.as_dicts([name_patterns.NAME])},
     )
-    nlp.add_pipe("merge_entities", name="name_merger")
+    nlp.add_pipe("merge_entities")  # We want name to be a single token trait
 
     # Build the rest of the entities
     nlp.add_pipe(
-        ADD_ENTITIES,
-        name="extractor_entities",
+        ADD_TRAITS,
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
@@ -51,6 +52,6 @@ def build_pipeline():
 
     # pipeline_utils.debug_tokens(nlp)
 
-    nlp.add_pipe(CLEANUP, config={"forget": forget_patterns.ALL_ENTITIES})
+    nlp.add_pipe(FORGET_TRAITS, config={"forget": forget_patterns.PARTIAL_TRAITS})
 
     return nlp
