@@ -2,15 +2,17 @@
 import spacy
 from traiter.patterns import matcher_patterns
 from traiter.pipes.add_traits import ADD_TRAITS
-from traiter.pipes.forget_traits import FORGET_TRAITS
+from traiter.pipes.delete_traits import DELETE_TRAITS
 
 from . import pipeline_utils
 from ..patterns import collector_patterns
+from ..patterns import delete_patterns
 from ..patterns import determiner_patterns
-from ..patterns import forget_patterns
 from ..patterns import label_date_patterns
 from ..patterns import name_patterns
 from ..patterns import terms
+
+# from traiter.pipes import debug_traits
 
 
 def build_pipeline():
@@ -22,9 +24,9 @@ def build_pipeline():
 
     # We only want the PERSON entity from spacy
     nlp.add_pipe(
-        FORGET_TRAITS,
-        name="forget_spacy",
-        config={"forget": forget_patterns.SPACY_ENTITIES},
+        DELETE_TRAITS,
+        name="delete_spacy",
+        config={"delete": delete_patterns.SPACY_ENTITIES},
     )
 
     # Build up names from PERSON entities
@@ -50,8 +52,8 @@ def build_pipeline():
         },
     )
 
-    # pipeline_utils.debug_tokens(nlp)
+    # debug_traits.tokens(nlp)
 
-    nlp.add_pipe(FORGET_TRAITS, config={"forget": forget_patterns.PARTIAL_TRAITS})
+    nlp.add_pipe(DELETE_TRAITS, config={"delete": delete_patterns.PARTIAL_TRAITS})
 
     return nlp

@@ -2,8 +2,6 @@
 import string
 
 from traiter import tokenizer_util
-from traiter.pipes.debug import DEBUG_ENTITIES
-from traiter.pipes.debug import DEBUG_TOKENS
 
 # #########################################################################
 ABBREVS = """
@@ -51,12 +49,3 @@ def setup_term_pipe(nlp, terms):
         config={"phrase_matcher_attr": "LOWER"},
     )
     term_ruler.add_patterns(terms.for_entity_ruler())
-
-
-# #########################################################################
-def debug_tokens(nlp, name=None, after=None):
-    nlp.add_pipe(DEBUG_TOKENS, name=name, after=after)
-
-
-def debug_entities(nlp, name=None, after=None):
-    nlp.add_pipe(DEBUG_ENTITIES, name=name, after=after)

@@ -2,14 +2,16 @@
 import spacy
 from traiter.patterns import matcher_patterns
 from traiter.pipes.add_traits import ADD_TRAITS
-from traiter.pipes.forget_traits import FORGET_TRAITS
-from traiter.pipes.simple_trait import SIMPLE_TRAITS
+from traiter.pipes.delete_traits import DELETE_TRAITS
+from traiter.pipes.simple_traits import SIMPLE_TRAITS
 
 from . import pipeline_utils
 from ..patterns import admin_unit_patterns
-from ..patterns import forget_patterns
+from ..patterns import delete_patterns
 from ..patterns import taxon_patterns
 from ..patterns import terms
+
+# from traiter.pipes import debug_traits
 
 
 def build_pipeline():
@@ -36,8 +38,8 @@ def build_pipeline():
         },
     )
 
-    # pipeline_utils.debug_tokens(nlp)
+    # debug_traits.tokens(nlp)
 
-    nlp.add_pipe(FORGET_TRAITS, config={"forget": forget_patterns.PARTIAL_TRAITS})
+    nlp.add_pipe(DELETE_TRAITS, config={"delete": delete_patterns.PARTIAL_TRAITS})
 
     return nlp
