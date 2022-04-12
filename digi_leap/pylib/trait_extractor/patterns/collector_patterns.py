@@ -15,7 +15,7 @@ NUMBER_LABEL = """ number no no. num num. # """.split()
 COLLECTOR = MatcherPatterns(
     "collector",
     on_match="digi_leap.collector.v1",
-    decoder=common_patterns.get_common_patterns()
+    decoder=common_patterns.PATTERNS
     | {
         ":": {"TEXT": {"REGEX": r"^[:._]+$"}},
         "and": {"POS": {"IN": CONJ}},

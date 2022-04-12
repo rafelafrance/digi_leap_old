@@ -4,13 +4,12 @@ from traiter.patterns import matcher_patterns
 from traiter.pipes.add_traits import ADD_TRAITS
 from traiter.pipes.delete_traits import DELETE_TRAITS
 
-from . import pipeline_utils
 from ..patterns import collector_patterns
 from ..patterns import delete_patterns
 from ..patterns import determiner_patterns
 from ..patterns import label_date_patterns
 from ..patterns import name_patterns
-from ..patterns import terms
+from ..patterns import term_utils
 
 # from traiter.pipes import debug_traits
 
@@ -18,9 +17,9 @@ from ..patterns import terms
 def build_pipeline():
     nlp = spacy.load("en_core_web_md", disable=["senter"])
 
-    pipeline_utils.setup_tokenizer(nlp)
+    term_utils.setup_tokenizer(nlp)
 
-    pipeline_utils.setup_term_pipe(nlp, terms.EXTRACTOR_TERMS)
+    term_utils.setup_term_pipe(nlp, term_utils.EXTRACTOR_TERMS)
 
     # We only want the PERSON entity from spacy
     nlp.add_pipe(

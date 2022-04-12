@@ -3,14 +3,14 @@ from spacy import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
-from . import terms
+from . import term_utils
 
 LEVEL_LOWER = """ species subspecies variety subvariety form subform """.split()
 
 TAXON = MatcherPatterns(
     "taxon",
     on_match="digi_leap.taxon.v1",
-    decoder=common_patterns.get_common_patterns()
+    decoder=common_patterns.PATTERNS
     | {
         "auth": {"POS": "PROPN"},
         "maybe": {"POS": "NOUN"},
@@ -36,13 +36,13 @@ def on_taxon_match(ent):
 
     for token in ent:
         if token._.cached_label == "level":
-            is_level = terms.VOCAB_REPLACE.get(token.lower_, token.lower_)
+            is_level = term_utils.VOCAB_REPLACE.get(token.lower_, token.lower_)
         elif is_level:
             ent._.data[is_level] = token.lower_
             is_level = ""
 
         elif token._.cached_label == "plant_taxon":
-            levels = terms.LEVEL.get(token.lower_, ["unknown"])
+            levels = term_utils.LEVEL.get(token.lower_, ["unknown"])
 
             # Find the highest unused taxon level
             for level in levels:

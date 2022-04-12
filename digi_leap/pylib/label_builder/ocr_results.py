@@ -249,7 +249,7 @@ def choose_best_copy(copies, spell_well):
     return copies[0]
 
 
-def consensus(aligned: list[str], spell_well, threshold=2 ** 16) -> str:
+def consensus(aligned: list[str], spell_well, threshold=2**16) -> str:
     """Build a consensus string from the aligned copies.
 
     Look at all options of the multiple alignment and choose

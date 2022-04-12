@@ -5,8 +5,7 @@ from pathlib import Path
 CURR_DIR = Path(os.getcwd())
 IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments")
 ROOT_DIR = Path(".." if IS_SUBDIR else ".")
-
-CONFIG_PATH = ROOT_DIR / "digi_leap.yaml"
+DATA_DIR = ROOT_DIR / "data"
 
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)

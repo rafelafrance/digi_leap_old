@@ -52,7 +52,7 @@ def on_label_date_match(ent):
     flags = re.IGNORECASE | re.VERBOSE
     text = ent.text
     text = re.sub(
-        fr" ({'|'.join(LABELS)}) \s* {LABEL_ENDER}* \s* ",
+        rf" ({'|'.join(LABELS)}) \s* {LABEL_ENDER}* \s* ",
         "",
         text,
         flags=flags,

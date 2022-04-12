@@ -10,7 +10,7 @@ SUFFIXES = " filho ii iii jr jr. sr sr. ".split()
 NAME = MatcherPatterns(
     "name",
     on_match="digi_leap.name.v1",
-    decoder=common_patterns.get_common_patterns()
+    decoder=common_patterns.PATTERNS
     | {
         "jr": {"LOWER": {"IN": SUFFIXES}},
         "dr": {"LOWER": {"IN": PREFIXES}},
