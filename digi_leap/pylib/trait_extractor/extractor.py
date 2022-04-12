@@ -9,7 +9,6 @@ from .pipelines import vocab_pipeline
 
 
 def extract(args):
-    """Do the extractions."""
     run_id = db.insert_run(args)
 
     db.create_traits_table(args.database)

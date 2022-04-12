@@ -11,7 +11,6 @@ from pylib.label_builder import label_builder
 
 
 def main():
-    """Run it."""
     log.started()
     args = parse_args()
     label_builder.build_labels(args)
@@ -19,7 +18,6 @@ def main():
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """
         Build a single "best" label from an ensemble of OCR outputs for
         every selected label. An ensemble is a set of OCR outputs of
@@ -87,7 +85,6 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_ocr_set(database, ocr_set):
-    """Get the OCR runs included in this cons_set."""
     all_ocr_sets = [s["ocr_set"] for s in db.get_ocr_sets(database)]
     if ocr_set in all_ocr_sets:
         return

@@ -14,7 +14,6 @@ from ..datasets.labeled_data import LabeledData
 
 @dataclass
 class Stats:
-    """Gather statistics while training."""
 
     total_loss: float = float("Inf")
     class_loss: float = float("Inf")
@@ -22,7 +21,6 @@ class Stats:
 
 
 def train(model, args: Namespace):
-    """Train a model."""
     run_id = db.insert_run(args)
 
     device = torch.device("cuda" if torch.has_cuda else "cpu")
@@ -58,7 +56,6 @@ def train(model, args: Namespace):
 
 
 def one_epoch(model, device, loader, optimizer=None):
-    """Train or validate an epoch."""
     running_loss = Stats(
         total_loss=0.0,
         class_loss=0.0,
@@ -92,12 +89,10 @@ def one_epoch(model, device, loader, optimizer=None):
 
 
 def get_optimizer(model, lr):
-    """Build the optimizer."""
     return torch.optim.AdamW(model.parameters(), lr=lr)
 
 
 def get_train_loader(args):
-    """Load the training split."""
     logging.info("Loading training data.")
     raw_data = db.select_label_split(
         args.database, split="train", label_set=args.label_set, limit=args.limit
@@ -114,7 +109,6 @@ def get_train_loader(args):
 
 
 def get_val_loader(args):
-    """Load the validation split."""
     logging.info("Loading validation data.")
     raw_data = db.select_label_split(
         args.database, split="val", label_set=args.label_set, limit=args.limit
@@ -130,7 +124,6 @@ def get_val_loader(args):
 
 
 def save_checkpoint(model, optimizer, save_model, val_loss, best_loss, epoch):
-    """Save the model if it meets criteria for being the current best model."""
     if val_loss.total_loss <= best_loss.total_loss:
         best_loss = val_loss
         torch.save(
@@ -148,7 +141,6 @@ def save_checkpoint(model, optimizer, save_model, val_loss, best_loss, epoch):
 
 
 def log_stats(writer, train_loss, val_loss, best_loss, epoch):
-    """Log results of the epoch."""
     logging.info(
         f"{epoch:3}: "
         f"Train: total loss {train_loss.total_loss:0.6f} "
@@ -173,7 +165,6 @@ def log_stats(writer, train_loss, val_loss, best_loss, epoch):
 
 
 def comments(best_loss):
-    """Format a DB comment about the best validation loss for the training run."""
     return (
         f"Best validation: total loss {best_loss.total_loss:0.6f} "
         f"box loss: {best_loss.box_loss:0.6f} class loss: {best_loss.class_loss:0.6f}"

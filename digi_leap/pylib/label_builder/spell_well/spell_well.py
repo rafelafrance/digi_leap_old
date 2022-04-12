@@ -31,7 +31,6 @@ class SpellWell:
         self.db_to_memory()
 
     def db_to_memory(self):
-        """Move the misspellings table to memory."""
         create1 = """
             create table spells as
             select * from aux.misspellings where freq >= ? and length(miss) >= ?;"""
@@ -51,7 +50,6 @@ class SpellWell:
             logging.error(e)
 
     def correct(self, word: str) -> str:
-        """Most probable spell_well for 'word'."""
         if not word:
             return ""
 
@@ -66,7 +64,6 @@ class SpellWell:
         return word
 
     def best(self, words: Iterable, dist: int) -> str:
-        """The subset of 'words' that appear in the dictionary of misspellings."""
         words = ",".join({f"'{w}'" for w in words})
         sql = f"""select word, dist, freq
                     from spells
@@ -78,16 +75,13 @@ class SpellWell:
 
     @staticmethod
     def deletes1(word: str) -> set[str]:
-        """Generate all one character deletes for a word."""
         return {word[:i] + word[i + 1 :] for i in range(len(word))}
 
     def deletes2(self, word: str) -> set[str]:
-        """Generate two character deletes for a word."""
         return {d2 for d1 in self.deletes1(word) for d2 in self.deletes1(d1)}
 
     @staticmethod
     def is_letters(text: str) -> list[str]:
-        """Split the text into words and non-words."""
         return re.match(r"^\p{L}+$", text)
 
     @staticmethod
@@ -96,13 +90,11 @@ class SpellWell:
         return re.split(r"([^\p{L}]+)", text)
 
     def is_word(self, word: str) -> bool:
-        """Determine if this is a word ."""
         sql = "select word from vocab where word = ?"
         hit = self.cxn.execute(sql, (word,)).fetchone()
         return bool(hit)
 
     def freq(self, word: str) -> int:
-        """Determine if this is a word ."""
         sql = "select freq from vocab where word = ?"
         hit = self.cxn.execute(sql, (word,)).fetchone()
         return hit[0] if hit else 0

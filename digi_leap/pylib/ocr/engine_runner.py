@@ -5,7 +5,6 @@ import pytesseract
 
 
 class EngineConfig:
-    """Constants for setting up OCR engines."""
 
     easy_ocr = easyocr.Reader(["en"], gpu=True)
 
@@ -20,7 +19,6 @@ class EngineConfig:
 
 
 def tesseract_engine(image) -> list[dict]:
-    """OCR the image with tesseract."""
     df = pytesseract.image_to_data(
         image, config=EngineConfig.tess_config, output_type="data.frame"
     )
@@ -54,7 +52,6 @@ def tesseract_engine(image) -> list[dict]:
 
 
 def easyocr_engine(image) -> list[dict]:
-    """OCR the image with easyOCR."""
     results = []
     image = np.asarray(image)
     raw = EngineConfig.easy_ocr.readtext(image, blocklist=EngineConfig.char_blacklist)

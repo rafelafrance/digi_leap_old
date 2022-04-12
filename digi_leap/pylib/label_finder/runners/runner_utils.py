@@ -3,12 +3,10 @@ import torch
 
 
 def collate_fn_simple(batch):
-    """Fix the batch parameters."""
     return tuple(zip(*batch))
 
 
 def collate_fn(batch):
-    """Fix the batch parameters."""
     images, targets, image_ids = tuple(zip(*batch))
     images = torch.stack(images)
     images = images.float()

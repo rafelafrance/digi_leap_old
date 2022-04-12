@@ -1,8 +1,8 @@
 """Create a trait pipeline."""
 import spacy
 from traiter.patterns import matcher_patterns
-from traiter.pipes.add_traits import ADD_TRAITS
-from traiter.pipes.delete_traits import DELETE_TRAITS
+from traiter.pipes.add_traits_pipe import ADD_TRAITS
+from traiter.pipes.delete_traits_pipe import DELETE_TRAITS
 
 from ..patterns import collector_patterns
 from ..patterns import delete_patterns

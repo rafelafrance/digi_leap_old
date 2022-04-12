@@ -11,7 +11,6 @@ from traiter import log
 
 
 def main():
-    """Run it."""
     log.started()
     args = parse_args()
     extractor.extract(args)
@@ -19,7 +18,6 @@ def main():
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """Extract information from the labels."""
 
     arg_parser = argparse.ArgumentParser(
@@ -67,7 +65,6 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_cons_set(database, cons_set):
-    """Get the OCR runs included in this cons_set."""
     all_cons_sets = [s["cons_set"] for s in db.get_cons_sets(database)]
     if cons_set in all_cons_sets:
         return

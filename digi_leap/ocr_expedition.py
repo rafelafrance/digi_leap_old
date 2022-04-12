@@ -10,13 +10,11 @@ from pylib.label_builder.expedition import build_expedition
 
 
 def main():
-    """Run it."""
     args = parse_args()
     build_expedition.build(args)
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """OCR images of labels."""
 
     arg_parser = argparse.ArgumentParser(
@@ -73,7 +71,6 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_cons_set(database, cons_set):
-    """Get the OCR runs included in this cons_set."""
     all_cons_set = [s["cons_set"] for s in db.get_cons_sets(database)]
     if cons_set in all_cons_set:
         return

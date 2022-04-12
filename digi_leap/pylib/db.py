@@ -14,7 +14,6 @@ DbPath = Union[Path, str]
 def build_select(
     sql: str, *, limit: int = 0, order_by: str = "", **kwargs
 ) -> tuple[str, list]:
-    """Select records given a base SQL statement and keyword parameters."""
     sql, params = build_where(sql, **kwargs)
 
     if order_by:
@@ -28,7 +27,6 @@ def build_select(
 
 
 def build_where(sql: str, **kwargs) -> tuple[str, list]:
-    """Build a simple-mined where clause."""
     params, where = [], []
 
     for key, value in kwargs.items():
@@ -56,14 +54,12 @@ def rows_as_dicts(database: DbPath, sql: str, params: Optional[list] = None):
 
 
 def insert_batch(database: DbPath, sql: str, batch: list) -> None:
-    """Insert a batch of sheets records."""
     if batch:
         with sqlite3.connect(database) as cxn:
             cxn.executemany(sql, batch)
 
 
 def create_table(database: DbPath, sql: str, *, drop: bool = False) -> None:
-    """Create a table."""
     flags = re.IGNORECASE | re.VERBOSE
     match = re.search(r" if \s+ not \s+ exists \s+ (\w+) ", sql, flags=flags)
 
@@ -80,7 +76,6 @@ def create_table(database: DbPath, sql: str, *, drop: bool = False) -> None:
 
 
 def delete(database: DbPath, table: str, **kwargs):
-    """Delete records from the database, usually to clean old runs."""
     sql, params = build_where(f"""delete from {table}""", **kwargs)
     with sqlite3.connect(database) as cxn:
         cxn.execute(sql, params)
@@ -90,7 +85,6 @@ def delete(database: DbPath, table: str, **kwargs):
 
 
 def create_vocab_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with vocabulary words and their frequencies."""
     sql = """
         create table if not exists vocab (
             word  text,
@@ -101,13 +95,11 @@ def create_vocab_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_vocabulary_words(database: DbPath, batch: list) -> None:
-    """Insert a batch of sheets records."""
     sql = """insert into vocab (word, freq) values (:word, :freq);"""
     insert_batch(database, sql, batch)
 
 
 def select_vocab(database: DbPath, min_freq=2, min_len=3) -> list[dict]:
-    """Get herbarium sheet image data."""
     sql = """select * from vocab where freq >= ? and length(word) >= ?"""
     return rows_as_dicts(database, sql, [min_freq, min_len])
 
@@ -116,7 +108,6 @@ def select_vocab(database: DbPath, min_freq=2, min_len=3) -> list[dict]:
 
 
 def create_misspellings_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with vocabulary words and their frequencies."""
     sql = """
         create table if not exists misspellings (
             miss  text,
@@ -129,13 +120,11 @@ def create_misspellings_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_misspellings(database: DbPath, batch: list) -> None:
-    """Insert a batch of sheets records."""
     sql = """insert into misspellings (miss, word, dist, freq) values (?, ?, ?, ?);"""
     insert_batch(database, sql, batch)
 
 
 def select_misspellings(database: DbPath, min_freq=5, min_len=3) -> list[dict]:
-    """Get herbarium sheet image data."""
     sql = """select * from misspellings where freq >= ? and length(miss) >= ?"""
     return rows_as_dicts(database, sql, [min_freq, min_len])
 
@@ -144,7 +133,6 @@ def select_misspellings(database: DbPath, min_freq=5, min_len=3) -> list[dict]:
 
 
 def create_sheets_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with paths to the valid herbarium sheet images."""
     sql = """
         create table if not exists sheets (
             sheet_id integer primary key autoincrement,
@@ -160,13 +148,11 @@ def create_sheets_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_sheets(database: DbPath, batch: list) -> None:
-    """Insert a batch of sheets records."""
     sql = "insert into sheets (path, width, height) values (:path, :width, :height);"
     insert_batch(database, sql, batch)
 
 
 def create_sheet_errors_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with paths to the invalid herbarium sheet images."""
     sql = """
         create table if not exists sheet_errors (
             error_id integer primary key autoincrement,
@@ -177,7 +163,6 @@ def create_sheet_errors_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_sheet_errors(database: DbPath, batch: list) -> None:
-    """Insert a batch of sheets error records."""
     sql = """insert into sheet_errors (path) values (:path);"""
     insert_batch(database, sql, batch)
 
@@ -186,7 +171,6 @@ def insert_sheet_errors(database: DbPath, batch: list) -> None:
 
 
 def create_label_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists labels (
             label_id     integer primary key autoincrement,
@@ -208,7 +192,6 @@ def create_label_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_labels(database: DbPath, batch: list) -> None:
-    """Insert a batch of label records."""
     sql = """
         insert into labels
                ( sheet_id,    label_set,  offset,       class,  label_conf,
@@ -226,7 +209,6 @@ def select_labels(
     classes: Optional[str] = None,
     limit: int = 0,
 ) -> list[dict]:
-    """Get label records."""
     sql = """select * from labels join sheets using (sheet_id)"""
     sql, params = build_select(sql, classes=classes, label_set=label_set, limit=limit)
     return rows_as_dicts(database, sql, params)
@@ -235,7 +217,6 @@ def select_labels(
 def select_label_split(
     database: DbPath, *, split: str, label_set: str, limit: int = 0
 ) -> list[dict]:
-    """Get label records for training, validation, or testing."""
     sql = """
         select *
         from sheets
@@ -249,7 +230,6 @@ def select_label_split(
 
 
 def create_subjects_to_sheets_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table to link subjects to herbarium sheets."""
     sql = """
         create table if not exists subs_to_sheets (
             subject_id integer primary key,
@@ -265,7 +245,6 @@ def create_subjects_to_sheets_table(database: DbPath, drop: bool = False) -> Non
 
 
 def create_ocr_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with the label crops of the herbarium images."""
     sql = """
         create table if not exists ocr (
             ocr_id     integer primary key autoincrement,
@@ -287,7 +266,6 @@ def create_ocr_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_ocr(database: DbPath, batch: list) -> None:
-    """Insert a batch of ocr records."""
     sql = """
         insert into ocr
                ( label_id,  ocr_set,  engine,  pipeline,
@@ -299,7 +277,6 @@ def insert_ocr(database: DbPath, batch: list) -> None:
 
 
 def select_ocr(database: DbPath, ocr_set, limit: int = 0) -> list[dict]:
-    """Get ocr box records."""
     sql = """
         select *
           from ocr
@@ -311,7 +288,6 @@ def select_ocr(database: DbPath, ocr_set, limit: int = 0) -> list[dict]:
 
 
 def select_ocr_frags(database: DbPath, ocr_set, label_id, limit: int = 0) -> list[dict]:
-    """Get ocr box records."""
     sql = """
         select *
           from ocr
@@ -323,7 +299,6 @@ def select_ocr_frags(database: DbPath, ocr_set, label_id, limit: int = 0) -> lis
 
 
 def get_ocr_sets(database: DbPath) -> list[dict]:
-    """Get all of the OCR runs in the database."""
     sql = """select distinct ocr_set from ocr"""
     sql, params = build_select(sql)
     return rows_as_dicts(database, sql, params)
@@ -333,7 +308,6 @@ def get_ocr_sets(database: DbPath) -> list[dict]:
 
 
 def create_consensus_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with the reconstructed label text."""
     sql = """
         create table if not exists cons (
             cons_id   integer primary key autoincrement,
@@ -348,7 +322,6 @@ def create_consensus_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_consensus(database: DbPath, batch: list) -> None:
-    """Insert a batch of consensus records."""
     sql = """
         insert into cons
                ( label_id,  cons_set,  ocr_set,  cons_text)
@@ -362,7 +335,6 @@ def select_consensus(
     cons_set: str = "",
     limit: int = 0,
 ) -> list[dict]:
-    """Get consensus records."""
     sql = """
         select *
           from cons
@@ -378,7 +350,6 @@ def sample_consensus(
     cons_set: str = "",
     limit: int = 0,
 ) -> list[dict]:
-    """Get consensus records."""
     sql = """
         select *
           from cons
@@ -393,7 +364,6 @@ def sample_consensus(
 
 
 def get_cons_sets(database: DbPath) -> list[dict]:
-    """Get all of the consensus sets in the database."""
     sql = """select distinct cons_set from cons"""
     sql, params = build_select(sql)
     return rows_as_dicts(database, sql, params)
@@ -403,7 +373,6 @@ def get_cons_sets(database: DbPath) -> list[dict]:
 
 
 def create_traits_table(database: DbPath, drop: bool = False) -> None:
-    """Create a table with the reconstructed label text."""
     sql = """
         create table if not exists traits (
             trait_id  integer primary key autoincrement,
@@ -420,7 +389,6 @@ def create_traits_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_traits(database: DbPath, batch: list) -> None:
-    """Insert a batch of consensus records."""
     sql = """
         insert into traits
                ( trait_set,  cons_id,  trait,  data)
@@ -434,7 +402,6 @@ def select_traits(
     trait_set: str = "",
     limit: int = 0,
 ) -> list[dict]:
-    """Get consensus records."""
     sql = """
         select *
           from traits
@@ -448,7 +415,6 @@ def select_traits(
 
 
 def get_trait_sets(database: DbPath) -> list[dict]:
-    """Get all of the consensus sets in the database."""
     sql = """select distinct trait_set from traits"""
     sql, params = build_select(sql)
     return rows_as_dicts(database, sql, params)
@@ -458,7 +424,6 @@ def get_trait_sets(database: DbPath) -> list[dict]:
 
 
 def create_tests_table(database: DbPath, drop: bool = False) -> None:
-    """Create test runs table."""
     sql = """
         create table if not exists tests (
             test_id     integer primary key autoincrement,
@@ -476,7 +441,6 @@ def create_tests_table(database: DbPath, drop: bool = False) -> None:
 
 
 def insert_tests(database: DbPath, batch: list) -> None:
-    """Insert a batch of test set records."""
     sql = """
         insert into tests
             ( test_set,   sheet_id,  pred_class,  pred_conf,
@@ -490,7 +454,6 @@ def insert_tests(database: DbPath, batch: list) -> None:
 
 
 def create_runs_table(database: DbPath) -> None:
-    """Create test runs table."""
     sql = """
         create table if not exists runs (
             run_id integer primary key autoincrement,
@@ -505,7 +468,6 @@ def create_runs_table(database: DbPath) -> None:
 
 
 def insert_run(args, comments: str = "") -> int:
-    """Format and insert a run."""
     create_runs_table(args.database)
 
     __, file, line, func, *_ = inspect.stack()[1]
@@ -525,7 +487,6 @@ def insert_run(args, comments: str = "") -> int:
 
 
 def update_run_finished(database: DbPath, run_id: int):
-    """Update the run records with comments."""
     sql = """
         update runs set finished = datetime('now', 'localtime') where run_id = ?
     """
@@ -534,7 +495,6 @@ def update_run_finished(database: DbPath, run_id: int):
 
 
 def update_run_comments(database: DbPath, run_id: int, comments: str):
-    """Update the run records with comments."""
     sql = """
         update runs
            set comments = ?,

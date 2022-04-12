@@ -23,7 +23,6 @@ SortableTrait = collections.namedtuple("SortableTrait", "label start trait")
 
 
 def write(args):
-    """Output the parsed data."""
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader("./digi_leap/pylib/trait_writer/templates"),
         autoescape=True,
@@ -59,7 +58,6 @@ def write(args):
 
 
 def format_text(text, rows, classes) -> str:
-    """Wrap traits in the text with spans that can be formatted with CSS."""
     frags = []
     prev = 0
 
@@ -93,7 +91,6 @@ def format_text(text, rows, classes) -> str:
 
 
 def format_traits(rows, classes) -> list[collections.namedtuple]:
-    """Format the traits for output."""
     traits = []
 
     sortable = []
@@ -123,7 +120,6 @@ def format_traits(rows, classes) -> list[collections.namedtuple]:
 
 
 def get_label(trait):
-    """Format the trait's label."""
     part = trait["part"] if trait.get("part") else ""
     subpart = trait["subpart"] if trait.get("subpart") else ""
     trait = trait["trait"] if trait["trait"] not in ("part", "subpart") else ""
@@ -131,7 +127,6 @@ def get_label(trait):
 
 
 def get_class(label, classes):
-    """Get the classes for the label."""
     if label not in classes:
         classes[label] = next(BACKGROUNDS)
     return classes[label]

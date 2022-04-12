@@ -17,7 +17,6 @@ ENGINE = {
 
 
 def ocr_labels(args: argparse.Namespace) -> None:
-    """OCR the label images."""
     run_id = db.insert_run(args)
 
     db.create_ocr_table(args.database)
@@ -68,7 +67,6 @@ def ocr_labels(args: argparse.Namespace) -> None:
 
 
 def get_sheet_labels(database, limit, classes, label_set, label_conf):
-    """get the labels for each herbarium sheet and filter them."""
     sheets = {}
     labels = db.select_labels(database, label_set=label_set)
     labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))

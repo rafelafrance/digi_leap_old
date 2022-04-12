@@ -11,7 +11,6 @@ from traiter import log
 
 
 def main():
-    """Run it."""
     log.started()
     args = parse_args()
 
@@ -22,7 +21,6 @@ def main():
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """Extract information from the labels."""
 
     arg_parser = argparse.ArgumentParser(
@@ -71,7 +69,6 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_trait_set(database, trait_set):
-    """Get the OCR runs included in this cons_set."""
     all_trait_sets = [s["trait_set"] for s in db.get_trait_sets(database)]
     if trait_set in all_trait_sets:
         return

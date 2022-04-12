@@ -14,7 +14,6 @@ from ..models import model_utils
 
 
 def predict(model, args: Namespace):
-    """Train a model."""
     run_id = db.insert_run(args)
 
     torch.multiprocessing.set_sharing_strategy("file_system")
@@ -37,7 +36,6 @@ def predict(model, args: Namespace):
 
 
 def run_prediction(model, device, loader):
-    """Train or validate an epoch."""
     batch = []
 
     for images, annotations, sheet_ids in tqdm(loader):
@@ -68,7 +66,6 @@ def run_prediction(model, device, loader):
 
 
 def insert_label_records(database, batch, label_set, image_size):
-    """Add test records to the database."""
     db.create_tests_table(database)
 
     rows = db.rows_as_dicts(database, "select * from sheets")
@@ -104,7 +101,6 @@ def insert_label_records(database, batch, label_set, image_size):
 
 
 def get_data_loader(args):
-    """Load the validation split."""
     logging.info("Loading image data.")
     raw_data = db.rows_as_dicts(args.database, """select * from sheets""")
     raw_data = raw_data[: args.limit] if args.limit else raw_data

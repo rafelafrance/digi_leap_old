@@ -15,8 +15,6 @@ UnlabeledSheet = namedtuple("UnlabeledSheet", "path sheet_id")
 
 
 class UnlabeledData(Dataset):
-    """Generate augmented training data."""
-
     def __init__(self, images: list[dict], image_size):
         super().__init__()
         self.image_size = image_size
@@ -59,7 +57,6 @@ class UnlabeledData(Dataset):
 
     @staticmethod
     def build_transforms(image_size):
-        """Build a pipeline of image transforms specific to the dataset."""
         xform = [
             A.Resize(width=image_size, height=image_size, p=1.0),
             A.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),

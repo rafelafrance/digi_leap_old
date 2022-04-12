@@ -11,7 +11,6 @@ from pylib.label_finder.runners import trainer_runner
 
 
 def main():
-    """Find labels on a herbarium sheet."""
     log.started()
     args = parse_args()
     model = edm.create_model(
@@ -22,7 +21,6 @@ def main():
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """Train a model to find labels on herbarium sheets."""
 
     arg_parser = argparse.ArgumentParser(

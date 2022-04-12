@@ -130,7 +130,6 @@ class Subject:
         self._remove_boxes(groups, removes)
 
     def _remove_boxes(self, groups, removes):
-        """Remove boxes."""
         if len(removes) > 0:
             mask = np.zeros_like(groups, dtype=np.bool_)
             mask[removes] = True
@@ -140,7 +139,6 @@ class Subject:
             self.types = self.types[~mask]
 
     def _sort_by_group(self) -> None:
-        """Sort the boxes by box group."""
         idx = self.groups.argsort()
         self.boxes = self.boxes[idx]
         self.types = self.types[idx]

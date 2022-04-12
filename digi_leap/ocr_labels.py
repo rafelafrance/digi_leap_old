@@ -10,13 +10,11 @@ from pylib.ocr import ocr_labels
 
 
 def main():
-    """Run it."""
     args = parse_args()
     ocr_labels.ocr_labels(args)
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """OCR images of labels."""
 
     arg_parser = argparse.ArgumentParser(

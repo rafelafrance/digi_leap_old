@@ -11,7 +11,6 @@ from ... import db
 
 
 def build(args: Namespace) -> None:
-    """Build the expedition."""
     run_id = db.insert_run(args)
 
     makedirs(args.expedition_dir, exist_ok=True)

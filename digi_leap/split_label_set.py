@@ -9,13 +9,11 @@ from pylib import db
 
 
 def main():
-    """Infer traits."""
     args = parse_args()
     assign_sheets(args)
 
 
 def assign_sheets(args):
-    """Assign herbarium sheets to splits."""
     run_id = db.insert_run(args)
 
     select = """
@@ -42,7 +40,6 @@ def assign_sheets(args):
 
 
 def parse_args():
-    """Process command-line arguments."""
     description = """Split herbarium sheets into training, testing, and validation
         datasets."""
     arg_parser = argparse.ArgumentParser(

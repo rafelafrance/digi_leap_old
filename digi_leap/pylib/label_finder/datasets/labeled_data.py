@@ -19,8 +19,6 @@ LabeledSheet = namedtuple("LabeledSheet", "path boxes targets sheet_id")
 
 
 class LabeledData(Dataset):
-    """Generate augmented training data."""
-
     def __init__(self, labels: list[dict], image_size, augment=False):
         super().__init__()
         self.augment = augment
@@ -93,7 +91,6 @@ class LabeledData(Dataset):
 
     @staticmethod
     def build_transforms(image_size, augment=False):
-        """Build a pipeline of image transforms specific to the dataset."""
         xform = [A.Resize(width=image_size, height=image_size, p=1.0)]
 
         if augment:
@@ -116,7 +113,6 @@ class LabeledData(Dataset):
 
     @staticmethod
     def build_transforms_torch(image_size, augment=False):
-        """Build a pipeline of image transforms specific to the dataset."""
         xform = [transforms.Resize(image_size)]
 
         if augment:
@@ -135,7 +131,6 @@ class LabeledData(Dataset):
         return transforms.Compose(xform)
 
     def show_image(self, idx) -> ImageType:
-        """Draw the boxes on the image."""
         sheet = self.sheets[idx]
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings

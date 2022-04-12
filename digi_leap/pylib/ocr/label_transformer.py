@@ -23,18 +23,15 @@ Transformation = Callable[[ImageOrNumpy], ImageOrNumpy]
 
 
 def compose(*functions: Transformation) -> Transformation:
-    """A way to compose transformations."""
     return functools.reduce(lambda f, g: lambda x: g(f(x)), functions)
 
 
 def image_to_array(image: ImageType) -> npt.ArrayLike:
-    """Convert a PIL image to a gray scale numpy array."""
     image = image.convert("L")
     return np.asarray(image)
 
 
 def array_to_image(image: npt.ArrayLike) -> ImageType:
-    """Convert a numpy array to a PIL image."""
     if hasattr(image, "dtype") and image.dtype == "float64":
         mode: Union[None, Literal] = "L" if len(image.shape) < 3 else "RGB"
         return Image.fromarray(image * 255.0, mode)
@@ -51,14 +48,12 @@ def scale(
     min_dim: int = 512,
     mode: str = "constant",
 ) -> npt.ArrayLike:
-    """Enlarge an image if it is too small."""
     if image.shape[0] < min_dim or image.shape[1] < min_dim:
         image = ndimage.zoom(image, factor, mode=mode)
     return image
 
 
 def blur(image: npt.ArrayLike, sigma: float = 1.0) -> npt.ArrayLike:
-    """Blur the image."""
     image = ndimage.gaussian_filter(image, sigma)
     return image
 
@@ -68,7 +63,6 @@ def orient(
     conf_low: float = 15.0,
     conf_high: float = 100.0,
 ) -> npt.ArrayLike:
-    """Adjust the orientation of the image."""
     try:
         osd = pytesseract.image_to_osd(image)
     except TesseractError:
@@ -114,28 +108,24 @@ def deskew(image: npt.ArrayLike, horiz_angles: npt.ArrayLike = None) -> npt.Arra
 
 
 def rank_mean(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    """Filter the image using a mean filter."""
     selem = selem if selem else morph.disk(2)
     image = filters.rank.mean(image, selem=selem)
     return image
 
 
 def rank_median(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    """Filter the image using a mean filter."""
     selem = selem if selem else morph.disk(2)
     image = filters.rank.median(image, selem=selem)
     return image
 
 
 def rank_modal(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    """Filter the image using a modal filter."""
     selem = selem if selem else morph.disk(2)
     image = filters.rank.median(image, selem=selem)
     return image
 
 
 def equalize_hist(image: npt.ArrayLike) -> npt.ArrayLike:
-    """Return image after histogram equalization."""
     image = ex.equalize_hist(image)
     image = (image * 255).astype(np.int8)
     # footprint = morph.disk(30)
@@ -144,7 +134,6 @@ def equalize_hist(image: npt.ArrayLike) -> npt.ArrayLike:
 
 
 def exposure(image: npt.ArrayLike, gamma: float = 2.0) -> npt.ArrayLike:
-    """Stretching or shrinking an image's intensity levels."""
     image = ex.adjust_gamma(image, gamma=gamma)
     image = ex.rescale_intensity(image)
     return image
@@ -155,7 +144,6 @@ def binarize_sauvola(
     window_size: int = 11,
     k: float = 0.032,
 ) -> npt.ArrayLike:
-    """Binarize the image."""
     threshold = filters.threshold_sauvola(image, window_size=window_size, k=k)
     image = image > threshold
     return image
@@ -166,7 +154,6 @@ def remove_small_holes(
     area_threshold: int = 64,
     connectivity: int = 1,
 ) -> npt.ArrayLike:
-    """Remove contiguous holes smaller than the specified size in a binary image."""
     image = morph.remove_small_holes(
         image, area_threshold=area_threshold, connectivity=connectivity
     )
@@ -174,7 +161,6 @@ def remove_small_holes(
 
 
 def binary_opening(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    """Fast binary morphological opening of a binary image."""
     image = morph.binary_opening(image, selem=selem)
     return image
 

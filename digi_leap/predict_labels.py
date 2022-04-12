@@ -11,7 +11,6 @@ from pylib.label_finder.runners import predictor_runner
 
 
 def main():
-    """Find labels on a herbarium sheet."""
     log.started()
     args = parse_args()
     model = efficient_det_model.create_model(
@@ -25,7 +24,6 @@ def main():
 
 
 def parse_args() -> argparse.Namespace:
-    """Process command-line arguments."""
     description = """
         Test a model for finding labels on herbarium sheets on a holdout set.
     """

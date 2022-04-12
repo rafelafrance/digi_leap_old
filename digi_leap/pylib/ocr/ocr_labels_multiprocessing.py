@@ -22,7 +22,6 @@ ENGINE = {
 
 
 def ocr_labels(args: argparse.Namespace) -> None:
-    """OCR the label images."""
     run_id = db.insert_run(args)
 
     multiprocessing.set_start_method("spawn")
@@ -57,7 +56,6 @@ def ocr_labels(args: argparse.Namespace) -> None:
 
 
 def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
-    """OCR one batch of sheets."""
     batch: list[dict] = []
 
     with warnings.catch_warnings():  # Turn off EXIF warnings
@@ -97,7 +95,6 @@ def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
 
 
 def get_sheet_labels(database, limit, classes, label_set, label_conf) -> dict:
-    """get the labels for each herbarium sheet and filter them."""
     sheets = defaultdict(list)
 
     labels = db.select_labels(database, label_set=label_set)

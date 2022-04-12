@@ -243,7 +243,6 @@ def _copies_key(choice, spell_well=None):
 
 
 def choose_best_copy(copies, spell_well):
-    """Find the copy with the best score."""
     key_func = functools.partial(_copies_key, spell_well=spell_well)
     copies = sorted(copies, key=key_func, reverse=True)
     return copies[0]
@@ -344,7 +343,6 @@ def remove_spaces(line, spell_well):
 
 
 def correct(line, spell_well):
-    """Fix spell_well."""
     new = []
     for token in spell_well.tokenize(line):
         if spell_well.is_letters(token):

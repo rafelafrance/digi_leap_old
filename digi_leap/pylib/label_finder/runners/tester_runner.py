@@ -16,7 +16,6 @@ from ..models import model_utils
 
 @dataclass
 class Stats:
-    """Gather statistics while training."""
 
     total_loss: float = float("Inf")
     class_loss: float = float("Inf")
@@ -24,7 +23,6 @@ class Stats:
 
 
 def test(model, args: Namespace):
-    """Train a model."""
     run_id = db.insert_run(args)
 
     device = torch.device("cuda" if torch.has_cuda else "cpu")
@@ -45,7 +43,6 @@ def test(model, args: Namespace):
 
 
 def run_test(model, device, loader):
-    """Train or validate an epoch."""
     batch = []
 
     running_loss = Stats(
@@ -90,7 +87,6 @@ def run_test(model, device, loader):
 
 
 def insert_test_records(database, batch, test_set, image_size):
-    """Add test records to the database."""
     db.create_tests_table(database)
 
     rows = db.rows_as_dicts(database, "select * from sheets where split = 'test'")
@@ -119,7 +115,6 @@ def insert_test_records(database, batch, test_set, image_size):
 
 
 def get_data_loader(args):
-    """Load the validation split."""
     logging.info("Loading test data.")
     raw_data = db.select_label_split(
         args.database, split="test", label_set=args.label_set, limit=args.limit
@@ -135,7 +130,6 @@ def get_data_loader(args):
 
 
 def log_stats(stats, database, run_id):
-    """Log results of the epoch."""
     comments = (
         f"Test: total loss {stats.total_loss:0.6f}  "
         f"class loss {stats.class_loss:0.6f}  "

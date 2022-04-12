@@ -15,7 +15,6 @@ from .spell_well import spell_well as sw
 
 
 def build_labels(args):
-    """Build labels from ensembles of OCR output."""
     run_id = db.insert_run(args)
 
     multiprocessing.set_start_method("spawn")
@@ -45,7 +44,6 @@ def build_labels(args):
 
 
 def build_batch(labels, cons_set, ocr_set):
-    """Build one batch of labels."""
     spell_well = sw.SpellWell()
     line_align = la.LineAlign(line_align_subs.SUBS)
 
@@ -65,7 +63,6 @@ def build_batch(labels, cons_set, ocr_set):
 
 
 def build_label_text(ocr_fragments, spell_well, line_align):
-    """Build a label text from a ensemble of OCR output."""
     text = []
 
     ocr_fragments = ocr_results.filter_boxes(ocr_fragments)

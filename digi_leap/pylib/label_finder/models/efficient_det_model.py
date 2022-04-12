@@ -9,7 +9,6 @@ from effdet.efficientdet import HeadNet
 def create_model(
     num_classes=1, image_size=512, name="tf_efficientnetv2_s", pretrained=True
 ):
-    """Build an EfficientDet model."""
     efficientdet_model_param_dict[name] = dict(
         name=name,
         backbone_name=name,
@@ -28,7 +27,6 @@ def create_model(
 
 
 def get_model(num_classes=1, name="efficientdet_d0"):
-    """Build an EfficientDet model."""
     config = effdet.get_efficientdet_config(name)
     config.update({"num_classes": num_classes})
 
