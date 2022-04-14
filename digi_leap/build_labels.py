@@ -67,12 +67,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    arg_parser.add_argument(
         "--notes",
         default="",
         metavar="TEXT",
@@ -85,9 +79,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_ocr_set(database, ocr_set):
-    all_ocr_sets = [s["ocr_set"] for s in db.get_ocr_sets(database)]
+    with db.connect(database) as cxn:
+        rows = db.execute(cxn, "select distinct ocr_set from ocr")
+        all_ocr_sets = [r["ocr_set"] for r in rows]
+
     if ocr_set in all_ocr_sets:
         return
+
     print(f"{ocr_set} is not a valid OCR set.")
     print("Valid OCR sets are:")
     print(", ".join(all_ocr_sets))

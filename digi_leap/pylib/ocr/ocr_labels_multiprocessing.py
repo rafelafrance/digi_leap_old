@@ -1,7 +1,6 @@
 """OCR a set of labels."""
 import argparse
 import multiprocessing
-import sqlite3
 import warnings
 from collections import defaultdict
 from itertools import chain
@@ -22,37 +21,34 @@ ENGINE = {
 
 
 def ocr_labels(args: argparse.Namespace) -> None:
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    multiprocessing.set_start_method("spawn")
+        multiprocessing.set_start_method("spawn")
 
-    with sqlite3.connect(args.database) as cxn:
-        cxn.execute("""delete from ocr where ocr_set = ?""", (args.ocr_set,))
+        db.execute(cxn, "delete from ocr where ocr_set = ?", (args.ocr_set,))
+        db.create_ocr_table(cxn)
 
-    db.create_ocr_table(args.database)
+        sheets = get_sheet_labels(cxn, args.classes, args.label_set, args.label_conf)
 
-    sheets = get_sheet_labels(
-        args.database, args.limit, args.classes, args.label_set, args.label_conf
-    )
+        batches = utils.dict_chunks(sheets, args.batch_size)
 
-    batches = utils.dict_chunks(sheets, args.batch_size)
-
-    results = []
-    with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:
-        for batch in batches:
-            results.append(
-                pool.apply_async(
-                    ocr_batch,
-                    args=(batch, args.pipelines, args.ocr_engines, args.ocr_set),
-                    callback=lambda _: bar.update(),
+        results = []
+        with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:
+            for batch in batches:
+                results.append(
+                    pool.apply_async(
+                        ocr_batch,
+                        args=(batch, args.pipelines, args.ocr_engines, args.ocr_set),
+                        callback=lambda _: bar.update(),
+                    )
                 )
-            )
-        results = [r.get() for r in results]
+            results = [r.get() for r in results]
 
-    results = list(chain(*[r for r in results]))
+        results = list(chain(*[r for r in results]))
 
-    db.insert_ocr(args.database, results)
-    db.update_run_finished(args.database, run_id)
+        db.insert_ocr(cxn, results)
+        db.update_run_finished(cxn, run_id)
 
 
 def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
@@ -94,10 +90,10 @@ def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
     return batch
 
 
-def get_sheet_labels(database, limit, classes, label_set, label_conf) -> dict:
+def get_sheet_labels(cxn, classes, label_set, label_conf) -> dict:
     sheets = defaultdict(list)
 
-    labels = db.select_labels(database, label_set=label_set)
+    labels = db.select_labels(cxn, label_set=label_set)
 
     if classes:
         labels = [lb for lb in labels if lb["class"] in classes]
@@ -106,8 +102,5 @@ def get_sheet_labels(database, limit, classes, label_set, label_conf) -> dict:
 
     for label in labels:
         sheets[label["path"]].append(label)
-
-    if limit:
-        sheets = {p: lb for i, (p, lb) in enumerate(sheets.items()) if i < limit}
 
     return sheets

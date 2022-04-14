@@ -23,23 +23,24 @@ class Stats:
 
 
 def test(model, args: Namespace):
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    device = torch.device("cuda" if torch.has_cuda else "cpu")
+        device = torch.device("cuda" if torch.has_cuda else "cpu")
 
-    model_utils.load_model_state(model, args.load_model)
-    model.to(device)
+        model_utils.load_model_state(model, args.load_model)
+        model.to(device)
 
-    test_loader = get_data_loader(args)
+        test_loader = get_data_loader(cxn, args)
 
-    logging.info("Testing started.")
+        logging.info("Testing started.")
 
-    model.eval()
-    batch, stats = run_test(model, device, test_loader)
+        model.eval()
+        batch, stats = run_test(model, device, test_loader)
 
-    insert_test_records(args.database, batch, args.test_set, args.image_size)
+        insert_test_records(cxn, batch, args.test_set, args.image_size)
 
-    log_stats(stats, args.database, run_id)
+        log_stats(stats, cxn, run_id)
 
 
 def run_test(model, device, loader):
@@ -86,10 +87,10 @@ def run_test(model, device, loader):
     )
 
 
-def insert_test_records(database, batch, test_set, image_size):
-    db.create_tests_table(database)
+def insert_test_records(cxn, batch, test_set, image_size):
+    db.create_tests_table(cxn)
 
-    rows = db.rows_as_dicts(database, "select * from sheets where split = 'test'")
+    rows = db.execute(cxn, "select * from sheets where split = 'test'")
 
     sheets: dict[str, tuple] = {}
 
@@ -110,15 +111,13 @@ def insert_test_records(database, batch, test_set, image_size):
         row["pred_top"] = int(row["pred_top"] * high)
         row["pred_bottom"] = int(row["pred_bottom"] * high)
 
-    db.delete(database, "tests", test_set=test_set)
-    db.insert_tests(database, batch)
+    db.execute(cxn, "delete from tests where test_set = ?", (test_set,))
+    db.insert_tests(cxn, batch)
 
 
-def get_data_loader(args):
+def get_data_loader(cxn, args):
     logging.info("Loading test data.")
-    raw_data = db.select_label_split(
-        args.database, split="test", label_set=args.label_set, limit=args.limit
-    )
+    raw_data = db.select_label_split(cxn, split="test", label_set=args.label_set)
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(
         dataset,
@@ -129,11 +128,11 @@ def get_data_loader(args):
     )
 
 
-def log_stats(stats, database, run_id):
+def log_stats(stats, cxn, run_id):
     comments = (
         f"Test: total loss {stats.total_loss:0.6f}  "
         f"class loss {stats.class_loss:0.6f}  "
         f"box loss {stats.box_loss:0.6f}"
     )
     logging.info(comments)
-    db.update_run_comments(database, run_id, comments)
+    db.update_run_comments(cxn, run_id, comments)

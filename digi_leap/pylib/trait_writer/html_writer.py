@@ -23,38 +23,39 @@ SortableTrait = collections.namedtuple("SortableTrait", "label start trait")
 
 
 def write(args):
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader("./digi_leap/pylib/trait_writer/templates"),
-        autoescape=True,
-    )
-
-    classes = {}
-    formatted = []
-
-    all_traits = db.select_traits(args.database, args.trait_set, args.limit)
-    groups = itertools.groupby(all_traits, key=lambda t: [t["cons_id"]])
-
-    for cons_id, rows in groups:
-        rows = list(rows)
-        for row in rows:
-            row["trait"] = json.loads(row["data"])
-        rows = sorted(rows, key=lambda r: r["trait"]["start"])
-        formatted.append(
-            Formatted(
-                format_text(rows[0]["cons_text"], rows, classes),
-                format_traits(rows, classes),
-            )
+    with db.connect(args.database) as cxn:
+        env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader("./digi_leap/pylib/trait_writer/templates"),
+            autoescape=True,
         )
 
-    template = env.get_template("html_template.html").render(
-        now=datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M"),
-        trait_set=args.trait_set,
-        data=formatted,
-    )
+        classes = {}
+        formatted = []
 
-    with open(args.out_file, "w") as html_file:
-        html_file.write(template)
-        html_file.close()
+        all_traits = db.select_traits(cxn, args.trait_set)
+        groups = itertools.groupby(all_traits, key=lambda t: [t["cons_id"]])
+
+        for cons_id, rows in groups:
+            rows = list(rows)
+            for row in rows:
+                row["trait"] = json.loads(row["data"])
+            rows = sorted(rows, key=lambda r: r["trait"]["start"])
+            formatted.append(
+                Formatted(
+                    format_text(rows[0]["cons_text"], rows, classes),
+                    format_traits(rows, classes),
+                )
+            )
+
+        template = env.get_template("html_template.html").render(
+            now=datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M"),
+            trait_set=args.trait_set,
+            data=formatted,
+        )
+
+        with open(args.out_file, "w") as html_file:
+            html_file.write(template)
+            html_file.close()
 
 
 def format_text(text, rows, classes) -> str:

@@ -57,21 +57,19 @@ def parse_args() -> argparse.Namespace:
         help="""Output the traits in this format.""",
     )
 
-    arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
     args = arg_parser.parse_args()
     validate_trait_set(args.database, args.trait_set)
     return args
 
 
 def validate_trait_set(database, trait_set):
-    all_trait_sets = [s["trait_set"] for s in db.get_trait_sets(database)]
+    with db.connect(database) as cxn:
+        rows = db.execute(cxn, "select distinct trait_set from traits")
+        all_trait_sets = [r["trait_set"] for r in rows]
+
     if trait_set in all_trait_sets:
         return
+
     print(f"{trait_set} is not a valid trait set.")
     print("Valid trait sets are:")
     print(", ".join(all_trait_sets))

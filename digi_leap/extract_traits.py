@@ -47,12 +47,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    arg_parser.add_argument(
         "--notes",
         default="",
         metavar="TEXT",
@@ -65,9 +59,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_cons_set(database, cons_set):
-    all_cons_sets = [s["cons_set"] for s in db.get_cons_sets(database)]
+    with db.connect(database) as cxn:
+        rows = db.execute(cxn, "select distinct cons_set from cons")
+        all_cons_sets = [r["cons_set"] for r in rows]
+
     if cons_set in all_cons_sets:
         return
+
     print(f"{cons_set} is not a valid consensus set.")
     print("Valid consensus sets are:")
     print(", ".join(all_cons_sets))

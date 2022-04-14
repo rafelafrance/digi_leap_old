@@ -14,25 +14,26 @@ from ..models import model_utils
 
 
 def predict(model, args: Namespace):
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    torch.multiprocessing.set_sharing_strategy("file_system")
+        torch.multiprocessing.set_sharing_strategy("file_system")
 
-    device = torch.device("cuda" if torch.has_cuda else "cpu")
+        device = torch.device("cuda" if torch.has_cuda else "cpu")
 
-    model_utils.load_model_state(model, args.load_model)
-    model.to(device)
+        model_utils.load_model_state(model, args.load_model)
+        model.to(device)
 
-    test_loader = get_data_loader(args)
+        test_loader = get_data_loader(cxn, args)
 
-    logging.info("Testing started.")
+        logging.info("Testing started.")
 
-    model.eval()
-    batch = run_prediction(model, device, test_loader)
+        model.eval()
+        batch = run_prediction(model, device, test_loader)
 
-    insert_label_records(args.database, batch, args.label_set, args.image_size)
+        insert_label_records(cxn, batch, args.label_set, args.image_size)
 
-    db.update_run_finished(args.database, run_id)
+        db.update_run_finished(cxn, run_id)
 
 
 def run_prediction(model, device, loader):
@@ -65,10 +66,10 @@ def run_prediction(model, device, loader):
     return batch
 
 
-def insert_label_records(database, batch, label_set, image_size):
-    db.create_tests_table(database)
+def insert_label_records(cxn, batch, label_set, image_size):
+    db.create_tests_table(cxn)
 
-    rows = db.rows_as_dicts(database, "select * from sheets")
+    rows = db.execute(cxn, "select * from sheets")
     sheets: dict[str, tuple] = {}
 
     for row in rows:
@@ -96,14 +97,13 @@ def insert_label_records(database, batch, label_set, image_size):
 
         prev_sheet_id = row["sheet_id"]
 
-    db.delete(database, "labels", label_set=label_set)
-    db.insert_labels(database, batch)
+    db.execute(cxn, "delete from labels where label_set = ?", (label_set,))
+    db.insert_labels(cxn, batch)
 
 
-def get_data_loader(args):
+def get_data_loader(cxn, args):
     logging.info("Loading image data.")
-    raw_data = db.rows_as_dicts(args.database, """select * from sheets""")
-    raw_data = raw_data[: args.limit] if args.limit else raw_data
+    raw_data = db.execute(cxn, "select * from sheets")
     dataset = UnlabeledData(raw_data, args.image_size)
     return DataLoader(
         dataset,

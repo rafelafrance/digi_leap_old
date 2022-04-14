@@ -15,32 +15,33 @@ from .spell_well import spell_well as sw
 
 
 def build_labels(args):
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    multiprocessing.set_start_method("spawn")
+        multiprocessing.set_start_method("spawn")
 
-    db.create_consensus_table(args.database)
+        db.create_consensus_table(cxn)
 
-    frags = get_ocr_fragments(args.database, args.ocr_set, args.limit)
-    batches = utils.dict_chunks(frags, args.batch_size)
+        frags = get_ocr_fragments(cxn, args.ocr_set)
+        batches = utils.dict_chunks(frags, args.batch_size)
 
-    results = []
-    with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:
-        for batch in batches:
-            results.append(
-                pool.apply_async(
-                    build_batch,
-                    args=(batch, args.cons_set, args.ocr_set),
-                    callback=lambda _: bar.update(),
+        results = []
+        with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:
+            for batch in batches:
+                results.append(
+                    pool.apply_async(
+                        build_batch,
+                        args=(batch, args.cons_set, args.ocr_set),
+                        callback=lambda _: bar.update(),
+                    )
                 )
-            )
-        results = [r.get() for r in results]
+            results = [r.get() for r in results]
 
-    results = list(chain(*[r for r in results]))
+        results = list(chain(*[r for r in results]))
 
-    db.delete(args.database, "cons", cons_set=args.cons_set)
-    db.insert_consensus(args.database, results)
-    db.update_run_finished(args.database, run_id)
+        db.execute(cxn, "delete from cons where cons_set = ?", (args.cons_set,))
+        db.insert_consensus(cxn, results)
+        db.update_run_finished(cxn, run_id)
 
 
 def build_batch(labels, cons_set, ocr_set):
@@ -95,14 +96,10 @@ def consensus(copies, line_align, spell_well):
     return cons
 
 
-def get_ocr_fragments(database, ocr_set, limit):
-    """Read OCR records and group them by label."""
+def get_ocr_fragments(cxn, ocr_set):
     frags = defaultdict(list)
 
-    for ocr in db.select_ocr(database, ocr_set):
+    for ocr in db.select_ocr(cxn, ocr_set):
         frags[ocr["label_id"]].append(ocr)
-
-    if limit:
-        frags = {k: v for i, (k, v) in enumerate(frags.items()) if i < limit}
 
     return frags

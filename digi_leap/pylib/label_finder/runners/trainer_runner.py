@@ -21,38 +21,39 @@ class Stats:
 
 
 def train(model, args: Namespace):
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    device = torch.device("cuda" if torch.has_cuda else "cpu")
-    model.to(device)
+        device = torch.device("cuda" if torch.has_cuda else "cpu")
+        model.to(device)
 
-    writer = SummaryWriter(args.log_dir)
+        writer = SummaryWriter(args.log_dir)
 
-    train_loader = get_train_loader(args)
-    val_loader = get_val_loader(args)
-    optimizer = get_optimizer(model, args.learning_rate)
+        train_loader = get_train_loader(cxn, args)
+        val_loader = get_val_loader(cxn, args)
+        optimizer = get_optimizer(model, args.learning_rate)
 
-    start_epoch = 1  # model.state.get("epoch", 0) + 1
-    end_epoch = start_epoch + args.epochs
+        start_epoch = 1  # model.state.get("epoch", 0) + 1
+        end_epoch = start_epoch + args.epochs
 
-    best_loss = Stats()
+        best_loss = Stats()
 
-    logging.info("Training started.")
+        logging.info("Training started.")
 
-    for epoch in range(start_epoch, end_epoch):
-        model.train()
-        train_loss = one_epoch(model, device, train_loader, optimizer)
+        for epoch in range(start_epoch, end_epoch):
+            model.train()
+            train_loss = one_epoch(model, device, train_loader, optimizer)
 
-        model.eval()
-        val_loss = one_epoch(model, device, val_loader)
+            model.eval()
+            val_loss = one_epoch(model, device, val_loader)
 
-        best_loss = save_checkpoint(
-            model, optimizer, args.save_model, val_loss, best_loss, epoch
-        )
-        log_stats(writer, train_loss, val_loss, best_loss, epoch)
+            best_loss = save_checkpoint(
+                model, optimizer, args.save_model, val_loss, best_loss, epoch
+            )
+            log_stats(writer, train_loss, val_loss, best_loss, epoch)
 
-    writer.close()
-    db.update_run_comments(args.database, run_id, comments(best_loss))
+        writer.close()
+        db.update_run_comments(cxn, run_id, comments(best_loss))
 
 
 def one_epoch(model, device, loader, optimizer=None):
@@ -92,11 +93,9 @@ def get_optimizer(model, lr):
     return torch.optim.AdamW(model.parameters(), lr=lr)
 
 
-def get_train_loader(args):
+def get_train_loader(cxn, args):
     logging.info("Loading training data.")
-    raw_data = db.select_label_split(
-        args.database, split="train", label_set=args.label_set, limit=args.limit
-    )
+    raw_data = db.select_label_split(cxn, split="train", label_set=args.label_set)
     dataset = LabeledData(raw_data, args.image_size, augment=True)
     return DataLoader(
         dataset,
@@ -108,11 +107,9 @@ def get_train_loader(args):
     )
 
 
-def get_val_loader(args):
+def get_val_loader(cxn, args):
     logging.info("Loading validation data.")
-    raw_data = db.select_label_split(
-        args.database, split="val", label_set=args.label_set, limit=args.limit
-    )
+    raw_data = db.select_label_split(cxn, split="val", label_set=args.label_set)
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(
         dataset,

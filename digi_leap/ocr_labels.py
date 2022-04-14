@@ -81,12 +81,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--limit",
-        type=int,
-        help="""Limit the input to this many records.""",
-    )
-
-    arg_parser.add_argument(
         "--notes",
         default="",
         metavar="TEXT",

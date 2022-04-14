@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Split labeled images into training, testing, and validation datasets."""
 import argparse
-import sqlite3
 import textwrap
 from pathlib import Path
 
@@ -14,19 +13,20 @@ def main():
 
 
 def assign_sheets(args):
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    select = """
-       select sheet_id from sheets where split is null or split = '' order by random()
-    """
-    rows = db.rows_as_dicts(args.database, select)
+        select = """
+            select sheet_id from sheets
+             where split is null or split = '' order by random()
+            """
+        rows = db.execute(cxn, select)
 
-    count = len(rows)
-    val_split = round(count * (args.test_split + args.val_split))
-    test_split = round(count * args.test_split)
+        count = len(rows)
+        val_split = round(count * (args.test_split + args.val_split))
+        test_split = round(count * args.test_split)
 
-    update = """update sheets set split = ? where sheet_id = ?"""
-    with sqlite3.connect(args.database) as cxn:
+        update = """update sheets set split = ? where sheet_id = ?"""
         for i, row in enumerate(rows):
             if i <= test_split:
                 split = "test"
@@ -34,9 +34,9 @@ def assign_sheets(args):
                 split = "val"
             else:
                 split = "train"
-            cxn.execute(update, (split, row["sheet_id"]))
+            db.execute(cxn, update, (split, row["sheet_id"]))
 
-    db.update_run_finished(args.database, run_id)
+        db.update_run_finished(cxn, run_id)
 
 
 def parse_args():

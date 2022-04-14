@@ -17,58 +17,57 @@ ENGINE = {
 
 
 def ocr_labels(args: argparse.Namespace) -> None:
-    run_id = db.insert_run(args)
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
 
-    db.create_ocr_table(args.database)
-    db.delete(args.database, "ocr", ocr_set=args.ocr_set)
+        db.create_ocr_table(cxn)
+        db.execute(cxn, "delete from ocr where ocr_set = ?", (args.ocr_set,))
 
-    sheets = get_sheet_labels(
-        args.database, args.limit, args.classes, args.label_set, args.label_conf
-    )
+        sheets = get_sheet_labels(cxn, args.classes, args.label_set, args.label_conf)
 
-    with warnings.catch_warnings():  # Turn off EXIF warnings
-        warnings.filterwarnings("ignore", category=UserWarning)
+        with warnings.catch_warnings():  # Turn off EXIF warnings
+            warnings.filterwarnings("ignore", category=UserWarning)
 
-        for path, labels in tqdm(sheets.items()):
-            sheet = Image.open(path)
-            batch: list[dict] = []
+            for path, labels in tqdm(sheets.items()):
+                sheet = Image.open(path)
+                batch: list[dict] = []
 
-            for lb in labels:
-                label = sheet.crop(
-                    (
-                        lb["label_left"],
-                        lb["label_top"],
-                        lb["label_right"],
-                        lb["label_bottom"],
+                for lb in labels:
+                    label = sheet.crop(
+                        (
+                            lb["label_left"],
+                            lb["label_top"],
+                            lb["label_right"],
+                            lb["label_bottom"],
+                        )
                     )
-                )
 
-                for pipeline in args.pipelines:
-                    image = lt.transform_label(pipeline, label)
+                    for pipeline in args.pipelines:
+                        image = lt.transform_label(pipeline, label)
 
-                    for engine in args.ocr_engines:
-                        results = ENGINE[engine](image)
-                        if results:
-                            for result in results:
-                                if result["ocr_text"]:
-                                    batch.append(
-                                        result
-                                        | {
-                                            "label_id": lb["label_id"],
-                                            "ocr_set": args.ocr_set,
-                                            "engine": engine,
-                                            "pipeline": pipeline,
-                                        }
-                                    )
+                        for engine in args.ocr_engines:
+                            results = ENGINE[engine](image)
+                            if results:
+                                for result in results:
+                                    if result["ocr_text"]:
+                                        batch.append(
+                                            result
+                                            | {
+                                                "label_id": lb["label_id"],
+                                                "ocr_set": args.ocr_set,
+                                                "engine": engine,
+                                                "pipeline": pipeline,
+                                            }
+                                        )
 
-            db.insert_ocr(args.database, batch)
+                db.insert_ocr(cxn, batch)
 
-    db.update_run_finished(args.database, run_id)
+        db.update_run_finished(cxn, run_id)
 
 
-def get_sheet_labels(database, limit, classes, label_set, label_conf):
+def get_sheet_labels(cxn, classes, label_set, label_conf):
     sheets = {}
-    labels = db.select_labels(database, label_set=label_set)
+    labels = db.select_labels(cxn, label_set=label_set)
     labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))
     grouped = itertools.groupby(labels, lambda lb: lb["path"])
 
@@ -82,8 +81,5 @@ def get_sheet_labels(database, limit, classes, label_set, label_conf):
 
         if labels:
             sheets[path] = labels
-
-    if limit:
-        sheets = {p: lb for i, (p, lb) in enumerate(sheets.items()) if i < limit}
 
     return sheets
