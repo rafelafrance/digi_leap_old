@@ -36,7 +36,7 @@ def on_taxon_match(ent):
 
     for token in ent:
         if token._.cached_label == "level":
-            is_level = term_utils.VOCAB_REPLACE.get(token.lower_, token.lower_)
+            is_level = term_utils.REPLACE.get(token.lower_, token.lower_)
         elif is_level:
             ent._.data[is_level] = token.lower_
             is_level = ""

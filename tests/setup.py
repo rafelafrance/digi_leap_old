@@ -4,22 +4,18 @@ from typing import List
 
 from traiter.util import shorten
 
-from digi_leap.pylib.trait_extractor.pipelines import extractor_pipeline
-from digi_leap.pylib.trait_extractor.pipelines import vocab_pipeline
+from digi_leap.pylib.trait_extractor import pipeline
 
-NLP_EXTRACTOR = extractor_pipeline.build_pipeline()  # Singleton for testing
-NLP_VOCAB = vocab_pipeline.build_pipeline()  # Singleton for testing
+NLP = pipeline.build_pipeline()  # Singleton for testing
 
 
 def test(text: str) -> List[Dict]:
     """Find entities in the doc."""
     text = shorten(text)
 
-    extractor_doc = NLP_EXTRACTOR(text)
-    vocab_doc = NLP_VOCAB(text)
+    extractor_doc = NLP(text)
 
     traits = [e._.data for e in extractor_doc.ents]
-    traits += [e._.data for e in vocab_doc.ents]
 
     # from pprint import pp
     # pp(traits, compact=True)

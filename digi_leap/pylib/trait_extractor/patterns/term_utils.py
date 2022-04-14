@@ -25,7 +25,7 @@ VOCAB_TERMS.silent = True
 VOCAB_TERMS += Db.shared("us_locations taxon_levels")
 VOCAB_TERMS += Db.select_term_set(TERM_DB, "plant_taxa")
 
-VOCAB_REPLACE = VOCAB_TERMS.pattern_dict("replace")
+REPLACE = VOCAB_TERMS.pattern_dict("replace")
 
 LEVEL = VOCAB_TERMS.pattern_dict("level")
 LEVEL = {k: v.split() for k, v in LEVEL.items()}
@@ -65,14 +65,3 @@ def setup_tokenizer(nlp):
     tokenizer_util.append_infix_regex(nlp, INFIX)
     tokenizer_util.append_suffix_regex(nlp)
     tokenizer_util.append_abbrevs(nlp, ABBREVS)
-
-
-# #########################################################################
-def setup_term_pipe(nlp, terms):
-    term_ruler = nlp.add_pipe(
-        "entity_ruler",
-        name="term_ruler",
-        before="parser",
-        config={"phrase_matcher_attr": "LOWER"},
-    )
-    term_ruler.add_patterns(terms.for_entity_ruler())
