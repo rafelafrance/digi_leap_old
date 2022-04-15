@@ -107,29 +107,24 @@ def deskew(image: npt.ArrayLike, horiz_angles: npt.ArrayLike = None) -> npt.Arra
     return image
 
 
-def rank_mean(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    selem = selem if selem else morph.disk(2)
-    image = filters.rank.mean(image, selem=selem)
+def rank_mean(image: npt.ArrayLike, footprint=None) -> npt.ArrayLike:
+    image = filters.rank.mean(image, footprint)
     return image
 
 
-def rank_median(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    selem = selem if selem else morph.disk(2)
-    image = filters.rank.median(image, selem=selem)
+def rank_median(image: npt.ArrayLike) -> npt.ArrayLike:
+    image = filters.rank.median(image)
     return image
 
 
-def rank_modal(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    selem = selem if selem else morph.disk(2)
-    image = filters.rank.median(image, selem=selem)
+def rank_modal(image: npt.ArrayLike) -> npt.ArrayLike:
+    image = filters.rank.median(image)
     return image
 
 
 def equalize_hist(image: npt.ArrayLike) -> npt.ArrayLike:
     image = ex.equalize_hist(image)
     image = (image * 255).astype(np.int8)
-    # footprint = morph.disk(30)
-    # image = filters.rank.equalize(image, footprint)
     return image
 
 
@@ -160,8 +155,8 @@ def remove_small_holes(
     return image
 
 
-def binary_opening(image: npt.ArrayLike, selem: npt.ArrayLike = None) -> npt.ArrayLike:
-    image = morph.binary_opening(image, selem=selem)
+def binary_opening(image: npt.ArrayLike) -> npt.ArrayLike:
+    image = morph.binary_opening(image)
     return image
 
 

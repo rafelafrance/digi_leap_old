@@ -19,8 +19,8 @@ def module_name() -> str:
 def started() -> None:
     setup_logger()
     logging.info("=" * 80)
-    logging.info(f"{module_name()} started")
+    logging.info("%s started", module_name())
 
 
 def finished() -> None:
-    logging.info(f"{module_name()} finished")
+    logging.info("%s finished", module_name())

@@ -45,7 +45,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                 )
             results = [r.get() for r in results]
 
-        results = list(chain(*[r for r in results]))
+        results = list(chain(*list(results)))
 
         db.insert_ocr(cxn, results)
         db.update_run_finished(cxn, run_id)
@@ -74,19 +74,17 @@ def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
                     image = lt.transform_label(pipeline, label)
 
                     for engine in ocr_engines:
-                        results = ENGINE[engine](image)
-                        if results:
-                            for result in results:
-                                if result["ocr_text"]:
-                                    batch.append(
-                                        result
-                                        | {
-                                            "label_id": lb["label_id"],
-                                            "ocr_set": ocr_set,
-                                            "engine": engine,
-                                            "pipeline": pipeline,
-                                        }
-                                    )
+                        results = [r for r in ENGINE[engine](image) if r["ocr_text"]]
+                        for result in results:
+                            batch.append(
+                                result
+                                | {
+                                    "label_id": lb["label_id"],
+                                    "ocr_set": ocr_set,
+                                    "engine": engine,
+                                    "pipeline": pipeline,
+                                }
+                            )
     return batch
 
 

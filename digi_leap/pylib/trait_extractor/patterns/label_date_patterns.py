@@ -1,11 +1,11 @@
 """Parse date notations."""
+import re
 from calendar import IllegalMonthError
 from datetime import date
 
-import regex as re
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
-from spacy import registry
+from spacy.util import registry
 from traiter import actions
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
@@ -60,8 +60,8 @@ def on_label_date_match(ent):
     text = re.sub(f"{COMMA}+", " ", text, flags=flags)
     try:
         date_ = parser.parse(text).date()
-    except (parser.ParserError, IllegalMonthError):
-        raise actions.RejectMatch()
+    except (parser.ParserError, IllegalMonthError) as err:
+        raise actions.RejectMatch() from err
 
     if date_ > date.today():
         date_ -= relativedelta(years=100)

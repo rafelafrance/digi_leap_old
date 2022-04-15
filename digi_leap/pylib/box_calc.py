@@ -161,9 +161,9 @@ def small_box_suppression(boxes, threshold=0.9, eps=1e-8):
     # Simplify access to box components
     x0, y0, x1, y1 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
 
-    a1 = torch.maximum(torch.tensor([0.0]), x1 - x0)
-    a2 = torch.maximum(torch.tensor([0.0]), y1 - y0)
-    area = a1 * a2 + eps
+    area1 = torch.maximum(torch.tensor([0.0]), x1 - x0)
+    area2 = torch.maximum(torch.tensor([0.0]), y1 - y0)
+    area = area1 * area2 + eps
 
     idx = area.argsort()
 
@@ -183,9 +183,9 @@ def small_box_suppression(boxes, threshold=0.9, eps=1e-8):
         yy1 = torch.minimum(y1[curr], y1[idx])
 
         # Get the intersection as a fraction of the smaller box
-        i1 = torch.maximum(torch.tensor([0.0]), xx1 - xx0)
-        i2 = torch.maximum(torch.tensor([0.0]), yy1 - yy0)
-        inter = (i1 * i2) / area[idx]
+        inter1 = torch.maximum(torch.tensor([0.0]), xx1 - xx0)
+        inter2 = torch.maximum(torch.tensor([0.0]), yy1 - yy0)
+        inter = (inter1 * inter2) / area[idx]
 
         # Find overlaps larger than threshold & delete them
         inter = torch.where(inter >= threshold)[0]

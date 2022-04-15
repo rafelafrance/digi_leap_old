@@ -72,8 +72,8 @@ class Subject:
     @staticmethod
     def bbox_from_json(coords: str) -> npt.ArrayLike:
         """Convert a JSON box into a numpy array."""
-        jj = json.loads(coords)
-        box = np.array([jj["left"], jj["top"], jj["right"], jj["bottom"]])
+        raw = json.loads(coords)
+        box = np.array([raw["left"], raw["top"], raw["right"], raw["bottom"]])
         return box
 
     def merge_box_groups(self) -> None:
@@ -97,11 +97,11 @@ class Subject:
         removes = np.array([], dtype=int)
         groups = calc.overlapping_boxes(self.boxes, threshold=0.1)
         max_group = np.max(groups)
-        for g in range(1, max_group + 1):
-            group = self.boxes[groups == g]
-            types = self.types[groups == g]
+        for grp in range(1, max_group + 1):
+            group = self.boxes[groups == grp]
+            types = self.types[groups == grp]
             if len(group) == 1 and not types[0]:
-                idx = np.argwhere(groups == g).flatten()
+                idx = np.argwhere(groups == grp).flatten()
                 removes = np.hstack((removes, idx))
 
         self._remove_boxes(groups, removes)
@@ -120,11 +120,11 @@ class Subject:
         # Group all sub-boxes and count the subgroups
         # If the subgroup count > 1 then there are multiple labels
         max_group = np.max(groups)
-        for g in range(1, max_group + 1):
-            sub_boxes = self.boxes[groups == -g]
+        for grp in range(1, max_group + 1):
+            sub_boxes = self.boxes[groups == -grp]
             subgroups = calc.overlapping_boxes(sub_boxes)
             if len(subgroups) > 0 and subgroups.max() > 1:
-                idx = np.argwhere(groups == g).flatten()
+                idx = np.argwhere(groups == grp).flatten()
                 removes = np.hstack((removes, idx))
 
         self._remove_boxes(groups, removes)

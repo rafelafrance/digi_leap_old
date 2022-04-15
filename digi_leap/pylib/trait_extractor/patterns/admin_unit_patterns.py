@@ -1,5 +1,5 @@
 """Parse administrative unit notations."""
-from spacy import registry
+from spacy.util import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns

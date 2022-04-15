@@ -5,6 +5,7 @@ import itertools
 import json
 import re
 from datetime import datetime
+from typing import NamedTuple
 
 import jinja2
 
@@ -35,7 +36,7 @@ def write(args):
         all_traits = db.select_traits(cxn, args.trait_set)
         groups = itertools.groupby(all_traits, key=lambda t: [t["cons_id"]])
 
-        for cons_id, rows in groups:
+        for _, rows in groups:
             rows = list(rows)
             for row in rows:
                 row["trait"] = json.loads(row["data"])
@@ -53,7 +54,7 @@ def write(args):
             data=formatted,
         )
 
-        with open(args.out_file, "w") as html_file:
+        with open(args.out_file, "w", encoding="utf_8") as html_file:
             html_file.write(template)
             html_file.close()
 
@@ -91,7 +92,7 @@ def format_text(text, rows, classes) -> str:
     return text
 
 
-def format_traits(rows, classes) -> list[collections.namedtuple]:
+def format_traits(rows, classes) -> list[NamedTuple]:
     traits = []
 
     sortable = []

@@ -33,9 +33,8 @@ def map_(results, iou_threshold=0.5, eps=1e-8):
         true_labels = result["true_labels"].unique()
 
         if true_labels.numel() == 0:
-            # TODO Should the empty case be true or empty predicted case be 1.0?
-            ap = 1.0 if result["pred_labels"].numel() == 0 else 0.0
-            all_ap.append(torch.tensor(ap))
+            avg_pre = 1.0 if result["pred_labels"].numel() == 0 else 0.0
+            all_ap.append(torch.tensor(avg_pre))
             continue
 
         for cls in true_labels:
@@ -76,8 +75,8 @@ def map_(results, iou_threshold=0.5, eps=1e-8):
 
             # Calculate the AUC
             idx = torch.where(rec[1:] != rec[:-1])[0]
-            ap = torch.sum((rec[idx + 1] - rec[idx]) * pre[idx + 1])
+            avg_pre = torch.sum((rec[idx + 1] - rec[idx]) * pre[idx + 1])
 
-            all_ap.append(ap)
+            all_ap.append(avg_pre)
 
     return sum(all_ap) / (len(all_ap) + eps)

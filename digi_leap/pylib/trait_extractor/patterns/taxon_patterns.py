@@ -1,5 +1,5 @@
 """Find taxon notations on herbarium specimen labels."""
-from spacy import registry
+from spacy.util import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
@@ -44,17 +44,7 @@ def on_taxon_match(ent):
         elif token._.cached_label == "plant_taxon":
             levels = term_utils.LEVEL.get(token.lower_, ["unknown"])
 
-            # Find the highest unused taxon level
-            for level in levels:
-                if level not in used_levels:
-                    used_levels.append(level)
-                    if level in LEVEL_LOWER:
-                        ent._.data[level] = token.lower_
-                    else:
-                        ent._.data[level] = token.lower_.title()
-                    break
-            else:
-                ent._.data["unknown_taxon"] = token.text
+            find_highest_unused_taxon(ent, levels, token, used_levels)
 
         elif token.pos_ in ["PROPN", "NOUN"]:
             auth.append(token.text)
@@ -64,3 +54,16 @@ def on_taxon_match(ent):
 
     if ent._.data.get("plant_taxon"):
         del ent._.data["plant_taxon"]
+
+
+def find_highest_unused_taxon(ent, levels, token, used_levels):
+    for level in levels:
+        if level not in used_levels:
+            used_levels.append(level)
+            if level in LEVEL_LOWER:
+                ent._.data[level] = token.lower_
+            else:
+                ent._.data[level] = token.lower_.title()
+            break
+    else:
+        ent._.data["unknown_taxon"] = token.text

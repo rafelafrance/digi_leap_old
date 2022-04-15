@@ -183,13 +183,13 @@ def sort_copies(copies: list[str], line_align) -> list[str]:
     ordered = [copies[i], copies[j]]
 
     while len(hits) < len(copies):
-        for d, dist in enumerate(distances):
+        for d_idx, dist in enumerate(distances):
             i, j = dist[1:]
             if i in hits or j in hits:
                 k = i if j in hits else j
                 hits.add(k)
                 ordered.append(copies[k])
-                distances.pop(d)
+                distances.pop(d_idx)
                 break
     return ordered
 
@@ -229,8 +229,8 @@ def _get_choices(options):
             ln = "".join(choice)
             all_choices.append(ln)
             return
-        for o in opts[0]:
-            _build_choices(opts[1:], choice + [o])
+        for opt in opts[0]:
+            _build_choices(opts[1:], choice + [opt])
 
     _build_choices(options, [])
     return all_choices

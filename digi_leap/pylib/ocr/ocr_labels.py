@@ -46,19 +46,19 @@ def ocr_labels(args: argparse.Namespace) -> None:
                         image = lt.transform_label(pipeline, label)
 
                         for engine in args.ocr_engines:
-                            results = ENGINE[engine](image)
-                            if results:
-                                for result in results:
-                                    if result["ocr_text"]:
-                                        batch.append(
-                                            result
-                                            | {
-                                                "label_id": lb["label_id"],
-                                                "ocr_set": args.ocr_set,
-                                                "engine": engine,
-                                                "pipeline": pipeline,
-                                            }
-                                        )
+                            results = [
+                                r for r in ENGINE[engine](image) if r["ocr_text"]
+                            ]
+                            for result in results:
+                                batch.append(
+                                    result
+                                    | {
+                                        "label_id": lb["label_id"],
+                                        "ocr_set": args.ocr_set,
+                                        "engine": engine,
+                                        "pipeline": pipeline,
+                                    }
+                                )
 
                 db.insert_ocr(cxn, batch)
 

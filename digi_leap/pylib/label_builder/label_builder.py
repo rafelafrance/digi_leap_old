@@ -37,7 +37,7 @@ def build_labels(args):
                 )
             results = [r.get() for r in results]
 
-        results = list(chain(*[r for r in results]))
+        results = list(chain(*list(results)))
 
         db.execute(cxn, "delete from cons where cons_set = ?", (args.cons_set,))
         db.insert_consensus(cxn, results)

@@ -46,8 +46,8 @@ class SpellWell:
             self.cxn.execute(create2, (self.vocab_freq,))
             self.cxn.executescript(indexes)
             self.cxn.execute("detach database aux")
-        except sqlite3.OperationalError as e:
-            logging.error(e)
+        except sqlite3.OperationalError as err:
+            logging.error(err)
 
     def correct(self, word: str) -> str:
         if not word:
