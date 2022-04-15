@@ -3,7 +3,6 @@
 .spyproject/
 .vscode/
 .idea/
-.mypy_cache/
 .~*
 
 # Language server protocol
@@ -51,3 +50,8 @@ extern/
 .rendered.*.cpp
 *.so
 *.plist
+
+# Personal linters etc.
+.pylintrc
+.mypy.ini
+.mypy_cache/

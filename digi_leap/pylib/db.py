@@ -18,7 +18,7 @@ def connect(db_path):
 
 
 def execute(cxn, sql, params=None):
-    """Execute a query -- strictly sugar."""
+    """Execute a query -- sugar for making database calls look the same."""
     return cxn.execute(sql, params)
 
 
