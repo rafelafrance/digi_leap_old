@@ -37,7 +37,9 @@ COLLECTOR = MatcherPatterns(
         "col_label? by? :? name+ and name+ and name+ no_label? :? col_no",
         "col_label  by? :? name+ and name+ and name+ no_label? :? col_no?",
         #
-        "col_label  by? :? maybe+ and name+ no_label? col_no?",
+        "col_label  by? :? name+  maybe+    no_label  :? col_no",
+        "col_label  by? :? maybe+ name+     no_label? :? col_no?",
+        "col_label  by? :? maybe+ and name+ no_label? :? col_no?",
     ],
 )
 

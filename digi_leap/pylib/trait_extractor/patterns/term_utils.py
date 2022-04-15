@@ -4,12 +4,11 @@ import string
 from traiter import tokenizer_util
 from traiter.terms.db import Db
 
-from ...consts import ROOT_DIR
+from ...consts import DATA_DIR
 
 
 # ##########################################################################
-VOCAB_DIR = ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "vocabulary"
-TERM_DB = VOCAB_DIR / "terms.sqlite"
+TERM_DB = DATA_DIR / "terms.sqlite"
 
 
 # ##########################################################################

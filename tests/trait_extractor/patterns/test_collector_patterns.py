@@ -166,8 +166,7 @@ class TestCollector(unittest.TestCase):
             test("""collected by Merle Dortmond"""),
             [
                 {
-                    "collector_no": "736",
-                    "collector": "Mrs. Jim Miller",
+                    "collector": "Merle Dortmond",
                     "trait": "collector",
                     "start": 0,
                     "end": 27,

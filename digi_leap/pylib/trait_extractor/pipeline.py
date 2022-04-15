@@ -1,7 +1,6 @@
 """Create a trait pipeline."""
 import spacy
 from traiter.patterns import matcher_patterns
-from traiter.pipes import debug_pipes
 from traiter.pipes.add_traits_pipe import ADD_TRAITS
 from traiter.pipes.delete_traits_pipe import DELETE_TRAITS
 from traiter.pipes.simple_traits_pipe import SIMPLE_TRAITS
@@ -15,6 +14,8 @@ from .patterns import name_patterns
 from .patterns import taxon_patterns
 from .patterns import term_utils
 
+# from traiter.pipes import debug_pipes
+
 
 def build_pipeline():
     nlp = spacy.load("en_core_web_md", disable=["senter"])
@@ -23,6 +24,7 @@ def build_pipeline():
 
     nlp.add_pipe(
         TERM_PIPE,
+        name="extractor_terms",
         before="parser",
         config={
             "terms": term_utils.EXTRACTOR_TERMS.terms,
@@ -111,7 +113,7 @@ def build_pipeline():
         },
     )
 
-    debug_pipes.tokens(nlp)  # ######################################################
+    # debug_pipes.tokens(nlp)  # ######################################################
 
     nlp.add_pipe(
         DELETE_TRAITS,
@@ -121,5 +123,8 @@ def build_pipeline():
             month name plant_taxon col_label det_label job_label """.split()
         },
     )
+
+    # for name in nlp.pipe_names:
+    #     print(name)
 
     return nlp
