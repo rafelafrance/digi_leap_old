@@ -55,3 +55,4 @@ extern/
 .pylintrc
 .mypy.ini
 .mypy_cache/
+.virtual_documents/

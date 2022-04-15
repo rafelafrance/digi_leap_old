@@ -17,8 +17,9 @@ def test(text: str) -> List[Dict]:
 
     traits = [e._.data for e in extractor_doc.ents]
 
-    # from pprint import pp
-    # pp(traits, compact=True)
+    from pprint import pp
+
+    pp(traits, compact=True)
 
     # from spacy import displacy
     # displacy.serve(doc, options={'collapse_punct': False, 'compact': True})

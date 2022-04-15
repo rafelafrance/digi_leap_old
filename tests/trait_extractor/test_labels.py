@@ -7,8 +7,20 @@ from tests.setup import test
 class TestLabels(unittest.TestCase):
     """Test trait extraction on labels."""
 
-    # def test_label_00(self):
-    #     test(""" """)
+    def test_label_00(self):
+        test(
+            """
+            Fraijanes, Alaeloa Costa Rica
+            Myricaceae
+            Myrica pubescens Willd.
+            In Fraijanes Recreation Park, at 1475 m in
+            tropical cloud forest, volcanic area with
+            acid soil, 2-3 m tall.
+            William M. Houghton 531 14 Jan. 1987
+            collected by Merle Dortmond
+            The University of Georgia Athens, GA, U.S.A.
+         """
+        )
 
     def test_label_01(self):
         """County vs colorado (CO)."""

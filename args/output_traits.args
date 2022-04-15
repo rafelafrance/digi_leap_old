@@ -1,4 +1,4 @@
 --database=data/sernec/sernec.sqlite
---trait-set=traiter_2022-04-08
+--trait-set=traiter_2022-04-15
 --format=html
---out-file=data/output/junk.html
+--out-file=data/output/traiter_2022-04-15.html

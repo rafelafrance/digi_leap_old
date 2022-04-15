@@ -37,7 +37,7 @@ def write(args):
         groups = itertools.groupby(all_traits, key=lambda t: [t["cons_id"]])
 
         for _, rows in groups:
-            rows = list(rows)
+            rows = [dict(r) for r in rows]
             for row in rows:
                 row["trait"] = json.loads(row["data"])
             rows = sorted(rows, key=lambda r: r["trait"]["start"])

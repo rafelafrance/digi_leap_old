@@ -159,3 +159,18 @@ class TestCollector(unittest.TestCase):
                 }
             ],
         )
+
+    def test_collector_10(self):
+        """It handles a name with a prefix."""
+        self.assertEqual(
+            test("""collected by Merle Dortmond"""),
+            [
+                {
+                    "collector_no": "736",
+                    "collector": "Mrs. Jim Miller",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 27,
+                }
+            ],
+        )
