@@ -148,3 +148,32 @@ class TestAdminUnit(unittest.TestCase):
                 },
             ],
         )
+
+    def test_admin_unit_12(self):
+        """County vs colorado (CO)."""
+        self.assertEqual(
+            test("""CHARLOTTE CO"""),
+            [
+                {
+                    "us_county": "Charlotte",
+                    "trait": "admin_unit",
+                    "start": 0,
+                    "end": 12,
+                },
+            ],
+        )
+
+    def test_admin_unit_13(self):
+        """County vs colorado (CO)."""
+        self.assertEqual(
+            test("""Charlotte CO"""),
+            [
+                {
+                    "us_state": "Colorado",
+                    "us_county": "Charlotte",
+                    "trait": "admin_unit",
+                    "start": 0,
+                    "end": 12,
+                },
+            ],
+        )

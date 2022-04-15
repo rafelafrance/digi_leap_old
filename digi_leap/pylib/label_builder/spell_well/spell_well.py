@@ -6,7 +6,6 @@ https://seekstorm.com/blog/1000x-spelling-correction/
 import logging
 import sqlite3
 from collections import namedtuple
-from typing import Iterable
 
 import regex as re
 
@@ -58,19 +57,20 @@ class SpellWell:
 
         all_deletes = self.deletes1(word) | self.deletes2(word)
 
-        if hit := self.best(all_deletes, 1):
+        if hit := self.best(list(all_deletes), 1):
             return hit
 
         return word
 
-    def best(self, words: Iterable, dist: int) -> str:
-        words = ",".join({f"'{w}'" for w in words})
+    def best(self, words, dist: int) -> str:
+        q_marks = ", ".join(["?"] * len(words))
+        args = words + [dist]
         sql = f"""select word, dist, freq
                     from spells
-                   where miss in ({words})
+                   where miss in ({q_marks})
                      and dist <= ?
                 order by freq desc"""
-        hit = self.cxn.execute(sql, (dist,)).fetchone()
+        hit = self.cxn.execute(sql, args).fetchone()
         return hit[0] if hit else ""
 
     @staticmethod

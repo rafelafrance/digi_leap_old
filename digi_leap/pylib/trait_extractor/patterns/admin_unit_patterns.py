@@ -39,8 +39,10 @@ COUNTY_BEFORE_STATE = MatcherPatterns(
 def on_county_before_state_match(ent):
     ent._.new_label = "admin_unit"
     entities = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
-    state = entities[1].text.title()
-    ent._.data["us_state"] = term_utils.REPLACE.get(state, state)
+    county = entities[0].text
+    state = entities[1].text
+    if state != "CO" or not county.isupper():
+        ent._.data["us_state"] = term_utils.REPLACE.get(state, state)
     ent._.data["us_county"] = entities[0].text.title()
 
 
@@ -50,7 +52,7 @@ COUNTY_ONLY = MatcherPatterns(
     on_match="digi_leap.county_only.v1",
     decoder=admin_unit_decoder(),
     patterns=[
-        "us_county county_label",
+        "us_county county_label .?",
     ],
 )
 

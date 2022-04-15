@@ -19,6 +19,7 @@ TAXON = MatcherPatterns(
         "word": {"LOWER": {"REGEX": r"^[a-z-]+$"}},
     },
     patterns=[
+        "taxon+",
         "taxon+ (? auth* )?",
         "taxon+ (? auth+ maybe auth+ )?",
         "taxon+ (? auth* )?             level .? word",

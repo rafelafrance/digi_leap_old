@@ -89,7 +89,7 @@ def build_pipeline():
 
     nlp.add_pipe(
         ADD_TRAITS,
-        name="vocab_traits",
+        name="admin_unit_traits",
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
@@ -97,9 +97,18 @@ def build_pipeline():
                     admin_unit_patterns.COUNTY_ONLY,
                     admin_unit_patterns.STATE_BEFORE_COUNTY,
                     admin_unit_patterns.STATE_ONLY,
-                    taxon_patterns.TAXON,
                 ]
-            )
+            ),
+        },
+    )
+    # debug_pipes.tokens(nlp)  # ######################################################
+
+    nlp.add_pipe(
+        ADD_TRAITS,
+        name="taxon_traits",
+        config={
+            "patterns": matcher_patterns.as_dicts([taxon_patterns.TAXON]),
+            "keep": """ admin_unit collector determiner label_date """.split(),
         },
     )
 

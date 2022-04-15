@@ -33,7 +33,6 @@ RECONCILE_TYPES = {
 # Used when merging bounding boxes
 @dataclass
 class Subject:
-    """A utility class used to calculate merging subject boxes."""
 
     subject_id: str = ""
     image_file: str = ""
@@ -55,7 +54,6 @@ class Subject:
     )
 
     def to_dict(self):
-        """Custom as dict."""
         return {
             "subject_id": self.subject_id,
             "image_file": self.image_file,
@@ -71,7 +69,6 @@ class Subject:
 
     @staticmethod
     def bbox_from_json(coords: str) -> npt.ArrayLike:
-        """Convert a JSON box into a numpy array."""
         raw = json.loads(coords)
         box = np.array([raw["left"], raw["top"], raw["right"], raw["bottom"]])
         return box

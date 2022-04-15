@@ -37,25 +37,6 @@ repos:
     -   id: pyupgrade
         args: [--py36-plus]
 
-# - repo: local
-#   hooks:
-#     - id: pylint
-#       name: pylint
-#       entry: pylint
-#       language: system
-#       types: [python]
-#       args:
-#         [
-#           "-rn", # Only display messages
-#         ]
-
-#-   repo: https://github.com/pre-commit/mirrors-mypy
-#    rev: v0.910-1
-#    hooks:
-#    -   id: mypy
-#        files: ^digi_leap/
-#        args: []
-
 - repo: https://github.com/pocc/pre-commit-hooks
   rev: v1.3.5
   hooks:
@@ -64,15 +45,3 @@ repos:
       - --extra-arg=-I./.venv/lib/python3.9/site-packages/pybind11/include/
       - --extra-arg=-I/usr/include/python3.9/
   - id: cppcheck
-  # - id: include-what-you-use
-  #   exclude: '.*_py.cpp'
-  #   args:
-  #     - -I./.venv/lib/python3.9/site-packages/pybind11/include/
-  #     - -I/usr/include/python3.9/
-# - id: clang-format
-# - id: uncrustify
-# - id: oclint
-#   args:
-#     - --extra-arg=-I./.venv/lib/python3.9/site-packages/pybind11/include/
-#     - --extra-arg=-I/usr/include/python3.9/
-# - id: cpplint
