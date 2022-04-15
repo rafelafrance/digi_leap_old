@@ -4,6 +4,8 @@
 .vscode/
 .idea/
 .~*
+.virtual_documents/
+*journal
 
 # Language server protocol
 .lsp_symlink
@@ -55,4 +57,3 @@ extern/
 .pylintrc
 .mypy.ini
 .mypy_cache/
-.virtual_documents/

@@ -5,16 +5,17 @@ from traiter import tokenizer_util
 from traiter.terms.db import Db
 
 from ...consts import DATA_DIR
+from ...consts import MOCK_DIR
 
 
 # ##########################################################################
 TERM_DB = DATA_DIR / "terms.sqlite"
-
+if not TERM_DB.exists():
+    TERM_DB = MOCK_DIR / "terms.sqlite"
 
 # ##########################################################################
 EXTRACTOR_TERMS = Db.shared("time")
 EXTRACTOR_TERMS += Db.select_term_set(TERM_DB, "jobs")
-
 
 # ##########################################################################
 VOCAB_TERMS = Db()
@@ -50,7 +51,6 @@ ABBREVS = """
     m. var. sect. subsect. ser. subser. subsp. sp. nov.
     """.split()
 ABBREVS += [f"{c}." for c in string.ascii_uppercase]
-
 
 INFIX = [
     r"(?<=[0-9])[/,](?=[0-9])",  # digit,digit
