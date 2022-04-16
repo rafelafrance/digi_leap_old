@@ -10,6 +10,7 @@ DETERMINER = MatcherPatterns(
         "by": {"LOWER": {"IN": ["by"]}},
         "det_label": {"ENT_TYPE": "det_label"},
         "name": {"ENT_TYPE": "name"},
+        "maybe": {"POS": "PROPN"},
     },
     patterns=[
         "det_label by? :? name+",

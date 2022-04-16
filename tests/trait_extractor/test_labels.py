@@ -7,23 +7,22 @@ from tests.setup import test
 class TestLabels(unittest.TestCase):
     """Test trait extraction on labels."""
 
-    def test_label_00(self):
-        test(
-            """
-            Fraijanes, Alaeloa Costa Rica
-            Myricaceae
-            Myrica pubescens Willd.
-            In Fraijanes Recreation Park, at 1475 m in
-            tropical cloud forest, volcanic area with
-            acid soil, 2-3 m tall.
-            William M. Houghton 531 14 Jan. 1987
-            collected by Merle Dortmond
-            The University of Georgia Athens, GA, U.S.A.
-         """
-        )
+    # def test_label_00(self):
+    #     test(
+    #         """
+    #         Fraijanes, Alaeloa Costa Rica
+    #         Myricaceae
+    #         Myrica pubescens Willd.
+    #         In Fraijanes Recreation Park, at 1475 m in
+    #         tropical cloud forest, volcanic area with
+    #         acid soil, 2-3 m tall.
+    #         William M. Houghton 531 14 Jan. 1987
+    #         collected by Merle Dortmond
+    #         The University of Georgia Athens, GA, U.S.A.
+    #      """
+    #     )
 
     def test_label_01(self):
-        """County vs colorado (CO)."""
         self.assertEqual(
             test(
                 """
@@ -59,7 +58,7 @@ class TestLabels(unittest.TestCase):
                     "collector_no": "2523",
                     "collector": "Alan R. Franck",
                     "trait": "collector",
-                    "start": 176,
+                    "start": 178,
                     "end": 197,
                 },
                 {
@@ -67,6 +66,60 @@ class TestLabels(unittest.TestCase):
                     "trait": "label_date",
                     "start": 198,
                     "end": 213,
+                },
+            ],
+        )
+
+    def test_label_02(self):
+        self.assertEqual(
+            test(
+                """
+                Fraijanes, Alaeloa Costa Rica
+                Myricaceae
+                Myrica pubescens Willd.
+                In Fraijanes Recreation Park, at 1475 m in
+                tropical cloud forest, volcanic area with
+                acid soil, 2-3 m tall.
+                William M. Houghton 531 14 Jan. 1987
+                collected by Merle Dortmond
+                The University of Georgia Athens, GA, U.S.A.
+                """
+            ),
+            [
+                {
+                    "family": "Myricaceae",
+                    "genus": "Myrica",
+                    "species": "pubescens",
+                    "authority": "Willd",
+                    "trait": "taxon",
+                    "start": 30,
+                    "end": 63,
+                },
+                {
+                    "collector_no": "531",
+                    "collector": "William M. Houghton",
+                    "trait": "collector",
+                    "start": 173,
+                    "end": 196,
+                },
+                {
+                    "label_date": "1987-01-14",
+                    "trait": "label_date",
+                    "start": 197,
+                    "end": 209,
+                },
+                {
+                    "collector": "Merle Dortmond",
+                    "trait": "collector",
+                    "start": 210,
+                    "end": 237,
+                },
+                {
+                    "us_state": "Georgia",
+                    "us_county": "Athens",
+                    "trait": "admin_unit",
+                    "start": 264,
+                    "end": 274,
                 },
             ],
         )

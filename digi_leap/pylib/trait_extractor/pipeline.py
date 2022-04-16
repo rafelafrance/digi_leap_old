@@ -102,7 +102,6 @@ def build_pipeline():
             ),
         },
     )
-    # debug_pipes.tokens(nlp)  # ######################################################
 
     nlp.add_pipe(
         ADD_TRAITS,
@@ -123,8 +122,5 @@ def build_pipeline():
             month name plant_taxon col_label det_label job_label """.split()
         },
     )
-
-    # for name in nlp.pipe_names:
-    #     print(name)
 
     return nlp

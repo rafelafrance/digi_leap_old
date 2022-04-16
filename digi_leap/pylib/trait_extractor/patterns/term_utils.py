@@ -14,14 +14,12 @@ if not TERM_DB.exists():
     TERM_DB = MOCK_DIR / "terms.sqlite"
 
 # ##########################################################################
-EXTRACTOR_TERMS = Db.shared("time")
+EXTRACTOR_TERMS = Db()
+EXTRACTOR_TERMS += Db.shared("time")
 EXTRACTOR_TERMS += Db.select_term_set(TERM_DB, "jobs")
 
 # ##########################################################################
 VOCAB_TERMS = Db()
-VOCAB_TERMS.no_clobber = True
-VOCAB_TERMS.silent = True
-
 VOCAB_TERMS += Db.shared("us_locations taxon_levels")
 VOCAB_TERMS += Db.select_term_set(TERM_DB, "plant_taxa")
 

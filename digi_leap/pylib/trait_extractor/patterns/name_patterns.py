@@ -4,8 +4,8 @@ from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
 
-PREFIXES = " dr dr. mr mr. mrs mrs. miss ".split()
-SUFFIXES = " filho ii iii jr jr. sr sr. ".split()
+PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
+SUFFIXES = " filho ii iii jr jr. sr sr. phd. phd ".split()
 
 NAME = MatcherPatterns(
     "name",
