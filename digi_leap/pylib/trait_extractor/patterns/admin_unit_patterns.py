@@ -1,5 +1,6 @@
 """Parse administrative unit notations."""
 from spacy.util import registry
+from traiter.actions import RejectMatch
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
@@ -9,28 +10,27 @@ from . import term_utils
 STATE_ENTS = ["us_state", "us_state-us_county", "us_territory"]
 COUNTY_ENTS = ["us_county", "us_state-us_county"]
 ADMIN_ENTS = ["us_state", "us_county", "us_state-us_county", "us_territory"]
-
+CO_LABEL = ["co", "co.", "county"]
+ST_LABEL = ["plants", "flora"]
 
 # ####################################################################################
-def admin_unit_decoder():
-    return common_patterns.PATTERNS | {
-        "county_label": {"LOWER": {"IN": ["co", "co.", "county"]}},
-        "state_label": {"LOWER": {"IN": ["plants", "flora"]}},
-        "us_state": {"ENT_TYPE": {"IN": STATE_ENTS}},
-        "us_county": {"ENT_TYPE": {"IN": COUNTY_ENTS}},
-        "of": {"LOWER": {"IN": ["of"]}},
-        ":": {"POS": "PUNCT"},
-    }
+DECODER = common_patterns.PATTERNS | {
+    "co_label": {"LOWER": {"IN": CO_LABEL}},
+    "st_label": {"LOWER": {"IN": ST_LABEL}},
+    "us_state": {"ENT_TYPE": {"IN": STATE_ENTS}},
+    "us_county": {"ENT_TYPE": {"IN": COUNTY_ENTS}},
+    "of": {"LOWER": {"IN": ["of"]}},
+    ",": {"TEXT": {"REGEX": r"^[:._;,]+$"}},
+}
 
 
 # ####################################################################################
 COUNTY_BEFORE_STATE = MatcherPatterns(
     "admin_unit.county_before_state",
     on_match="digi_leap.county_before_state.v1",
-    decoder=admin_unit_decoder(),
+    decoder=DECODER,
     patterns=[
-        "us_county county_label ,? us_state",
-        "us_county ,? us_state",
+        "us_county co_label ,? us_state",
     ],
 )
 
@@ -38,21 +38,52 @@ COUNTY_BEFORE_STATE = MatcherPatterns(
 @registry.misc(COUNTY_BEFORE_STATE.on_match)
 def on_county_before_state_match(ent):
     ent._.new_label = "admin_unit"
-    entities = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
-    county = entities[0].text
-    state = entities[1].text
-    if state != "CO" or not county.isupper():
-        ent._.data["us_state"] = term_utils.REPLACE.get(state, state)
-    ent._.data["us_county"] = entities[0].text.title()
+    ent._.data["us_state"] = format_state(ent, ent_index=1)
+    ent._.data["us_county"] = format_county(ent, ent_index=0)
+
+
+# ####################################################################################
+COUNTY_BEFORE_STATE_IFFY = MatcherPatterns(
+    "admin_unit.county_before_state_iffy",
+    on_match="digi_leap.county_before_state_iffy.v1",
+    decoder=DECODER,
+    patterns=[
+        "us_county ,? us_state",
+    ],
+)
+
+
+@registry.misc(COUNTY_BEFORE_STATE_IFFY.on_match)
+def on_county_before_state_iffy_match(ent):
+    sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
+
+    county_ent = sub_ents[0]
+    state_ent = sub_ents[1]
+
+    if is_county_not_colorado(state_ent, county_ent):
+        ent._.data["us_county"] = format_county(ent, ent_index=0)
+        keep_only(ent, COUNTY_ENTS, CO_LABEL)
+    elif not county_in_state(state_ent, county_ent):
+        raise RejectMatch()
+    else:
+        ent._.data["us_state"] = format_state(ent, ent_index=1)
+        ent._.data["us_county"] = format_county(ent, ent_index=0)
+
+    ent._.new_label = "admin_unit"
+
+
+def is_county_not_colorado(state_ent, county_ent):
+    """Flag if Co = county label or CO = Colorado."""
+    return state_ent.text == "CO" and county_ent.text.isupper()
 
 
 # ####################################################################################
 COUNTY_ONLY = MatcherPatterns(
     "admin_unit.county_only",
     on_match="digi_leap.county_only.v1",
-    decoder=admin_unit_decoder(),
+    decoder=DECODER,
     patterns=[
-        "us_county county_label .?",
+        "us_county co_label",
     ],
 )
 
@@ -60,18 +91,17 @@ COUNTY_ONLY = MatcherPatterns(
 @registry.misc(COUNTY_ONLY.on_match)
 def on_county_only_match(ent):
     ent._.new_label = "admin_unit"
-    county = [e.text for e in ent.ents if e.label_ in COUNTY_ENTS]
-    ent._.data["us_county"] = county[0].title()
+    ent._.data["us_county"] = format_county(ent, ent_index=0)
 
 
 # ####################################################################################
 STATE_BEFORE_COUNTY = MatcherPatterns(
     "admin_unit.state_before_county",
     on_match="digi_leap.state_before_county.v1",
-    decoder=admin_unit_decoder(),
+    decoder=DECODER,
     patterns=[
-        "us_state county_label ,? us_county",
-        "state_label of? us_state county_label :? us_county",
+        "us_state co_label ,? us_county",
+        "st_label of? us_state co_label ,? us_county",
     ],
 )
 
@@ -79,19 +109,17 @@ STATE_BEFORE_COUNTY = MatcherPatterns(
 @registry.misc(STATE_BEFORE_COUNTY.on_match)
 def on_state_before_county_match(ent):
     ent._.new_label = "admin_unit"
-    entities = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
-    state = entities[0].text.title()
-    ent._.data["us_state"] = term_utils.REPLACE.get(state, state)
-    ent._.data["us_county"] = entities[1].text.title()
+    ent._.data["us_state"] = format_state(ent, ent_index=0)
+    ent._.data["us_county"] = format_county(ent, ent_index=1)
 
 
 # ####################################################################################
 STATE_ONLY = MatcherPatterns(
     "admin_unit.state_only",
     on_match="digi_leap.state_only.v1",
-    decoder=admin_unit_decoder(),
+    decoder=DECODER,
     patterns=[
-        "state_label of? :? us_state",
+        "st_label of? ,? us_state",
     ],
 )
 
@@ -99,5 +127,38 @@ STATE_ONLY = MatcherPatterns(
 @registry.misc(STATE_ONLY.on_match)
 def on_state_only_match(ent):
     ent._.new_label = "admin_unit"
-    state = [e.text.title() for e in ent.ents if e.label_ in STATE_ENTS][0]
-    ent._.data["us_state"] = term_utils.REPLACE.get(state, state)
+    ent._.data["us_state"] = format_state(ent, ent_index=0)
+
+
+# ####################################################################################
+def format_state(ent, *, ent_index: int):
+    sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
+    state = sub_ents[ent_index].text
+    st_key = get_state_key(state)
+    return term_utils.REPLACE.get(st_key, state)
+
+
+def get_state_key(state):
+    return state.upper() if len(state) <= 2 else state.lower()
+
+
+def format_county(ent, *, ent_index: int):
+    sub_ents = [e.text for e in ent.ents if e.label_ in ADMIN_ENTS]
+    return sub_ents[ent_index].title()
+
+
+def county_in_state(state_ent, county_ent):
+    st_key = get_state_key(state_ent.text)
+    co_key = county_ent.text.lower()
+    return term_utils.POSTAL[st_key] in term_utils.COUNTY_IN[co_key]
+
+
+def keep_only(ent, ent_list, label_list):
+    """Trim the entity to only the state or the county."""
+    start, end = 999_999_999, -1
+    for token in ent:
+        if token.ent_type_ in ent_list or token.text.lower() in label_list:
+            start = min(start, token.i)
+            end = max(end, token.i + 1)
+    ent.start = start
+    ent.end = end

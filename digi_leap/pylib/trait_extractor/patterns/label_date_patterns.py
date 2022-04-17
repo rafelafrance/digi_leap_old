@@ -10,8 +10,8 @@ from traiter import actions
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 
-SEPARATOR = r"[/_-]"
-COMMA = r"[,/_-]"
+SEPARATOR = r"[./_-]"
+COMMA = r"[.,/_-]"
 LABEL_ENDER = r"[:=]"
 LABELS = """ date """.split()
 

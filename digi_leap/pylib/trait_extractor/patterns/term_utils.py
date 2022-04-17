@@ -25,12 +25,14 @@ VOCAB_TERMS += Db.select_term_set(TERM_DB, "plant_taxa")
 
 REPLACE = VOCAB_TERMS.pattern_dict("replace")
 
+COUNTY_IN = VOCAB_TERMS.pattern_dict("inside")
+POSTAL = VOCAB_TERMS.pattern_dict("postal")
+
 LEVEL = VOCAB_TERMS.pattern_dict("level")
 LEVEL = {k: v.split() for k, v in LEVEL.items()}
 
 # #########################################################################
 ABBREVS = """
-    Jan. Feb. Febr. Mar. Apr. Jun. Jul. Aug. Sep. Sept. Oct. Nov. Dec.
     Acad. Amer. Ann. Arq. Bol. Bot. Bull. Cat. Coll. Com. Contr. Exot. FIG.
     Gard. Gen. Geo. Herb. Hort. Hist. Is. Jahrb. Jr. Lab. Leg. Legum. Linn.
     Mem. Mex. Mts. Mus. Nac. Nat. Neg. No. Ocas. Proc. Prodr. Prov. Pto. Publ.
@@ -58,6 +60,8 @@ INFIX = [
 
 
 def setup_tokenizer(nlp):
+    tokenizer_util.remove_special_case(nlp, EXTRACTOR_TERMS.terms)
+    tokenizer_util.remove_special_case(nlp, VOCAB_TERMS.terms)
     tokenizer_util.append_prefix_regex(nlp)
     tokenizer_util.append_infix_regex(nlp, INFIX)
     tokenizer_util.append_suffix_regex(nlp)

@@ -5,7 +5,6 @@ from tests.setup import test
 
 
 class TestCollector(unittest.TestCase):
-    """Test collector patterns."""
 
     # def test_collector_00(self):
     #     test("""Coll. E. E. Dale Jr. No. 6061""")

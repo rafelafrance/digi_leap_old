@@ -52,7 +52,7 @@ class TestLabels(unittest.TestCase):
                     "us_county": "Charlotte",
                     "trait": "admin_unit",
                     "start": 36,
-                    "end": 49,
+                    "end": 48,
                 },
                 {
                     "collector_no": "2523",
@@ -113,13 +113,6 @@ class TestLabels(unittest.TestCase):
                     "trait": "collector",
                     "start": 210,
                     "end": 237,
-                },
-                {
-                    "us_state": "Georgia",
-                    "us_county": "Athens",
-                    "trait": "admin_unit",
-                    "start": 264,
-                    "end": 274,
                 },
             ],
         )

@@ -5,7 +5,9 @@ from tests.setup import test
 
 
 class TestAdminUnit(unittest.TestCase):
-    """Test administrative unit patterns."""
+
+    # def test_admin_unit_00(self):
+    #     test("ark.")
 
     def test_admin_unit_01(self):
         """It gets a county notation."""
@@ -65,7 +67,7 @@ class TestAdminUnit(unittest.TestCase):
         )
 
     def test_admin_unit_06(self):
-        """It handles a trailing county abbreviation."""
+        """It handles a state abbreviation."""
         self.assertEqual(
             test("""Desha Co., Ark."""),
             [
@@ -152,10 +154,10 @@ class TestAdminUnit(unittest.TestCase):
     def test_admin_unit_12(self):
         """County vs colorado (CO)."""
         self.assertEqual(
-            test("""CHARLOTTE CO"""),
+            test("""ARCHULETA CO"""),
             [
                 {
-                    "us_county": "Charlotte",
+                    "us_county": "Archuleta",
                     "trait": "admin_unit",
                     "start": 0,
                     "end": 12,
@@ -166,14 +168,20 @@ class TestAdminUnit(unittest.TestCase):
     def test_admin_unit_13(self):
         """County vs colorado (CO)."""
         self.assertEqual(
-            test("""Charlotte CO"""),
+            test("""Archuleta CO"""),
             [
                 {
                     "us_state": "Colorado",
-                    "us_county": "Charlotte",
+                    "us_county": "Archuleta",
                     "trait": "admin_unit",
                     "start": 0,
                     "end": 12,
                 },
             ],
+        )
+
+    def test_admin_unit_14(self):
+        self.assertEqual(
+            test("""The University of Georgia Athens, GA, U.S.A."""),
+            [],
         )

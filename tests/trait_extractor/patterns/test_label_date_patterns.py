@@ -167,3 +167,17 @@ class TestLabelDate(unittest.TestCase):
                 },
             ],
         )
+
+    def test_label_date_12(self):
+        """It handles a bad month."""
+        self.assertEqual(
+            test("14 Jan. 1987"),
+            [
+                {
+                    "label_date": "1987-01-14",
+                    "trait": "label_date",
+                    "start": 0,
+                    "end": 12,
+                },
+            ],
+        )

@@ -37,9 +37,8 @@ def build_pipeline():
         DELETE_TRAITS,
         name="delete_spacy",
         config={
-            "delete": """
-            CARDINAL DATE EVENT FAC GPE LANGUAGE LAW LOC MONEY NORP ORDINAL ORG
-            PERCENT PRODUCT QUANTITY TIME WORK_OF_ART""".split()
+            "delete": """ CARDINAL DATE EVENT FAC GPE LANGUAGE LAW LOC MONEY NORP
+                ORDINAL ORG PERCENT PRODUCT QUANTITY TIME WORK_OF_ART """.split()
         },  # PERSON
     )
 
@@ -82,9 +81,8 @@ def build_pipeline():
     nlp.add_pipe(
         SIMPLE_TRAITS,
         config={
-            "update": """
-        level plant_taxon us_county us_state us_state-us_county
-        us_territory""".split()
+            "update": """ level plant_taxon us_county us_state us_state-us_county
+                us_territory""".split()
         },
     )
 
@@ -95,6 +93,7 @@ def build_pipeline():
             "patterns": matcher_patterns.as_dicts(
                 [
                     admin_unit_patterns.COUNTY_BEFORE_STATE,
+                    admin_unit_patterns.COUNTY_BEFORE_STATE_IFFY,
                     admin_unit_patterns.COUNTY_ONLY,
                     admin_unit_patterns.STATE_BEFORE_COUNTY,
                     admin_unit_patterns.STATE_ONLY,
