@@ -10,7 +10,7 @@ from traiter import actions
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 
-SEPARATOR = r"[./_-]"
+SEPARATOR = r"[./_'-]"
 COMMA = r"[.,/_-]"
 LABEL_ENDER = r"[:=]"
 LABELS = """ date """.split()
@@ -51,6 +51,10 @@ LABEL_DATE = MatcherPatterns(
 def on_label_date_match(ent):
     flags = re.IGNORECASE | re.VERBOSE
     text = ent.text
+
+    if re.match(r"\d\d? \s \d\d? \s \d\d?", text, flags=flags):
+        raise actions.RejectMatch()
+
     text = re.sub(
         rf" ({'|'.join(LABELS)}) \s* {LABEL_ENDER}* \s* ",
         "",

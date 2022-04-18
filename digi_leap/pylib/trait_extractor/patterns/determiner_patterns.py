@@ -28,8 +28,14 @@ DETERMINER = MatcherPatterns(
 
 @registry.misc(DETERMINER.on_match)
 def on_determiner_match(ent):
-    name = [t.text for t in ent if t.ent_type_ == "name"]
-    ent._.data["determiner"] = name[0]
-    no = [t.text for t in ent if re.search(DETERMINER_NO, t.text)]
-    if no:
-        ent._.data["determiner_no"] = no[0]
+    names = []
+    for token in ent:
+        if token.ent_type_ == "det_label" or token.lower_ in NUMBER_LABEL:
+            continue
+        if match := re.search(DETERMINER_NO, token.text):
+            det_no = match.group(0)
+            ent._.data["determiner_no"] = det_no
+        elif token.pos_ == "PROPN" or token.ent_type_ == "name":
+            names.append(token.text)
+
+        ent._.data["determiner"] = " ".join(names)

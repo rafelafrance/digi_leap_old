@@ -118,7 +118,7 @@ def build_pipeline():
         name="delete_vocab",
         config={
             "delete": """ us_county us_state us_state-us_county time_units
-            month name plant_taxon col_label det_label job_label """.split()
+            month name plant_taxon col_label det_label job_label level """.split()
         },
     )
 

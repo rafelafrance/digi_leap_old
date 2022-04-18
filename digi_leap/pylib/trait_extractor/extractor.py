@@ -14,16 +14,16 @@ def extract(args):
         db.create_traits_table(cxn)
         cxn.execute("delete from traits where trait_set = ?", (args.trait_set,))
 
-        nlp_extractor = pipeline.build_pipeline()
+        nlp = pipeline.build_pipeline()
 
         records = db.select_consensus(cxn, args.cons_set)
 
         for cons in tqdm(records):
             batch = []
 
-            extractor_doc = nlp_extractor(cons["cons_text"])
+            doc = nlp(cons["cons_text"])
 
-            traits = [e._.data for e in extractor_doc.ents]
+            traits = [e._.data for e in doc.ents]
 
             for trait in traits:
                 batch.append(

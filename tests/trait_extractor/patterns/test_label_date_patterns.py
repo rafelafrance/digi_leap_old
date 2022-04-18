@@ -181,3 +181,25 @@ class TestLabelDate(unittest.TestCase):
                 },
             ],
         )
+
+    def test_label_date_13(self):
+        """It skips a list of numbers.."""
+        self.assertEqual(
+            test("2 8 10"),
+            [],
+        )
+
+    def test_label_date_14(self):
+        """It allows the 'yy notation."""
+        self.assertEqual(
+            test("Date: 6/30 '66"),
+            [
+                {
+                    "century_adjust": True,
+                    "label_date": "1966-06-30",
+                    "trait": "label_date",
+                    "start": 0,
+                    "end": 14,
+                }
+            ],
+        )
