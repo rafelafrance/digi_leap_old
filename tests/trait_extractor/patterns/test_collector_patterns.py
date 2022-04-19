@@ -7,7 +7,7 @@ from tests.setup import test
 class TestCollector(unittest.TestCase):
 
     # def test_collector_00(self):
-    #     test("""Coll. E. E. Dale Jr. No. 6061""")
+    #     test("""Collector(s): J. Shaw, Z. Irick, K. Vance & J. Harris."""),
 
     def test_collector_01(self):
         """It gets a multiple name notations."""
@@ -160,7 +160,6 @@ class TestCollector(unittest.TestCase):
         )
 
     def test_collector_10(self):
-        """It handles a name with a prefix."""
         self.assertEqual(
             test("""collected by Merle Dortmond"""),
             [
