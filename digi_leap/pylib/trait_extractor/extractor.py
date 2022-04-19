@@ -21,7 +21,10 @@ def extract(args):
         for cons in tqdm(records):
             batch = []
 
-            doc = nlp(cons["cons_text"])
+            if len(cons["cons_text"].split()) < args.word_threshold:
+                continue
+
+            doc = nlp(cons["cons_text"])  # .replace("\n", " "))
 
             traits = [e._.data for e in doc.ents]
 

@@ -16,6 +16,7 @@ ST_LABEL = ["plants", "flora"]
 # ####################################################################################
 DECODER = common_patterns.PATTERNS | {
     "co_label": {"LOWER": {"IN": CO_LABEL}},
+    "co_word": {"LOWER": {"IN": ["county"]}},
     "st_label": {"LOWER": {"IN": ST_LABEL}},
     "us_state": {"ENT_TYPE": {"IN": STATE_ENTS}},
     "us_county": {"ENT_TYPE": {"IN": COUNTY_ENTS}},
@@ -84,6 +85,7 @@ COUNTY_ONLY = MatcherPatterns(
     decoder=DECODER,
     patterns=[
         "us_county co_label",
+        "co_word :? us_county",
     ],
 )
 

@@ -46,10 +46,10 @@ class TestAdminUnit(unittest.TestCase):
         )
 
     def test_admin_unit_04(self):
-        """It handles line breaks."""
+        """It handles a county label before the county name."""
         self.assertEqual(
-            test("""COUNTY:\n\nLee E.L.Nielsen"""),
-            [],
+            test("""COUNTY: Lee"""),
+            [{"us_county": "Lee", "trait": "admin_unit", "start": 0, "end": 11}],
         )
 
     def test_admin_unit_05(self):

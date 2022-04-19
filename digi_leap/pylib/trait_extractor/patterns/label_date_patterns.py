@@ -93,6 +93,10 @@ MISSING_DAY = MatcherPatterns(
 
 @registry.misc(MISSING_DAY.on_match)
 def short_date(ent):
+    flags = re.IGNORECASE | re.VERBOSE
+    if re.match(r"\d\d? [\s'] \d\d?", ent.text, flags=flags):
+        raise actions.RejectMatch()
+
     on_label_date_match(ent)
     ent._.data["label_date"] = ent._.data["label_date"][:7]
     ent._.data["missing_day"] = True

@@ -47,6 +47,13 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
+        "--word-threshold",
+        metavar="INT",
+        default=20,
+        help="""A label must have at least this many words for parsing.""",
+    )
+
+    arg_parser.add_argument(
         "--notes",
         default="",
         metavar="TEXT",
