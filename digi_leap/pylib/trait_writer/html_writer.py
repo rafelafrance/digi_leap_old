@@ -18,7 +18,7 @@ BORDERS = itertools.cycle([f"bb{i}" for i in range(COLOR_COUNT)])
 TITLE_SKIPS = ["start", "end", "trait"]
 TRAIT_SKIPS = TITLE_SKIPS
 
-Formatted = collections.namedtuple("Formatted", "text traits")
+Formatted = collections.namedtuple("Formatted", "label_id text traits")
 Trait = collections.namedtuple("Trait", "label data")
 SortableTrait = collections.namedtuple("SortableTrait", "label start trait")
 
@@ -43,6 +43,7 @@ def write(args):
             rows = sorted(rows, key=lambda r: r["trait"]["start"])
             formatted.append(
                 Formatted(
+                    row["label_id"],
                     format_text(rows[0]["cons_text"], rows, classes),
                     format_traits(rows, classes),
                 )

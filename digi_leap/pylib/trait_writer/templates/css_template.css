@@ -12,6 +12,10 @@ h2 {
   margin-left: 40px;
 }
 
+label {
+    font-weight: bold;
+}
+
 @keyframes fadein {
   from { opacity: 0; }
   to { opacity: 1; }

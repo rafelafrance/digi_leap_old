@@ -1,4 +1,4 @@
 --database=data/sernec/sernec.sqlite
---trait-set=traiter_2022-04-18
+--trait-set=traiter_2022-04-20
 --format=html
---out-file=data/output/traiter_2022-04-18.html
+--out-file=data/output/traiter_2022-04-20.html
