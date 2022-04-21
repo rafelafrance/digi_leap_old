@@ -3,11 +3,13 @@ import argparse
 import itertools
 import warnings
 
+import torch
 from PIL import Image
 from tqdm import tqdm
 
 from . import engine_runner
 from . import label_transformer as lt
+from .. import box_calc
 from .. import db
 
 ENGINE = {
@@ -78,8 +80,19 @@ def get_sheet_labels(cxn, classes, label_set, label_conf):
             labels = [lb for lb in labels if lb["class"] in classes]
 
         labels = [lb for lb in labels if lb["label_conf"] >= label_conf]
+        labels = remove_overlapping_labels(labels)
 
         if labels:
             sheets[path] = labels
 
     return sheets
+
+
+def remove_overlapping_labels(labels):
+    boxes = [
+        [lb["label_left"], lb["label_top"], lb["label_right"], lb["label_bottom"]]
+        for lb in labels
+    ]
+    boxes = torch.tensor(boxes)
+    boxes = box_calc.small_box_suppression(boxes, threshold=0.4)
+    return [lb for i, lb in enumerate(labels) if i in boxes]

@@ -8,8 +8,6 @@ import numpy as np
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
 from PIL import Image
-from PIL import ImageDraw
-from PIL.Image import Image as ImageType
 from torch.utils.data import Dataset
 from torchvision import transforms
 
@@ -129,15 +127,3 @@ class LabeledData(Dataset):
         ]
 
         return transforms.Compose(xform)
-
-    def show_image(self, idx) -> ImageType:
-        sheet = self.sheets[idx]
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-            image = Image.open(consts.ROOT_DIR / sheet.path).convert("RGB")
-            draw = ImageDraw.Draw(image)
-
-        for box in sheet.boxes.tolist():
-            draw.rectangle(box, outline="red", width=4)
-
-        return image
