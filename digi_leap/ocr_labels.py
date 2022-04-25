@@ -5,7 +5,7 @@ import textwrap
 from pathlib import Path
 
 from pylib import consts
-from pylib.ocr import label_transformer as xform
+from pylib.ocr import label_transformer as x_form
 from pylib.ocr import ocr_labels
 
 
@@ -45,8 +45,8 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--pipelines",
-        choices=list(xform.TRANSFORM_PIPELINES.keys()),
-        default=list(xform.TRANSFORM_PIPELINES.keys())[:2],
+        choices=list(x_form.TRANSFORM_PIPELINES.keys()),
+        default=list(x_form.TRANSFORM_PIPELINES.keys())[:2],
         type=str,
         nargs="*",
         help="""Pipelines of image transformations that help with the OCR process.

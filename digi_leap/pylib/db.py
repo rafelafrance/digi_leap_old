@@ -18,9 +18,24 @@ def connect(db_path):
 
 
 def execute(cxn, sql, params=None):
-    """Execute a query -- sugar for making database calls look the same."""
+    """Execute a query -- Sugar for making database calls look the similar."""
     params = params if params else []
     return cxn.execute(sql, params)
+
+
+def create_db(db_path):
+    with sqlite3.connect(db_path) as cxn:
+        create_sheets_table(cxn)
+        create_sheet_errors_table(cxn)
+        create_subjects_to_sheets_table(cxn)
+        create_label_table(cxn)
+        create_ocr_table(cxn)
+        create_consensus_table(cxn)
+        create_traits_table(cxn)
+        create_tests_table(cxn)
+        create_runs_table(cxn)
+        run_id = insert_run(cxn, {"path": db_path}, "Database created")
+        update_run_finished(cxn, run_id)
 
 
 # ############ Sheets tables ##########################################################
