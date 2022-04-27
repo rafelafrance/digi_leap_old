@@ -8,6 +8,7 @@ from traiter.pipes.term_pipe import TERM_PIPE
 
 from .patterns import admin_unit_patterns
 from .patterns import collector_patterns
+from .patterns import delete_patterns
 from .patterns import determiner_patterns
 from .patterns import label_date_patterns
 from .patterns import name_patterns
@@ -36,10 +37,7 @@ def build_pipeline():
     nlp.add_pipe(
         DELETE_TRAITS,
         name="delete_spacy",
-        config={
-            "delete": """ CARDINAL DATE EVENT FAC GPE LANGUAGE LAW LOC MONEY NORP
-                ORDINAL ORG PERCENT PRODUCT QUANTITY TIME WORK_OF_ART """.split()
-        },  # PERSON
+        config={"delete": delete_patterns.SPACY_ENTS},
     )
 
     # Build up names from PERSON entities
@@ -117,8 +115,8 @@ def build_pipeline():
         DELETE_TRAITS,
         name="delete_vocab",
         config={
-            "delete": """ us_county us_state us_state-us_county time_units
-            month name plant_taxon col_label det_label job_label level """.split()
+            "delete": delete_patterns.PARTIAL_ENTS,
+            "delete_when": delete_patterns.DELETE_WHEN,
         },
     )
 

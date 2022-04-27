@@ -11,7 +11,7 @@ fi
 # cd ..
 
 rm -rf .venv
-python3.9 -m venv .venv
+python3.10 -m venv .venv
 
 source ./.venv/bin/activate
 
@@ -19,7 +19,6 @@ python -m pip install --upgrade pip setuptools wheel
 
 # ##############################################################################
 # I want to use the GPU when possible.
-# pip3 install torch==1.10.2+cu113 torchvision==0.11.3+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 # pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 
 
@@ -66,3 +65,9 @@ python -m pip install -U nbdime
 jupyter labextension install jupyterlab_onedarkpro
 jupyter server extension enable --py jupyterlab_git
 jupyter serverextension enable --py jupyterlab_code_formatter
+
+
+# ##############################################################################
+# I Run pre-commit hooks (optional)
+
+pre-commit install
