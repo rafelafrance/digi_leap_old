@@ -2,6 +2,7 @@
 import re
 
 from spacy.util import registry
+from traiter.actions import REJECT_MATCH
 from traiter.actions import RejectMatch
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
@@ -11,22 +12,25 @@ CONJ = ["CCONJ", "ADP"]
 COLLECTOR_NO = r"^\w*\d+\w*$"
 NUMBER_LABEL = """ number no no. num num. # """.split()
 
+DECODER = common_patterns.PATTERNS | {
+    ":": {"TEXT": {"REGEX": r"^[:._;]+$"}},
+    "and": {"POS": {"IN": CONJ}},
+    "by": {"LOWER": {"IN": ["by"]}},
+    "col_label": {"ENT_TYPE": "col_label"},
+    "col_no": {"LOWER": {"REGEX": COLLECTOR_NO}},
+    "no_label": {"ENT_TYPE": "no_label"},
+    "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
+    "name": {"ENT_TYPE": "name"},
+    "maybe": {"POS": "PROPN"},
+    "nope": {"LOWER": {"IN": ["of"]}},
+}
 
+
+# ####################################################################################
 COLLECTOR = MatcherPatterns(
     "collector",
     on_match="digi_leap.collector.v1",
-    decoder=common_patterns.PATTERNS
-    | {
-        ":": {"TEXT": {"REGEX": r"^[:._;]+$"}},
-        "and": {"POS": {"IN": CONJ}},
-        "by": {"LOWER": {"IN": ["by"]}},
-        "col_label": {"ENT_TYPE": "col_label"},
-        "col_no": {"LOWER": {"REGEX": COLLECTOR_NO}},
-        "no_label": {"LOWER": {"IN": NUMBER_LABEL}},
-        "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
-        "name": {"ENT_TYPE": "name"},
-        "maybe": {"POS": "PROPN"},
-    },
+    decoder=DECODER,
     patterns=[
         "                  name+                        no_label? :* col_no",
         "                  name+  and   name+           no_label? :* col_no",
@@ -54,14 +58,21 @@ def on_collector_match(ent):
     people = []
 
     # Get the names and numbers
+    name = []
     for token in ent:
-        if token.ent_type_ == "col_label" or token.lower_ in NUMBER_LABEL:
+        if token.ent_type_ == "col_label" or token.ent_type_ == "no_label":
             continue
         if token.pos_ == "PROPN" or token.ent_type_ == "name":
-            people.append(token.text)
-        elif match := re.search(COLLECTOR_NO, token.text):
-            col_no = match.group(0)
-            ent._.data["collector_no"] = col_no
+            name.append(token.text)
+        else:
+            if name:
+                people.append(" ".join(name))
+                name = []
+            if match := re.search(COLLECTOR_NO, token.text):
+                col_no = match.group(0)
+                ent._.data["collector_no"] = col_no
+    if name:
+        people.append(" ".join(name))
 
     # Fix names with noise in them. "_Wayne.. Hutchins" which will parse as
     # two names ["Wayne", "Hutchins"] should be one name "Wayne Hutchins".
@@ -85,3 +96,14 @@ def on_collector_match(ent):
 
     # Format output
     ent._.data["collector"] = people if len(people) > 1 else people[0]
+
+
+# ####################################################################################
+NOT_COLLECTOR = MatcherPatterns(
+    "not_collector",
+    on_match=REJECT_MATCH,
+    decoder=DECODER,
+    patterns=[
+        " nope name+ ",
+    ],
+)

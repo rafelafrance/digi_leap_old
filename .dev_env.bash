@@ -1,25 +1,28 @@
 #!/usr/bin/env bash
 
+# #################################################################################
+# Setup the virtual environment for development.
+# You may need to "python -M pip install --user virtualenv" globally.
+# This is not required but some form of project isolation (conda, virtual env, etc.)
+# is strongly encouraged.
+
 if [[ ! -z "$VIRTUAL_ENV" ]]; then
   echo "'deactivate' before running this script."
   exit 1
 fi
 
-# mkdir .lsp_symlink
-# cd .lsp_symlink
-# ln -s /home home
-# cd ..
-
-rm -rf .venv
+rm -r .venv
 python3.10 -m venv .venv
 
 source ./.venv/bin/activate
 
 python -m pip install --upgrade pip setuptools wheel
+if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
 # ##############################################################################
 # I want to use the GPU when possible.
-# pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
+
+# python -m pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
 
 
 # ##############################################################################
@@ -51,7 +54,6 @@ python -m pip install -U pre-commit pre-commit-hooks
 python -m pip install -U autopep8 flake8 isort pylint yapf pydocstyle black
 python -m pip install -U jupyter jupyter_nbextensions_configurator ipyparallel
 python -m pip install -U jupyter_nbextensions_configurator jupyterlab_code_formatter
-python -m pip install -U jupyterlab-git
 
 python -m pip install -U jupyterlab
 python -m pip install -U jupyterlab_code_formatter

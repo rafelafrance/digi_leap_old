@@ -15,10 +15,13 @@ NAME = MatcherPatterns(
         "jr": {"LOWER": {"IN": SUFFIXES}},
         "dr": {"LOWER": {"IN": PREFIXES}},
         "person": {"ENT_TYPE": "PERSON"},
-        "maybe_name": {"POS": "PROPN"},
+        "maybe": {"POS": "PROPN"},
+        "A": {"TEXT": {"REGEX": r"^[A-Z]\.?$"}},
     },
     patterns=[
         "dr? person+ ,? jr?",
+        "dr? A A? maybe",
+        "dr? A A? maybe ,? jr",
     ],
 )
 

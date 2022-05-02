@@ -26,9 +26,9 @@ DECODER = common_patterns.PATTERNS | {
 
 
 # ####################################################################################
-COUNTY_BEFORE_STATE = MatcherPatterns(
-    "admin_unit.county_before_state",
-    on_match="digi_leap.county_before_state.v1",
+COUNTY_STATE = MatcherPatterns(
+    "admin_unit.county_state",
+    on_match="digi_leap.county_state.v1",
     decoder=DECODER,
     patterns=[
         "us_county co_label ,? us_state",
@@ -36,17 +36,17 @@ COUNTY_BEFORE_STATE = MatcherPatterns(
 )
 
 
-@registry.misc(COUNTY_BEFORE_STATE.on_match)
-def on_county_before_state_match(ent):
+@registry.misc(COUNTY_STATE.on_match)
+def on_county_state_match(ent):
     ent._.new_label = "admin_unit"
     ent._.data["us_state"] = format_state(ent, ent_index=1)
     ent._.data["us_county"] = format_county(ent, ent_index=0)
 
 
 # ####################################################################################
-COUNTY_BEFORE_STATE_IFFY = MatcherPatterns(
-    "admin_unit.county_before_state_iffy",
-    on_match="digi_leap.county_before_state_iffy.v1",
+COUNTY_STATE_IFFY = MatcherPatterns(
+    "admin_unit.county_state_iffy",
+    on_match="digi_leap.county_state_iffy.v1",
     decoder=DECODER,
     patterns=[
         "us_county ,? us_state",
@@ -54,8 +54,8 @@ COUNTY_BEFORE_STATE_IFFY = MatcherPatterns(
 )
 
 
-@registry.misc(COUNTY_BEFORE_STATE_IFFY.on_match)
-def on_county_before_state_iffy_match(ent):
+@registry.misc(COUNTY_STATE_IFFY.on_match)
+def on_county_state_iffy_match(ent):
     sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
 
     county_ent = sub_ents[0]
@@ -97,9 +97,9 @@ def on_county_only_match(ent):
 
 
 # ####################################################################################
-STATE_BEFORE_COUNTY = MatcherPatterns(
-    "admin_unit.state_before_county",
-    on_match="digi_leap.state_before_county.v1",
+STATE_COUNTY = MatcherPatterns(
+    "admin_unit.state_county",
+    on_match="digi_leap.state_county.v1",
     decoder=DECODER,
     patterns=[
         "us_state co_label ,? us_county",
@@ -108,8 +108,8 @@ STATE_BEFORE_COUNTY = MatcherPatterns(
 )
 
 
-@registry.misc(STATE_BEFORE_COUNTY.on_match)
-def on_state_before_county_match(ent):
+@registry.misc(STATE_COUNTY.on_match)
+def on_state_county_match(ent):
     ent._.new_label = "admin_unit"
     ent._.data["us_state"] = format_state(ent, ent_index=0)
     ent._.data["us_county"] = format_county(ent, ent_index=1)

@@ -8,9 +8,9 @@ from traiter.pipes.term_pipe import TERM_PIPE
 
 from .patterns import admin_unit_patterns
 from .patterns import collector_patterns
-from .patterns import delete_patterns
 from .patterns import determiner_patterns
 from .patterns import label_date_patterns
+from .patterns import lat_long_patterns
 from .patterns import name_patterns
 from .patterns import taxon_patterns
 from .patterns import term_utils
@@ -37,35 +37,48 @@ def build_pipeline():
     nlp.add_pipe(
         DELETE_TRAITS,
         name="delete_spacy",
-        config={"delete": delete_patterns.SPACY_ENTS},
+        config={
+            "delete": """ CARDINAL DATE EVENT FAC GPE LANGUAGE LAW LOC MONEY NORP
+            ORDINAL ORG PERCENT PRODUCT QUANTITY TIME WORK_OF_ART not_name """.split()
+        },
     )
 
     # Build up names from PERSON entities
+    # debug_pipes.tokens(nlp)  # ######################################################
     nlp.add_pipe(
         ADD_TRAITS,
         name="name_traits",
-        config={"patterns": matcher_patterns.as_dicts([name_patterns.NAME])},
+        config={
+            "patterns": matcher_patterns.as_dicts(
+                [
+                    name_patterns.NAME,
+                    lat_long_patterns.LAT_LONG,
+                ]
+            )
+        },
     )
-    nlp.add_pipe("merge_entities")  # We want name to be a single token trait
 
+    # debug_pipes.tokens(nlp)  # ######################################################
     nlp.add_pipe(
         ADD_TRAITS,
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
                     collector_patterns.COLLECTOR,
+                    collector_patterns.NOT_COLLECTOR,
                     determiner_patterns.DETERMINER,
                     label_date_patterns.LABEL_DATE,
                     label_date_patterns.MISSING_DAY,
                 ]
-            )
+            ),
+            "keep": ["lat_long"],
         },
     )
 
     nlp.add_pipe(
         DELETE_TRAITS,
         name="delete_extracts",
-        config={"delete": """month time_units name""".split()},
+        config={"delete": """ month time_units name """.split()},
     )
 
     nlp.add_pipe(
@@ -90,10 +103,10 @@ def build_pipeline():
         config={
             "patterns": matcher_patterns.as_dicts(
                 [
-                    admin_unit_patterns.COUNTY_BEFORE_STATE,
-                    admin_unit_patterns.COUNTY_BEFORE_STATE_IFFY,
+                    admin_unit_patterns.COUNTY_STATE,
+                    admin_unit_patterns.COUNTY_STATE_IFFY,
                     admin_unit_patterns.COUNTY_ONLY,
-                    admin_unit_patterns.STATE_BEFORE_COUNTY,
+                    admin_unit_patterns.STATE_COUNTY,
                     admin_unit_patterns.STATE_ONLY,
                 ]
             ),
@@ -109,14 +122,13 @@ def build_pipeline():
         },
     )
 
-    # debug_pipes.tokens(nlp)  # ######################################################
-
     nlp.add_pipe(
         DELETE_TRAITS,
         name="delete_vocab",
         config={
-            "delete": delete_patterns.PARTIAL_ENTS,
-            "delete_when": delete_patterns.DELETE_WHEN,
+            "delete": """ us_county us_state us_state-us_county time_units
+            month name plant_taxon col_label det_label job_label level lat_long
+            no_label """.split()
         },
     )
 

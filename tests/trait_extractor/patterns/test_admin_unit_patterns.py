@@ -136,7 +136,7 @@ class TestAdminUnit(unittest.TestCase):
             ],
         )
 
-    def test_admin_unit_11(self):
+    def test_admin_unit_10(self):
         """It parses multi-word counties and states."""
         self.assertEqual(
             test("""Cape May, New Jersey"""),
@@ -151,7 +151,7 @@ class TestAdminUnit(unittest.TestCase):
             ],
         )
 
-    def test_admin_unit_12(self):
+    def test_admin_unit_11(self):
         """County vs colorado (CO)."""
         self.assertEqual(
             test("""ARCHULETA CO"""),
@@ -165,7 +165,7 @@ class TestAdminUnit(unittest.TestCase):
             ],
         )
 
-    def test_admin_unit_13(self):
+    def test_admin_unit_12(self):
         """County vs colorado (CO)."""
         self.assertEqual(
             test("""Archuleta CO"""),
@@ -180,7 +180,7 @@ class TestAdminUnit(unittest.TestCase):
             ],
         )
 
-    def test_admin_unit_14(self):
+    def test_admin_unit_13(self):
         self.assertEqual(
             test("""The University of Georgia Athens, GA, U.S.A."""),
             [],

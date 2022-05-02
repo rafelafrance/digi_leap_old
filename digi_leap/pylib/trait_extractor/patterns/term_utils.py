@@ -4,19 +4,21 @@ import string
 from traiter import tokenizer_util
 from traiter.terms.db import Db
 
-from ...consts import DATA_DIR
-from ...consts import MOCK_DIR
+from ... import consts
 
 
 # ##########################################################################
-TERM_DB = DATA_DIR / "terms.sqlite"
+TERM_DB = consts.DATA_DIR / "terms.sqlite"
 if not TERM_DB.exists():
-    TERM_DB = MOCK_DIR / "terms.sqlite"
+    TERM_DB = consts.MOCK_DIR / "terms.sqlite"
+
+LOCAL_DB = consts.ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "terms.sqlite"
 
 # ##########################################################################
 EXTRACTOR_TERMS = Db()
-EXTRACTOR_TERMS += Db.shared("time")
+EXTRACTOR_TERMS += Db.shared("time labels")
 EXTRACTOR_TERMS += Db.select_term_set(TERM_DB, "jobs")
+EXTRACTOR_TERMS += Db.select_term_set(LOCAL_DB, "not_names")
 
 # ##########################################################################
 VOCAB_TERMS = Db()
