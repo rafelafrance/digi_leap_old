@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Create an expedition for checking the results of the OCR label builder."""
 import argparse
-import sys
 import textwrap
 from pathlib import Path
 
-from pylib import db
+from pylib import validate_args
 from pylib.label_builder.expedition import build_expedition
 
 
@@ -26,7 +25,7 @@ def parse_args() -> argparse.Namespace:
         required=True,
         type=Path,
         metavar="PATH",
-        help="""Path to the digi-leap database.""",
+        help="""Path to a digi-leap database.""",
     )
 
     arg_parser.add_argument(
@@ -60,22 +59,8 @@ def parse_args() -> argparse.Namespace:
     )
 
     args = arg_parser.parse_args()
-    validate_cons_set(args.database, args.cons_set)
+    validate_args.validate_cons_set(args.database, args.cons_set)
     return args
-
-
-def validate_cons_set(database, cons_set):
-    with db.connect(database) as cxn:
-        rows = db.execute(cxn, "select distinct cons_set from cons")
-        all_cons_sets = [r["cons_set"] for r in rows]
-
-    if cons_set in all_cons_sets:
-        return
-
-    print(f"{cons_set} is not a valid consensus set.")
-    print("Valid consensus sets are:")
-    print(", ".join(all_cons_sets))
-    sys.exit()
 
 
 if __name__ == "__main__":

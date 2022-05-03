@@ -11,7 +11,7 @@ TERM_DB = consts.DATA_DIR / "terms.sqlite"
 if not TERM_DB.exists():
     TERM_DB = consts.MOCK_DIR / "terms.sqlite"
 
-LOCAL_DB = consts.ROOT_DIR / "digi_leap" / "pylib" / "rule_extractor" / "terms.sqlite"
+LOCAL_DB = consts.ROOT_DIR / "digi_leap" / "pylib" / "ner" / "terms.sqlite"
 
 # ##########################################################################
 EXTRACTOR_TERMS = Db()

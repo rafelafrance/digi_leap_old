@@ -6,7 +6,7 @@ from . import pipeline
 from .. import db
 
 
-def extract(args):
+def ner(args):
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 

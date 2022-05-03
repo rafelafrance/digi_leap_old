@@ -4,4 +4,4 @@
 --test-set=tf_efficientnetv2_s_2022-03-03
 --workers=8
 --batch-size=4
---notes='Testing an efficientdet model'
+--notes='Evaluating an efficientdet model'

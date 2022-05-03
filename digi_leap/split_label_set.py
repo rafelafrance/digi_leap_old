@@ -49,11 +49,10 @@ def parse_args():
 
     arg_parser.add_argument(
         "--database",
-        "--db",
         metavar="PATH",
         type=Path,
         required=True,
-        help="""Path to the SQLite3 database (angiosperm data).""",
+        help="""Path to a digi-leap database.""",
     )
 
     arg_parser.add_argument(

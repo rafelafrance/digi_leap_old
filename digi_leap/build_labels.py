@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Find "best" labels from ensembles of OCR results of each label."""
 import argparse
-import sys
 import textwrap
 from pathlib import Path
 
-from pylib import db
 from pylib import log
 from pylib.label_builder import label_builder
+
+from digi_leap.pylib import validate_args
 
 
 def main():
@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
         metavar="PATH",
         type=Path,
         required=True,
-        help="""Path to the digi-leap database.""",
+        help="""Path to a digi-leap database.""",
     )
 
     arg_parser.add_argument(
@@ -74,22 +74,8 @@ def parse_args() -> argparse.Namespace:
     )
 
     args = arg_parser.parse_args()
-    validate_ocr_set(args.database, args.ocr_set)
+    validate_args.validate_ocr_set(args.database, args.ocr_set)
     return args
-
-
-def validate_ocr_set(database, ocr_set):
-    with db.connect(database) as cxn:
-        rows = db.execute(cxn, "select distinct ocr_set from ocr")
-        all_ocr_sets = [r["ocr_set"] for r in rows]
-
-    if ocr_set in all_ocr_sets:
-        return
-
-    print(f"{ocr_set} is not a valid OCR set.")
-    print("Valid OCR sets are:")
-    print(", ".join(all_ocr_sets))
-    sys.exit()
 
 
 if __name__ == "__main__":

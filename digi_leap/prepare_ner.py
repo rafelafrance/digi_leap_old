@@ -4,22 +4,19 @@ import textwrap
 from pathlib import Path
 
 from pylib import validate_args
-from pylib.trait_writer import html_writer
+from pylib.ner import prepare_data
 from traiter import log
 
 
 def main():
     log.started()
     args = parse_args()
-
-    if args.format == "html":
-        html_writer.write(args)
-
+    prepare_data.prepare(args)
     log.finished()
 
 
 def parse_args() -> argparse.Namespace:
-    description = """Extract information from the labels."""
+    description = """Save training data for training an NER model."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -45,14 +42,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         required=True,
         metavar="PATH",
-        help="""Output the results to this file.""",
-    )
-
-    arg_parser.add_argument(
-        "--format",
-        choices=["html"],
-        default="html",
-        help="""Output the traits in this format.""",
+        help="""Output the spaCy NER training data to this file.""",
     )
 
     args = arg_parser.parse_args()
