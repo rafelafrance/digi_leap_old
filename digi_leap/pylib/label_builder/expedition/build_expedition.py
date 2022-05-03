@@ -1,4 +1,3 @@
-"""Build an expedition for scoring consensus text output."""
 import warnings
 from argparse import Namespace
 from os import makedirs

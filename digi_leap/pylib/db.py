@@ -32,7 +32,7 @@ def create_db(db_path):
         create_ocr_table(cxn)
         create_consensus_table(cxn)
         create_traits_table(cxn)
-        create_tests_table(cxn)
+        create_evals_table(cxn)
         create_runs_table(cxn)
         run_id = insert_run(cxn, {"path": db_path}, "Database created")
         update_run_finished(cxn, run_id)
@@ -263,12 +263,12 @@ def select_traits(cxn, trait_set: str) -> list:
     return cxn.execute(sql, (trait_set,))
 
 
-# ############ label finder test table ################################################
-def create_tests_table(cxn) -> None:
+# ############ label finder evaluation table ##########################################
+def create_evals_table(cxn) -> None:
     sql = """
-        create table if not exists tests (
-            test_id     integer primary key autoincrement,
-            test_set    text,
+        create table if not exists evals (
+            eval_id     integer primary key autoincrement,
+            eval_set    text,
             sheet_id    integer,
             pred_class  text,
             pred_conf   real,
@@ -281,12 +281,12 @@ def create_tests_table(cxn) -> None:
     cxn.executescript(sql)
 
 
-def insert_tests(cxn, batch: list) -> None:
+def insert_evals(cxn, batch: list) -> None:
     sql = """
-        insert into tests
-            ( test_set,   sheet_id,  pred_class,  pred_conf,
+        insert into evals
+            ( eval_set,   sheet_id,  pred_class,  pred_conf,
               pred_left,  pred_top,  pred_right,  pred_bottom)
-     values (:test_set,  :sheet_id, :pred_class, :pred_conf,
+     values (:eval_set,  :sheet_id, :pred_class, :pred_conf,
              :pred_left, :pred_top, :pred_right, :pred_bottom);"""
     cxn.executemany(sql, batch)
 

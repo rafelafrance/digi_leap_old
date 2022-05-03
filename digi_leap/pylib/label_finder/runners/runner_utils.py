@@ -1,4 +1,3 @@
-"""Common runner functions."""
 import torch
 
 

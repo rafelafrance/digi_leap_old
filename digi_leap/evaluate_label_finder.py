@@ -7,7 +7,7 @@ from pathlib import Path
 from pylib import consts
 from pylib import log
 from pylib.label_finder.models import efficient_det_model
-from pylib.label_finder.runners import tester_runner
+from pylib.label_finder.runners import evaluator_runner
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
         image_size=args.image_size,
         pretrained=False,
     )
-    tester_runner.test(model, args)
+    evaluator_runner.evaluate(model, args)
     log.finished()
 
 
@@ -57,10 +57,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--test-set",
+        "--eval-set",
         metavar="NAME",
         required=True,
-        help="""Name this test set.""",
+        help="""Name this eval set.""",
     )
 
     arg_parser.add_argument(

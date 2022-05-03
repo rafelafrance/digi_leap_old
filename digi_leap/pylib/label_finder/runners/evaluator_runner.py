@@ -1,4 +1,3 @@
-"""Run a label finder model for training, testing, or inference."""
 import logging
 from argparse import Namespace
 from dataclasses import dataclass
@@ -22,7 +21,7 @@ class Stats:
     box_loss: float = float("Inf")
 
 
-def test(model, args: Namespace):
+def evaluate(model, args: Namespace):
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
@@ -31,19 +30,19 @@ def test(model, args: Namespace):
         model_utils.load_model_state(model, args.load_model)
         model.to(device)
 
-        test_loader = get_data_loader(cxn, args)
+        eval_loader = get_data_loader(cxn, args)
 
-        logging.info("Testing started.")
+        logging.info("Evaluation started.")
 
         model.eval()
-        batch, stats = run_test(model, device, test_loader)
+        batch, stats = run_evaluator(model, device, eval_loader)
 
-        insert_test_records(cxn, batch, args.test_set, args.image_size)
+        insert_evaluation_records(cxn, batch, args.eval_set, args.image_size)
 
         log_stats(stats, cxn, run_id)
 
 
-def run_test(model, device, loader):
+def run_evaluator(model, device, loader):
     batch = []
 
     running_loss = Stats(
@@ -87,8 +86,8 @@ def run_test(model, device, loader):
     )
 
 
-def insert_test_records(cxn, batch, test_set, image_size):
-    db.create_tests_table(cxn)
+def insert_evaluation_records(cxn, batch, eval_set, image_size):
+    db.create_evals_table(cxn)
 
     rows = db.execute(cxn, "select * from sheets where split = 'test'")
 
@@ -100,7 +99,7 @@ def insert_test_records(cxn, batch, test_set, image_size):
         sheets[row["sheet_id"]] = (wide, high)
 
     for row in batch:
-        row["test_set"] = test_set
+        row["eval_set"] = eval_set
         row["pred_class"] = consts.CLASS2NAME[row["pred_class"]]
 
         wide, high = sheets[row["sheet_id"]]
@@ -111,12 +110,12 @@ def insert_test_records(cxn, batch, test_set, image_size):
         row["pred_top"] = int(row["pred_top"] * high)
         row["pred_bottom"] = int(row["pred_bottom"] * high)
 
-    db.execute(cxn, "delete from tests where test_set = ?", (test_set,))
-    db.insert_tests(cxn, batch)
+    db.execute(cxn, "delete from evals where eval_set = ?", (eval_set,))
+    db.insert_evals(cxn, batch)
 
 
 def get_data_loader(cxn, args):
-    logging.info("Loading test data.")
+    logging.info("Loading eval data.")
     raw_data = db.select_label_split(cxn, split="test", label_set=args.label_set)
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(
@@ -130,7 +129,7 @@ def get_data_loader(cxn, args):
 
 def log_stats(stats, cxn, run_id):
     comments = (
-        f"Test: total loss {stats.total_loss:0.6f}  "
+        f"Eval: total loss {stats.total_loss:0.6f}  "
         f"class loss {stats.class_loss:0.6f}  "
         f"box loss {stats.box_loss:0.6f}"
     )

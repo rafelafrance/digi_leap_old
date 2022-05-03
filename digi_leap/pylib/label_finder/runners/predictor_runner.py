@@ -1,4 +1,3 @@
-"""Run a label finder model for training, testing, or inference."""
 import logging
 from argparse import Namespace
 

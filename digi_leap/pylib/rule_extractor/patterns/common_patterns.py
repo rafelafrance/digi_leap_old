@@ -1,4 +1,3 @@
-"""Terms common to many pipelines."""
 from traiter import const as t_const
 
 

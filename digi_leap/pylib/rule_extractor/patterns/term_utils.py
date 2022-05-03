@@ -1,4 +1,3 @@
-"""Term patterns."""
 import string
 
 from traiter import tokenizer_util
@@ -12,7 +11,7 @@ TERM_DB = consts.DATA_DIR / "terms.sqlite"
 if not TERM_DB.exists():
     TERM_DB = consts.MOCK_DIR / "terms.sqlite"
 
-LOCAL_DB = consts.ROOT_DIR / "digi_leap" / "pylib" / "trait_extractor" / "terms.sqlite"
+LOCAL_DB = consts.ROOT_DIR / "digi_leap" / "pylib" / "rule_extractor" / "terms.sqlite"
 
 # ##########################################################################
 EXTRACTOR_TERMS = Db()

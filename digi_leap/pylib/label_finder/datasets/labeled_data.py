@@ -1,4 +1,3 @@
-"""Generate training data."""
 import warnings
 from collections import defaultdict
 from collections import namedtuple

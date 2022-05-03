@@ -1,4 +1,3 @@
-"""Find taxon notations on herbarium specimen labels."""
 from spacy.util import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 

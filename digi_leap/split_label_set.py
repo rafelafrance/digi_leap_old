@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Split labeled images into training, testing, and validation datasets."""
 import argparse
+import sys
 import textwrap
 from pathlib import Path
 
@@ -23,12 +24,12 @@ def assign_sheets(args):
         rows = db.execute(cxn, select)
 
         count = len(rows)
-        val_split = round(count * (args.test_split + args.val_split))
-        test_split = round(count * args.test_split)
+        val_split = round(count * (args.eval_split + args.val_split))
+        eval_split = round(count * args.eval_split)
 
         update = """update sheets set split = ? where sheet_id = ?"""
         for i, row in enumerate(rows):
-            if i <= test_split:
+            if i <= eval_split:
                 split = "test"
             elif i <= val_split:
                 split = "val"
@@ -78,7 +79,7 @@ def parse_args():
         type=float,
         metavar="FRACTION",
         default=0.2,
-        help="""What fraction of records to use for the testing. I.e. the holdout
+        help="""What fraction of records to use for testing. I.e. the holdout
             data used to evaluate the model after training. (default: %(default)s)""",
     )
 
@@ -90,6 +91,10 @@ def parse_args():
     )
 
     args = arg_parser.parse_args()
+
+    if args.train_split + args.val_split + args.test_split != 1.0:
+        sys.exit("""train-split + val-split + test-split must sum to 1.0""")
+
     return args
 
 

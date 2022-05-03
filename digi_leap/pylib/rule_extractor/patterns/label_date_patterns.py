@@ -1,4 +1,3 @@
-"""Parse date notations."""
 import re
 from calendar import IllegalMonthError
 from datetime import date

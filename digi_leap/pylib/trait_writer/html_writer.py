@@ -1,4 +1,3 @@
-"""Write the extracted traits to an html file."""
 import collections
 import html
 import itertools

@@ -1,4 +1,3 @@
-"""Parse administrative unit notations."""
 from spacy.util import registry
 from traiter.actions import RejectMatch
 from traiter.patterns.matcher_patterns import MatcherPatterns

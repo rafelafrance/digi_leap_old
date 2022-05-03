@@ -4,7 +4,7 @@ from typing import List
 
 from traiter.util import shorten
 
-from digi_leap.pylib.trait_extractor import pipeline
+from digi_leap.pylib.rule_extractor import pipeline
 
 NLP = pipeline.build_pipeline()  # Singleton for testing
 

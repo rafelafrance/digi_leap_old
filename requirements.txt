@@ -5,12 +5,12 @@ cppimport
 python-dateutil
 easyocr
 effdet
+gensim
 jinja2
 jupyter
 matplotlib
 nltk
 numpy
-opencv-python-headless==4.5.4.60
 pandas
 pybind11
 pytesseract
@@ -20,6 +20,8 @@ scikit-learn
 scipy
 spacy
 tqdm
+
+opencv-python-headless==4.5.4.60
 
 # torch
 # torchvision

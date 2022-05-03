@@ -6,7 +6,7 @@ import textwrap
 from pathlib import Path
 
 from pylib import db
-from pylib.trait_extractor import extractor
+from pylib.rule_extractor import extractor
 from traiter import log
 
 

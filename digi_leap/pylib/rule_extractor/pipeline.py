@@ -1,4 +1,3 @@
-"""Create a trait pipeline."""
 import spacy
 from traiter.patterns import matcher_patterns
 from traiter.pipes.add_traits_pipe import ADD_TRAITS

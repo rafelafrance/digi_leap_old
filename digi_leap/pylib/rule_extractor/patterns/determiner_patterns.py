@@ -1,4 +1,3 @@
-"""Find determiner notations on herbarium specimen labels."""
 import re
 
 from spacy.util import registry

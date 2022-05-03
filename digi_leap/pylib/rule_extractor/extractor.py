@@ -1,4 +1,3 @@
-"""Extract traits from consensus text in a database."""
 import json
 
 from tqdm import tqdm
