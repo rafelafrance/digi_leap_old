@@ -5,7 +5,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-from pylib import db
+from pylib.db import db
 
 
 def main():

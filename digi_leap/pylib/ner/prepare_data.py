@@ -5,7 +5,7 @@ import spacy
 from spacy.tokens import DocBin
 from tqdm import tqdm
 
-from .. import db
+from ..db import db
 from .patterns import term_utils
 
 
@@ -16,7 +16,7 @@ def prepare(args):
     term_utils.setup_tokenizer(nlp)
 
     with db.connect(args.database) as cxn:
-        all_traits = db.select_traits(cxn, args.trait_set)
+        all_traits = db.canned_select("traits", cxn, trait_set=args.trait_set)
 
     groups = itertools.groupby(all_traits, key=lambda t: [t["cons_id"]])
 

@@ -1,6 +1,6 @@
 import sys
 
-from . import db
+from .db import db
 
 
 def validate_trait_set(database, trait_set):

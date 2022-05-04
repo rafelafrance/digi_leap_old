@@ -11,8 +11,8 @@ from tqdm import tqdm
 
 from . import engine_runner
 from . import label_transformer as lt
-from .. import db
 from .. import utils
+from ..db import db
 
 ENGINE = {
     "tesseract": engine_runner.tesseract_engine,
@@ -27,7 +27,6 @@ def ocr_labels(args: argparse.Namespace) -> None:
         multiprocessing.set_start_method("spawn")
 
         db.execute(cxn, "delete from ocr where ocr_set = ?", (args.ocr_set,))
-        db.create_ocr_table(cxn)
 
         sheets = get_sheet_labels(cxn, args.classes, args.label_set, args.label_conf)
 
@@ -47,7 +46,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
 
         results = list(chain(*list(results)))
 
-        db.insert_ocr(cxn, results)
+        db.canned_insert("ocr", cxn, results)
         db.update_run_finished(cxn, run_id)
 
 
@@ -91,7 +90,7 @@ def ocr_batch(sheets, pipelines, ocr_engines, ocr_set) -> list[dict]:
 def get_sheet_labels(cxn, classes, label_set, label_conf) -> dict:
     sheets = defaultdict(list)
 
-    labels = db.select_labels(cxn, label_set=label_set)
+    labels = db.canned_select("labels", cxn, label_set=label_set)
 
     if classes:
         labels = [lb for lb in labels if lb["class"] in classes]

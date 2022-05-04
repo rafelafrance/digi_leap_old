@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from . import runner_utils
 from ... import consts
-from ... import db
+from ...db import db
 from ..datasets.labeled_data import LabeledData
 from ..models import model_utils
 
@@ -87,8 +87,6 @@ def run_evaluator(model, device, loader):
 
 
 def insert_evaluation_records(cxn, batch, eval_set, image_size):
-    db.create_evals_table(cxn)
-
     rows = db.execute(cxn, "select * from sheets where split = 'test'")
 
     sheets: dict[str, tuple] = {}
@@ -111,12 +109,14 @@ def insert_evaluation_records(cxn, batch, eval_set, image_size):
         row["pred_bottom"] = int(row["pred_bottom"] * high)
 
     db.execute(cxn, "delete from evals where eval_set = ?", (eval_set,))
-    db.insert_evals(cxn, batch)
+    db.canned_insert("evals", cxn, batch)
 
 
 def get_data_loader(cxn, args):
     logging.info("Loading eval data.")
-    raw_data = db.select_label_split(cxn, split="test", label_set=args.label_set)
+    raw_data = db.canned_select(
+        "label_split", cxn, split="test", label_set=args.label_set
+    )
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(
         dataset,

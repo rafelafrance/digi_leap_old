@@ -3,19 +3,18 @@ import json
 from tqdm import tqdm
 
 from . import pipeline
-from .. import db
+from ..db import db
 
 
 def ner(args):
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
-        db.create_traits_table(cxn)
         cxn.execute("delete from traits where trait_set = ?", (args.trait_set,))
 
         nlp = pipeline.build_pipeline()
 
-        records = db.select_consensus(cxn, args.cons_set)
+        records = db.canned_select("cons", cxn, cons_set=args.cons_set)
 
         for cons in tqdm(records):
             batch = []
@@ -36,6 +35,6 @@ def ner(args):
                         "data": json.dumps(trait),
                     }
                 )
-            db.insert_traits(cxn, batch)
+            db.canned_insert("traits", cxn, batch)
 
         db.update_run_finished(cxn, run_id)

@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from . import runner_utils
 from ... import consts
-from ... import db
+from ...db import db
 from ..datasets.unlabeled_data import UnlabeledData
 from ..models import model_utils
 
@@ -66,8 +66,6 @@ def run_prediction(model, device, loader):
 
 
 def insert_label_records(cxn, batch, label_set, image_size):
-    db.create_tests_table(cxn)
-
     rows = db.execute(cxn, "select * from sheets")
     sheets: dict[str, tuple] = {}
 
@@ -97,7 +95,7 @@ def insert_label_records(cxn, batch, label_set, image_size):
         prev_sheet_id = row["sheet_id"]
 
     db.execute(cxn, "delete from labels where label_set = ?", (label_set,))
-    db.insert_labels(cxn, batch)
+    db.canned_insert("labels", cxn, batch)
 
 
 def get_data_loader(cxn, args):

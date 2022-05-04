@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from tqdm import tqdm
 
-from ... import db
+from ...db import db
 
 
 def build(args: Namespace) -> None:
@@ -14,7 +14,7 @@ def build(args: Namespace) -> None:
         run_id = db.insert_run(cxn, args)
         makedirs(args.expedition_dir, exist_ok=True)
 
-        cons = db.sample_consensus(cxn, args.cons_set)
+        cons = db.canned_select("sample_cons", cxn, cons_set=args.cons_set)
 
         with warnings.catch_warnings():  # Turn off EXIF warnings
             warnings.filterwarnings("ignore", category=UserWarning)

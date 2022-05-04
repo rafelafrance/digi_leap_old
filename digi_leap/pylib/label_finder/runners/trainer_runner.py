@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from . import runner_utils
-from ... import db
+from ...db import db
 from ..datasets.labeled_data import LabeledData
 
 
@@ -94,7 +94,9 @@ def get_optimizer(model, lr):
 
 def get_train_loader(cxn, args):
     logging.info("Loading training data.")
-    raw_data = db.select_label_split(cxn, split="train", label_set=args.label_set)
+    raw_data = db.canned_select(
+        "label_split", cxn, split="train", label_set=args.label_set
+    )
     dataset = LabeledData(raw_data, args.image_size, augment=True)
     return DataLoader(
         dataset,
@@ -108,7 +110,9 @@ def get_train_loader(cxn, args):
 
 def get_val_loader(cxn, args):
     logging.info("Loading validation data.")
-    raw_data = db.select_label_split(cxn, split="val", label_set=args.label_set)
+    raw_data = db.canned_select(
+        "label_split", cxn, split="val", label_set=args.label_set
+    )
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(
         dataset,

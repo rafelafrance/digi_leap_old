@@ -10,7 +10,7 @@ from tqdm import tqdm
 from . import engine_runner
 from . import label_transformer as lt
 from .. import box_calc
-from .. import db
+from ..db import db
 
 ENGINE = {
     "tesseract": engine_runner.tesseract_engine,
@@ -22,7 +22,6 @@ def ocr_labels(args: argparse.Namespace) -> None:
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
-        db.create_ocr_table(cxn)
         db.execute(cxn, "delete from ocr where ocr_set = ?", (args.ocr_set,))
 
         sheets = get_sheet_labels(cxn, args.classes, args.label_set, args.label_conf)
@@ -62,14 +61,14 @@ def ocr_labels(args: argparse.Namespace) -> None:
                                     }
                                 )
 
-                db.insert_ocr(cxn, batch)
+                db.canned_insert("ocr", cxn, batch)
 
         db.update_run_finished(cxn, run_id)
 
 
 def get_sheet_labels(cxn, classes, label_set, label_conf):
     sheets = {}
-    labels = db.select_labels(cxn, label_set=label_set)
+    labels = db.canned_select("labels", cxn, label_set=label_set)
     labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))
     grouped = itertools.groupby(labels, lambda lb: lb["path"])
 

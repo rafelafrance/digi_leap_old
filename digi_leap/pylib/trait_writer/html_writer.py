@@ -8,7 +8,7 @@ from typing import NamedTuple
 
 import jinja2
 
-from .. import db
+from ..db import db
 
 COLOR_COUNT = 14
 BACKGROUNDS = itertools.cycle([f"cc{i}" for i in range(COLOR_COUNT)])

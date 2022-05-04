@@ -7,8 +7,8 @@ from multiprocessing import Pool
 from tqdm import tqdm
 
 from . import ocr_results
-from .. import db
 from .. import utils
+from ..db import db
 from .line_align import line_align_py as la  # type: ignore
 from .line_align import line_align_subs
 from .spell_well import spell_well as sw
@@ -19,8 +19,6 @@ def build_labels(args):
         run_id = db.insert_run(cxn, args)
 
         multiprocessing.set_start_method("spawn")
-
-        db.create_consensus_table(cxn)
 
         frags = get_ocr_fragments(cxn, args.ocr_set)
         batches = utils.dict_chunks(frags, args.batch_size)
@@ -40,7 +38,7 @@ def build_labels(args):
         results = list(chain(*list(results)))
 
         db.execute(cxn, "delete from cons where cons_set = ?", (args.cons_set,))
-        db.insert_consensus(cxn, results)
+        db.canned_insert("cons", cxn, results)
         db.update_run_finished(cxn, run_id)
 
 
@@ -99,7 +97,7 @@ def consensus(copies, line_align, spell_well):
 def get_ocr_fragments(cxn, ocr_set):
     frags = defaultdict(list)
 
-    for ocr in db.select_ocr(cxn, ocr_set):
+    for ocr in db.canned_select("ocr", cxn, ocr_set=ocr_set):
         frags[ocr["label_id"]].append(ocr)
 
     return frags
