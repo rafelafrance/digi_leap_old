@@ -5,15 +5,15 @@ import spacy
 from spacy.tokens import DocBin
 from tqdm import tqdm
 
+from . import tokenizer
 from ..db import db
-from .patterns import term_utils
 
 
 def prepare(args):
     doc_bin = DocBin()
 
     nlp = spacy.blank("en")
-    term_utils.setup_tokenizer(nlp)
+    tokenizer.setup_tokenizer(nlp)
 
     with db.connect(args.database) as cxn:
         all_traits = db.canned_select("traits", cxn, trait_set=args.trait_set)

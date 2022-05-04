@@ -57,3 +57,7 @@ extern/
 .pylintrc
 .mypy.ini
 .mypy_cache/
+
+# spacy stuff
+model-best/
+model-last/

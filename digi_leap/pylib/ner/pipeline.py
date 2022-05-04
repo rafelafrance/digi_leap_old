@@ -5,6 +5,7 @@ from traiter.pipes.delete_traits_pipe import DELETE_TRAITS
 from traiter.pipes.simple_traits_pipe import SIMPLE_TRAITS
 from traiter.pipes.term_pipe import TERM_PIPE
 
+from . import tokenizer
 from .patterns import admin_unit_patterns
 from .patterns import collector_patterns
 from .patterns import determiner_patterns
@@ -20,7 +21,7 @@ from .patterns import term_utils
 def build_pipeline():
     nlp = spacy.load("en_core_web_md", disable=["senter"])
 
-    term_utils.setup_tokenizer(nlp)
+    tokenizer.setup_tokenizer(nlp)
 
     nlp.add_pipe(
         TERM_PIPE,
