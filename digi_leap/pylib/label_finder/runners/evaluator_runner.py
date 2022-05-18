@@ -37,7 +37,7 @@ def evaluate(model, args: Namespace):
         model.eval()
         batch, stats = run_evaluator(model, device, eval_loader)
 
-        insert_evaluation_records(cxn, batch, args.eval_set, args.image_size)
+        insert_evaluation_records(cxn, batch, args.test_set, args.image_size)
 
         log_stats(stats, cxn, run_id)
 
@@ -86,7 +86,7 @@ def run_evaluator(model, device, loader):
     )
 
 
-def insert_evaluation_records(cxn, batch, eval_set, image_size):
+def insert_evaluation_records(cxn, batch, test_set, image_size):
     rows = db.execute(cxn, "select * from sheets where split = 'test'")
 
     sheets: dict[str, tuple] = {}
@@ -97,7 +97,7 @@ def insert_evaluation_records(cxn, batch, eval_set, image_size):
         sheets[row["sheet_id"]] = (wide, high)
 
     for row in batch:
-        row["eval_set"] = eval_set
+        row["test_set"] = test_set
         row["pred_class"] = consts.CLASS2NAME[row["pred_class"]]
 
         wide, high = sheets[row["sheet_id"]]
@@ -108,8 +108,8 @@ def insert_evaluation_records(cxn, batch, eval_set, image_size):
         row["pred_top"] = int(row["pred_top"] * high)
         row["pred_bottom"] = int(row["pred_bottom"] * high)
 
-    db.execute(cxn, "delete from evals where eval_set = ?", (eval_set,))
-    db.canned_insert("evals", cxn, batch)
+    db.execute(cxn, "delete from label_finder_tests where test_set = ?", (test_set,))
+    db.canned_insert("label_finder_tests", cxn, batch)
 
 
 def get_data_loader(cxn, args):

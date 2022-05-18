@@ -14,15 +14,17 @@ def ner(args):
 
         nlp = pipeline.build_pipeline()
 
-        records = db.canned_select("cons", cxn, cons_set=args.cons_set)
+        records = db.canned_select(
+            "consensus_text", cxn, consensus_set=args.consensus_set
+        )
 
         for cons in tqdm(records):
             batch = []
 
-            if len(cons["cons_text"].split()) < args.word_threshold:
+            if len(cons["consensus_text"].split()) < args.word_threshold:
                 continue
 
-            doc = nlp(cons["cons_text"])  # .replace("\n", " "))
+            doc = nlp(cons["consensus_text"])  # .replace("\n", " "))
 
             traits = [e._.data for e in doc.ents]
 
@@ -30,7 +32,7 @@ def ner(args):
                 batch.append(
                     {
                         "trait_set": args.trait_set,
-                        "cons_id": cons["cons_id"],
+                        "consensus_id": cons["consensus_id"],
                         "trait": trait["trait"],
                         "data": json.dumps(trait),
                     }

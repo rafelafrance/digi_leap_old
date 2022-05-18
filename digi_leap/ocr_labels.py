@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""OCR a set of labels."""
 import argparse
 import textwrap
 from pathlib import Path

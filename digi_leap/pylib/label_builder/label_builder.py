@@ -29,7 +29,7 @@ def build_labels(args):
                 results.append(
                     pool.apply_async(
                         build_batch,
-                        args=(batch, args.cons_set, args.ocr_set),
+                        args=(batch, args.consensus_set, args.ocr_set),
                         callback=lambda _: bar.update(),
                     )
                 )
@@ -37,12 +37,16 @@ def build_labels(args):
 
         results = list(chain(*list(results)))
 
-        db.execute(cxn, "delete from cons where cons_set = ?", (args.cons_set,))
-        db.canned_insert("cons", cxn, results)
+        db.execute(
+            cxn,
+            "delete from consensus_text where consensus_set = ?",
+            (args.consensus_set,),
+        )
+        db.canned_insert("consensus_text", cxn, results)
         db.update_run_finished(cxn, run_id)
 
 
-def build_batch(labels, cons_set, ocr_set):
+def build_batch(labels, consensus_set, ocr_set):
     spell_well = sw.SpellWell()
     line_align = la.LineAlign(line_align_subs.SUBS)
 
@@ -53,9 +57,9 @@ def build_batch(labels, cons_set, ocr_set):
         batch.append(
             {
                 "label_id": label_id,
-                "cons_set": cons_set,
+                "consensus_set": consensus_set,
                 "ocr_set": ocr_set,
-                "cons_text": text,
+                "consensus_text": text,
             }
         )
     return batch

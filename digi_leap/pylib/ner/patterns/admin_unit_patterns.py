@@ -3,7 +3,7 @@ from traiter.actions import RejectMatch
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
-from . import term_utils
+from . import term_patterns
 
 
 STATE_ENTS = ["us_state", "us_state-us_county", "us_territory"]
@@ -136,7 +136,7 @@ def format_state(ent, *, ent_index: int):
     sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
     state = sub_ents[ent_index].text
     st_key = get_state_key(state)
-    return term_utils.REPLACE.get(st_key, state)
+    return term_patterns.REPLACE.get(st_key, state)
 
 
 def get_state_key(state):
@@ -151,7 +151,7 @@ def format_county(ent, *, ent_index: int):
 def county_in_state(state_ent, county_ent):
     st_key = get_state_key(state_ent.text)
     co_key = county_ent.text.lower()
-    return term_utils.POSTAL[st_key] in term_utils.COUNTY_IN[co_key]
+    return term_patterns.POSTAL[st_key] in term_patterns.COUNTY_IN[co_key]
 
 
 def keep_only(ent, ent_list, label_list):

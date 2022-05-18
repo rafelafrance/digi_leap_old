@@ -17,15 +17,15 @@ def validate_trait_set(database, trait_set):
     sys.exit()
 
 
-def validate_cons_set(database, cons_set):
+def validate_cons_set(database, consensus_set):
     with db.connect(database) as cxn:
-        rows = db.execute(cxn, "select distinct cons_set from cons")
-        all_cons_sets = [r["cons_set"] for r in rows]
+        rows = db.execute(cxn, "select distinct consensus_set from consensus_text")
+        all_cons_sets = [r["consensus_set"] for r in rows]
 
-    if cons_set in all_cons_sets:
+    if consensus_set in all_cons_sets:
         return
 
-    print(f"{cons_set} is not a valid consensus set.")
+    print(f"{consensus_set} is not a valid consensus set.")
     print("Valid consensus sets are:")
     print(", ".join(all_cons_sets))
     sys.exit()

@@ -44,10 +44,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--cons-set",
+        "--consensus-set",
         required=True,
         metavar="NAME",
-        help="""Name the consensus construction set.""",
+        help="""Name the consensus set.""",
     )
 
     arg_parser.add_argument(

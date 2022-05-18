@@ -2,7 +2,7 @@ from spacy.util import registry
 from traiter.patterns.matcher_patterns import MatcherPatterns
 
 from . import common_patterns
-from . import term_utils
+from . import term_patterns
 
 LEVEL_LOWER = """ species subspecies variety subvariety form subform """.split()
 
@@ -36,13 +36,13 @@ def on_taxon_match(ent):
 
     for token in ent:
         if token._.cached_label == "level":
-            is_level = term_utils.REPLACE.get(token.lower_, token.lower_)
+            is_level = term_patterns.REPLACE.get(token.lower_, token.lower_)
         elif is_level:
             ent._.data[is_level] = token.lower_
             is_level = ""
 
         elif token._.cached_label == "plant_taxon":
-            levels = term_utils.LEVEL.get(token.lower_, ["unknown"])
+            levels = term_patterns.LEVEL.get(token.lower_, ["unknown"])
 
             find_highest_unused_taxon(ent, levels, token, used_levels)
 

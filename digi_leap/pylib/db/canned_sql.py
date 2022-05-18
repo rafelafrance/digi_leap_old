@@ -13,52 +13,67 @@ CANNED_INSERTS = {
         values (:label_id, :ocr_set, :engine, :pipeline, :conf,
                 :ocr_left, :ocr_top,  :ocr_right,  :ocr_bottom, :ocr_text);
         """,
-    "cons": """
-        insert into cons ( label_id,  cons_set,  ocr_set,  cons_text)
-                  values (:label_id, :cons_set, :ocr_set, :cons_text);
+    "consensus_text": """
+        insert into consensus_text
+                         ( label_id,  consensus_set,  ocr_set,  consensus_text)
+                  values (:label_id, :consensus_set, :ocr_set, :consensus_text);
         """,
     "traits": """
-        insert into traits ( trait_set,  cons_id,  trait,  data)
-                    values (:trait_set, :cons_id, :trait, :data);
+        insert into traits ( trait_set,  consensus_id,  trait,  data)
+                    values (:trait_set, :consensus_id, :trait, :data);
         """,
-    "evals": """
-        insert into evals
-               ( eval_set,   sheet_id,  pred_class,  pred_conf,
+    "label_finder_tests": """
+        insert into label_finder_tests
+               ( test_set,   sheet_id,  pred_class,  pred_conf,
                  pred_left,  pred_top,  pred_right,  pred_bottom)
-        values (:eval_set,  :sheet_id, :pred_class, :pred_conf,
+        values (:test_set,  :sheet_id, :pred_class, :pred_conf,
                 :pred_left, :pred_top, :pred_right, :pred_bottom);
         """,
 }
 
 CANNED_SELECTS = {
     "labels": """
-        select * from labels join sheets using (sheet_id)
-        where label_set = :label_set;
+        select *
+        from   labels
+        join   sheets using (sheet_id)
+        where  label_set = :label_set;
         """,
     "label_split": """
-        select * from sheets left join labels using (sheet_id)
-        where split = :split and label_set = :label_set;
+        select    *
+        from      sheets
+        left join labels using (sheet_id)
+        where     split = :split
+        and       label_set = :label_set;
         """,
     "ocr": """
-        select * from ocr join labels using (label_id) join sheets using (sheet_id)
-        where ocr_set = :ocr_set;
+        select *
+        from   ocr
+        join   labels using (label_id)
+        join   sheets using (sheet_id)
+        where  ocr_set = :ocr_set;
         """,
-    "cons": """
-        select * from cons join labels using (label_id) join sheets using (sheet_id)
-        where cons_set = :cons_set
+    "consensus_text": """
+        select *
+        from   consensus_text
+        join   labels using (label_id)
+        join   sheets using (sheet_id)
+        where  consensus_set = :consensus_set
         """,
     "sample_cons": """
-        select * from cons join labels using (label_id) join sheets using (sheet_id)
-        where cons_set = ?
+        select *
+        from consensus_text
+        join labels using (label_id)
+        join sheets using (sheet_id)
+        where consensus_set = ?
         order by random()
         """,
     "traits": """
         select *
-        from traits
-        join cons using (cons_id)
-        join labels using (label_id)
-        join sheets using (sheet_id)
-        where trait_set = :trait_set
-        order by cons_id, trait_id
+        from   traits
+        join   consensus_text using (consensus_id)
+        join   labels using (label_id)
+        join   sheets using (sheet_id)
+        where  trait_set = :trait_set
+        order by consensus_id, trait_id
         """,
 }

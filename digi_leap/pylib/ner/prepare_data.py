@@ -18,11 +18,11 @@ def prepare(args):
     with db.connect(args.database) as cxn:
         all_traits = db.canned_select("traits", cxn, trait_set=args.trait_set)
 
-    groups = itertools.groupby(all_traits, key=lambda t: [t["cons_id"]])
+    groups = itertools.groupby(all_traits, key=lambda t: [t["consensus_id"]])
 
     for cons_id, rows in tqdm(groups):
         rows = [dict(r) for r in rows]
-        text = rows[0]["cons_text"]
+        text = rows[0]["consensus_text"]
         doc = nlp(text)
         ents = []
         for row in rows:

@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
         "--trait-set",
         required=True,
         metavar="NAME",
-        help="""The name of the trait set.""",
+        help="""Name this trait set.""",
     )
 
     arg_parser.add_argument(

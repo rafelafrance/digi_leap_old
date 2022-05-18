@@ -13,7 +13,7 @@ from .patterns import label_date_patterns
 from .patterns import lat_long_patterns
 from .patterns import name_patterns
 from .patterns import taxon_patterns
-from .patterns import term_utils
+from .patterns import term_patterns
 
 # from traiter.pipes import debug_pipes
 
@@ -28,8 +28,8 @@ def build_pipeline():
         name="extractor_terms",
         before="parser",
         config={
-            "terms": term_utils.EXTRACTOR_TERMS.terms,
-            "replace": term_utils.REPLACE,
+            "terms": term_patterns.EXTRACTOR_TERMS.terms,
+            "replace": term_patterns.REPLACE,
         },
     )
 
@@ -84,7 +84,10 @@ def build_pipeline():
     nlp.add_pipe(
         TERM_PIPE,
         name="vocab_terms",
-        config={"terms": term_utils.VOCAB_TERMS.terms, "replace": term_utils.REPLACE},
+        config={
+            "terms": term_patterns.VOCAB_TERMS.terms,
+            "replace": term_patterns.REPLACE,
+        },
     )
 
     nlp.add_pipe("merge_entities", name="merge_vocab")
@@ -93,7 +96,7 @@ def build_pipeline():
         SIMPLE_TRAITS,
         config={
             "update": """ level plant_taxon us_county us_state us_state-us_county
-                us_territory""".split()
+                us_territory """.split()
         },
     )
 

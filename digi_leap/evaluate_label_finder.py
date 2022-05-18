@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Test a model for finding labels on herbarium sheets on a holdout set."""
 import argparse
 import textwrap
 from pathlib import Path
@@ -57,10 +56,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--eval-set",
+        "--test-set",
         metavar="NAME",
         required=True,
-        help="""Name this eval set.""",
+        help="""Name this label finder test set.""",
     )
 
     arg_parser.add_argument(

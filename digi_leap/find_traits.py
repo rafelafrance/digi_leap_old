@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--cons-set",
+        "--consensus-set",
         required=True,
         metavar="NAME",
         help="""Extract traits from this consensus label set.""",
@@ -60,7 +60,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     args = arg_parser.parse_args()
-    validate_args.validate_cons_set(args.database, args.cons_set)
+    validate_args.validate_cons_set(args.database, args.consensus_set)
     return args
 
 

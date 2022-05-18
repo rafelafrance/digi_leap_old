@@ -14,12 +14,12 @@ def build(args: Namespace) -> None:
         run_id = db.insert_run(cxn, args)
         makedirs(args.expedition_dir, exist_ok=True)
 
-        cons = db.canned_select("sample_cons", cxn, cons_set=args.cons_set)
+        cons = db.canned_select("sample_cons", cxn, consensus_set=args.consensus_set)
 
         with warnings.catch_warnings():  # Turn off EXIF warnings
             warnings.filterwarnings("ignore", category=UserWarning)
             for consensus in tqdm(cons):
-                words = consensus["cons_text"].split()
+                words = consensus["consensus_text"].split()
                 if len(words) < args.min_words:
                     continue
 
@@ -45,7 +45,7 @@ def build(args: Namespace) -> None:
                     ax2.text(
                         0.0,
                         1.0,
-                        consensus["cons_text"],
+                        consensus["consensus_text"],
                         verticalalignment="top",
                         color="black",
                         fontsize=16,

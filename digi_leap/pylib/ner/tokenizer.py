@@ -3,8 +3,8 @@ import string
 from spacy.util import registry
 from traiter import tokenizer_util
 
-from .patterns.term_utils import EXTRACTOR_TERMS
-from .patterns.term_utils import VOCAB_TERMS
+from .patterns.term_patterns import EXTRACTOR_TERMS
+from .patterns.term_patterns import VOCAB_TERMS
 
 ABBREVS = """
     Acad. Amer. Ann. Arq. Bol. Bot. Bull. Cat. Coll. Com. Contr. Exot. FIG.

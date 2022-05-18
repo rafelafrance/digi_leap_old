@@ -15,12 +15,12 @@ create table if not exists sheet_errors (
 );
 
 
-create table if not exists subs_to_sheets (
+create table if not exists subjects_to_sheets (
     subject_id integer primary key,
     path       text,
     coreid     text
 );
-create index if not exists subs_to_sheets_idx on subs_to_sheets (coreid);
+create index if not exists subs_to_sheets_idx on subjects_to_sheets (coreid);
 
 
 create table if not exists labels (
@@ -39,14 +39,6 @@ create unique index labels_idx on labels (label_set, sheet_id, offset);
 create index if not exists labels_sheet_id on labels(sheet_id);
 
 
-create table if not exists subs_to_sheets (
-    subject_id integer primary key,
-    path       text,
-    coreid     text
-);
-create index if not exists subs_to_sheets_idx on subs_to_sheets (coreid);
-
-
 create table if not exists ocr (
     ocr_id     integer primary key autoincrement,
     label_id   integer,
@@ -63,31 +55,32 @@ create table if not exists ocr (
 create index if not exists ocr_label_id on ocr(label_id);
 
 
-create table if not exists cons (
-    cons_id   integer primary key autoincrement,
-    label_id  integer,
-    cons_set  text,
-    ocr_set   text,
-    cons_text text
+create table if not exists consensus_text (
+    consensus_id   integer primary key autoincrement,
+    label_id       integer,
+    consensus_set  text,
+    ocr_set        text,
+    consensus_text text
 );
-create index if not exists cons_label_id on cons (label_id);
+create index if not exists cons_label_id on consensus_text (label_id);
 
 
 create table if not exists traits (
-    trait_id  integer primary key autoincrement,
-    trait_set text,
-    cons_id   text,
-    trait     text,
-    data      text
+    trait_id     integer primary key autoincrement,
+    trait_set    text,
+    consensus_id text,
+    method       text,
+    trait        text,
+    data         text
 );
 create index if not exists traits_trait_set on traits (trait_set);
-create index if not exists traits_cons_id on traits (cons_id);
+create index if not exists traits_cons_id on traits (consensus_id);
 create index if not exists traits_trait on traits (trait);
 
 
-create table if not exists evals (
-    eval_id     integer primary key autoincrement,
-    eval_set    text,
+create table if not exists label_finder_tests (
+    test_id     integer primary key autoincrement,
+    test_set    text,
     sheet_id    integer,
     pred_class  text,
     pred_conf   real,
