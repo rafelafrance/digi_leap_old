@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from digi_leap.pylib.ner import tokenizer
 
 # python -m spacy train digi_leap/pylib/ner/config.cfg

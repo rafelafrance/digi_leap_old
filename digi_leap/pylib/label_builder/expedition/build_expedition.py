@@ -1,6 +1,7 @@
+"""Create an expedition for checking the results of the OCR label builder."""
+import os
 import warnings
 from argparse import Namespace
-from os import makedirs
 
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -12,7 +13,7 @@ from ...db import db
 def build(args: Namespace) -> None:
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
-        makedirs(args.expedition_dir, exist_ok=True)
+        os.makedirs(args.expedition_dir, exist_ok=True)
 
         cons = db.canned_select("sample_cons", cxn, consensus_set=args.consensus_set)
 

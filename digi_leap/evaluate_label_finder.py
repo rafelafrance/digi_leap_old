@@ -25,7 +25,7 @@ def main():
 def parse_args() -> argparse.Namespace:
     description = """
         Test a model for finding labels on herbarium sheets on a holdout set.
-    """
+        """
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
