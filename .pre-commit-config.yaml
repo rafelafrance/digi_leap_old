@@ -26,13 +26,13 @@ repos:
         language_version: python3
 
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.0.1
+    rev: v3.1.0
     hooks:
     -   id: reorder-python-imports
         args: []
 
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.32.0
+    rev: v2.32.1
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
@@ -42,6 +42,6 @@ repos:
   hooks:
   - id: clang-tidy
     args:
-      - --extra-arg=-I./.venv/lib/python3.9/site-packages/pybind11/include/
-      - --extra-arg=-I/usr/include/python3.9/
+      - --extra-arg=-I./.venv/lib/python3.10/site-packages/pybind11/include/
+      - --extra-arg=-I/usr/include/python3.10/
   - id: cppcheck

@@ -79,7 +79,7 @@ std::vector<std::tuple<int64_t, int64_t, int64_t>>
     return results;
 }
 
-// Structures supporting the align_all() function.
+// Structures supporting the align() function.
 enum TraceDir { none, diag, up, left };
 struct Trace {
     float val;
