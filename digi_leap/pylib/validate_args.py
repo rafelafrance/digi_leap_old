@@ -19,7 +19,7 @@ def validate_trait_set(database, trait_set):
 
 def validate_cons_set(database, consensus_set):
     with db.connect(database) as cxn:
-        rows = db.execute(cxn, "select distinct consensus_set from consensus_text")
+        rows = db.execute(cxn, "select distinct consensus_set from consensus")
         all_cons_sets = [r["consensus_set"] for r in rows]
 
     if consensus_set in all_cons_sets:

@@ -13,8 +13,8 @@ CANNED_INSERTS = {
         values (:label_id, :ocr_set, :engine, :pipeline, :conf,
                 :ocr_left, :ocr_top,  :ocr_right,  :ocr_bottom, :ocr_text);
         """,
-    "consensus_text": """
-        insert into consensus_text
+    "consensuses": """
+        insert into consensuses
                          ( label_id,  consensus_set,  ocr_set,  consensus_text)
                   values (:label_id, :consensus_set, :ocr_set, :consensus_text);
         """,
@@ -52,16 +52,16 @@ CANNED_SELECTS = {
         join   sheets using (sheet_id)
         where  ocr_set = :ocr_set;
         """,
-    "consensus_text": """
+    "consensuses": """
         select *
-        from   consensus_text
+        from   consensuses
         join   labels using (label_id)
         join   sheets using (sheet_id)
         where  consensus_set = :consensus_set
         """,
-    "sample_cons": """
+    "sample_consensuses": """
         select *
-        from consensus_text
+        from consensuses
         join labels using (label_id)
         join sheets using (sheet_id)
         where consensus_set = ?
@@ -70,7 +70,7 @@ CANNED_SELECTS = {
     "traits": """
         select *
         from   traits
-        join   consensus_text using (consensus_id)
+        join   consensuses using (consensus_id)
         join   labels using (label_id)
         join   sheets using (sheet_id)
         where  trait_set = :trait_set

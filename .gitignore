@@ -54,8 +54,6 @@ extern/
 *.plist
 
 # Personal linters etc.
-.pylintrc
-.mypy.ini
 .mypy_cache/
 
 # spacy stuff

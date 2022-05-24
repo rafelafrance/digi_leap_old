@@ -39,10 +39,10 @@ def build_labels(args):
 
         db.execute(
             cxn,
-            "delete from consensus_text where consensus_set = ?",
+            "delete from consensuses where consensus_set = ?",
             (args.consensus_set,),
         )
-        db.canned_insert("consensus_text", cxn, results)
+        db.canned_insert("consensuses", cxn, results)
         db.update_run_finished(cxn, run_id)
 
 

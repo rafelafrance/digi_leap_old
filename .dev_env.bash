@@ -53,7 +53,6 @@ python -m pip install -U 'python-lsp-server[all]'
 python -m pip install -U pre-commit pre-commit-hooks
 python -m pip install -U autopep8 flake8 isort pylint yapf pydocstyle black
 python -m pip install -U jupyter jupyter_nbextensions_configurator ipyparallel
-python -m pip install -U jupyter_nbextensions_configurator
 
 python -m pip install -U jupyterlab
 python -m pip install -U jupyterlab-drawio

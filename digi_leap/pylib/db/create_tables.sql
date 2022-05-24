@@ -55,14 +55,14 @@ create table if not exists ocr (
 create index if not exists ocr_label_id on ocr(label_id);
 
 
-create table if not exists consensus_text (
+create table if not exists consensuses (
     consensus_id   integer primary key autoincrement,
     label_id       integer,
     consensus_set  text,
     ocr_set        text,
     consensus_text text
 );
-create index if not exists cons_label_id on consensus_text (label_id);
+create index if not exists cons_label_id on consensuses (label_id);
 
 
 create table if not exists traits (
