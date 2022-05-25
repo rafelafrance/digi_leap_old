@@ -1,4 +1,3 @@
-"""Test trait extraction on labels."""
 import unittest
 
 from tests.setup import test

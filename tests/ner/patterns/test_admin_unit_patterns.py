@@ -1,4 +1,3 @@
-"""Test administrative unit patterns."""
 import unittest
 
 from tests.setup import test

@@ -22,7 +22,7 @@ def ner(args):
             if len(cons["consensus_text"].split()) < args.word_threshold:
                 continue
 
-            doc = nlp(cons["consensus_text"])  # .replace("\n", " "))
+            doc = nlp(cons["cons_text"])  # .replace("\n", " "))
 
             traits = [e._.data for e in doc.ents]
 

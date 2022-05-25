@@ -1,11 +1,9 @@
-"""Test taxon patterns."""
 import unittest
 
 from tests.setup import test
 
 
 class TestTaxon(unittest.TestCase):
-    """Test taxon patterns."""
 
     # def test_taxon_00(self):
     #     test("""Fabaceae Vicia villosa Roth ssp. varia (Host) Corb. CLAY COUNTY""")

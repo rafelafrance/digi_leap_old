@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Find "best" labels from ensembles of OCR results of each label."""
 import argparse
 import textwrap
 from pathlib import Path

@@ -44,7 +44,6 @@ def build_pipeline():
     )
 
     # Build up names from PERSON entities
-    # debug_pipes.tokens(nlp)  # ######################################################
     nlp.add_pipe(
         ADD_TRAITS,
         name="name_traits",
@@ -58,7 +57,6 @@ def build_pipeline():
         },
     )
 
-    # debug_pipes.tokens(nlp)  # ######################################################
     nlp.add_pipe(
         ADD_TRAITS,
         config={

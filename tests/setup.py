@@ -1,4 +1,4 @@
-"""Setup for all tests."""
+import warnings
 from typing import Dict
 from typing import List
 
@@ -10,17 +10,17 @@ NLP = pipeline.build_pipeline()  # Singleton for testing
 
 
 def test(text: str) -> List[Dict]:
-    """Find entities in the doc."""
     text = shorten(text)
 
-    extractor_doc = NLP(text)
+    # A known spacy/catalogue issue with python 3.10+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
 
-    traits = [e._.data for e in extractor_doc.ents]
+        doc = NLP(text)
+
+    traits = [e._.data for e in doc.ents]
 
     # from pprint import pp
     # pp(traits, compact=True)
-
-    # from spacy import displacy
-    # displacy.serve(doc, options={'collapse_punct': False, 'compact': True})
 
     return traits

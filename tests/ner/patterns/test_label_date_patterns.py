@@ -1,4 +1,3 @@
-"""Test label date unit patterns."""
 import unittest
 from datetime import date
 
@@ -8,7 +7,6 @@ from tests.setup import test
 
 
 class TestLabelDate(unittest.TestCase):
-    """Test label date patterns."""
 
     # def test_label_date_00(self):
     #     """It gets a county notation."""
