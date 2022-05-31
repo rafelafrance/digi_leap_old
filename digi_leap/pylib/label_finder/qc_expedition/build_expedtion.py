@@ -36,7 +36,7 @@ def build(args: Namespace) -> None:
     with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(
-            ["sheet_id", "reduced_by", "label_set", "label_conf", "database"]
+            ["sheet_id", "image", "reduced_by", "label_set", "label_conf", "database"]
         )
 
         run_id = db.insert_run(cxn, args)
@@ -79,12 +79,14 @@ def build(args: Namespace) -> None:
                     draw.rectangle(box, outline=color, width=12)
 
                 image = image.reduce(args.reduce_by)
-                path = args.expedition_dir / Path(sheet["path"]).name
+                name = Path(sheet["path"]).name
+                path = args.expedition_dir / name
                 image.save(str(path))
 
                 writer.writerow(
                     [
                         sheet["sheet_id"],
+                        name,
                         args.reduce_by,
                         args.label_set,
                         args.label_conf,
