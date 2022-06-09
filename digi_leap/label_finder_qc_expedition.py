@@ -63,7 +63,7 @@ def parse_args() -> argparse.Namespace:
     arg_parser.add_argument(
         "--reduce-by",
         type=int,
-        default=4,
+        default=1,
         help="""Shrink images by this factor. (default: %(default)s)""",
     )
 

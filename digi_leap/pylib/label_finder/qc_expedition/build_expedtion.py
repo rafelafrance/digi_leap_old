@@ -78,7 +78,9 @@ def build(args: Namespace) -> None:
                     ]
                     draw.rectangle(box, outline=color, width=12)
 
-                image = image.reduce(args.reduce_by)
+                if args.reduce_by > 1:
+                    image = image.reduce(args.reduce_by)
+
                 name = Path(sheet["path"]).name
                 path = args.expedition_dir / name
                 image.save(str(path))
