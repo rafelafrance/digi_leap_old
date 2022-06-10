@@ -36,7 +36,7 @@ def build(args: Namespace) -> None:
     with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(
-            ["sheet_id", "image", "reduced_by", "label_set", "label_conf", "database"]
+            "sheet_id image reduced_by label_set label_conf database".split()
         )
 
         run_id = db.insert_run(cxn, args)

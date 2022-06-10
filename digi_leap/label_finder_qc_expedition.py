@@ -75,7 +75,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     args = arg_parser.parse_args()
-    # validate_args.validate_cons_set(args.database, args.consensus_set)
     return args
 
 

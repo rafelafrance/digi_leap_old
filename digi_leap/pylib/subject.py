@@ -33,10 +33,8 @@ RECONCILE_TYPES = {
 # Used when merging bounding boxes
 @dataclass
 class Subject:
-
     subject_id: str = ""
-    image_file: str = ""
-    image_size: tuple[int, ...] = field(default_factory=tuple)
+    sheet_id: int = -1
     groups: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.int32))
     boxes: np.ndarray = field(default_factory=lambda: np.empty((0, 4), dtype=np.int32))
     types: np.ndarray = field(default_factory=lambda: np.array([], dtype=np.str_))
@@ -52,20 +50,6 @@ class Subject:
     removed_types: np.ndarray = field(
         default_factory=lambda: np.array([], dtype=np.str_)
     )
-
-    def to_dict(self):
-        return {
-            "subject_id": self.subject_id,
-            "image_file": self.image_file,
-            "image_size": list(self.image_size),
-            "groups": self.groups.tolist(),
-            "boxes": self.boxes.tolist(),
-            "types": self.types.tolist(),
-            "removed_boxes": self.removed_boxes.tolist(),
-            "removed_types": self.removed_types.tolist(),
-            "merged_boxes": list(self.merged_boxes),
-            "merged_types": list(self.merged_types),
-        }
 
     @staticmethod
     def bbox_from_json(coords: str) -> npt.ArrayLike:
