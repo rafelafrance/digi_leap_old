@@ -3,14 +3,14 @@ import unittest
 
 import cppimport.import_hook  # noqa: F401
 
-from digi_leap.pylib.label_builder.line_align import line_align_py as line_align
+from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
 from digi_leap.pylib.label_builder.line_align import line_align_subs as subs
 
 
 class TestAlign(unittest.TestCase):
     def setUp(self):
         two_chars = {"aa": 0.0, "ab": -1.0, "bb": 0.0}
-        self.la = line_align.LineAlign(two_chars, -1.0, -1.0)
+        self.la = line_align_py.LineAlign(two_chars, -1.0, -1.0)
 
     def test_align_01(self):
         self.assertEqual(self.la.align(["aba", "aba"]), ["aba", "aba"])
@@ -49,7 +49,7 @@ class TestAlign(unittest.TestCase):
         self.assertEqual(self.la.align(["aab", "abb", "aba"]), ["aab", "abb", "aba"])
 
     def test_align_13(self):
-        la = line_align.LineAlign(substitutions=subs.SUBS, gap=-3.0)
+        la = line_align_py.LineAlign(substitutions=subs.SUBS, gap=-3.0)
         results = la.align(
             [
                 "MOJAVE DESERT, PROVIDENCE MTS.: canyon above",
@@ -72,7 +72,7 @@ class TestAlign(unittest.TestCase):
         )
 
     def test_align_14(self):
-        la = line_align.LineAlign(subs.SUBS)
+        la = line_align_py.LineAlign(subs.SUBS)
         results = la.align(
             [
                 "Johns Island Sta tion on",

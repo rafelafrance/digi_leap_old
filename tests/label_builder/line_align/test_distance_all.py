@@ -3,12 +3,12 @@ import unittest
 
 import cppimport.import_hook  # noqa: F401
 
-from digi_leap.pylib.label_builder.line_align import line_align_py as line_align
+from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
 
 
 class TestDistanceAll(unittest.TestCase):
     def setUp(self):
-        self.la = line_align.LineAlign()
+        self.la = line_align_py.LineAlign()
 
     def test_distance_all_01(self):
         self.assertEqual(self.la.levenshtein_all(["aa", "bb"]), [(2, 0, 1)])
