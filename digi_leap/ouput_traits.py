@@ -4,7 +4,7 @@ import textwrap
 from pathlib import Path
 
 from pylib import validate_args
-from pylib.trait_writer import html_writer
+from pylib.ner.writers import html_writer
 from traiter import log
 
 

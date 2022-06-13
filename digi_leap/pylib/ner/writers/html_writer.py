@@ -8,7 +8,7 @@ from typing import NamedTuple
 
 import jinja2
 
-from ..db import db
+from ...db import db
 
 COLOR_COUNT = 14
 BACKGROUNDS = itertools.cycle([f"cc{i}" for i in range(COLOR_COUNT)])
@@ -25,7 +25,7 @@ SortableTrait = collections.namedtuple("SortableTrait", "label start trait")
 def write(args):
     with db.connect(args.database) as cxn:
         env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader("./digi_leap/pylib/trait_writer/templates"),
+            loader=jinja2.FileSystemLoader("./digi_leap/pylib/writers/templates"),
             autoescape=True,
         )
 
