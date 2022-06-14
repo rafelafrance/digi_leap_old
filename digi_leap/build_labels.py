@@ -4,9 +4,8 @@ import textwrap
 from pathlib import Path
 
 from pylib import log
+from pylib import validate_args
 from pylib.label_builder import label_builder
-
-from digi_leap.pylib import validate_args
 
 
 def main():

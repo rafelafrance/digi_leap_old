@@ -5,18 +5,18 @@ import textwrap
 import warnings
 from pathlib import Path
 
-import cppimport.import_hook  # noqa: F401
+import cppimport.import_hook  # noqa pylint: disable=unused-import
+import pandas as pd
 import pytesseract
 from PIL import Image
 from pylib import log
+from pylib.db import db
 from pylib.label_builder import label_builder
+from pylib.label_builder.line_align import line_align_py  # noqa
+from pylib.label_builder.line_align import line_align_subs
+from pylib.label_builder.spell_well import spell_well as sw
 from pylib.ocr import label_transformer
 from pylib.ocr import ocr_runner
-
-from digi_leap.pylib.db import db
-from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
-from digi_leap.pylib.label_builder.line_align import line_align_subs
-from digi_leap.pylib.label_builder.spell_well import spell_well as sw
 
 
 def main():
@@ -27,10 +27,10 @@ def main():
         run_id = db.insert_run(cxn, args)
 
         sql = "select * from gold_standard where gold_set = ?"
-        golden = [g for g in cxn.execute(sql, (args.gold_set,))]
+        golden = cxn.execute(sql, (args.gold_set,))
 
         scores = get_scores(args, golden)
-        output_scores(scores)
+        output_scores(cxn, scores)
 
         db.update_run_finished(cxn, run_id)
 
@@ -44,50 +44,58 @@ def get_scores(args, golden):
     line_align = line_align_py.LineAlign(line_align_subs.SUBS)
 
     for gold in golden:
-        scores.append(score_tess(args, line_align, gold))
-        scores.append(score_tess(args, line_align, gold, pipeline="deskew"))
-        scores.append(score_tess(args, line_align, gold, pipeline="binarize"))
-        scores.append(score_tess(args, line_align, gold, pipeline="denoise"))
+        images = {}  # Cache the processed images
 
-        scores.append(score_easy(args, line_align, gold))
-        scores.append(score_easy(args, line_align, gold, pipeline="deskew"))
-        scores.append(score_easy(args, line_align, gold, pipeline="binarize"))
-        scores.append(score_easy(args, line_align, gold, pipeline="denoise"))
+        # Test simple OCR of images
+        for pipeline in ["", "deskew", "binarize", "denoise"]:
+            image = read_label(gold, pipeline)
+            images[pipeline] = image
+            scores.append(tess_score(args, line_align, gold, image, pipeline=pipeline))
+            scores.append(easy_score(args, line_align, gold, image, pipeline=pipeline))
 
-        # TODO: Cache the OCR fragments
-        pipelines = """ deskew binarize """.split()
+        # Cache the ocr fragments
+        fragment_cache = {}
+        for pipeline in ["deskew", "binarize", "denoise"]:
+            image = images[pipeline]
+            fragment_cache[pipeline] = ocr_runner.easyocr_engine(image)
+            fragment_cache[pipeline] += ocr_runner.tesseract_engine(image)
 
-        scores.append(
-            score_label_builder(
-                args, line_align, gold, pipelines, spell_well, post=False
+        # Test the combinations (ensembles) of image processing
+        for pipelines in [["deskew", "binarize"], ["deskew", "binarize", "denoise"]]:
+            ocr_fragments = []
+            for pipeline in pipelines:
+                ocr_fragments += fragment_cache[pipeline]
+
+            # Score with consensus sequence only
+            scores.append(
+                builder_score(
+                    args,
+                    line_align,
+                    gold,
+                    pipelines,
+                    spell_well,
+                    ocr_fragments,
+                    post_process=False,
+                )
             )
-        )
-
-        scores.append(
-            score_label_builder(
-                args, line_align, gold, pipelines, spell_well, post=True
+            # Score with consensus sequence and post-processing
+            scores.append(
+                builder_score(
+                    args,
+                    line_align,
+                    gold,
+                    pipelines,
+                    spell_well,
+                    ocr_fragments,
+                    post_process=True,
+                )
             )
-        )
-
-        pipelines = """ deskew binarize denoise """.split()
-
-        scores.append(
-            score_label_builder(
-                args, line_align, gold, pipelines, spell_well, post=False
-            )
-        )
-
-        scores.append(
-            score_label_builder(
-                args, line_align, gold, pipelines, spell_well, post=True
-            )
-        )
 
     return scores
 
 
-def score_easy(args, line_align, gold, pipeline=""):
-    image = read_label(gold, pipeline)
+def easy_score(args, line_align, gold, image, pipeline=""):
+    """Score how EasyOCR works on an image."""
     text = ocr_runner.EngineConfig.easy_ocr.readtext(
         image, blocklist=ocr_runner.EngineConfig.char_blacklist, detail=0
     )
@@ -95,26 +103,19 @@ def score_easy(args, line_align, gold, pipeline=""):
     return new_score_rec(args, line_align, gold, pipeline, "easy", text)
 
 
-def score_tess(args, line_align, gold, pipeline=""):
-    image = read_label(gold, pipeline)
+def tess_score(args, line_align, gold, image, pipeline=""):
+    """Score how Tesseract works on an image."""
     text = pytesseract.image_to_string(
         image, config=ocr_runner.EngineConfig.tess_config
     )
     return new_score_rec(args, line_align, gold, pipeline, "tesseract", text)
 
 
-def score_label_builder(args, line_align, gold, pipelines, spell_well, post):
-    ocr_fragments = []
-    for pipeline in pipelines:
-        image = read_label(gold, pipeline)
-        ocr_fragments += ocr_runner.easyocr_engine(image)
-        ocr_fragments += ocr_runner.tesseract_engine(image)
-
-    text = label_builder.build_label_text(ocr_fragments, spell_well, line_align)
-
+def builder_score(args, line_align, gold, pipelines, spell_well, frags, post_process):
+    text = label_builder.build_label_text(frags, spell_well, line_align)
     pipeline = ",".join(pipelines)
     engines = "easy,tesseract"
-    action = "label_builder" if post else "consensus"
+    action = "label_builder" if post_process else "consensus"
     return new_score_rec(args, line_align, gold, pipeline, engines, text, action)
 
 
@@ -142,8 +143,9 @@ def read_label(gold, pipeline=""):
     return image
 
 
-def output_scores(scores):
-    print(scores)
+def output_scores(cxn, scores):
+    df = pd.DataFrame(scores)
+    df.to_sql("compare_ocr", cxn, if_exists="append", index=False)
 
 
 def parse_args() -> argparse.Namespace:
