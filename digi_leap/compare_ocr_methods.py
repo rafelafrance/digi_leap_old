@@ -30,7 +30,7 @@ def main():
         golden = cxn.execute(sql, (args.gold_set,))
 
         scores = get_scores(args, golden)
-        output_scores(cxn, scores)
+        output_scores(args, cxn, scores)
 
         db.update_run_finished(cxn, run_id)
 
@@ -143,9 +143,10 @@ def read_label(gold, pipeline=""):
     return image
 
 
-def output_scores(cxn, scores):
+def output_scores(args, cxn, scores):
+    db.execute(cxn, "delete from ocr_scores where score_set = ?", (args.score_set,))
     df = pd.DataFrame(scores)
-    df.to_sql("compare_ocr", cxn, if_exists="append", index=False)
+    df.to_sql("ocr_scores", cxn, if_exists="append", index=False)
 
 
 def parse_args() -> argparse.Namespace:
