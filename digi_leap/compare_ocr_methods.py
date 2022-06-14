@@ -9,11 +9,14 @@ import cppimport.import_hook  # noqa: F401
 import pytesseract
 from PIL import Image
 from pylib import log
-from pylib.ocr import engine_runner as er
-from pylib.ocr import label_transformer as lt
+from pylib.label_builder import label_builder
+from pylib.ocr import label_transformer
+from pylib.ocr import ocr_runner
 
 from digi_leap.pylib.db import db
 from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
+from digi_leap.pylib.label_builder.line_align import line_align_subs
+from digi_leap.pylib.label_builder.spell_well import spell_well as sw
 
 
 def main():
@@ -22,12 +25,11 @@ def main():
 
     with sqlite3.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
-        aligner = line_align_py.LineAlign()
 
         sql = "select * from gold_standard where gold_set = ?"
         golden = [g for g in cxn.execute(sql, (args.gold_set,))]
 
-        scores = get_scores(aligner, golden)
+        scores = get_scores(args, golden)
         output_scores(scores)
 
         db.update_run_finished(cxn, run_id)
@@ -35,68 +37,98 @@ def main():
     log.finished()
 
 
-def get_scores(aligner, golden):
+def get_scores(args, golden):
     scores = []
 
+    spell_well = sw.SpellWell()
+    line_align = line_align_py.LineAlign(line_align_subs.SUBS)
+
     for gold in golden:
-        scores.append(score_tess(aligner, gold))
-        scores.append(score_tess(aligner, gold, pipeline="deskew"))
-        scores.append(score_tess(aligner, gold, pipeline="binarize"))
-        scores.append(score_tess(aligner, gold, pipeline="denoise"))
+        scores.append(score_tess(args, line_align, gold))
+        scores.append(score_tess(args, line_align, gold, pipeline="deskew"))
+        scores.append(score_tess(args, line_align, gold, pipeline="binarize"))
+        scores.append(score_tess(args, line_align, gold, pipeline="denoise"))
 
-        scores.append(score_easy(aligner, gold))
-        scores.append(score_easy(aligner, gold, pipeline="deskew"))
-        scores.append(score_easy(aligner, gold, pipeline="binarize"))
-        scores.append(score_easy(aligner, gold, pipeline="denoise"))
+        scores.append(score_easy(args, line_align, gold))
+        scores.append(score_easy(args, line_align, gold, pipeline="deskew"))
+        scores.append(score_easy(args, line_align, gold, pipeline="binarize"))
+        scores.append(score_easy(args, line_align, gold, pipeline="denoise"))
 
-        scores.append(score_consensus(aligner, gold))
-        scores.append(score_label_builder(aligner, gold))
+        # TODO: Cache the OCR fragments
+        pipelines = """ deskew binarize """.split()
+
+        scores.append(
+            score_label_builder(
+                args, line_align, gold, pipelines, spell_well, post=False
+            )
+        )
+
+        scores.append(
+            score_label_builder(
+                args, line_align, gold, pipelines, spell_well, post=True
+            )
+        )
+
+        pipelines = """ deskew binarize denoise """.split()
+
+        scores.append(
+            score_label_builder(
+                args, line_align, gold, pipelines, spell_well, post=False
+            )
+        )
+
+        scores.append(
+            score_label_builder(
+                args, line_align, gold, pipelines, spell_well, post=True
+            )
+        )
 
     return scores
 
 
-def score_easy(aligner, gold, pipeline=""):
+def score_easy(args, line_align, gold, pipeline=""):
     image = read_label(gold, pipeline)
-
-    text = er.EngineConfig.easy_ocr.readtext(
-        image, blocklist=er.EngineConfig.char_blacklist, detail=0
+    text = ocr_runner.EngineConfig.easy_ocr.readtext(
+        image, blocklist=ocr_runner.EngineConfig.char_blacklist, detail=0
     )
     text = " ".join(text)
-
-    score = {
-        "engine": "easy",
-        "pipeline": pipeline,
-        "text": text,
-        "levenshtein": aligner.levenshtein(gold["gold_text"], text),
-    }
-
-    return score
+    return new_score_rec(args, line_align, gold, pipeline, "easy", text)
 
 
-def score_tess(aligner, gold, pipeline=""):
+def score_tess(args, line_align, gold, pipeline=""):
     image = read_label(gold, pipeline)
-    text = pytesseract.image_to_data(image, config=er.EngineConfig.tess_config)
+    text = pytesseract.image_to_string(
+        image, config=ocr_runner.EngineConfig.tess_config
+    )
+    return new_score_rec(args, line_align, gold, pipeline, "tesseract", text)
 
-    score = {
-        "engine": "tesseract",
-        "pipeline": pipeline,
+
+def score_label_builder(args, line_align, gold, pipelines, spell_well, post):
+    ocr_fragments = []
+    for pipeline in pipelines:
+        image = read_label(gold, pipeline)
+        ocr_fragments += ocr_runner.easyocr_engine(image)
+        ocr_fragments += ocr_runner.tesseract_engine(image)
+
+    text = label_builder.build_label_text(ocr_fragments, spell_well, line_align)
+
+    pipeline = ",".join(pipelines)
+    engines = "easy,tesseract"
+    action = "label_builder" if post else "consensus"
+    return new_score_rec(args, line_align, gold, pipeline, engines, text, action)
+
+
+def new_score_rec(args, line_align, gold, pipeline, engine, text, action="simple"):
+    return {
+        "gold_id": gold["gold_id"],
+        "gold_set": args.gold_set,
+        "score_set": args.score_set,
+        "action": action,
+        "engine": engine,
+        "pipelines": pipeline,
         "text": text,
-        "levenshtein": aligner.levenshtein(gold["gold_text"], text),
+        "levenshtein": line_align.levenshtein(gold["gold_text"], text),
     }
-
-    return score
-
-
-def score_consensus(aligner, gold):
-    text = ""
-    score = aligner.levenshtein(gold["gold_text"], text)
-    return score
-
-
-def score_label_builder(aligner, gold):
-    text = ""
-    score = aligner.levenshtein(gold["gold_text"], text)
-    return score
 
 
 def read_label(gold, pipeline=""):
@@ -105,7 +137,7 @@ def read_label(gold, pipeline=""):
         image = Image.open(gold["path"])
 
     if pipeline:
-        image = lt.transform_label(pipeline, image)
+        image = label_transformer.transform_label(pipeline, image)
 
     return image
 

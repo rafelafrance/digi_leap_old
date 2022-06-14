@@ -65,7 +65,7 @@ def build_batch(labels, consensus_set, ocr_set):
     return batch
 
 
-def build_label_text(ocr_fragments, spell_well, line_align):
+def build_label_text(ocr_fragments, spell_well, line_align, post_process=True):
     text = []
 
     ocr_fragments = ocr_results.filter_boxes(ocr_fragments)
@@ -80,10 +80,11 @@ def build_label_text(ocr_fragments, spell_well, line_align):
         ln = consensus(copies, line_align, spell_well)
         # ln = ocr_results.choose_best_copy(copies, spell_well)
 
-        ln = ocr_results.substitute(ln)
-        ln = ocr_results.add_spaces(ln, spell_well)
-        ln = ocr_results.remove_spaces(ln, spell_well)
-        ln = ocr_results.correct(ln, spell_well)
+        if post_process:
+            ln = ocr_results.substitute(ln)
+            ln = ocr_results.add_spaces(ln, spell_well)
+            ln = ocr_results.remove_spaces(ln, spell_well)
+            ln = ocr_results.correct(ln, spell_well)
 
         text.append(ln)
 

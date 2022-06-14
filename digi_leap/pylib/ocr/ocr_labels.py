@@ -7,14 +7,14 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 
-from . import engine_runner
 from . import label_transformer as lt
+from . import ocr_runner
 from .. import box_calc
 from ..db import db
 
 ENGINE = {
-    "tesseract": engine_runner.tesseract_engine,
-    "easy": engine_runner.easyocr_engine,
+    "tesseract": ocr_runner.tesseract_engine,
+    "easy": ocr_runner.easyocr_engine,
 }
 
 
