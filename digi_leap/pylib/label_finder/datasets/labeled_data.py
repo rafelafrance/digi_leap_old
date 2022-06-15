@@ -2,7 +2,7 @@ import warnings
 from collections import defaultdict
 from collections import namedtuple
 
-import albumentations as A
+import albumentations as album
 import numpy as np
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
@@ -88,24 +88,26 @@ class LabeledData(Dataset):
 
     @staticmethod
     def build_transforms(image_size, augment=False):
-        xform = [A.Resize(width=image_size, height=image_size, p=1.0)]
+        xform = [album.Resize(width=image_size, height=image_size, p=1.0)]
 
         if augment:
             xform += [
-                A.HorizontalFlip(p=0.5),
-                A.VerticalFlip(p=0.5),
-                A.ShiftScaleRotate(p=0.5),
-                A.RandomBrightnessContrast(p=0.3),
-                A.RGBShift(r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3),
+                album.HorizontalFlip(p=0.5),
+                album.VerticalFlip(p=0.5),
+                album.ShiftScaleRotate(p=0.5),
+                album.RandomBrightnessContrast(p=0.3),
+                album.RGBShift(
+                    r_shift_limit=30, g_shift_limit=30, b_shift_limit=30, p=0.3
+                ),
             ]
 
         xform += [
-            A.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),
+            album.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),
             ToTensorV2(p=1.0),
         ]
-        return A.Compose(
+        return album.Compose(
             xform,
-            bbox_params=A.BboxParams(format="pascal_voc", label_fields=["targets"]),
+            bbox_params=album.BboxParams(format="pascal_voc", label_fields=["targets"]),
         )
 
     @staticmethod

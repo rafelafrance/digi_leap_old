@@ -60,7 +60,7 @@ class Subject:
     def merge_box_groups(self) -> None:
         """Merge box groups into a single bounding box per group."""
         if len(self.boxes) > 0:
-            self._remove_multi_labels()
+            self.remove_multi_labels()
             self._remove_unlabeled()
             self.groups = calc.overlapping_boxes(self.boxes)
             self._sort_by_group()
@@ -87,7 +87,7 @@ class Subject:
 
         self._remove_boxes(groups, removes)
 
-    def _remove_multi_labels(self):
+    def remove_multi_labels(self):
         """Remove bounding boxes that contain multiple labels.
 
         Sometimes people draw a bounding box around more than one label, this function

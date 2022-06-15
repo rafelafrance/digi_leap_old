@@ -23,7 +23,7 @@ class TestSubject(unittest.TestCase):
         types = np.array(["a", "a", "a"], dtype=str)
         subject.types = types
         subject.boxes = boxes
-        subject._remove_multi_labels()
+        subject.remove_multi_labels()
 
         npt.assert_array_equal(subject.boxes, boxes[1:])
         npt.assert_array_equal(subject.types, types[1:])
@@ -47,7 +47,7 @@ class TestSubject(unittest.TestCase):
         types = np.array(["a"] * 7, dtype=str)
         subject.types = types
         subject.boxes = boxes
-        subject._remove_multi_labels()
+        subject.remove_multi_labels()
 
         npt.assert_array_equal(subject.boxes, boxes[1:])
         npt.assert_array_equal(subject.types, types[1:])

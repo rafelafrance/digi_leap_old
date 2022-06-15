@@ -10,7 +10,7 @@ from digi_leap.pylib.mean_avg_precision import map_iou
 class TestMeanAvgPrecision(unittest.TestCase):
     """Test the mean average precision."""
 
-    def test_mAP_01(self):
+    def test_map_01(self):
         """It handles boxes being equal."""
         results = [
             {
@@ -28,7 +28,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
         ]
         self.assertEqual(map_(results), 1.0)
 
-    def test_mAP_02(self):
+    def test_map_02(self):
         """It handles non-overlapping boxes."""
         results = [
             {
@@ -50,7 +50,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
         ]
         self.assertAlmostEqual(map_(results).item(), 0.25)
 
-    def test_mAP_03(self):
+    def test_map_03(self):
         """It handles boxes, labels, & scores being equal."""
         results = [
             {
@@ -68,7 +68,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
         ]
         self.assertEqual(map_(results), 1.0)
 
-    def test_mAP_04(self):
+    def test_map_04(self):
         """It handles classes being unequal."""
         results = [
             {
@@ -86,7 +86,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
         ]
         self.assertEqual(map_(results), 0.0)
 
-    def test_mAP_05(self):
+    def test_map_05(self):
         """It handles false negatives."""
         results = [
             {
@@ -102,7 +102,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
         ]
         self.assertEqual(map_(results), 0.5)
 
-    def test_mAP_06(self):
+    def test_map_06(self):
         """It handles multiple samples."""
         results = [
             # Both empty: 1.0
@@ -144,7 +144,7 @@ class TestMeanAvgPrecision(unittest.TestCase):
         ]
         self.assertAlmostEqual(map_(results).item(), 0.5)
 
-    def test_mAP_iou_01(self):
+    def test_map_iou_01(self):
         """It averages the various thresholds."""
         results = [
             {

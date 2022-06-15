@@ -9,9 +9,9 @@ from tqdm import tqdm
 from . import ocr_results
 from .. import utils
 from ..db import db
-from .line_align import line_align_py as la  # type: ignore
+from .line_align import line_align_py as la  # noqa type: ignore
 from .line_align import line_align_subs
-from .spell_well import spell_well as sw
+from .spell_well import spell_well as spell
 
 
 def build_labels(args):
@@ -47,7 +47,7 @@ def build_labels(args):
 
 
 def build_batch(labels, consensus_set, ocr_set):
-    spell_well = sw.SpellWell()
+    spell_well = spell.SpellWell()
     line_align = la.LineAlign(line_align_subs.SUBS)
 
     batch: list[dict] = []

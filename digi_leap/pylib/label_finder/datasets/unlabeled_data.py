@@ -1,7 +1,7 @@
 import warnings
 from collections import namedtuple
 
-import albumentations as A
+import albumentations as album
 import numpy as np
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
@@ -57,11 +57,11 @@ class UnlabeledData(Dataset):
     @staticmethod
     def build_transforms(image_size):
         xform = [
-            A.Resize(width=image_size, height=image_size, p=1.0),
-            A.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),
+            album.Resize(width=image_size, height=image_size, p=1.0),
+            album.Normalize(consts.IMAGENET_MEAN, consts.IMAGENET_STD_DEV),
             ToTensorV2(p=1.0),
         ]
-        return A.Compose(
+        return album.Compose(
             xform,
-            bbox_params=A.BboxParams(format="pascal_voc", label_fields=["targets"]),
+            bbox_params=album.BboxParams(format="pascal_voc", label_fields=["targets"]),
         )

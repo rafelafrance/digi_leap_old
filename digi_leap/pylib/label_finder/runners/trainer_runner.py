@@ -142,12 +142,20 @@ def save_checkpoint(model, optimizer, save_model, val_loss, best_loss, epoch):
 
 def log_stats(writer, train_loss, val_loss, best_loss, epoch):
     logging.info(
-        f"{epoch:3}: "
-        f"Train: total loss {train_loss.total_loss:0.6f} "
-        f"box loss: {train_loss.box_loss:0.6f} class loss: {train_loss.class_loss:0.6f}"
-        f"Validation: total loss {val_loss.total_loss:0.6f} "
-        f"box loss: {val_loss.box_loss:0.6f} class loss: {val_loss.class_loss:0.6f}"
-        f"{' ++' if val_loss.total_loss == best_loss.total_loss else ''}"
+        (
+            "%3d "
+            "Train: total loss %0.6f box loss %0.6f class loss %0.6f "
+            "Validation: total loss %0.6f box loss %0.6f class loss %0.6f "
+            "%s"
+        ),
+        epoch,
+        train_loss.total_loss,
+        train_loss.box_loss,
+        train_loss.class_loss,
+        val_loss.total_loss,
+        val_loss.box_loss,
+        val_loss.class_loss,
+        "++" if val_loss.total_loss == best_loss.total_loss else "",
     )
     writer.add_scalars(
         "Training vs. Validation",

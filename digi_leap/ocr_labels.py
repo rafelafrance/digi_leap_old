@@ -83,7 +83,7 @@ def parse_args() -> argparse.Namespace:
         "--notes",
         default="",
         metavar="TEXT",
-        help="""Notes about this run.""",
+        help="""Notes about this run. Enclose them in quotes.""",
     )
 
     args = arg_parser.parse_args()

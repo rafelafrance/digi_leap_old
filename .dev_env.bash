@@ -52,6 +52,7 @@ python -m pip install -U pynvim
 python -m pip install -U 'python-lsp-server[all]'
 python -m pip install -U pre-commit pre-commit-hooks
 python -m pip install -U autopep8 flake8 isort pylint yapf pydocstyle black
+python -m pip install -U bandit prospector pylama
 python -m pip install -U jupyter jupyter_nbextensions_configurator ipyparallel
 
 python -m pip install -U jupyterlab

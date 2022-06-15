@@ -1,27 +1,27 @@
 """Test the distance function in the line_align module."""
 import unittest
 
-import cppimport.import_hook  # noqa: F401
+import cppimport.import_hook  # noqa pylint: disable=unused-import
 
 from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
 
 
 class TestDistanceAll(unittest.TestCase):
     def setUp(self):
-        self.la = line_align_py.LineAlign()
+        self.line = line_align_py.LineAlign()
 
     def test_distance_all_01(self):
-        self.assertEqual(self.la.levenshtein_all(["aa", "bb"]), [(2, 0, 1)])
+        self.assertEqual(self.line.levenshtein_all(["aa", "bb"]), [(2, 0, 1)])
 
     def test_distance_all_02(self):
         self.assertEqual(
-            self.la.levenshtein_all(["aa", "bb", "ab"]),
+            self.line.levenshtein_all(["aa", "bb", "ab"]),
             [(1, 0, 2), (1, 1, 2), (2, 0, 1)],
         )
 
     def test_distance_all_03(self):
         self.assertEqual(
-            self.la.levenshtein_all(
+            self.line.levenshtein_all(
                 [
                     "MOJAVE DESERT, PROVIDENCE MTS.: canyon above",
                     "E. MOJAVE DESERT , PROVIDENCE MTS . : canyon above",

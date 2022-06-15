@@ -20,7 +20,7 @@ def prepare(args):
 
     groups = itertools.groupby(all_traits, key=lambda t: [t["consensus_id"]])
 
-    for consensus_id, rows in tqdm(groups):
+    for _, rows in tqdm(groups):
         rows = [dict(r) for r in rows]
         text = rows[0]["consensus_text"]
         doc = nlp(text)

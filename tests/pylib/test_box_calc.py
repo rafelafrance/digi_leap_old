@@ -33,9 +33,9 @@ class TestBoxCalc(unittest.TestCase):
         """It handles one box inside of another box."""
         box1 = [0, 0, 10, 10]
         box2 = [0, 0, 5, 5]
-        i1 = 10.0 * 10.0
-        i2 = 5.0 * 5.0
-        self.assertEqual(calc.iou(box1, box2), (i2 / (i1 + i2 - i2)))
+        ii1 = 10.0 * 10.0
+        ii2 = 5.0 * 5.0
+        self.assertEqual(calc.iou(box1, box2), (ii2 / (ii1 + ii2 - ii2)))
 
     def test_nms_01(self):
         """It handles non-overlapping."""

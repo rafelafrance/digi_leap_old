@@ -63,7 +63,7 @@ def get_reconciled_boxes(subjects, reconciled_set):
 
 
 def get_subjects(classifications):
-    subs: dict[str, Subject] = defaultdict(lambda: Subject())
+    subs: dict[str, Subject] = defaultdict(Subject)
 
     for class_if in tqdm(classifications):
         sub_id = class_if["subject_id"]
