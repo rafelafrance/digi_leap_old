@@ -37,9 +37,11 @@ struct LineAlign {
      * @param gap The gap open penalty for alignments. This is typically negative.
      * @param skew The gap extension penalty for the alignments. Also negative.
     */
-    LineAlign(const std::unordered_map<std::u32string, float>& substitutions = noSubs,
-              float gap = -3.0, float skew = -0.5);
-        // ) : substitutions(substitutions), gap(gap), skew(skew) {};
+    LineAlign(
+        const std::unordered_map<std::u32string, float>& substitutions = noSubs,
+        float gap = -3.0,
+        float skew = -0.5
+    );
 
     /**
      * Compute the Levenshtein distance for 2 strings.

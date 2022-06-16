@@ -24,8 +24,11 @@ std::u32string convert_8_32(const std::string &bytes) {
     return conv.from_bytes(bytes);
 }
 
-LineAlign::LineAlign(const std::unordered_map<std::u32string, float>& substitutions,
-            float gap, float skew)
+LineAlign::LineAlign(
+    const std::unordered_map<std::u32string, float>& substitutions,
+    float gap,
+    float skew
+)
 {
     this->substitutions = substitutions;
     this->gap = gap;
@@ -36,7 +39,10 @@ LineAlign::LineAlign(const std::unordered_map<std::u32string, float>& substituti
 // https://codereview.stackexchange.com/questions/238641/
 // an-implementation-of-levenshtein-distance-algorithm-in-modern-c
 int64_t LineAlign::levenshtein(
-        const std::u32string &str1, const std::u32string &str2) const {
+    const std::u32string &str1,
+    const std::u32string &str2
+) const
+{
     const int64_t len1 = str1.length();
     const int64_t len2 = str2.length();
 
