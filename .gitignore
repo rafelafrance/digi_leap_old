@@ -4,11 +4,14 @@
 .vscode/
 .idea/
 .~*
+*~
 .virtual_documents/
 *journal
-
-# Language server protocol
+.$*
 .lsp_symlink
+
+# Linters
+.mypy_cache/
 
 # Test
 .coverage
@@ -53,9 +56,6 @@ extern/
 .rendered.*.cpp
 *.so
 *.plist
-
-# Personal linters etc.
-.mypy_cache/
 
 # spacy stuff
 model-best/
