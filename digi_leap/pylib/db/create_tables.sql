@@ -92,10 +92,19 @@ create table if not exists label_finder_tests (
 
 
 create table if not exists runs (
-    run_id integer primary key autoincrement,
+    run_id   integer primary key autoincrement,
     caller   text,
     args     text,
     comments text,
     started  date default (datetime('now','localtime')),
     finished date
+);
+
+
+create table if not exists gold_standard (
+    gold_id   integer primary key autoincrement,
+    sheet_id  integer,
+    label_id  integer,
+    gold_set  text,
+    gold_text text
 );

@@ -3,6 +3,8 @@ import easyocr
 import numpy as np
 import pytesseract
 
+ENGINES = ["easyocr", "tesseract"]
+
 
 class EngineConfig:
 
@@ -68,3 +70,19 @@ def easyocr_engine(image) -> list[dict]:
             }
         )
     return results
+
+
+def easy_text(image):
+    """Return text without other information."""
+    image = np.asarray(image)
+    text = EngineConfig.easy_ocr.readtext(
+        image, blocklist=EngineConfig.char_blacklist, detail=0
+    )
+    text = " ".join(text)
+    return text
+
+
+def tess_text(image):
+    """Return text without other information."""
+    text = pytesseract.image_to_string(image, config=EngineConfig.tess_config)
+    return text

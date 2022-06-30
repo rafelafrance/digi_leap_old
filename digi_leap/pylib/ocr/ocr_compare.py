@@ -1,141 +1,186 @@
-import sqlite3
 import warnings
+from itertools import combinations
 
 import cppimport.import_hook  # noqa pylint: disable=unused-import
 import pandas as pd
-import pytesseract
 from PIL import Image
 
 from . import label_transformer
 from . import ocr_runner
+from .. import consts
 from ..db import db
-from ..label_builder import label_builder
+from ..label_builder import label_builder as builder
 from ..label_builder.line_align import line_align_py  # noqa
 from ..label_builder.line_align import line_align_subs
-from ..label_builder.spell_well import spell_well as sw
+from ..label_builder.spell_well.spell_well import SpellWell
 
 
-def compare_methods(args):
-    with sqlite3.connect(args.database) as cxn:
-        run_id = db.insert_run(cxn, args)
+PIPELINES = ["", "deskew", "binarize", "denoise"]
 
-        gold = get_gold_std(cxn, args.gold_set)
-        scores = get_scores(args, gold)
-        output_scores(args, cxn, scores)
-
-        db.update_run_finished(cxn, run_id)
+LINE_ALIGN = None
+SPELL_WELL = None
 
 
-def get_gold_std(cxn, gold_set):
-    sql = "select * from gold_standard where gold_set = ?"
-    golden = cxn.execute(sql, (gold_set,))
-    return golden
+def line_align():
+    """Cache the line_align object."""
+    global LINE_ALIGN
+    if not LINE_ALIGN:
+        LINE_ALIGN = line_align_py.LineAlign(line_align_subs.SUBS)
+    return LINE_ALIGN
 
 
-def get_scores(args, golden):
+def spell_well():
+    """Cache the SpellWell object."""
+    global SPELL_WELL
+    if not SPELL_WELL:
+        SPELL_WELL = SpellWell()
+    return SPELL_WELL
+
+
+def get_gold_std(database, gold_set):
+    sql = """
+        select *
+        from gold_standard
+        join labels using (label_id)
+        join sheets using (sheet_id)
+        where gold_set = ?
+        """
+    with db.connect(database) as cxn:
+        gold = cxn.execute(sql, (gold_set,))
+    return [dict(r) for r in gold]
+
+
+def new_gold_std(csv_path, database, gold_set):
+    df = pd.read_csv(csv_path).fillna("")
+    df = df.loc[df.text != ""]
+
+    df["label_id"] = df["label"].str.split("_").str[2]
+    df["label_id"] = df["label_id"].str.split(".").str[0].astype(int)
+
+    df["sheet_id"] = df["label"].str.split("_").str[1]
+
+    df["gold_set"] = gold_set
+
+    df = df.drop(["sheet", "label"], axis="columns")
+    df = df.rename(columns={"text": "gold_text"})
+
+    with db.connect(database) as cxn:
+        df.to_sql("gold_standard", cxn, if_exists="append", index=False)
+
+
+def pipeline_engine_combos():
+    pipes = []
+    for r in range(1, len(PIPELINES) + 1):
+        pipes += combinations(PIPELINES, r)
+
+    engines = []
+    for r in range(1, len(ocr_runner.ENGINES) + 1):
+        engines += combinations(ocr_runner.ENGINES, r)
+
+    combos = []
+    for pipe in pipes:
+        for engine in engines:
+            combos.append([(p, e) for p in pipe for e in engine])
+
+    return [c for c in combos if len(c) > 1]
+
+
+def get_ocr_fragments(images, gold):
+    fragments = {}
+    for pipeline in PIPELINES:
+        image = images[pipeline]
+
+        results = ocr_runner.easyocr_engine(image)
+        fragments[(pipeline, "easyocr")] = []
+        for result in results:
+            fragments[(pipeline, "easyocr")].append(
+                result
+                | {
+                    "label_id": gold["label_id"],
+                    "ocr_set": gold["gold_set"],
+                    "engine": "easyocr",
+                    "pipeline": pipeline,
+                }
+            )
+
+        results = ocr_runner.tesseract_engine(image)
+        fragments[(pipeline, "tesseract")] = []
+        for result in results:
+            fragments[(pipeline, "tesseract")].append(
+                result
+                | {
+                    "label_id": gold["label_id"],
+                    "ocr_set": gold["gold_set"],
+                    "engine": "tesseract",
+                    "pipeline": pipeline,
+                }
+            )
+
+    return fragments
+
+
+def process_images(gold):
+    images = {}
+    for pipeline in PIPELINES:
+        image = read_label(gold, pipeline)
+        images[pipeline] = image
+    return images
+
+
+def simple_ocr(args, gold, images):
     scores = []
+    for pipeline, image in images.items():
+        text = ocr_runner.easy_text(image)
+        actions = str((pipeline, "easyocr"))
+        scores.append(new_score_rec(args, gold, text, actions))
 
-    spell_well = sw.SpellWell()
-    line_align = line_align_py.LineAlign(line_align_subs.SUBS)
+        text = builder.post_process_text(text, spell_well())
+        actions = str((pipeline, "easyocr")) + " post_process"
+        scores.append(new_score_rec(args, gold, text, actions))
 
-    for gold in golden:
-        images = {}  # Cache the processed images
+        text = ocr_runner.tess_text(image)
+        actions = str((pipeline, "tesseract"))
+        scores.append(new_score_rec(args, gold, text, actions))
 
-        # Test simple OCR of images
-        for pipeline in ["", "deskew", "binarize", "denoise"]:
-            image = read_label(gold, pipeline)
-            images[pipeline] = image
-            scores.append(tess_score(args, line_align, gold, image, pipeline=pipeline))
-            scores.append(easy_score(args, line_align, gold, image, pipeline=pipeline))
-
-        # Cache the ocr fragments
-        fragment_cache = {}
-        for pipeline in ["deskew", "binarize", "denoise"]:
-            image = images[pipeline]
-            fragment_cache[pipeline] = ocr_runner.easyocr_engine(image)
-            fragment_cache[pipeline] += ocr_runner.tesseract_engine(image)
-
-        # Test the combinations (ensembles) of image processing
-        for pipelines in [["deskew", "binarize"], ["deskew", "binarize", "denoise"]]:
-            ocr_fragments = []
-            for pipeline in pipelines:
-                ocr_fragments += fragment_cache[pipeline]
-
-            # Score with consensus sequence only
-            scores.append(
-                builder_score(
-                    args,
-                    line_align,
-                    gold,
-                    pipelines,
-                    spell_well,
-                    ocr_fragments,
-                    post_process=False,
-                )
-            )
-            # Score with consensus sequence and post-processing
-            scores.append(
-                builder_score(
-                    args,
-                    line_align,
-                    gold,
-                    pipelines,
-                    spell_well,
-                    ocr_fragments,
-                    post_process=True,
-                )
-            )
+        text = builder.post_process_text(text, spell_well())
+        actions = str((pipeline, "tesseract")) + " post_process"
+        scores.append(new_score_rec(args, gold, text, actions))
 
     return scores
 
 
-def easy_score(args, line_align, gold, image, pipeline=""):
-    """Score how EasyOCR works on an image."""
-    text = ocr_runner.EngineConfig.easy_ocr.readtext(
-        image, blocklist=ocr_runner.EngineConfig.char_blacklist, detail=0
-    )
-    text = " ".join(text)
-    return new_score_rec(args, line_align, gold, pipeline, "easy", text)
-
-
-def tess_score(args, line_align, gold, image, pipeline=""):
-    """Score how Tesseract works on an image."""
-    text = pytesseract.image_to_string(
-        image, config=ocr_runner.EngineConfig.tess_config
-    )
-    return new_score_rec(args, line_align, gold, pipeline, "tesseract", text)
-
-
-def builder_score(args, line_align, gold, pipelines, spell_well, frags, post_process):
-    text = label_builder.build_label_text(frags, spell_well, line_align)
-    pipeline = ",".join(pipelines)
-    engines = "easy,tesseract"
-    action = "label_builder" if post_process else "consensus"
-    return new_score_rec(args, line_align, gold, pipeline, engines, text, action)
-
-
-def new_score_rec(args, line_align, gold, pipeline, engine, text, action="simple"):
+def new_score_rec(args, gold, text, actions):
+    gold_text = " ".join(gold["gold_text"].split())
+    text = " ".join(text.split())
     return {
         "gold_id": gold["gold_id"],
         "gold_set": args.gold_set,
+        "label_id": gold["label_id"],
         "score_set": args.score_set,
-        "action": action,
-        "engine": engine,
-        "pipelines": pipeline,
-        "text": text,
-        "levenshtein": line_align.levenshtein(gold["gold_text"], text),
+        "actions": actions,
+        "score_text": text,
+        "levenshtein": line_align().levenshtein(gold_text, text),
     }
 
 
 def read_label(gold, pipeline=""):
     with warnings.catch_warnings():  # Turn off EXIF warnings
         warnings.filterwarnings("ignore", category=UserWarning)
-        image = Image.open(gold["path"])
+        path = consts.ROOT_DIR / gold["path"]
+        sheet = Image.open(path)
+        label = sheet.crop(
+            (
+                gold["label_left"],
+                gold["label_top"],
+                gold["label_right"],
+                gold["label_bottom"],
+            )
+        )
 
     if pipeline:
-        image = label_transformer.transform_label(pipeline, image)
+        label = label_transformer.transform_label(pipeline, label)
 
-    return image
+    return label
 
 
 def output_scores(args, cxn, scores):

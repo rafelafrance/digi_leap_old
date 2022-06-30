@@ -14,7 +14,7 @@ from ..db import db
 
 ENGINE = {
     "tesseract": ocr_runner.tesseract_engine,
-    "easy": ocr_runner.easyocr_engine,
+    "easyocr": ocr_runner.easyocr_engine,
 }
 
 
