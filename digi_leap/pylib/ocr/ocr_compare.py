@@ -1,4 +1,5 @@
 import warnings
+from itertools import chain
 from itertools import combinations
 
 import cppimport.import_hook  # noqa pylint: disable=unused-import
@@ -127,8 +128,9 @@ def process_images(gold):
     return images
 
 
-def simple_ocr(args, gold, images):
+def score_simple_ocr(args, gold, images):
     scores = []
+
     for pipeline, image in images.items():
         text = ocr_runner.easy_text(image)
         actions = str((pipeline, "easyocr"))
@@ -149,6 +151,24 @@ def simple_ocr(args, gold, images):
     return scores
 
 
+def score_ocr_ensembles(args, gold, all_frags, combos):
+    scores = []
+
+    for combo in combos:
+        frags = [all_frags[t] for t in combo]
+        frags = list(chain(*frags))
+
+        text = builder.build_label_text(frags, spell_well(), line_align())
+        actions = " ".join(str(t) for t in combo)
+        scores.append(new_score_rec(args, gold, text, actions))
+
+        text = builder.post_process_text(text, spell_well())
+        actions = " ".join(str(t) for t in combo) + " post_process"
+        scores.append(new_score_rec(args, gold, text, actions))
+
+    return scores
+
+
 def new_score_rec(args, gold, text, actions):
     gold_text = " ".join(gold["gold_text"].split())
     text = " ".join(text.split())
@@ -159,7 +179,7 @@ def new_score_rec(args, gold, text, actions):
         "score_set": args.score_set,
         "actions": actions,
         "score_text": text,
-        "levenshtein": line_align().levenshtein(gold_text, text),
+        "score": line_align().levenshtein(gold_text, text),
     }
 
 

@@ -108,3 +108,15 @@ create table if not exists gold_standard (
     gold_set  text,
     gold_text text
 );
+
+
+create table if not exists ocr_scores (
+    score_id   integer primary key autoincrement,
+    label_id   integer,
+    gold_id    integer,
+    gold_set   text,
+    score_set  text,
+    actions    text,
+    score_text text,
+    score      integer
+);
