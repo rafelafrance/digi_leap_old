@@ -38,7 +38,7 @@ def spell_well():
     return SPELL_WELL
 
 
-def get_gold_std(database, gold_set):
+def select_gold_std(database, gold_set):
     sql = """
         select *
         from gold_standard
@@ -51,7 +51,7 @@ def get_gold_std(database, gold_set):
     return [dict(r) for r in gold]
 
 
-def new_gold_std(csv_path, database, gold_set):
+def insert_gold_std(csv_path, database, gold_set):
     df = pd.read_csv(csv_path).fillna("")
     df = df.loc[df.text != ""]
 
@@ -203,7 +203,8 @@ def read_label(gold, pipeline=""):
     return label
 
 
-def output_scores(args, cxn, scores):
-    db.execute(cxn, "delete from ocr_scores where score_set = ?", (args.score_set,))
+def insert_scores(args, scores):
     df = pd.DataFrame(scores)
-    df.to_sql("ocr_scores", cxn, if_exists="append", index=False)
+    with db.connect(args.database) as cxn:
+        db.execute(cxn, "delete from ocr_scores where score_set = ?", (args.score_set,))
+        df.to_sql("ocr_scores", cxn, if_exists="append", index=False)
