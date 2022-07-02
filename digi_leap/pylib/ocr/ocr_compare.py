@@ -208,3 +208,12 @@ def insert_scores(args, scores):
     with db.connect(args.database) as cxn:
         db.execute(cxn, "delete from ocr_scores where score_set = ?", (args.score_set,))
         df.to_sql("ocr_scores", cxn, if_exists="append", index=False)
+
+
+def select_scores(args):
+    with db.connect(args.database) as cxn:
+        results = db.execute(
+            cxn, "select * from ocr_scores where score_set = ?", (args.score_set,)
+        )
+        scores = [r for r in results]
+    return scores
