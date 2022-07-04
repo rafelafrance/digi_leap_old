@@ -122,6 +122,7 @@ class Scorer:
     def _new_score_rec(self, gold, text, actions):
         gold_text = " ".join(gold["gold_text"].split())
         text = " ".join(text.split())
+        text = text.replace("⋄", "")  # Remove gaps
         actions = [list(a) for a in actions]
         return {
             "gold_id": gold["gold_id"],

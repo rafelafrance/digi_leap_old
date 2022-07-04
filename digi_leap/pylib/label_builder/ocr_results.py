@@ -251,10 +251,9 @@ def choose_best_copy(copies, spell_well):
 def consensus(aligned: list[str], spell_well, threshold=2**16) -> str:
     """Build a consensus string from the aligned copies.
 
-    Look at all options of the multiple alignment and choose
-    the one that makes a string with the best score, or if there
-    are too few or too many choices just look choose characters
-    by their sort order.
+    Look at all options of the multiple alignment and choose the one that makes a string
+    with the best score, or if there are too few or too many choices just choose
+    characters by their sort order.
     """
     key_func = functools.partial(_copies_key, spell_well=spell_well)
     options = _char_options(aligned)
