@@ -18,7 +18,7 @@ regex
 scikit-image
 scikit-learn
 scipy
-spacy
+spacy==3.3.0
 tqdm
 
 opencv-python-headless==4.5.4.60
