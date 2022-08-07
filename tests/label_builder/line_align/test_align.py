@@ -3,11 +3,15 @@ import unittest
 
 import cppimport.import_hook  # noqa pylint: disable=unused-import
 
+from digi_leap.pylib.label_builder.line_align import char_sub_matrix as subs
 from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
-from digi_leap.pylib.label_builder.line_align import line_align_subs as subs
 
 
 class TestAlign(unittest.TestCase):
+    matrix = subs.select_char_sub_matrix(
+        "tests/mock_data/char_sub_matrix.sqlite", "old"
+    )
+
     def setUp(self):
         two_chars = {"aa": 0.0, "ab": -1.0, "bb": 0.0}
         self.line = line_align_py.LineAlign(two_chars, -1.0, -1.0)
@@ -49,7 +53,7 @@ class TestAlign(unittest.TestCase):
         self.assertEqual(self.line.align(["aab", "abb", "aba"]), ["aab", "abb", "aba"])
 
     def test_align_13(self):
-        line = line_align_py.LineAlign(substitutions=subs.SUBS, gap=-3.0)
+        line = line_align_py.LineAlign(substitutions=self.matrix, gap=-3.0)
         results = line.align(
             [
                 "MOJAVE DESERT, PROVIDENCE MTS.: canyon above",
@@ -72,7 +76,7 @@ class TestAlign(unittest.TestCase):
         )
 
     def test_align_14(self):
-        line = line_align_py.LineAlign(subs.SUBS)
+        line = line_align_py.LineAlign(self.matrix)
         results = line.align(
             [
                 "Johns Island Sta tion on",

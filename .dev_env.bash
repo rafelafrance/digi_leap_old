@@ -33,7 +33,7 @@ if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
 
 python -c 'import nltk; nltk.download("words")'
 
-python -m pip install -U 'spacy[cuda113,transformers,lookups]'
+python -m pip install -U spacy
 python -m spacy download en_core_web_md
 python -m spacy download en_core_web_lg
 
@@ -48,7 +48,7 @@ python -m pip install -e ../../traiter/traiter
 # ##############################################################################
 # Dev only pip installs (not required because they're personal preference)
 python -m pip install -U tensorboard
-python -m pip install -U pynvim
+python -m pip install -U neovim
 python -m pip install -U 'python-lsp-server[all]'
 python -m pip install -U pre-commit pre-commit-hooks
 python -m pip install -U autopep8 flake8 isort pylint yapf pydocstyle black

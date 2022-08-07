@@ -29,6 +29,11 @@ CANNED_INSERTS = {
         values (:test_set,  :sheet_id, :pred_class, :pred_conf,
                 :pred_left, :pred_top, :pred_right, :pred_bottom);
         """,
+    "char_sub_matrix": """
+        insert into char_sub_matrix
+               ( char1,  char2,  char_set,  score,  sub)
+        values (:char1, :char2, :char_set, :score, :sub);
+        """,
 }
 
 CANNED_SELECTS = {

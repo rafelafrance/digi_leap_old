@@ -49,6 +49,13 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
+        "--char-set",
+        required=True,
+        metavar="NAME",
+        help="""Use this character set matrix.""",
+    )
+
+    arg_parser.add_argument(
         "--workers",
         type=int,
         metavar="INT",

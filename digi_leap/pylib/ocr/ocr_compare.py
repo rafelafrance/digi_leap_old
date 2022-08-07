@@ -13,8 +13,8 @@ from . import ocr_runner
 from .. import consts
 from ..db import db
 from ..label_builder import label_builder as builder
+from ..label_builder.line_align import char_sub_matrix as subs
 from ..label_builder.line_align import line_align_py  # noqa
-from ..label_builder.line_align import line_align_subs
 from ..label_builder.spell_well.spell_well import SpellWell
 
 
@@ -28,10 +28,12 @@ class Scorer:
     def __init__(self, args):
         self.score_set = args.score_set
         self.gold_set = args.gold_set
+        self.char_set = args.char_set
         self.database = args.database
+        self.matrix = subs.select_char_sub_matrix(args.database, args.char_set)
 
         self.combos = self._pipeline_engine_combos()
-        self.line_align = line_align_py.LineAlign(line_align_subs.SUBS)
+        self.line_align = line_align_py.LineAlign(self.matrix)
         self.spell_well = SpellWell()
 
     def calculate(self, gold_std):

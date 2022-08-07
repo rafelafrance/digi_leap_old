@@ -3,6 +3,7 @@ import argparse
 import textwrap
 from pathlib import Path
 
+from pylib import consts
 from pylib import fonts
 from pylib.label_builder.line_align import char_sub_matrix as matrix
 
@@ -39,11 +40,12 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--chars",
-        required=True,
+        default=consts.CHARS,
         metavar="CHARS",
         help="""A string containing the characters to add to the matrix. You may want
             to add a space character but other whitespace characters are not useful.
-            Characters here will replace those in the database.""",
+            Characters here will replace those in the char-set. Default includes a
+            space. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

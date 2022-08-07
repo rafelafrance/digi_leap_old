@@ -102,11 +102,14 @@ create table if not exists runs (
 
 
 create table if not exists gold_standard (
-    gold_id   integer primary key autoincrement,
-    sheet_id  integer,
-    label_id  integer,
-    gold_set  text,
-    gold_text text
+    gold_id     integer primary key autoincrement,
+    sheet_id    integer,
+    label_id    integer,
+    gold_set    text,
+    gold_text   text,
+    transcriber text,
+    validator   text,
+    notes       text
 );
 
 
@@ -119,4 +122,13 @@ create table if not exists ocr_scores (
     actions    text,
     score_text text,
     score      integer
+);
+
+
+create table if not exists char_sub_matrix (
+    char1    text,
+    char2    text,
+    char_set text,
+    score    float,
+    sub      float
 );

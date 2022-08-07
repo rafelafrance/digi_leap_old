@@ -9,8 +9,8 @@ from tqdm import tqdm
 from . import ocr_results
 from .. import utils
 from ..db import db
+from .line_align import char_sub_matrix as subs
 from .line_align import line_align_py as la  # noqa type: ignore
-from .line_align import line_align_subs
 from .spell_well import spell_well as spell
 
 
@@ -23,13 +23,15 @@ def build_labels(args):
         frags = get_ocr_fragments(cxn, args.ocr_set)
         batches = utils.dict_chunks(frags, args.batch_size)
 
+        matrix = subs.select_char_sub_matrix(args.database, args.char_set)
+
         results = []
         with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:
             for batch in batches:
                 results.append(
                     pool.apply_async(
                         build_batch,
-                        args=(batch, args.consensus_set, args.ocr_set),
+                        args=(batch, args.consensus_set, args.ocr_set, matrix),
                         callback=lambda _: bar.update(),
                     )
                 )
@@ -46,9 +48,9 @@ def build_labels(args):
         db.update_run_finished(cxn, run_id)
 
 
-def build_batch(labels, consensus_set, ocr_set):
+def build_batch(labels, consensus_set, ocr_set, matrix):
     spell_well = spell.SpellWell()
-    line_align = la.LineAlign(line_align_subs.SUBS)
+    line_align = la.LineAlign(matrix)
 
     batch: list[dict] = []
 
