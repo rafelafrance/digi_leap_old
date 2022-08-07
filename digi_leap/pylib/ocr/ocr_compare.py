@@ -30,7 +30,7 @@ class Scorer:
         self.gold_set = args.gold_set
         self.char_set = args.char_set
         self.database = args.database
-        self.matrix = subs.select_char_sub_matrix(args.database, args.char_set)
+        self.matrix = subs.select_char_sub_matrix(char_set=self.char_set)
 
         self.combos = self._pipeline_engine_combos()
         self.line_align = line_align_py.LineAlign(self.matrix)

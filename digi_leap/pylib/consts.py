@@ -7,7 +7,15 @@ IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments")
 ROOT_DIR = Path(".." if IS_SUBDIR else ".")
 DATA_DIR = ROOT_DIR / "data"
 MOCK_DIR = ROOT_DIR / "tests" / "mock_data"
-
+VOCAB_DB = ROOT_DIR / "data" / "vocab.sqlite"
+CHAR_DB = (
+    ROOT_DIR
+    / "digi_leap"
+    / "pylib"
+    / "label_builder"
+    / "line_align"
+    / "char_sub_matrix.sqlite"
+)
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD_DEV = (0.229, 0.224, 0.225)

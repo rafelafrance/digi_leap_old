@@ -3,6 +3,7 @@ from PIL import Image
 from PIL import ImageDraw
 from tqdm import tqdm
 
+from ... import consts
 from ...db import db
 
 
@@ -139,8 +140,8 @@ def get_max_iou(pix1, pix2):
 
 
 # #####################################################################################
-def select_char_sub_matrix(database, char_set):
-    with db.connect(database) as cxn:
+def select_char_sub_matrix(char_set="default"):
+    with db.connect(consts.CHAR_DB) as cxn:
         sql = """select * from char_sub_matrix where char_set = ?"""
         rows = [dict(r) for r in db.execute(cxn, sql, (char_set,))]
         matrix = {f'{r["char1"]}{r["char2"]}': r["sub"] for r in rows}

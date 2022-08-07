@@ -23,7 +23,7 @@ def build_labels(args):
         frags = get_ocr_fragments(cxn, args.ocr_set)
         batches = utils.dict_chunks(frags, args.batch_size)
 
-        matrix = subs.select_char_sub_matrix(args.database, args.char_set)
+        matrix = subs.select_char_sub_matrix(char_set=args.char_set)
 
         results = []
         with Pool(processes=args.workers) as pool, tqdm(total=len(batches)) as bar:

@@ -8,9 +8,7 @@ from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
 
 
 class TestAlign(unittest.TestCase):
-    matrix = subs.select_char_sub_matrix(
-        "tests/mock_data/char_sub_matrix.sqlite", "old"
-    )
+    matrix = subs.select_char_sub_matrix()
 
     def setUp(self):
         two_chars = {"aa": 0.0, "ab": -1.0, "bb": 0.0}

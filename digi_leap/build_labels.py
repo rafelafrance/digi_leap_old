@@ -50,9 +50,9 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--char-set",
-        required=True,
+        default="default",
         metavar="NAME",
-        help="""Use this character set matrix.""",
+        help="""Use this character set substitution matrix. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

@@ -24,18 +24,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--database",
-        required=True,
-        type=Path,
-        metavar="PATH",
-        help="""Path to a digi-leap database.""",
-    )
-
-    arg_parser.add_argument(
         "--char-set",
-        required=True,
+        default="default",
         metavar="NAME",
-        help="""Update this character set matrix.""",
+        help="""Update this character set matrix. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

@@ -9,9 +9,7 @@ from collections import namedtuple
 
 import regex as re
 
-from ... import consts
-
-VOCAB_DB = consts.ROOT_DIR / "data" / "vocab.sqlite"
+from ...consts import VOCAB_DB
 
 Spell = namedtuple("Spell", "word dist freq")
 
