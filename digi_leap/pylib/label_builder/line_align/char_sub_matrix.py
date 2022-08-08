@@ -4,16 +4,17 @@ from PIL import ImageDraw
 from tqdm import tqdm
 
 from ... import consts
+from ... import fonts
 from ...db import db
 
 
 class Char:
     def __init__(self, char, image_size, font):
         self.char = char
-        self.pix = self.char_pix()
-        self.h, self.w = self.char_size()
         self.image_size = image_size
         self.font = font
+        self.pix = self.char_pix()
+        self.h, self.w = self.char_size()
 
     def char_pix(self):
         """Put char pixels into a matrix."""
@@ -27,6 +28,8 @@ class Char:
     def char_size(self):
         """Get the size of the char image."""
         nz = np.nonzero(self.pix)
+        if len(nz[0]) == 0:
+            return 0, 0
         h = np.max(nz[0]) - np.min(nz[0]) + 1
         w = np.max(nz[1]) - np.min(nz[1]) + 1
         return h, w
@@ -41,9 +44,7 @@ class Char:
 # #####################################################################################
 def add_chars(args):
     """Add characters to the character substitution matrix."""
-    with db.connect(args.database) as cxn:
-        run_id = db.insert_run(cxn, args)
-
+    with db.connect(consts.CHAR_DB) as cxn:
         matrix = select_matrix(cxn, args.char_set)
 
         old_chars = {k[0] for k in matrix.keys()}
@@ -51,10 +52,8 @@ def add_chars(args):
 
         new_chars = set(args.chars)
 
-        calc_scores(old_chars, new_chars, matrix, args.image_size, args.font)
+        calc_scores(old_chars, new_chars, matrix, fonts.IMAGE_SIZE, fonts.CHAR_FONT)
         insert_matrix(cxn, matrix, args.char_set)
-
-        db.update_run_finished(cxn, run_id)
 
 
 def select_matrix(cxn, char_set):
@@ -97,8 +96,8 @@ def calc_scores(old_chars, new_chars, matrix, image_size, font):
 
         for char2 in all_chars[i:]:
             if char1.char not in new_chars and char2.char not in new_chars:
-                score = matrix[(char1, char2)]["score"]
-                sub = matrix[(char1, char2)]["sub"]
+                score = matrix[(char1.char, char2.char)]["score"]
+                sub = matrix[(char1.char, char2.char)]["sub"]
             elif char1 == char2:
                 score = None
                 sub = 2.0
@@ -109,7 +108,7 @@ def calc_scores(old_chars, new_chars, matrix, image_size, font):
                 score = get_max_iou(char1.pix, char2.pix)
                 sub = get_sub(score)
 
-            matrix[(char1, char2)] = {"score": score, "sub": sub}
+            matrix[(char1.char, char2.char)] = {"score": score, "sub": sub}
 
 
 def get_sub(score):

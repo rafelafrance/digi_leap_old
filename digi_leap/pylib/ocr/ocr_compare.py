@@ -217,7 +217,7 @@ def select_gold_std(database, gold_set):
 
 def insert_gold_std(csv_path, database, gold_set):
     df = pd.read_csv(csv_path).fillna("")
-    df = df.loc[df.text != ""]
+    df = df.loc[df.gold_text != ""]
 
     df["label_id"] = df["label"].str.split("_").str[2]
     df["label_id"] = df["label_id"].str.split(".").str[0].astype(int)
@@ -227,7 +227,6 @@ def insert_gold_std(csv_path, database, gold_set):
     df["gold_set"] = gold_set
 
     df = df.drop(["sheet", "label"], axis="columns")
-    df = df.rename(columns={"text": "gold_text"})
 
     with db.connect(database) as cxn:
         df.to_sql("gold_standard", cxn, if_exists="append", index=False)
