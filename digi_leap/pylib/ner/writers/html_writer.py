@@ -56,7 +56,6 @@ def write(args):
 
         with open(args.out_file, "w", encoding="utf_8") as html_file:
             html_file.write(template)
-            html_file.close()
 
 
 def format_text(text, rows, classes) -> str:

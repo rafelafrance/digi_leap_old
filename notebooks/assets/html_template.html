@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Traiter</title>
+    <style>
+      .set {
+        margin: 2em 1em;
+        width: 90%;
+      }
+      .align {
+        margin-top: 1em;
+      }
+      .seq {
+        white-space: nowrap;
+        font-family: "Courier New", monospace;
+        font-size: small;
+      }
+      .green {
+        background: lightgreen;
+       }
+      img {
+        height: 300px;
+        margin-bottom: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Gold set: {{ gold_set }} Score set:{{ score_set }}: {{ now }}</h1>
+    <hr/>
+
+    {% for _, gold in golden.items() %}
+    <div class="set">
+      <img src="labels/{{gold.path}}"/>
+      <div><label>Label ID: </label>{{ gold.label_id }}</div>
+      <div><label>Top score: </label>{{ gold.min_score }}</div>
+      <div class="align">
+        {% for action, ln in gold.colored %}
+        <div class="seq" title="{{action}}">{{ln | safe}}</div>
+        {% endfor %}
+      </div>
+    </div>
+    <hr/>
+
+    {% endfor %}
+
+    <script></script>
+  </body>
+</html>
