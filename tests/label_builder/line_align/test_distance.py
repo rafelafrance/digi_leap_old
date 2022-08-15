@@ -72,3 +72,15 @@ class TestDistance(unittest.TestCase):
 
     def test_distance_21(self):
         self.assertEqual(0, self.line.levenshtein("五五", "五五"))
+
+    def test_distance_22(self):
+        self.assertEqual(self.line.levenshtein("123aa4", "aa"), 4)
+
+    def test_distance_23(self):
+        self.assertEqual(self.line.levenshtein("aa", "1aa234"), 4)
+
+    def test_distance_24(self):
+        self.assertEqual(self.line.levenshtein("aa", "a123a"), 3)
+
+    def test_distance_25(self):
+        self.assertEqual(self.line.levenshtein("aa", "12345aa"), 5)

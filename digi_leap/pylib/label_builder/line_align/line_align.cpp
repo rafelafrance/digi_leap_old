@@ -35,34 +35,41 @@ LineAlign::LineAlign(
     this->skew = skew;
 }
 
-// Based off of accepted answer by L.F.:
-// https://codereview.stackexchange.com/questions/238641/
-// an-implementation-of-levenshtein-distance-algorithm-in-modern-c
+
+// Based off of: https://en.wikipedia.org/wiki/Levenshtein_distance
 int64_t LineAlign::levenshtein(
-    const std::u32string &str1,
-    const std::u32string &str2
+    const std::u32string &s,
+    const std::u32string &t
 ) const
 {
-    const int64_t len1 = str1.length();
-    const int64_t len2 = str2.length();
+    const int64_t m = s.length();
+    const int64_t n = t.length();
 
-    if (len1 == 0 || len2 == 0) {
-        return len1 + len2;
+    std::vector<int64_t> v0(n + 1);
+    std::vector<int64_t> v1(n + 1);
+
+    for (int64_t i = 0; i <= n; ++i) {
+        v0[i] = i;
     }
 
-    std::vector<int64_t> dist(len2 + 1);
-    std::iota(dist.begin(), dist.end(), 0);
+    for (int64_t i = 0; i < m; ++i) {
+        v1[0] = i + 1;
 
-    for (int64_t row = 0; row < len1; ++row) {
-        int64_t prev_dist = row;
-        for (int64_t col = 0; col < len2; ++col) {
-            dist[col + 1] = std::min({std::exchange(prev_dist, dist[col + 1]) +
-                                          (str1[row] == str2[col] ? 0 : 1),
-                                      dist[col] + 1, dist[col + 1] + 1});
+        for (int64_t j = 0; j < n; ++j) {
+            int64_t del = v0[j + 1] + 1;
+            int64_t ins = v1[j] + 1;
+            int64_t sub = s[i] == t[j] ? v0[j] : v0[j] + 1;
+
+            int64_t min = del < ins ? del : ins;
+            min = min < sub ? min : sub;
+
+            v1[j + 1] = min;
         }
+        v0.swap(v1);
     }
-    return dist[len2];
+    return v0[n];
 }
+
 
 std::vector<std::tuple<int64_t, int64_t, int64_t>>
  LineAlign::levenshtein_all(const std::vector<std::u32string> &strings) const {
