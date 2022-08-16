@@ -16,9 +16,16 @@
         font-family: "Courier New", monospace;
         font-size: small;
       }
+      .table {
+        white-space: nowrap;
+        font-family: "Courier New", monospace;
+      }
       .green {
         background: lightgreen;
        }
+      .yellow {
+        background: goldenrod;
+      }
       img {
         height: 300px;
         margin-bottom: 1em;
@@ -27,6 +34,19 @@
   </head>
   <body>
     <h1>Gold set: {{ gold_set }} Score set:{{ score_set }}: {{ now }}</h1>
+    <ul class="table">
+      <li><span class="key">gold</span> = <span class="desc">Gold standard</span></li>
+      <li><span class="key">.e</span> = <span class="desc">EasyOCR only</span></li>
+      <li><span class="key">.t</span> = <span class="desc">Tesseract only</span></li>
+      <li><span class="key">De</span> = <span class="desc">Deskew then EasyOCR</span></li>
+      <li><span class="key">Dt</span> = <span class="desc">Deskew then Tesseract</span></li>
+      <li><span class="key">Be</span> = <span class="desc">Binarize then EasyOCR</span></li>
+      <li><span class="key">Bt</span> = <span class="desc">Binarize then Tesseract</span></li>
+      <li><span class="key">Ne</span> = <span class="desc">Denoise then EasyOCR</span></li>
+      <li><span class="key">Nt</span> = <span class="desc">Denoise then Tesseract</span></li>
+      <li><span class="key">p </span> = <span class="desc">Post-process the ensemble</span></li>
+      <li><span class="key">__</span> = <span class="desc">Skipped</span></li>
+    </ul>
     <hr/>
 
     {% for _, gold in golden.items() %}
@@ -36,7 +56,7 @@
       <div><label>Top score: </label>{{ gold.min_score }}</div>
       <div class="align">
         {% for action, ln in gold.colored %}
-        <div class="seq" title="{{action}}">{{ln | safe}}</div>
+        <div class="seq"><span>{{action}}</span>: <span>{{ln | safe}}</span></div>
         {% endfor %}
       </div>
     </div>

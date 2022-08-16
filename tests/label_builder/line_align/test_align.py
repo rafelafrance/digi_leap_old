@@ -51,7 +51,7 @@ class TestAlign(unittest.TestCase):
         self.assertEqual(self.line.align(["aab", "abb", "aba"]), ["aab", "abb", "aba"])
 
     def test_align_13(self):
-        line = line_align_py.LineAlign(substitutions=self.matrix, gap=-3.0)
+        line = line_align_py.LineAlign(substitutions=self.matrix)
         results = line.align(
             [
                 "MOJAVE DESERT, PROVIDENCE MTS.: canyon above",
@@ -62,13 +62,13 @@ class TestAlign(unittest.TestCase):
         )
         # print()
         # for r in results:
-        #     print(f'"{r}",')
+        #     print(r)
         self.assertEqual(
             results,
             [
-                "⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS.⋄⋄: canyon ⋄above",
+                "⋄⋄⋄⋄MOJAVE DESERT⋄, PROVIDENCE MTS⋄.⋄: canyon ⋄above",
                 "E⋄. MOJAVE DESERT , PROVIDENCE MTS . : canyon ⋄above",
-                "E⋄⋄ MOJAVE DESERT ⋄⋄PROVTDENCE MTS. #⋄ canyon ⋄above",
+                "E⋄⋄ MOJAVE DESERT ⋄⋄PROVTDENCE MTS⋄. # canyon ⋄above",
                 "Be ‘MOJAVE DESERT⋄, PROVIDENCE ⋄⋄⋄⋄⋄⋄⋄⋄canyon “above",
             ],
         )
@@ -83,9 +83,6 @@ class TestAlign(unittest.TestCase):
                 "Station or",
             ],
         )
-        # print()
-        # for r in results:
-        #     print(f'"{r}",')
         self.assertEqual(
             results,
             [
@@ -93,5 +90,21 @@ class TestAlign(unittest.TestCase):
                 " Johns Island Sta⋄ti on on⋄⋄",
                 "⋄Johns Island Sta⋄ti⋄on on i",
                 "⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄Sta⋄ti⋄on or⋄⋄",
+            ],
+        )
+
+    def test_align_15(self):
+        line = line_align_py.LineAlign(self.matrix)
+        results = line.align(
+            [
+                "North Carolina NORTH CAROLINA Guilford County",
+                "North Carolina OT CAROLINA Guilford County",
+            ],
+        )
+        self.assertEqual(
+            results,
+            [
+                "North Carolina NORTH CAROLINA Guilford County",
+                "North Carolina ⋄O⋄T⋄ CAROLINA Guilford County",
             ],
         )

@@ -15,7 +15,7 @@ PYBIND11_MODULE(line_align_py, m) {
         .def(py::init<const std::unordered_map<std::u32string, float>&, float, float>(),
              py::arg("substitutions") = noSubs,
              py::arg("gap") = -3.0,
-             py::arg("skew") = -0.5)
+             py::arg("skew") = -3.0)
         .def("align", &LineAlign::align,
              "Get the alignment string for a pair of strings.",
              py::arg("strings"))

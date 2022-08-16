@@ -69,6 +69,12 @@ class OcrResults:
         # Add spaces around an ampersand &
         (r"(\w)&", r"\1 &"),
         (r"&(\w)", r"& \1"),
+        # Handle multiple dots ..
+        (r"\.\.+", r"\."),
+        # Confusion between dots . and colons :
+        (r"::", r"\."),
+        # Double single quotes ’’ should be a double quote "
+        (r"['’]['’]", r"\""),
     ]
 
 

@@ -84,3 +84,20 @@ class TestDistance(unittest.TestCase):
 
     def test_distance_25(self):
         self.assertEqual(self.line.levenshtein("aa", "12345aa"), 5)
+
+    def test_distance_26(self):
+        self.assertEqual(
+            self.line.levenshtein(
+                "Commelinaceae Commelina virginica", "Commelina virginica"
+            ),
+            14,
+        )
+
+    def test_distance_27(self):
+        self.assertEqual(
+            self.line.levenshtein(
+                "North Carolina NORTH CAROLINA Guilford County",
+                "North Carolina OT CAROLINA Guilford County",
+            ),
+            3,
+        )

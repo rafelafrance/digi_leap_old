@@ -10,7 +10,7 @@ class EngineConfig:
 
     easy_ocr = easyocr.Reader(["en"], gpu=True)
 
-    char_blacklist = "¥€£¢$«»®©™§{}[]<>|~"
+    char_blacklist = "¥€£¢$«»®©™§{}|~”"
     tess_lang = "eng"
     tess_config = " ".join(
         [
