@@ -72,7 +72,7 @@ class OcrResults:
         # Handle multiple dots ..
         (r"\.\.+", r"\."),
         # Confusion between dots . and colons :
-        (r"::", r"\."),
+        (r"::", r"\.:"),
         # Double single quotes ’’ should be a double quote "
         (r"['’]['’]", r"\""),
     ]
