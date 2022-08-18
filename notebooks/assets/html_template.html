@@ -30,6 +30,9 @@
         height: 300px;
         margin-bottom: 1em;
       }
+      .graph {
+        margin-top: 2em;
+      }
     </style>
   </head>
   <body>
@@ -58,6 +61,7 @@
         {% for action, ln in gold.colored %}
         <div class="seq"><span>{{action}}</span>: <span>{{ln | safe}}</span></div>
         {% endfor %}
+        <img class="graph" src="graphs/{{gold.graph}}"/>
       </div>
     </div>
     <hr/>
