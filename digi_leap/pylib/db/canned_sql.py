@@ -6,12 +6,10 @@ CANNED_INSERTS = {
         values (:sheet_id,   :label_set, :offset,      :class, :label_conf,
                 :label_left, :label_top, :label_right, :label_bottom);
         """,
-    "ocr": """
-        insert into ocr
-               ( label_id,  ocr_set,  engine,  pipeline,  conf,
-                 ocr_left,  ocr_top,   ocr_right,   ocr_bottom,  ocr_text)
-        values (:label_id, :ocr_set, :engine, :pipeline, :conf,
-                :ocr_left, :ocr_top,  :ocr_right,  :ocr_bottom, :ocr_text);
+    "ocr_texts": """
+        insert into ocr_texts
+               ( label_id,  ocr_set,  pipeline,  ocr_text)
+        values (:label_id, :ocr_set, :pipeline, :ocr_text);
         """,
     "consensuses": """
         insert into consensuses
@@ -36,9 +34,9 @@ CANNED_INSERTS = {
         """,
     "ocr_scores": """
         insert into ocr_scores
-               ( score_set,   label_id,  gold_id,  gold_set,  actions,
+               ( score_set,   label_id,  gold_id,  gold_set,  pipeline,
                  score_text,  score)
-        values (:score_set,  :label_id, :gold_id, :gold_set, :actions,
+        values (:score_set,  :label_id, :gold_id, :gold_set, :pipeline,
                 :score_text, :score)
         """,
 }
@@ -57,9 +55,9 @@ CANNED_SELECTS = {
         where     split = :split
         and       label_set = :label_set;
         """,
-    "ocr": """
+    "ocr_texts": """
         select *
-        from   ocr
+        from   ocr_texts
         join   labels using (label_id)
         join   sheets using (sheet_id)
         where  ocr_set = :ocr_set;

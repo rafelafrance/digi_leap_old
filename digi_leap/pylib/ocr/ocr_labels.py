@@ -22,7 +22,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
-        db.execute(cxn, "delete from ocr where ocr_set = ?", (args.ocr_set,))
+        db.execute(cxn, "delete from ocr_texts where ocr_set = ?", (args.ocr_set,))
 
         sheets = get_sheet_labels(cxn, args.classes, args.label_set, args.label_conf)
 
@@ -61,7 +61,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                                     }
                                 )
 
-                db.canned_insert("ocr", cxn, batch)
+                db.canned_insert("ocr_texts", cxn, batch)
 
         db.update_run_finished(cxn, run_id)
 

@@ -36,23 +36,17 @@ create table if not exists labels (
     label_bottom integer
 );
 create unique index labels_idx on labels (label_set, sheet_id, offset);
-create index if not exists labels_sheet_id on labels(sheet_id);
+create index if not exists labels_sheet_id on labels (sheet_id);
 
 
-create table if not exists ocr (
+create table if not exists ocr_texts (
     ocr_id     integer primary key autoincrement,
     label_id   integer,
     ocr_set    text,
-    engine     text,
     pipeline   text,
-    conf       real,
-    ocr_left   integer,
-    ocr_top    integer,
-    ocr_right  integer,
-    ocr_bottom integer,
     ocr_text   text
 );
-create index if not exists ocr_label_id on ocr(label_id);
+create index if not exists ocr_label_id on ocr_texts (label_id);
 
 
 create table if not exists consensuses (
@@ -119,16 +113,7 @@ create table if not exists ocr_scores (
     gold_id    integer,
     gold_set   text,
     score_set  text,
-    actions    text,
+    pipeline   text,
     score_text text,
     score      integer
-);
-
-
-create table if not exists char_sub_matrix (
-    char1    text,
-    char2    text,
-    char_set text,
-    score    float,
-    sub      float
 );

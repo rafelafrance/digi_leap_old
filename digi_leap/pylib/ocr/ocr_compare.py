@@ -1,6 +1,9 @@
 import json
 import warnings
+from copy import copy
+from itertools import chain
 from itertools import combinations
+from multiprocessing import Pool
 
 import cppimport.import_hook  # noqa pylint: disable=unused-import
 import pandas as pd
@@ -20,122 +23,133 @@ from ..label_builder.spell_well.spell_well import SpellWell
 IMAGE_TRANSFORMS = ["", "deskew", "binarize", "denoise"]
 
 
-class Golden:
-    def __init__(self, gold_rec):
-        self.path = gold_rec["path"]
+def ocr(gold_std):
+    golden = []
+    for gold in tqdm(gold_std, desc="ocr"):
 
-        self.label_id = gold_rec["label_id"]
-        self.gold_id = gold_rec["gold_id"]
+        gold["gold_text"] = " ".join(gold["gold_text"].split())
+        gold["pipe_text"]: dict[tuple[str, str], str] = {}
 
-        self.label_left = gold_rec["label_left"]
-        self.label_top = gold_rec["label_top"]
-        self.label_right = gold_rec["label_right"]
-        self.label_bottom = gold_rec["label_bottom"]
+        original = get_label(gold)
+        for transform in IMAGE_TRANSFORMS:
+            image = transform_image(original, transform)
+            gold["pipe_text"][(transform, "easyocr")] = ocr_runner.easy_text(image)
+            gold["pipe_text"][(transform, "tesseract")] = ocr_runner.tess_text(image)
 
-        self.gold_text = " ".join(gold_rec["gold_text"].split())
+        golden.append(gold)
+    return golden
 
-        self.pipe_text: dict[tuple[str, str], str] = {}
 
+def score(golden, score_set, gold_set, processes=8, chunk=10):
+    batches = [golden[i : i + chunk] for i in range(0, len(golden), chunk)]
+    scores, results = [], []
 
-class Scorer:
-    def __init__(self, gold_set, score_set, char_set="default"):
-        self.gold_set = gold_set
-        self.score_set = score_set
-        matrix = subs.select_char_sub_matrix(char_set=char_set)
-        self.line_align = line_align_py.LineAlign(matrix)
-        self.spell_well = SpellWell()
-
-    def ocr(self, gold_std) -> list[Golden]:
-        golden = []
-        for gold in tqdm(gold_std, desc="ocr"):
-            gold = Golden(gold_rec=gold)
-            original = self.get_label(gold)
-            for transform in IMAGE_TRANSFORMS:
-                image = self.transform_image(original, transform)
-                gold.pipe_text[(transform, "easyocr")] = ocr_runner.easy_text(image)
-                gold.pipe_text[(transform, "tesseract")] = ocr_runner.tess_text(image)
-            golden.append(gold)
-        return golden
-
-    def score(self, golden: list[Golden]) -> list[dict]:
-        scores = []
-        pipelines = self.get_pipelines(golden[0])
-
-        for gold in tqdm(golden, desc="score"):
-            for pipeline in pipelines:
-                lines = [gold.pipe_text[p] for p in pipeline]
-                lines = ocr_results.sort_lines(lines, self.line_align)
-
-                aligned = self.line_align.align(lines)
-
-                # Pipeline without post-processing
-                text = ocr_results.consensus(aligned, self.spell_well)
-                text = text.replace("⋄", "")  # Remove gaps
-                scores.append(self.score_rec(gold, text, pipeline))
-
-                # Pipeline with post-processing
-                text = label_builder.post_process_text(text, self.spell_well)
-                pipeline.append(("post_process",))
-                scores.append(self.score_rec(gold, text, pipeline))
-
-        return scores
-
-    def insert_scores(self, scores, database):
-        with db.connect(database) as cxn:
-            db.execute(
-                cxn, "delete from ocr_scores where score_set = ?", (self.score_set,)
-            )
-            db.canned_insert("ocr_scores", cxn, scores)
-
-    def select_scores(self, database):
-        with db.connect(database) as cxn:
-            results = db.execute(
-                cxn, "select * from ocr_scores where score_set = ?", (self.score_set,)
-            )
-            scores = [dict(r) for r in results]
-        return scores
-
-    def score_rec(self, gold, text, pipeline):
-        actions = [list(a) for a in pipeline]
-        return {
-            "score_set": self.score_set,
-            "label_id": gold.label_id,
-            "gold_id": gold.gold_id,
-            "gold_set": self.gold_set,
-            "actions": json.dumps(actions),
-            "score_text": text,
-            "score": self.line_align.levenshtein(gold.gold_text, text),
-        }
-
-    @staticmethod
-    def get_pipelines(gold) -> list[list[tuple[str, str] | tuple[str]]]:
-        pipelines = []
-        keys = sorted(gold.pipe_text.keys())
-        for r in range(1, len(keys) + 1):
-            pipelines += [list(c) for c in combinations(keys, r)]
-        return pipelines
-
-    @staticmethod
-    def get_label(gold: Golden):
-        with warnings.catch_warnings():  # Turn off EXIF warnings
-            warnings.filterwarnings("ignore", category=UserWarning)
-            path = consts.ROOT_DIR / gold.path
-            sheet = Image.open(path)
-            label = sheet.crop(
-                (
-                    gold.label_left,
-                    gold.label_top,
-                    gold.label_right,
-                    gold.label_bottom,
+    with Pool(processes=processes) as pool, tqdm(total=len(batches)) as bar:
+        for batch in batches:
+            results.append(
+                pool.apply_async(
+                    score_batch,
+                    args=(batch, score_set, gold_set),
+                    callback=lambda _: bar.update(),
                 )
             )
-        return label
+            scores = [r.get() for r in results]
 
-    @staticmethod
-    def transform_image(image, transform):
-        if not transform:
-            return image
-        return label_transformer.transform_label(transform, image)
+        scores = list(chain(*list(scores)))
+
+    return scores
+
+
+def score_batch(golden, score_set, gold_set) -> list[dict]:
+    scores: list[dict] = []
+    pipelines = get_pipelines(golden[0])
+
+    matrix = subs.select_char_sub_matrix(char_set="default")
+    line_align = line_align_py.LineAlign(matrix)
+    spell_well = SpellWell()
+
+    for gold in golden:
+        for pipes in pipelines:
+            pipeline = copy(pipes)
+
+            lines = [gold["pipe_text"][p] for p in pipeline]
+            lines = ocr_results.sort_lines(lines, line_align)
+
+            aligned = line_align.align(lines)
+
+            # Pipeline without post-processing
+            text = ocr_results.consensus(aligned)
+            text = text.replace("⋄", "")  # Remove gaps
+            scores.append(
+                score_rec(gold, text, pipeline, score_set, gold_set, line_align)
+            )
+
+            # Pipeline with post-processing
+            text = label_builder.post_process_text(text, spell_well)
+            pipeline.append(("post_process",))
+            scores.append(
+                score_rec(gold, text, pipeline, score_set, gold_set, line_align)
+            )
+
+    return scores
+
+
+def insert_scores(scores, database, score_set):
+    with db.connect(database) as cxn:
+        db.execute(cxn, "delete from ocr_scores where score_set = ?", (score_set,))
+        db.canned_insert("ocr_scores", cxn, scores)
+
+
+def select_scores(database, score_set):
+    with db.connect(database) as cxn:
+        results = db.execute(
+            cxn, "select * from ocr_scores where score_set = ?", (score_set,)
+        )
+        scores = [dict(r) for r in results]
+    return scores
+
+
+def score_rec(gold, text, pipeline, score_set, gold_set, line_align):
+    actions = [list(a) for a in pipeline]
+    return {
+        "score_set": score_set,
+        "label_id": gold["label_id"],
+        "gold_id": gold["gold_id"],
+        "gold_set": gold_set,
+        "pipeline": json.dumps(actions),
+        "score_text": text,
+        "score": line_align.levenshtein(gold["gold_text"], text),
+    }
+
+
+def get_pipelines(gold) -> list[list[tuple[str, str] | tuple[str]]]:
+    pipelines = []
+    keys = sorted(gold["pipe_text"].keys())
+    for r in range(1, len(keys) + 1):
+        pipelines += [list(c) for c in combinations(keys, r)]
+    return pipelines
+
+
+def get_label(gold: dict):
+    with warnings.catch_warnings():  # Turn off EXIF warnings
+        warnings.filterwarnings("ignore", category=UserWarning)
+        path = consts.ROOT_DIR / gold["path"]
+        sheet = Image.open(path)
+        label = sheet.crop(
+            (
+                gold["label_left"],
+                gold["label_top"],
+                gold["label_right"],
+                gold["label_bottom"],
+            )
+        )
+    return label
+
+
+def transform_image(image, transform):
+    if not transform:
+        return image
+    return label_transformer.transform_label(transform, image)
 
 
 # ##################################################################################

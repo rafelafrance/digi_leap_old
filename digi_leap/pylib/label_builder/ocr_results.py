@@ -1,6 +1,5 @@
 """Build lines of text from the OCR output."""
 import collections
-import functools
 import unicodedata
 
 import regex as re
@@ -92,12 +91,6 @@ def sort_lines(lines: list[str], line_align) -> list[str]:
     return ordered
 
 
-def align_lines(lines: list[str], line_align) -> list[str]:
-    """Do a multiple alignment of the text copies."""
-    aligned = line_align.align(lines)
-    return aligned
-
-
 def _char_key(char):
     """Get the character sort order."""
     order = OcrResults.category.get(unicodedata.category(char), 100)
@@ -105,59 +98,20 @@ def _char_key(char):
     return order, char
 
 
-def _char_options(aligned):
-    options = []
-    str_len = len(aligned[0])
-
-    for i in range(str_len):
-        counts = collections.Counter(s[i] for s in aligned).most_common()
-        count = counts[0][1]
-        chars = [c[0] for c in counts if c[1] == count]
-        chars = sorted(chars, key=_char_key)  # Sort order is a fallback
-        options.append(chars)
-    return options
-
-
-def _get_choices(options):
-    """Recursively build all of the choices presented by a multiple alignment."""
-    all_choices = []
-
-    def _build_choices(opts, choice):
-        if not opts:
-            ln = "".join(choice)
-            all_choices.append(ln)
-            return
-        for opt in opts[0]:
-            _build_choices(opts[1:], choice + [opt])
-
-    _build_choices(options, [])
-    return all_choices
-
-
-def _copies_key(choice, spell_well=None):
-    hits = spell_well.hits(choice)
-    count = sum(1 for c in choice if c not in "⋄_ ")
-    return hits, count, choice
-
-
-def consensus(aligned: list[str], spell_well, threshold=2**16) -> str:
+def consensus(aligned: list[str]) -> str:
     """Build a consensus string from the aligned copies.
 
     Look at all characters of the multiple alignment and choose the one that makes a
-    string with the best score, or if there are too few or too many choices just choose
-    characters by their sort order.
+    string with the best score.
     """
-    options = _char_options(aligned)
-    count = functools.reduce(lambda x, y: x * len(y), options, 1)
-    if count == 1 or count > threshold:
-        cons = "".join([o[0] for o in options])
-    else:
-        key_func = functools.partial(_copies_key, spell_well=spell_well)
-        choices = _get_choices(options)
-        choices = sorted(choices, key=key_func, reverse=True)
-        cons = choices[0]
-
-    return cons
+    cons = []
+    for i in range(len(aligned[0])):
+        counts = collections.Counter(s[i] for s in aligned).most_common()
+        top = counts[0][1]
+        chars = [c[0] for c in counts if c[1] == top]
+        chars = sorted(chars, key=_char_key)
+        cons.append(chars[0])
+    return "".join(cons)
 
 
 def substitute(line: str) -> str:

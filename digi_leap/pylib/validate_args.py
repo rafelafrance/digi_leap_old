@@ -33,7 +33,7 @@ def validate_cons_set(database, consensus_set):
 
 def validate_ocr_set(database, ocr_set):
     with db.connect(database) as cxn:
-        rows = db.execute(cxn, "select distinct ocr_set from ocr")
+        rows = db.execute(cxn, "select distinct ocr_set from ocr_texts")
         all_ocr_sets = [r["ocr_set"] for r in rows]
 
     if ocr_set in all_ocr_sets:
