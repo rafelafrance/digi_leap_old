@@ -34,6 +34,13 @@ CANNED_INSERTS = {
                ( char1,  char2,  char_set,  score,  sub)
         values (:char1, :char2, :char_set, :score, :sub);
         """,
+    "ocr_scores": """
+        insert into ocr_scores
+               ( score_set,   label_id,  gold_id,  gold_set,  actions,
+                 score_text,  score)
+        values (:score_set,  :label_id, :gold_id, :gold_set, :actions,
+                :score_text, :score)
+        """,
 }
 
 CANNED_SELECTS = {

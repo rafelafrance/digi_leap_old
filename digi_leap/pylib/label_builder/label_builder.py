@@ -89,20 +89,17 @@ def build_label_text(ocr_fragments, spell_well, line_align):
 
 
 def post_process_text(text, spell_well):
-    lines = []
-    for ln in text.splitlines():
-        ln = ocr_results.substitute(ln)
-        ln = ocr_results.add_spaces(ln, spell_well)
-        ln = ocr_results.remove_spaces(ln, spell_well)
-        ln = ocr_results.correct(ln, spell_well)
-        lines.append(ln)
-    return "\n".join(lines)
+    text = ocr_results.substitute(text)
+    text = ocr_results.add_spaces(text, spell_well)
+    text = ocr_results.remove_spaces(text, spell_well)
+    text = ocr_results.correct(text, spell_well)
+    return text
 
 
-def consensus(copies, line_align, spell_well):
-    """Build a multiple-alignment consensus sequence from the copies of lines."""
-    copies = ocr_results.sort_copies(copies, line_align)
-    aligned = ocr_results.align_copies(copies, line_align)
+def consensus(lines, line_align, spell_well):
+    """Build a multiple-alignment consensus sequence from the lines."""
+    lines = ocr_results.sort_lines(lines, line_align)
+    aligned = line_align.align(lines)
     cons = ocr_results.consensus(aligned, spell_well)
     return cons
 

@@ -1,10 +1,7 @@
 """Build lines of text from the OCR output."""
 import collections
-import dataclasses
 import functools
-import itertools
 import unicodedata
-from typing import Iterator
 
 import regex as re
 
@@ -78,131 +75,26 @@ class OcrResults:
     ]
 
 
-@dataclasses.dataclass
-class Line:
-    """Holds data for building one line from several OCR scans of the same text."""
-
-    # This list is unordered and will contain several copies of the same text
-    boxes: list[dict] = dataclasses.field(default_factory=list)
-
-
-def find_overlap(line: Line, ocr_box, eps=1):
-    """Find the vertical overlap between a line of boxes and an OCR bounding box.
-
-    This is expressed as a fraction of the smallest height of the line
-    & OCR bounding box.
-    """
-    last = line.boxes[-1]  # If self.boxes is empty then we have a bigger problem
-    min_height = min(
-        last["ocr_bottom"] - last["ocr_top"],
-        ocr_box["ocr_bottom"] - ocr_box["ocr_top"],
-    )
-    y_min = max(last["ocr_top"], ocr_box["ocr_top"])
-    y_max = min(last["ocr_bottom"], ocr_box["ocr_bottom"])
-    inter = max(0, y_max - y_min)
-    return inter / (min_height + eps)
-
-
-def filter_boxes(
-    ocr_boxes: list[dict],
-    *,
-    conf: float = 0.25,
-    too_tall: float = 4.0,
-    too_short: int = 10,
-    too_thin: int = 10,
-):
-    """Remove problem bounding boxes from the list.
-
-    Reasons for removing boxes include:
-    - Remove bounding boxes with no text.
-    - Remove boxes with a low confidence score (from the OCR engine) for the text.
-    - Remove boxes that are too tall relative to the label.
-    - Remove boxes that are really skinny or really short.
-    """
-    if len(ocr_boxes) < 2:
-        return ocr_boxes
-
-    filtered = []
-    for box in ocr_boxes:
-        text = box["ocr_text"].strip()
-        width = box["ocr_right"] - box["ocr_left"]
-        height = box["ocr_bottom"] - box["ocr_top"]
-
-        if not text or width < too_thin or height < too_short:
-            continue
-
-        if box["conf"] >= conf and height / width <= too_tall:
-            filtered.append(box)
-
-    return filtered
-
-
-def get_lines(ocr_boxes, vert_overlap=0.3):
-    """Find lines of text from an OCR bounding boxes."""
-    boxes = sorted(ocr_boxes, key=lambda b: b["ocr_left"])
-    lines: list[Line] = []
-
-    for box in boxes:
-        overlap = [(find_overlap(line, box), line) for line in lines]
-        overlap = sorted(overlap, key=lambda o: -o[0])
-
-        if overlap and overlap[0][0] > vert_overlap:
-            line = overlap[0][1]
-            line.boxes.append(box)
-        else:
-            line = Line()
-            line.boxes.append(box)
-            lines.append(line)
-
-    lines = sorted(lines, key=lambda r: r.boxes[0]["ocr_top"])
-    return lines
-
-
-def get_copies(line: Line) -> list[str]:
-    """Get the copies of text lines from the Line() object."""
-    copies = []
-
-    boxes = sorted(
-        line.boxes, key=lambda b: (b["engine"], b["pipeline"], b["ocr_left"])
-    )
-    combos: Iterator = itertools.groupby(
-        boxes, key=lambda b: (b["engine"], b["pipeline"])
-    )
-
-    for _, boxes in combos:
-        text = " ".join([b["ocr_text"] for b in boxes])
-        copies.append(text)
-
-    return copies
-
-
-def sort_copies(copies: list[str], line_align) -> list[str]:
-    """Sort the copies of the line by Levenshtein distance."""
-    if len(copies) <= 2:  # Sorting will do nothing in this case
-        return copies
+def sort_lines(lines: list[str], line_align) -> list[str]:
+    """Sort the lines by Levenshtein distance."""
+    if len(lines) <= 2:
+        return lines
 
     # levenshtein_all() returns a sorted array of tuples (score, index_1, index_2)
-    distances = line_align.levenshtein_all(copies)
-    _, i, j = distances.pop(0)
+    distances = line_align.levenshtein_all(lines)
 
-    hits = {i, j}
-    ordered = [copies[i], copies[j]]
+    order = {}  # Dicts preserve insertion order, sets do not
+    for dist in distances:
+        order[dist[1]] = 1
+        order[dist[2]] = 1
 
-    while len(hits) < len(copies):
-        for d_idx, dist in enumerate(distances):
-            i, j = dist[1:]
-            if i in hits or j in hits:
-                k = i if j in hits else j
-                hits.add(k)
-                ordered.append(copies[k])
-                distances.pop(d_idx)
-                break
+    ordered = [lines[k] for k in order.keys()]
     return ordered
 
 
-def align_copies(copies: list[str], line_align) -> list[str]:
+def align_lines(lines: list[str], line_align) -> list[str]:
     """Do a multiple alignment of the text copies."""
-    aligned = line_align.align(copies)
+    aligned = line_align.align(lines)
     return aligned
 
 
@@ -248,25 +140,19 @@ def _copies_key(choice, spell_well=None):
     return hits, count, choice
 
 
-def choose_best_copy(copies, spell_well):
-    key_func = functools.partial(_copies_key, spell_well=spell_well)
-    copies = sorted(copies, key=key_func, reverse=True)
-    return copies[0]
-
-
 def consensus(aligned: list[str], spell_well, threshold=2**16) -> str:
     """Build a consensus string from the aligned copies.
 
-    Look at all options of the multiple alignment and choose the one that makes a string
-    with the best score, or if there are too few or too many choices just choose
+    Look at all characters of the multiple alignment and choose the one that makes a
+    string with the best score, or if there are too few or too many choices just choose
     characters by their sort order.
     """
-    key_func = functools.partial(_copies_key, spell_well=spell_well)
     options = _char_options(aligned)
     count = functools.reduce(lambda x, y: x * len(y), options, 1)
     if count == 1 or count > threshold:
         cons = "".join([o[0] for o in options])
     else:
+        key_func = functools.partial(_copies_key, spell_well=spell_well)
         choices = _get_choices(options)
         choices = sorted(choices, key=key_func, reverse=True)
         cons = choices[0]
