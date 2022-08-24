@@ -77,10 +77,10 @@ std::vector<std::tuple<int64_t, int64_t, int64_t>>
 
     std::vector<std::tuple<int64_t, int64_t, int64_t>> results;
 
-    for (int64_t row = 0; row < len - 1; ++row) {
-        for (int64_t col = row + 1; col < len; ++col) {
-            auto dist = levenshtein(strings[row], strings[col]);
-            results.push_back(std::make_tuple(dist, row, col));
+    for (int64_t i = 0; i < len - 1; ++i) {
+        for (int64_t j = i + 1; j < len; ++j) {
+            auto dist = levenshtein(strings[i], strings[j]);
+            results.push_back(std::make_tuple(dist, i, j));
         }
     }
 
