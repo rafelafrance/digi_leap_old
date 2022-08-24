@@ -53,8 +53,7 @@ def score(golden, score_set, gold_set, processes=8, chunk=10):
                     callback=lambda _: bar.update(),
                 )
             )
-            scores = [r.get() for r in results]
-
+        scores = [r.get() for r in results]
         scores = list(chain(*list(scores)))
 
     return scores
