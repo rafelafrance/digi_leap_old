@@ -15,7 +15,6 @@ from . import ocr_runner
 from .. import consts
 from ..db import db
 from ..label_builder import label_builder
-from ..label_builder import ocr_results
 from ..label_builder.line_align import char_sub_matrix as subs
 from ..label_builder.line_align import line_align_py  # noqa
 from ..label_builder.spell_well.spell_well import SpellWell
@@ -33,8 +32,12 @@ def ocr(gold_std):
         original = get_label(gold)
         for transform in IMAGE_TRANSFORMS:
             image = transform_image(original, transform)
-            gold["pipe_text"][(transform, "easyocr")] = ocr_runner.easy_text(image)
-            gold["pipe_text"][(transform, "tesseract")] = ocr_runner.tess_text(image)
+
+            text = ocr_runner.easy_text(image)
+            gold["pipe_text"][f"[{transform}, easyocr]"] = " ".join(text.split())
+
+            text = ocr_runner.tess_text(image)
+            gold["pipe_text"][f"[{transform}, tesseract]"] = " ".join(text.split())
 
         golden.append(gold)
     return golden
@@ -72,20 +75,19 @@ def score_batch(golden, score_set, gold_set) -> list[dict]:
             pipeline = copy(pipes)
 
             lines = [gold["pipe_text"][p] for p in pipeline]
-            lines = ocr_results.sort_lines(lines, line_align)
+            lines = label_builder.filter_sort_lines(lines, line_align)
 
             aligned = line_align.align(lines)
 
             # Pipeline without post-processing
-            text = ocr_results.consensus(aligned)
-            text = text.replace("⋄", "")  # Remove gaps
+            text = label_builder.consensus(aligned)
             scores.append(
                 score_rec(gold, text, pipeline, score_set, gold_set, line_align)
             )
 
             # Pipeline with post-processing
             text = label_builder.post_process_text(text, spell_well)
-            pipeline.append(("post_process",))
+            pipeline.append("[post_process]")
             scores.append(
                 score_rec(gold, text, pipeline, score_set, gold_set, line_align)
             )
@@ -109,19 +111,19 @@ def select_scores(database, score_set):
 
 
 def score_rec(gold, text, pipeline, score_set, gold_set, line_align):
-    actions = [list(a) for a in pipeline]
+    text = text.replace("⋄", "")  # Remove gaps
     return {
         "score_set": score_set,
         "label_id": gold["label_id"],
         "gold_id": gold["gold_id"],
         "gold_set": gold_set,
-        "pipeline": json.dumps(actions),
+        "pipeline": json.dumps(pipeline),
         "score_text": text,
         "score": line_align.levenshtein(gold["gold_text"], text),
     }
 
 
-def get_pipelines(gold) -> list[list[tuple[str, str] | tuple[str]]]:
+def get_pipelines(gold) -> list[list[str]]:
     pipelines = []
     keys = sorted(gold["pipe_text"].keys())
     for r in range(1, len(keys) + 1):
