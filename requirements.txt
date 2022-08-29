@@ -9,6 +9,7 @@ gensim
 jinja2
 jupyter
 matplotlib
+maturin
 nltk
 numpy
 pandas

@@ -16,14 +16,14 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.label_finder.label_babel import reconcile
+from pylib.label_finder.label_babel import reconcile_expedition
 from traiter import log
 
 
 def main():
     log.started()
     args = parse_args()
-    reconcile.reconcile(args)
+    reconcile_expedition.reconcile(args)
     log.finished()
 
 

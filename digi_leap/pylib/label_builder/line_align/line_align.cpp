@@ -105,7 +105,7 @@ typedef std::vector<std::vector<Trace>> TraceMatrix;
 
 
 /* Implementation notes:
- * Building the strings backwards in an attempt to prevent a string copy at the end.
+ * Building the strings backwards in an attempt to prevent a string copies in the loop.
  */
 std::vector<std::u32string>
 LineAlign::align(const std::vector<std::u32string> &strings) const {

@@ -48,7 +48,7 @@ struct LineAlign {
      *
      * @param str1 Is a string to compare.
      * @param str2 The other string to compare.
-     * @return The Levenshtein distance as an integer. The lower the number the more
+     * @return The Levenshtein distance is an integer. The lower the number the more
      * similar the strings.
      */
     long levenshtein(const std::u32string &str1, const std::u32string &str2) const;

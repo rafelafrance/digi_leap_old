@@ -4,14 +4,14 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.label_finder.qc_expedition import build_expedtion
+from pylib.label_finder.rise_of_machines import build_expedition
 from traiter import log
 
 
 def main():
     log.started()
     args = parse_args()
-    build_expedtion.build(args)
+    build_expedition.build(args)
     log.finished()
 
 
