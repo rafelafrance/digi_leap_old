@@ -16,7 +16,7 @@ from .patterns import name_patterns
 from .patterns import taxon_patterns
 from .patterns import term_patterns
 
-# from traiter.pipes import debug_pipes
+# from traits.pipes import debug_pipes
 
 
 def build_pipeline():

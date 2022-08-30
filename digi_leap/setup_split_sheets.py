@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Split labeled images into training, testing, and validation datasets."""
 import argparse
 import sys
 import textwrap

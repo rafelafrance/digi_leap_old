@@ -30,7 +30,7 @@ CATEGORY = {
 }
 
 # As, above, but if a character has a category of "punctuation other" then I
-# sort by the character itself
+# sort by the weight for the character itself
 PO = {
     ".": 1,
     ",": 2,

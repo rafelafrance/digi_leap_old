@@ -3,16 +3,18 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.ner import ner
+from pylib import validate_args
+from pylib.traits.writers import html_writer
 from traiter import log
-
-from digi_leap.pylib import validate_args
 
 
 def main():
     log.started()
     args = parse_args()
-    ner.ner(args)
+
+    if args.format == "html":
+        html_writer.write(args)
+
     log.finished()
 
 
@@ -25,9 +27,9 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--database",
-        metavar="PATH",
         type=Path,
         required=True,
+        metavar="PATH",
         help="""Path to a digi-leap database.""",
     )
 
@@ -35,32 +37,26 @@ def parse_args() -> argparse.Namespace:
         "--trait-set",
         required=True,
         metavar="NAME",
-        help="""Name the trait set.""",
+        help="""Name this trait set.""",
     )
 
     arg_parser.add_argument(
-        "--consensus-set",
+        "--out-file",
+        type=Path,
         required=True,
-        metavar="NAME",
-        help="""Extract traits from this consensus label set.""",
+        metavar="PATH",
+        help="""Output the results to this file.""",
     )
 
     arg_parser.add_argument(
-        "--word-threshold",
-        metavar="INT",
-        default=20,
-        help="""A label must have at least this many words for parsing.""",
-    )
-
-    arg_parser.add_argument(
-        "--notes",
-        default="",
-        metavar="TEXT",
-        help="""Notes about this run. Enclose them in quotes.""",
+        "--format",
+        choices=["html"],
+        default="html",
+        help="""Output the traits in this format.""",
     )
 
     args = arg_parser.parse_args()
-    validate_args.validate_cons_set(args.database, args.consensus_set)
+    validate_args.validate_trait_set(args.database, args.trait_set)
     return args
 
 

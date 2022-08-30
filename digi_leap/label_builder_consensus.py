@@ -28,9 +28,9 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--database",
-        metavar="PATH",
         type=Path,
         required=True,
+        metavar="PATH",
         help="""Path to a digi-leap database.""",
     )
 
