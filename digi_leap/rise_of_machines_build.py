@@ -64,6 +64,7 @@ def parse_args() -> argparse.Namespace:
         "--reduce-by",
         type=int,
         default=1,
+        metavar="N",
         help="""Shrink images by this factor. (default: %(default)s)""",
     )
 

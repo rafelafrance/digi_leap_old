@@ -33,7 +33,7 @@ def canned_insert(table, cxn, batch):
 def canned_select(key, cxn, **kwargs):
     sql = canned_sql.CANNED_SELECTS[key]
     args = kwargs if kwargs else None
-    return cxn.execute(sql, tuple(args))
+    return cxn.execute(sql, dict(args))
 
 
 # ######################### runs table ################################################

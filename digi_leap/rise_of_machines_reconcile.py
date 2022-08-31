@@ -1,40 +1,30 @@
 #!/usr/bin/env python3
-"""Reconcile data from a "Label Babel" expedition.
-
-We need training data for the label finder model. We use use volunteers to build the
-initial batch of training data. That is, we use a Zooniverse "Notes from Nature"
-expedition to have volunteers (often 3 or more) draw the label bounding boxes. Every
-bounding will be slightly different, so we use this script to reconcile the differences
-into a single best label. There are many wrinkles to this process, some of which are:
-    - Sometimes a person will draw a box around many labels.
-    - Sometimes a box gets drawn around nothing.
-    - Sometimes the drawn boxes are really large or small (outliers).
-    - Etc.
-So we cannot just take a simple average of the box coordinates.
-"""
 import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.label_finder.label_babel import reconcile_expedition
+from pylib.label_finder.rise_of_machines import reconcile_expedition
 from traiter import log
 
 
 def main():
-    log.started()
     args = parse_args()
+    log.started()
     reconcile_expedition.reconcile(args)
     log.finished()
 
 
 def parse_args() -> argparse.Namespace:
-    description = """Reconcile data from a "Label Babel" expedition.
+    description = """Reconcile data from a "Rise of the Machines" expedition.
 
-    We need training data for the label finder model and we use use volunteers to build
-    the initial batch of training data. That is, we use a "Notes from Nature" Zooniverse
-    expedition to have volunteers (often 3 or more) draw all label bounding boxes around
-    every label. Every volunteer draws a slightly different bounding box, so we use this
-    script to reconcile the differences into a single "best" label."""
+        This expedition is a quality control check on the label finder's output. It
+        presents volunteers with herbarium sheets with outlines of the labels. The
+        type of labels is indicated by the color of the outline of the label. The
+        volunteers judge the correctness of found labels by clicking inside of the
+        label (a point) with a correct/incorrect indicator. If the label finder
+        completely missed a label a volunteer draws a bounding box around the missing
+        label. Note: We filter out people who click all over the page or draw random
+        boxes everywhere or even give conflicting labels."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -52,14 +42,31 @@ def parse_args() -> argparse.Namespace:
         "--unreconciled-csv",
         required=True,
         metavar="PATH",
-        help="""Get volunteer drawn labels from this CSV file.""",
+        help="""Get volunteer input from this CSV file.""",
+    )
+
+    arg_parser.add_argument(
+        "--label-set",
+        required=True,
+        metavar="NAME",
+        help="""Get old labels from this set.""",
     )
 
     arg_parser.add_argument(
         "--reconciled-set",
         required=True,
         metavar="NAME",
-        help="""Write reconciled labels to this set.""",
+        help="""Write new reconciled labels to this set.""",
+    )
+
+    arg_parser.add_argument(
+        "--increase-by",
+        type=int,
+        default=1,
+        metavar="N",
+        help="""Increase image size by this factor. This must match the --reduce-by N
+            argument when you built the expedition with rise_of_machines_build.py.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(
