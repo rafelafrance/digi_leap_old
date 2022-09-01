@@ -75,7 +75,7 @@ def score_batch(golden, score_set, gold_set) -> list[dict]:
             pipeline = copy(pipes)
 
             lines = [gold["pipe_text"][p] for p in pipeline]
-            lines = label_builder.filter_sort_lines(lines, line_align)
+            lines = label_builder.filter_lines(lines, line_align)
 
             aligned = line_align.align(lines)
 

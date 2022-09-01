@@ -17,7 +17,10 @@ def main():
 
 def parse_args() -> argparse.Namespace:
     description = """Build an expedition to determine the quality of the
-        label builder."""
+        label builder.
+
+        Ths "Rise of Machines" expedition.
+        """
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"

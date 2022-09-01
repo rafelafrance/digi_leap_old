@@ -18,9 +18,10 @@ def assign_sheets(args):
 
         select = """
             select sheet_id from sheets
-             where split is null or split = '' order by random()
+             where (split is null or split = '' order by random())
+               and sheet_set = ?
             """
-        rows = db.execute(cxn, select)
+        rows = db.execute(cxn, select, (args.sheet_set,))
 
         count = len(rows)
         val_split = round(count * (args.eval_split + args.val_split))
@@ -52,6 +53,13 @@ def parse_args():
         type=Path,
         required=True,
         help="""Path to a digi-leap database.""",
+    )
+
+    arg_parser.add_argument(
+        "--sheet-set",
+        required=True,
+        metavar="NAME",
+        help="""Split these sheets into training, testing, & validation sets.""",
     )
 
     arg_parser.add_argument(

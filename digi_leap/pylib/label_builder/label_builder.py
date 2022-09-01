@@ -71,7 +71,7 @@ SUBSTITUTIONS = [
 ]
 
 
-def filter_sort_lines(lines: list[str], line_align, threshold=128) -> list[str]:
+def filter_lines(lines: list[str], line_align, threshold=128) -> list[str]:
     """Sort the lines by Levenshtein distance and filter out the outliers."""
     if len(lines) <= 2:
         return lines

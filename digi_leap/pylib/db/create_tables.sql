@@ -1,12 +1,12 @@
 create table if not exists sheets (
-    sheet_id integer primary key autoincrement,
-    path     text    unique,
-    width    integer,
-    height   integer,
-    coreid   text,
-    split    text
+    sheet_id  integer primary key autoincrement,
+    sheet_set text,
+    path      text,
+    width     integer,
+    height    integer,
+    coreid    text,
+    split     text
 );
-create unique index if not exists sheets_idx on sheets (coreid);
 
 
 create table if not exists sheet_errors (

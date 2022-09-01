@@ -23,8 +23,7 @@ def parse_args() -> argparse.Namespace:
         volunteers judge the correctness of found labels by clicking inside of the
         label (a point) with a correct/incorrect indicator. If the label finder
         completely missed a label a volunteer draws a bounding box around the missing
-        label. Note: We filter out people who click all over the page or draw random
-        boxes everywhere or even give conflicting labels."""
+        label."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -50,6 +49,13 @@ def parse_args() -> argparse.Namespace:
         required=True,
         metavar="NAME",
         help="""Get old labels from this set.""",
+    )
+
+    arg_parser.add_argument(
+        "--sheet-set",
+        required=True,
+        metavar="NAME",
+        help="""Write reconciled sheets to this set.""",
     )
 
     arg_parser.add_argument(
