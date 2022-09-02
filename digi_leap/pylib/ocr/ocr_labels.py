@@ -63,15 +63,15 @@ class Ensemble:
         if self.deskew_easyocr:
             pipes.append("[deskew,easyocr]")
         if self.deskew_tesseract:
-            pipes.append("[deskew,easyocr]")
+            pipes.append("[deskew,tesseract]")
         if self.binarize_easyocr:
             pipes.append("[binarize,easyocr]")
         if self.binarize_tesseract:
-            pipes.append("[binarize,easyocr]")
+            pipes.append("[binarize,tesseract]")
         if self.denoise_easyocr:
             pipes.append("[denoise,easyocr]")
         if self.denoise_tesseract:
-            pipes.append("[denoise,easyocr]")
+            pipes.append("[denoise,tesseract]")
         if self.post_process:
             pipes.append("[post_process]")
         return ",".join(pipes)

@@ -29,7 +29,7 @@ def build(args: Namespace) -> None:
         ensemble = Ensemble(args)
 
         writer = csv.writer(csv_file)
-        writer.writerow("gold_id pipeline database".split())
+        writer.writerow("gold_id image_file text_file pipeline database".split())
 
         golden = db.execute(cxn, sql, [args.gold_set])
 
@@ -37,14 +37,24 @@ def build(args: Namespace) -> None:
             image = get_golden_label(gold)
             text = ensemble.run(image)
 
-            path = Path(args.expedition_dir) / f"gold_id_{gold['gold_id']:04d}.jpg"
-            image.save(str(path))
+            image_path = (
+                Path(args.expedition_dir) / f"gold_id_{gold['gold_id']:04d}.jpg"
+            )
+            image.save(str(image_path))
 
-            path = path.with_suffix(".txt")
-            with open(path, "w") as out_file:
+            text_path = image_path.with_suffix(".txt")
+            with open(text_path, "w") as out_file:
                 out_file.write(text)
 
-            writer.writerow([gold["gold_id"], ensemble.pipeline, args.database])
+            writer.writerow(
+                [
+                    gold["gold_id"],
+                    image_path.name,
+                    text_path.name,
+                    ensemble.pipeline,
+                    args.database,
+                ]
+            )
 
         db.update_run_finished(cxn, run_id)
 
