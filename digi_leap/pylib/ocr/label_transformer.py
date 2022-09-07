@@ -28,7 +28,7 @@ def compose(*functions: Transformation) -> Transformation:
 
 def image_to_array(image: ImageType) -> npt.ArrayLike:
     image = image.convert("L")
-    return np.asarray(image)
+    return np.asarray(image)  # noqa
 
 
 def array_to_image(image: npt.ArrayLike) -> ImageType:
