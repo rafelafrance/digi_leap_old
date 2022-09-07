@@ -52,7 +52,7 @@ def build(args: Namespace) -> None:
                     image_path.name,
                     text_path.name,
                     ensemble.pipeline,
-                    args.database,
+                    str(args.database).replace(".", "_").replace("/", "_"),
                 ]
             )
 

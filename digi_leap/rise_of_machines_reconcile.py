@@ -52,17 +52,25 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--sheet-set",
+        "--new-sheet-set",
         required=True,
         metavar="NAME",
         help="""Write reconciled sheets to this set.""",
     )
 
     arg_parser.add_argument(
-        "--reconciled-set",
+        "--new-label-set",
         required=True,
         metavar="NAME",
         help="""Write new reconciled labels to this set.""",
+    )
+
+    arg_parser.add_argument(
+        "--label-conf",
+        type=float,
+        default=0.25,
+        help="""Only include labels that have a confidence >= to this. Set it to 0.0 to
+            get all of the labels. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

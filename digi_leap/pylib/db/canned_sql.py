@@ -1,4 +1,9 @@
 CANNED_INSERTS = {
+    "sheets": """
+        insert into sheets
+               ( sheet_set,  path,  width,  height,  coreid,  split)
+        values (:sheet_set, :path, :width, :height, :coreid, :split);
+        """,
     "labels": """
         insert into labels
                ( sheet_id,    label_set,  offset,       class,  label_conf,
@@ -46,7 +51,8 @@ CANNED_SELECTS = {
         select *
         from   labels
         join   sheets using (sheet_id)
-        where  label_set = :label_set;
+        where  label_set = :label_set
+        and    label_conf >= :label_conf;
         """,
     "label_split": """
         select    *
