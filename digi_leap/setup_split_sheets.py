@@ -18,18 +18,19 @@ def assign_sheets(args):
 
         select = """
             select sheet_id from sheets
-             where (split is null or split = '' order by random())
+             where (split is null or split = '')
                and sheet_set = ?
+             order by random()
             """
-        rows = db.execute(cxn, select, (args.sheet_set,))
+        rows = db.execute(cxn, select, (args.sheet_set,)).fetchall()
 
         count = len(rows)
-        val_split = round(count * (args.eval_split + args.val_split))
-        eval_split = round(count * args.eval_split)
+        val_split = round(count * (args.test_split + args.val_split))
+        test_split = round(count * args.test_split)
 
         update = """update sheets set split = ? where sheet_id = ?"""
         for i, row in enumerate(rows):
-            if i <= eval_split:
+            if i <= test_split:
                 split = "test"
             elif i <= val_split:
                 split = "val"

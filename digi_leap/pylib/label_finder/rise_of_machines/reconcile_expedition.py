@@ -52,20 +52,12 @@ class Sheets:
         labels = db.canned_select(
             "labels", cxn, label_set=label_set, label_conf=label_conf
         )
-        for row in labels:
-            name = Path(row["path"]).name
+        for label_rec in labels:
+            name = Path(label_rec["path"]).name
             if name in points:
                 if name not in self.sheets:
-                    self.sheets[name] = Sheet(row)
-                self.sheets[name].labels.append(
-                    Label(
-                        class_=row["class"],
-                        label_left=row["label_left"],
-                        label_top=row["label_top"],
-                        label_right=row["label_right"],
-                        label_bottom=row["label_bottom"],
-                    )
-                )
+                    self.sheets[name] = Sheet(label_rec)
+                self.sheets[name].add_old_label(label_rec)
 
     def build_new_labels(self, points):
         for path, point in points.items():
@@ -73,7 +65,7 @@ class Sheets:
                 continue
             if path in self.sheets:
                 sheet = self.sheets[path]
-                sheet.build_new_labels(point)
+                sheet.add_new_labels(point)
 
     def reclassify_old_labels(self, points):
         for path, point in points.items():
@@ -82,31 +74,36 @@ class Sheets:
                 sheet.annotate(point)
 
         for sheet in self.sheets.values():
-            for label in sheet.labels:
+            for label in sheet.old_labels:
                 label.reclassify()
 
-    def insert(self, cxn):
+    def insert(self, cxn, sheet_set, label_set):
+        cxn.execute("delete from sheets where sheet_set = ?", (sheet_set,))
         for sheet in self.sheets.values():
-            sheet.insert(cxn)
+            sheet.insert(cxn, sheet_set, label_set)
 
 
 class Sheet:
-    sql = """
-        insert into sheets
-               ( sheet_set,  path,  width,  height,  coreid,  split)
-        values (:sheet_set, :path, :width, :height, :coreid, :split)
-        returning sheet_id
-        """
-
     def __init__(self, label_rec):
         self.path: str = label_rec["path"]
         self.width: int = label_rec["width"]
         self.height: int = label_rec["height"]
         self.coreid: str = label_rec["coreid"]
-        self.labels: list[Label] = []
+        self.old_labels: list[Label] = []
         self.new_labels: list[Label] = []
 
-    def build_new_labels(self, point):
+    def add_old_label(self, label_rec):
+        self.old_labels.append(
+            Label(
+                class_=label_rec["class"],
+                label_left=label_rec["label_left"],
+                label_top=label_rec["label_top"],
+                label_right=label_rec["label_right"],
+                label_bottom=label_rec["label_bottom"],
+            )
+        )
+
+    def add_new_labels(self, point):
         boxes = [[m["left"], m["top"], m["right"], m["bottom"]] for m in point.missing]
         boxes = np.array(boxes, dtype=np.int32)
         groups = calc.overlapping_boxes(boxes)
@@ -136,7 +133,7 @@ class Sheet:
                 label.votes -= 1
 
     def find_label(self, annotation):
-        for label in self.labels:
+        for label in self.old_labels:
             if (
                 label.label_left <= annotation["x"] <= label.label_right
                 and label.label_top <= annotation["y"] <= label.label_bottom
@@ -144,9 +141,15 @@ class Sheet:
                 return label
         return None
 
-    def insert(self, cxn, sheet_set):
+    def insert(self, cxn, sheet_set, label_set):
+        sql = """
+            insert into sheets
+                   ( sheet_set,  path,  width,  height,  coreid,  split)
+            values (:sheet_set, :path, :width, :height, :coreid, :split)
+            returning sheet_id
+            """
         sheet_id = cxn.execute(
-            self.sql,
+            sql,
             {
                 "sheet_set": sheet_set,
                 "path": self.path,
@@ -155,8 +158,12 @@ class Sheet:
                 "coreid": self.coreid,
                 "split": "",
             },
-        )
-        print(sheet_id)
+        ).fetchone()[0]
+
+        batch = []
+        for label in self.old_labels + self.new_labels:
+            batch.append(label.build_insert(sheet_id, label_set, len(batch)))
+        db.canned_insert("labels", cxn, batch)
 
 
 @dataclass()
@@ -176,24 +183,29 @@ class Label:
         elif self.votes <= 0 and self.class_ != "Typewritten":
             self.class_ = "Typewritten"
 
+    def build_insert(self, sheet_id, label_set, offset):
+        return {
+            "sheet_id": sheet_id,
+            "label_set": label_set,
+            "offset": offset,
+            "class": self.class_,
+            "label_conf": 1.0,
+            "label_left": self.label_left,
+            "label_top": self.label_top,
+            "label_right": self.label_right,
+            "label_bottom": self.label_bottom,
+        }
+
 
 def reconcile(args):
     with db.connect(args.database) as cxn:
-        # run_id = db.insert_run(cxn, args)
+        run_id = db.insert_run(cxn, args)
 
         classifications = Classifications(args.unreconciled_csv)
         points = Points(classifications, args.increase_by)
-        sheets = Sheets(cxn, points, args.label_conf, args.label_set)
+        sheets = Sheets(cxn, points, args.label_conf, args.old_label_set)
         sheets.reclassify_old_labels(points)
         sheets.build_new_labels(points)
-        sheets.insert(cxn)
+        sheets.insert(cxn, args.new_sheet_set, args.new_label_set)
 
-        from pprint import pp
-
-        for sheet in sheets.sheets.values():
-            pp(sheet.__dict__)
-            break
-        # Write labels with click annotations to the database
-        # Write new labels to database
-
-        # db.update_run_finished(cxn, run_id)
+        db.update_run_finished(cxn, run_id)

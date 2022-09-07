@@ -45,7 +45,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--label-set",
+        "--old-label-set",
         required=True,
         metavar="NAME",
         help="""Get old labels from this set.""",
