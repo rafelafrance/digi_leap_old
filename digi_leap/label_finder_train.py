@@ -47,7 +47,7 @@ def parse_args() -> argparse.Namespace:
         "--load-model",
         type=Path,
         metavar="PATH",
-        help="""Path model to continue training.""",
+        help="""Continue training this model.""",
     )
 
     arg_parser.add_argument(

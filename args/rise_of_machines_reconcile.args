@@ -1,0 +1,6 @@
+--database=data/sernec/sernec.sqlite
+--unreconciled-csv=data/sernec/rise_of_machines/label-babel-3-rise-of-the-machines-classifications.unreconciled.csv
+--old-label-set=tf_efficientnetv2_s_2022-03-04
+--new-sheet-set=rom-2022-08-30
+--new-label-set=rom-2022-08-30
+--increase-by=4

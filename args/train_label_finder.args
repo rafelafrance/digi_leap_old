@@ -1,7 +1,0 @@
---database=data/label-babel-2/label-babel-2.sqlite
---save-model=data/models/efficientnetv2_s_1.pt
---label-set=old
---log-dir=data/runs/efficientnetv2_s
---workers=8
---batch-size=4
---epochs=100

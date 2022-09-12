@@ -79,6 +79,7 @@ class Sheets:
 
     def insert(self, cxn, sheet_set, label_set):
         cxn.execute("delete from sheets where sheet_set = ?", (sheet_set,))
+        cxn.execute("delete from labels where label_set = ?", (label_set,))
         for sheet in self.sheets.values():
             sheet.insert(cxn, sheet_set, label_set)
 
@@ -162,7 +163,7 @@ class Sheet:
 
         batch = []
         for label in self.old_labels + self.new_labels:
-            batch.append(label.build_insert(sheet_id, label_set, len(batch)))
+            batch.append(label.build_insert(sheet_id, self, label_set, len(batch)))
         db.canned_insert("labels", cxn, batch)
 
 
@@ -183,18 +184,19 @@ class Label:
         elif self.votes <= 0 and self.class_ != "Typewritten":
             self.class_ = "Typewritten"
 
-    def build_insert(self, sheet_id, label_set, offset):
-        return {
+    def build_insert(self, sheet_id, sheet, label_set, offset):
+        label = {
             "sheet_id": sheet_id,
             "label_set": label_set,
             "offset": offset,
             "class": self.class_,
             "label_conf": 1.0,
-            "label_left": self.label_left,
-            "label_top": self.label_top,
-            "label_right": self.label_right,
-            "label_bottom": self.label_bottom,
+            "label_left": max(0, int(self.label_left)),
+            "label_top": max(0, int(self.label_top)),
+            "label_right": min(sheet.width - 1, int(self.label_right)),
+            "label_bottom": min(sheet.height - 1, int(self.label_bottom)),
         }
+        return label
 
 
 def reconcile(args):

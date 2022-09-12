@@ -16,7 +16,10 @@ def main():
 
 
 def parse_args() -> argparse.Namespace:
-    description = """OCR images of labels."""
+    # The current best ensemble
+    # [[, easyocr], [, tesseract], [deskew, easyocr], [deskew, tesseract],
+    # [binarize, tesseract], [denoise, tesseract], [post_process]]
+    description = """OCR images of labels. (Try this ensemble: -RrDdbnp)"""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"

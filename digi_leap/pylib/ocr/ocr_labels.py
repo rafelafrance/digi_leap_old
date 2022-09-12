@@ -16,15 +16,7 @@ from ..label_builder.line_align import char_sub_matrix as subs
 from ..label_builder.line_align import line_align_py  # noqa
 from ..label_builder.spell_well.spell_well import SpellWell
 
-ENGINE = {
-    "tesseract": ocr_runner.tesseract_engine,
-    "easyocr": ocr_runner.easyocr_engine,
-}
 
-
-# The current best ensemble
-# [[, easyocr], [, tesseract], [deskew, easyocr], [deskew, tesseract],
-# [binarize, tesseract], [denoise, tesseract], [post_process]]
 class Ensemble:
     def __init__(self, args):
         self.none_easyocr = args.none_easyocr
