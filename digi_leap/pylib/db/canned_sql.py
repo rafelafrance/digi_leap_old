@@ -54,12 +54,12 @@ CANNED_SELECTS = {
         where  label_set = :label_set
         and    label_conf >= :label_conf;
         """,
-    "label_split": """
+    "train_split": """
         select    *
         from      sheets
-        left join labels using (sheet_id)
+        left join label_finder_train using (sheet_id)
         where     split = :split
-        and       label_set = :label_set;
+        and       train_set = :train_set;
         """,
     "ocr_texts": """
         select *

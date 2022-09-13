@@ -1,7 +1,7 @@
 --database=data/sernec/sernec.sqlite
 --save-model=data/models/efficientnetv2_s_2.pt
 --load-model=data/models/efficientnetv2_s_1.pt
---label-set=rom-2022-08-30
+--train-set=rom-2022-08-30
 --log-dir=data/runs/efficientnetv2_s
 --workers=8
 --batch-size=4

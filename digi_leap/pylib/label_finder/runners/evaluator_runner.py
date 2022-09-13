@@ -115,7 +115,7 @@ def insert_evaluation_records(cxn, batch, test_set, image_size):
 def get_data_loader(cxn, args):
     logging.info("Loading eval data.")
     raw_data = db.canned_select(
-        "label_split", cxn, split="test", label_set=args.label_set
+        "train_split", cxn, split="test", train_set=args.train_set
     )
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(

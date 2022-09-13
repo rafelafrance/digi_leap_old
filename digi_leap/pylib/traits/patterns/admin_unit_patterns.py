@@ -9,7 +9,7 @@ from . import term_patterns
 STATE_ENTS = ["us_state", "us_state-us_county", "us_territory"]
 COUNTY_ENTS = ["us_county", "us_state-us_county"]
 ADMIN_ENTS = ["us_state", "us_county", "us_state-us_county", "us_territory"]
-CO_LABEL = ["co", "co.", "county"]
+CO_LABEL = ["co", "co.", "county", "parish", "par", "par.", "ph.", "ph"]
 ST_LABEL = ["plants", "flora"]
 
 # ####################################################################################

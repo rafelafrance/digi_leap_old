@@ -72,16 +72,28 @@ create index if not exists traits_cons_id on traits (consensus_id);
 create index if not exists traits_trait on traits (trait);
 
 
+create table if not exists label_finder_train (
+    train_id     integer primary key autoincrement,
+    train_set    text,
+    sheet_id     integer,
+    train_class  text,
+    train_left   integer,
+    train_top    integer,
+    train_right  integer,
+    train_bottom integer
+);
+
+
 create table if not exists label_finder_tests (
     test_id     integer primary key autoincrement,
     test_set    text,
     sheet_id    integer,
-    pred_class  text,
-    pred_conf   real,
-    pred_left   integer,
-    pred_top    integer,
-    pred_right  integer,
-    pred_bottom integer
+    test_class  text,
+    test_conf   real,
+    test_left   integer,
+    test_top    integer,
+    test_right  integer,
+    test_bottom integer
 );
 
 

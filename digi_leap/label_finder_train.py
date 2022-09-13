@@ -65,10 +65,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--label-set",
+        "--train-set",
         metavar="NAME",
         required=True,
-        help="""Which which labels to use.""",
+        help="""Which labels to use.""",
     )
 
     arg_parser.add_argument(
