@@ -45,21 +45,21 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--old-label-set",
+        "--label-set",
         required=True,
         metavar="NAME",
-        help="""Get old labels from this set.""",
+        help="""Get labels from this set.""",
     )
 
     arg_parser.add_argument(
-        "--new-sheet-set",
+        "--sheet-set",
         required=True,
         metavar="NAME",
         help="""Write reconciled sheets to this set.""",
     )
 
     arg_parser.add_argument(
-        "--new-label-set",
+        "--train-set",
         required=True,
         metavar="NAME",
         help="""Write new reconciled labels to this set.""",

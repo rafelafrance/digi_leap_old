@@ -77,11 +77,11 @@ class Sheets:
             for label in sheet.old_labels:
                 label.reclassify()
 
-    def insert(self, cxn, sheet_set, label_set):
+    def insert(self, cxn, sheet_set, train_set):
         cxn.execute("delete from sheets where sheet_set = ?", (sheet_set,))
-        cxn.execute("delete from labels where label_set = ?", (label_set,))
+        cxn.execute("delete from labels where label_set = ?", (train_set,))
         for sheet in self.sheets.values():
-            sheet.insert(cxn, sheet_set, label_set)
+            sheet.insert(cxn, sheet_set, train_set)
 
 
 class Sheet:
@@ -142,7 +142,7 @@ class Sheet:
                 return label
         return None
 
-    def insert(self, cxn, sheet_set, label_set):
+    def insert(self, cxn, sheet_set, train_set):
         sql = """
             insert into sheets
                    ( sheet_set,  path,  width,  height,  coreid,  split)
@@ -163,7 +163,7 @@ class Sheet:
 
         batch = []
         for label in self.old_labels + self.new_labels:
-            batch.append(label.build_insert(sheet_id, self, label_set, len(batch)))
+            batch.append(label.build_insert(sheet_id, self, train_set, len(batch)))
         db.canned_insert("labels", cxn, batch)
 
 
@@ -205,9 +205,9 @@ def reconcile(args):
 
         classifications = Classifications(args.unreconciled_csv)
         points = Points(classifications, args.increase_by)
-        sheets = Sheets(cxn, points, args.label_conf, args.old_label_set)
+        sheets = Sheets(cxn, points, args.label_conf, args.label_set)
         sheets.reclassify_old_labels(points)
         sheets.build_new_labels(points)
-        sheets.insert(cxn, args.new_sheet_set, args.new_label_set)
+        sheets.insert(cxn, args.sheet_set, args.train_set)
 
         db.update_run_finished(cxn, run_id)
