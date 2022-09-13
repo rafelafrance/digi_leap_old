@@ -29,13 +29,13 @@ class LabeledData(Dataset):
         old_sheets = defaultdict(lambda: defaultdict(list))
         for lb in labels:
             key = (lb["sheet_id"], lb["path"])
-            old_sheets[key]["targets"].append(consts.CLASS2INT[lb["class"]])
+            old_sheets[key]["targets"].append(consts.CLASS2INT[lb["train_class"]])
             old_sheets[key]["boxes"].append(
                 [
-                    lb["label_left"],
-                    lb["label_top"],
-                    lb["label_right"],
-                    lb["label_bottom"],
+                    lb["train_left"],
+                    lb["train_top"],
+                    lb["train_right"],
+                    lb["train_bottom"],
                 ]
             )
 

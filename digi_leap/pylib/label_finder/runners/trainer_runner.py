@@ -14,7 +14,6 @@ from ..models import model_utils
 
 @dataclass
 class Stats:
-
     total_loss: float = float("Inf")
     class_loss: float = float("Inf")
     box_loss: float = float("Inf")
@@ -147,17 +146,17 @@ def log_stats(writer, train_loss, val_loss, best_loss, epoch):
     logging.info(
         (
             "%3d "
-            "Train: total loss %0.6f box loss %0.6f class loss %0.6f "
-            "Validation: total loss %0.6f box loss %0.6f class loss %0.6f "
+            "Train: box loss %0.6f class loss %0.6f total loss %0.6f "
+            "Validation: box loss %0.6f class loss %0.6f total loss %0.6f "
             "%s"
         ),
         epoch,
-        train_loss.total_loss,
         train_loss.box_loss,
         train_loss.class_loss,
-        val_loss.total_loss,
+        train_loss.total_loss,
         val_loss.box_loss,
         val_loss.class_loss,
+        val_loss.total_loss,
         "++" if val_loss.total_loss == best_loss.total_loss else "",
     )
     writer.add_scalars(

@@ -3,6 +3,7 @@ import logging
 
 import torch
 from torchvision.models import detection
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from ... import consts
 from ..models import efficient_det_model as edm
@@ -24,11 +25,15 @@ def tf_efficientnetv2_s(args):
 
 def fasterrcnn_resnet50_fpn(_):
     model = detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(consts.CLASSES))
     return model
 
 
 def fasterrcnn_resnet50_fpn_v2(_):
-    model = detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    model = detection.fasterrcnn_resnet50_fpn_v2(pretrained=True)
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(consts.CLASSES))
     return model
 
 
