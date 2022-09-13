@@ -9,6 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from . import runner_utils
 from ...db import db
 from ..datasets.labeled_data import LabeledData
+from ..models import model_utils
 
 
 @dataclass
@@ -24,6 +25,8 @@ def train(model, args: Namespace):
         run_id = db.insert_run(cxn, args)
 
         device = torch.device("cuda" if torch.has_cuda else "cpu")
+
+        model_utils.load_model_state(model, args.load_model)
         model.to(device)
 
         writer = SummaryWriter(args.log_dir)

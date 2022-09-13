@@ -6,6 +6,7 @@ from pathlib import Path
 from pylib import consts
 from pylib import log
 from pylib.label_finder.models import efficient_det_model
+from pylib.label_finder.models import model_utils
 from pylib.label_finder.runners import evaluator_runner
 
 
@@ -64,7 +65,8 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--model",
-        default="tf_efficientnetv2_s",
+        choices=list(model_utils.MODELS.keys()),
+        default=list(model_utils.MODELS.keys())[0],
         help="""What model to use as the object detector. (default: %(default)s)""",
     )
 

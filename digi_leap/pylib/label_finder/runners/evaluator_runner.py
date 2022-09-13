@@ -15,7 +15,6 @@ from ..models import model_utils
 
 @dataclass
 class Stats:
-
     total_loss: float = float("Inf")
     class_loss: float = float("Inf")
     box_loss: float = float("Inf")

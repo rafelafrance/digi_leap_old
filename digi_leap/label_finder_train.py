@@ -4,18 +4,15 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib import consts
 from pylib import log
-from pylib.label_finder.models import efficient_det_model as edm
+from pylib.label_finder.models import model_utils
 from pylib.label_finder.runners import trainer_runner
 
 
 def main():
     log.started()
     args = parse_args()
-    model = edm.create_model(
-        len(consts.CLASSES), name=args.model, image_size=args.image_size
-    )
+    model = model_utils.MODELS[args.model](args)
     trainer_runner.train(model, args)
     log.finished()
 
@@ -52,7 +49,8 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--model",
-        default="tf_efficientnetv2_s",
+        choices=list(model_utils.MODELS.keys()),
+        default=list(model_utils.MODELS.keys())[0],
         help="""What model to use as the object detector. (default: %(default)s)""",
     )
 
