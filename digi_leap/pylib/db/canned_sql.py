@@ -100,4 +100,3 @@ CANNED_SELECTS = {
         order by consensus_id, trait_id
         """,
 }
-
