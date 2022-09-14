@@ -163,7 +163,7 @@ class Sheet:
 
         batch = []
         for label in self.old_labels + self.new_labels:
-            batch.append(label.build_insert(sheet_id, self, train_set, len(batch)))
+            batch.append(label.build_insert(sheet_id, self, train_set))
         db.canned_insert("labels", cxn, batch)
 
 
@@ -184,17 +184,15 @@ class Label:
         elif self.votes <= 0 and self.class_ != "Typewritten":
             self.class_ = "Typewritten"
 
-    def build_insert(self, sheet_id, sheet, label_set, offset):
+    def build_insert(self, sheet_id, sheet, label_set):
         label = {
             "sheet_id": sheet_id,
-            "label_set": label_set,
-            "offset": offset,
-            "class": self.class_,
-            "label_conf": 1.0,
-            "label_left": max(0, int(self.label_left)),
-            "label_top": max(0, int(self.label_top)),
-            "label_right": min(sheet.width - 1, int(self.label_right)),
-            "label_bottom": min(sheet.height - 1, int(self.label_bottom)),
+            "train_set": label_set,
+            "train_class": self.class_,
+            "train_left": max(0, int(self.label_left)),
+            "train_top": max(0, int(self.label_top)),
+            "train_right": min(sheet.width - 1, int(self.label_right)),
+            "train_bottom": min(sheet.height - 1, int(self.label_bottom)),
         }
         return label
 

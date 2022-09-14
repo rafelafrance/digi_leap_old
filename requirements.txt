@@ -2,6 +2,7 @@ Pillow
 albumentations
 chardet
 cppimport
+cython
 python-dateutil
 easyocr
 effdet
@@ -13,6 +14,7 @@ nltk
 numpy
 pandas
 pybind11
+pycocotools
 pytesseract
 regex
 scikit-image

@@ -6,9 +6,9 @@ CANNED_INSERTS = {
         """,
     "labels": """
         insert into labels
-               ( sheet_id,    label_set,  offset,       class,  label_conf,
+               ( sheet_id,    label_set,  class,  label_conf,
                  label_left,  label_top,  label_right,  label_bottom)
-        values (:sheet_id,   :label_set, :offset,      :class, :label_conf,
+        values (:sheet_id,   :label_set, :class, :label_conf,
                 :label_left, :label_top, :label_right, :label_bottom);
         """,
     "ocr_texts": """
@@ -25,12 +25,19 @@ CANNED_INSERTS = {
         insert into traits ( trait_set,  consensus_id,  trait,  data)
                     values (:trait_set, :consensus_id, :trait, :data);
         """,
+    "label_finder_train": """
+        insert into label_finder_train
+               ( train_set,   sheet_id,  train_class, 
+                 train_left,  train_top,  train_right,  train_bottom)
+        values (:train_set,  :sheet_id, :train_class,
+                :train_left, :train_top, :train_right, :train_bottom);
+        """,
     "label_finder_tests": """
         insert into label_finder_tests
-               ( test_set,   sheet_id,  pred_class,  pred_conf,
-                 pred_left,  pred_top,  pred_right,  pred_bottom)
-        values (:test_set,  :sheet_id, :pred_class, :pred_conf,
-                :pred_left, :pred_top, :pred_right, :pred_bottom);
+               ( train_set,   sheet_id,  train_class,  pred_conf,
+                 train_left,  train_top,  train_right,  train_bottom)
+        values (:train_set,  :sheet_id, :train_class, :pred_conf,
+                :train_left, :train_top, :train_right, :train_bottom);
         """,
     "char_sub_matrix": """
         insert into char_sub_matrix

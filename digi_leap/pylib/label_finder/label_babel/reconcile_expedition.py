@@ -24,7 +24,7 @@ def reconcile(args: Namespace) -> None:
             subject.merge_box_groups()
 
         df = get_reconciled_boxes(subjects, args.reconciled_set)
-        df.to_sql("reconciled_boxes", cxn, if_exists="append", index=False)
+        df.to_sql("label_finder_train", cxn, if_exists="append", index=False)
 
         db.update_run_finished(cxn, run_id)
 
@@ -43,18 +43,16 @@ def get_reconciled_boxes(subjects, reconciled_set):
         if len(boxes) != len(classes):
             raise ValueError(f"Malformed subject {subject.subject_id}")
 
-        for i, (box, cls) in enumerate(zip(boxes, classes), 1):
+        for box, cls in zip(boxes, classes):
             rec_boxes.append(
                 {
-                    "subject_id": subject.subject_id,
                     "sheet_id": subject.sheet_id,
-                    "rec_offset": i,
-                    "rec_run": reconciled_set,
-                    "rec_class": cls,
-                    "rec_left": box[0],
-                    "rec_top": box[1],
-                    "rec_right": box[2],
-                    "rec_bottom": box[3],
+                    "train_set": reconciled_set,
+                    "train_class": cls,
+                    "train_left": box[0],
+                    "train_top": box[1],
+                    "train_right": box[2],
+                    "train_bottom": box[3],
                 }
             )
 

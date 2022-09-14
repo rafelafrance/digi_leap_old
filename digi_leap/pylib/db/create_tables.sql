@@ -27,7 +27,6 @@ create table if not exists labels (
     label_id     integer primary key autoincrement,
     sheet_id     integer,
     label_set    text,
-    offset       integer,
     class        text,
     label_conf   real,
     label_left   integer,
@@ -35,7 +34,6 @@ create table if not exists labels (
     label_right  integer,
     label_bottom integer
 );
-create unique index labels_idx on labels (label_set, sheet_id, offset);
 create index if not exists labels_sheet_id on labels (sheet_id);
 
 
