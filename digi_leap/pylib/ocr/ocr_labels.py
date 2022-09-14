@@ -146,7 +146,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
 def get_sheet_labels(cxn, classes, label_set, label_conf):
     sheets = {}
     labels = db.canned_select("labels", cxn, label_set=label_set, label_conf=label_conf)
-    labels = sorted(labels, key=lambda lb: (lb["path"], lb["offset"]))
+    labels = sorted(labels, key=lambda lb: lb["path"])
     grouped = itertools.groupby(labels, lambda lb: lb["path"])
 
     for path, labels in grouped:

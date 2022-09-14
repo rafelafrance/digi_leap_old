@@ -116,6 +116,13 @@ def parse_args() -> argparse.Namespace:
         help="""Notes about this run. Enclose them in quotes.""",
     )
 
+    arg_parser.add_argument(
+        "--limit",
+        type=float,
+        default=0,
+        help="""Use this many sheets for training. (default: %(default)s)""",
+    )
+
     args = arg_parser.parse_args()
 
     return args

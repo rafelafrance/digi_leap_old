@@ -27,7 +27,7 @@ CANNED_INSERTS = {
         """,
     "label_finder_train": """
         insert into label_finder_train
-               ( train_set,   sheet_id,  train_class, 
+               ( train_set,   sheet_id,  train_class,
                  train_left,  train_top,  train_right,  train_bottom)
         values (:train_set,  :sheet_id, :train_class,
                 :train_left, :train_top, :train_right, :train_bottom);
@@ -100,3 +100,4 @@ CANNED_SELECTS = {
         order by consensus_id, trait_id
         """,
 }
+

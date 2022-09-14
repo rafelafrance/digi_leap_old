@@ -74,9 +74,6 @@ def insert_label_records(cxn, batch, label_set, image_size):
         high = row["height"] / image_size
         sheets[row["sheet_id"]] = (wide, high)
 
-    prev_sheet_id = ""
-    offset = 0
-
     for row in batch:
         row["label_set"] = label_set
         row["class"] = consts.CLASS2NAME[row["class"]]
@@ -88,11 +85,6 @@ def insert_label_records(cxn, batch, label_set, image_size):
 
         row["label_top"] = int(row["label_top"] * high)
         row["label_bottom"] = int(row["label_bottom"] * high)
-
-        offset = offset + 1 if row["sheet_id"] == prev_sheet_id else 0
-        row["offset"] = offset
-
-        prev_sheet_id = row["sheet_id"]
 
     db.execute(cxn, "delete from labels where label_set = ?", (label_set,))
     db.canned_insert("labels", cxn, batch)
