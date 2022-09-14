@@ -118,7 +118,7 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--limit",
-        type=float,
+        type=int,
         default=0,
         help="""Use this many sheets for training. (default: %(default)s)""",
     )

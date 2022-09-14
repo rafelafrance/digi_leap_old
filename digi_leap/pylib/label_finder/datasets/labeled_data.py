@@ -16,15 +16,15 @@ LabeledSheet = namedtuple("LabeledSheet", "path boxes targets sheet_id")
 
 
 class LabeledData(Dataset):
-    def __init__(self, labels: list[dict], image_size, augment=False):
+    def __init__(self, labels: list[dict], image_size, augment=False, limit=0):
         super().__init__()
         self.augment = augment
         self.image_size = image_size
-        self.sheets: list[LabeledSheet] = self.build_sheets(labels)
+        self.sheets: list[LabeledSheet] = self.build_sheets(labels, limit)
         self.transform = self.build_transforms(image_size, augment)
 
     @staticmethod
-    def build_sheets(labels) -> list[LabeledSheet]:
+    def build_sheets(labels, limit) -> list[LabeledSheet]:
         """Group labels by sheet."""
         old_sheets = defaultdict(lambda: defaultdict(list))
         for lb in labels:
@@ -50,7 +50,7 @@ class LabeledData(Dataset):
                 )
             )
 
-        return new_sheets
+        return new_sheets if not limit else new_sheets[:limit]
 
     def __len__(self):
         return len(self.sheets)
