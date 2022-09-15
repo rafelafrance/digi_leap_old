@@ -5,15 +5,15 @@ import textwrap
 from pathlib import Path
 
 from pylib import log
+from pylib.label_finder.engines import trainer_engine
 from pylib.label_finder.models import model_utils
-from pylib.label_finder.runners import trainer_runner
 
 
 def main():
     log.started()
     args = parse_args()
     model = model_utils.MODELS[args.model](args)
-    trainer_runner.train(model, args)
+    trainer_engine.train(model, args)
     log.finished()
 
 

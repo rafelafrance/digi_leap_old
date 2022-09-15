@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from . import runner_utils
+from . import engine_utils
 from ...db import db
 from ..datasets.labeled_data import LabeledData
 from ..models import model_utils
@@ -105,7 +105,7 @@ def get_train_loader(cxn, args):
         batch_size=args.batch_size,
         num_workers=args.workers,
         shuffle=True,
-        collate_fn=runner_utils.collate_fn,
+        collate_fn=engine_utils.collate_fn,
         pin_memory=True,
     )
 
@@ -120,7 +120,7 @@ def get_val_loader(cxn, args):
         dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
-        collate_fn=runner_utils.collate_fn,
+        collate_fn=engine_utils.collate_fn,
         pin_memory=True,
     )
 

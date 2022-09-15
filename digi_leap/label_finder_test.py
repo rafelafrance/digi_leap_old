@@ -5,9 +5,9 @@ from pathlib import Path
 
 from pylib import consts
 from pylib import log
+from pylib.label_finder.engines import a_test_engine
 from pylib.label_finder.models import efficient_det_model
 from pylib.label_finder.models import model_utils
-from pylib.label_finder.runners import evaluator_runner
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
         image_size=args.image_size,
         pretrained=False,
     )
-    evaluator_runner.evaluate(model, args)
+    a_test_engine.evaluate(model, args)
     log.finished()
 
 

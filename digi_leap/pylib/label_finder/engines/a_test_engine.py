@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from . import runner_utils
+from . import engine_utils
 from ... import consts
 from ...db import db
 from ..datasets.labeled_data import LabeledData
@@ -121,7 +121,7 @@ def get_data_loader(cxn, args):
         dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
-        collate_fn=runner_utils.collate_fn,
+        collate_fn=engine_utils.collate_fn,
         pin_memory=True,
     )
 
