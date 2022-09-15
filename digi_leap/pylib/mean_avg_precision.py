@@ -1,5 +1,6 @@
 """Calculate the mean average precision for scoring object detection results."""
-# TODO Fix this mess or find a lightweight library
+# TODO: Fix this mess or find a lightweight library
+# TODO: See if I can use the function from the COCO tools library
 import torch
 from torchvision import ops
 
