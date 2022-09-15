@@ -1,3 +1,5 @@
+# Code in this directory is "borrowed" from https://github.com/pytorch/vision/tree/main/references/detection
+
 # Object detection reference training scripts
 
 This folder contains reference training scripts for object detection.

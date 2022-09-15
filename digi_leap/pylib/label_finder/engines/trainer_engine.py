@@ -97,7 +97,7 @@ def get_optimizer(model, lr):
 def get_train_loader(cxn, args):
     logging.info("Loading training data.")
     raw_data = db.canned_select(
-        "label_finder_train", cxn, split="train", train_set=args.train_set
+        "train_split", cxn, split="train", train_set=args.train_set
     )
     dataset = LabeledData(raw_data, args.image_size, augment=True, limit=args.limit)
     return DataLoader(
@@ -113,7 +113,7 @@ def get_train_loader(cxn, args):
 def get_val_loader(cxn, args):
     logging.info("Loading validation data.")
     raw_data = db.canned_select(
-        "label_finder_train", cxn, split="val", train_set=args.train_set
+        "train_split", cxn, split="val", train_set=args.train_set
     )
     dataset = LabeledData(raw_data, args.image_size, augment=False, limit=args.limit)
     return DataLoader(

@@ -33,9 +33,8 @@ if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
 
 python -c 'import nltk; nltk.download("words")'
 
-python -m pip install -U spacy
+python -m pip install --upgrade spacy
 python -m spacy download en_core_web_md
-python -m spacy download en_core_web_lg
 
 
 # ##############################################################################

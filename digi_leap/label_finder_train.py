@@ -6,14 +6,22 @@ from pathlib import Path
 
 from pylib import log
 from pylib.label_finder.engines import trainer_engine
+from pylib.label_finder.engines import trainer_engine_fasterrrcnn
 from pylib.label_finder.models import model_utils
 
 
 def main():
     log.started()
+
     args = parse_args()
+
     model = model_utils.MODELS[args.model](args)
-    trainer_engine.train(model, args)
+
+    if args.model == "tf_efficientnetv2_s":
+        trainer_engine.train(model, args)
+    else:
+        trainer_engine_fasterrrcnn.train(model, args)
+
     log.finished()
 
 
