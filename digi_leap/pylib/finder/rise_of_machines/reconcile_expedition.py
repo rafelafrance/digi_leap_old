@@ -5,6 +5,7 @@ from dataclasses import field
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from ... import box_calc as calc
 from ...db import db
@@ -58,6 +59,8 @@ class Sheets:
                 if name not in self.sheets:
                     self.sheets[name] = Sheet(label_rec)
                 self.sheets[name].add_old_label(label_rec)
+        for sheet in self.sheets.values():
+            sheet.filter_labels()
 
     def build_new_labels(self, points):
         for path, point in points.items():
@@ -103,6 +106,21 @@ class Sheet:
                 label_bottom=label_rec["label_bottom"],
             )
         )
+
+    def filter_labels(self, threshold=0.4):
+        boxes = [
+            [
+                lb.label_left,
+                lb.label_top,
+                lb.label_right,
+                lb.label_bottom,
+            ]
+            for lb in self.old_labels
+        ]
+        boxes = torch.tensor(boxes)
+        boxes = calc.small_box_suppression(boxes, threshold=threshold)
+        labels = [lb for i, lb in enumerate(self.old_labels) if i in boxes]
+        self.old_labels = labels
 
     def add_new_labels(self, point):
         boxes = [[m["left"], m["top"], m["right"], m["bottom"]] for m in point.missing]
@@ -164,7 +182,7 @@ class Sheet:
         batch = []
         for label in self.old_labels + self.new_labels:
             batch.append(label.build_insert(sheet_id, self, train_set))
-        db.canned_insert(cxn, "labels", batch)
+        db.canned_insert(cxn, "label_finder_train", batch)
 
 
 @dataclass()
