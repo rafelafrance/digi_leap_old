@@ -108,13 +108,13 @@ def insert_evaluation_records(cxn, batch, test_set, image_size):
         row["pred_bottom"] = int(row["pred_bottom"] * high)
 
     db.execute(cxn, "delete from label_finder_tests where test_set = ?", (test_set,))
-    db.canned_insert("label_finder_tests", cxn, batch)
+    db.canned_insert(cxn, "label_finder_tests", batch)
 
 
 def get_data_loader(cxn, args):
     logging.info("Loading eval data.")
     raw_data = db.canned_select(
-        "train_split", cxn, split="test", train_set=args.train_set
+        cxn, "train_split", split="test", train_set=args.train_set
     )
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(

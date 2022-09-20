@@ -5,7 +5,7 @@ import textwrap
 from pathlib import Path
 
 from pylib import validate_args
-from pylib.label_builder.expedition import build_expedition
+from pylib.builder.expedition import build_expedition
 
 
 def main():

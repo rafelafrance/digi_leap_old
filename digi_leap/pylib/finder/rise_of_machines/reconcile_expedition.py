@@ -50,7 +50,7 @@ class Sheets:
     def __init__(self, cxn, points, label_conf, label_set):
         self.sheets: dict[str, Sheet] = {}
         labels = db.canned_select(
-            "labels", cxn, label_set=label_set, label_conf=label_conf
+            cxn, "labels", label_set=label_set, label_conf=label_conf
         )
         for label_rec in labels:
             name = Path(label_rec["path"]).name
@@ -164,7 +164,7 @@ class Sheet:
         batch = []
         for label in self.old_labels + self.new_labels:
             batch.append(label.build_insert(sheet_id, self, train_set))
-        db.canned_insert("labels", cxn, batch)
+        db.canned_insert(cxn, "labels", batch)
 
 
 @dataclass()

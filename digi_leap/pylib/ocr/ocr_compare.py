@@ -13,11 +13,11 @@ from tqdm import tqdm
 from . import label_transformer
 from . import ocr_runner
 from .. import consts
+from ..builder import label_builder
+from ..builder.line_align import char_sub_matrix as subs
+from ..builder.line_align import line_align_py  # noqa
+from ..builder.spell_well.spell_well import SpellWell
 from ..db import db
-from ..label_builder import label_builder
-from ..label_builder.line_align import char_sub_matrix as subs
-from ..label_builder.line_align import line_align_py  # noqa
-from ..label_builder.spell_well.spell_well import SpellWell
 
 IMAGE_TRANSFORMS = ["", "deskew", "binarize", "denoise"]
 
@@ -98,7 +98,7 @@ def score_batch(golden, score_set, gold_set) -> list[dict]:
 def insert_scores(scores, database, score_set):
     with db.connect(database) as cxn:
         db.execute(cxn, "delete from ocr_scores where score_set = ?", (score_set,))
-        db.canned_insert("ocr_scores", cxn, scores)
+        db.canned_insert(cxn, "ocr_scores", scores)
 
 
 def select_scores(database, score_set):

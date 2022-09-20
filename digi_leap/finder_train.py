@@ -5,9 +5,9 @@ import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.label_finder.engines import trainer_engine
-from pylib.label_finder.engines import trainer_engine_fasterrrcnn
-from pylib.label_finder.models import model_utils
+from pylib.finder.engines import trainer_engine
+from pylib.finder.engines import trainer_engine_fasterrrcnn
+from pylib.finder.models import model_utils
 
 
 def main():

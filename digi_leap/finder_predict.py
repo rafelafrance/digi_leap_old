@@ -6,9 +6,9 @@ from pathlib import Path
 
 from pylib import consts
 from pylib import log
-from pylib.label_finder.engines import predictor_engine
-from pylib.label_finder.models import efficient_det_model
-from pylib.label_finder.models import model_utils
+from pylib.finder.engines import predictor_engine
+from pylib.finder.models import efficient_det_model
+from pylib.finder.models import model_utils
 
 
 def main():

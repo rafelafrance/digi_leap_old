@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-import digi_leap.pylib.label_builder.line_align.char_sub_matrix as sub
+import digi_leap.pylib.builder.line_align.char_sub_matrix as sub
 
 
 class TestCharSubMatrix(unittest.TestCase):

@@ -16,7 +16,7 @@ def build(args: Namespace) -> None:
         os.makedirs(args.expedition_dir, exist_ok=True)
 
         consensuses = db.canned_select(
-            "sample_cons", cxn, consensus_set=args.consensus_set
+            cxn, "sample_cons", consensus_set=args.consensus_set
         )
 
         with warnings.catch_warnings():  # Turn off EXIF warnings

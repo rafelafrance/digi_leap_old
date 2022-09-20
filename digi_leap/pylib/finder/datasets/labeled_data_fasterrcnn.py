@@ -69,11 +69,11 @@ class LabeledData(Dataset):
                 sample = self.transform(**sample)
                 boxes = np.array(sample["bboxes"])
 
-                labels = [int(lb.item()) for lb in sample["targets"]]
-                area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
-
                 if boxes.shape[0] == 0:
                     boxes = np.empty((0, 4))
+
+                labels = [int(lb.item()) for lb in sample["targets"]]
+                area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
                 target = {
                     "boxes": torch.tensor(boxes, dtype=torch.float32),

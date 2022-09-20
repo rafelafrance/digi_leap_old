@@ -4,7 +4,7 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.label_finder.rise_of_machines import build_expedition
+from pylib.finder.rise_of_machines import build_expedition
 from traiter import log
 
 

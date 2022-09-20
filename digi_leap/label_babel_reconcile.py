@@ -16,7 +16,7 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.label_finder.label_babel import reconcile_expedition
+from pylib.finder.label_babel import reconcile_expedition
 from traiter import log
 
 

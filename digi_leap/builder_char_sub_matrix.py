@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pylib import consts
 from pylib import fonts
-from pylib.label_builder.line_align import char_sub_matrix as matrix
+from pylib.builder.line_align import char_sub_matrix as matrix
 
 
 def main():

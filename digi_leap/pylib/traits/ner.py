@@ -14,7 +14,7 @@ def ner(args):
 
         nlp = pipeline.build_pipeline()
 
-        records = db.canned_select("consensus", cxn, consensus_set=args.consensus_set)
+        records = db.canned_select(cxn, "consensus", consensus_set=args.consensus_set)
 
         for cons in tqdm(records):
             batch = []
@@ -35,6 +35,6 @@ def ner(args):
                         "data": json.dumps(trait),
                     }
                 )
-            db.canned_insert("traits", cxn, batch)
+            db.canned_insert(cxn, "traits", batch)
 
         db.update_run_finished(cxn, run_id)

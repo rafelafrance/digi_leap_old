@@ -7,6 +7,8 @@ from pathlib import Path
 
 from . import canned_sql
 
+DbPath = Path | str
+
 
 @contextmanager
 def connect(db_path):
@@ -20,20 +22,37 @@ def connect(db_path):
 
 
 def execute(cxn, sql, params=None):
-    """Execute a query -- Sugar for making database calls look similar."""
     params = params if params else []
     return cxn.execute(sql, params)
 
 
-def canned_insert(table, cxn, batch):
+def select(cxn, sql, one_column=False, **kwargs):
+    rows = cxn.execute(sql, dict(kwargs))
+
+    if one_column:
+        return [r[0] for r in rows]
+
+    return [dict(r) for r in rows]
+
+
+def canned_insert(cxn, table, batch):
     sql = canned_sql.CANNED_INSERTS[table]
     cxn.executemany(sql, batch)
 
 
-def canned_select(key, cxn, **kwargs):
+def canned_select(cxn, key, one_column=False, **kwargs):
     sql = canned_sql.CANNED_SELECTS[key]
-    args = kwargs if kwargs else None
-    return cxn.execute(sql, dict(args))
+
+    if kwargs.get("limit"):
+        sql += " limit :limit"
+
+    rows = select(cxn, sql, one_column=one_column, **kwargs)
+    return rows
+
+
+def canned_delete(cxn, table, **kwargs):
+    sql = canned_sql.CANNED_DELETES[table]
+    cxn.execute(sql, dict(kwargs))
 
 
 # ######################### runs table ################################################

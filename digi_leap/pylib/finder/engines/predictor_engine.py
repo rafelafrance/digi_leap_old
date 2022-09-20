@@ -87,7 +87,7 @@ def insert_label_records(cxn, batch, label_set, image_size):
         row["label_bottom"] = int(row["label_bottom"] * high)
 
     db.execute(cxn, "delete from labels where label_set = ?", (label_set,))
-    db.canned_insert("labels", cxn, batch)
+    db.canned_insert(cxn, "labels", batch)
 
 
 def get_data_loader(cxn, args):

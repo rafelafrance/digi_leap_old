@@ -10,11 +10,11 @@ from tqdm import tqdm
 from . import label_transformer as lt
 from . import ocr_runner
 from .. import box_calc
+from ..builder import label_builder
+from ..builder.line_align import char_sub_matrix as subs
+from ..builder.line_align import line_align_py  # noqa
+from ..builder.spell_well.spell_well import SpellWell
 from ..db import db
-from ..label_builder import label_builder
-from ..label_builder.line_align import char_sub_matrix as subs
-from ..label_builder.line_align import line_align_py  # noqa
-from ..label_builder.spell_well.spell_well import SpellWell
 
 
 class Ensemble:
@@ -138,14 +138,14 @@ def ocr_labels(args: argparse.Namespace) -> None:
                             "ocr_text": text,
                         }
                     )
-                db.canned_insert("ocr_texts", cxn, batch)
+                db.canned_insert(cxn, "ocr_texts", batch)
 
             db.update_run_finished(cxn, run_id)
 
 
 def get_sheet_labels(cxn, classes, label_set, label_conf):
     sheets = {}
-    labels = db.canned_select("labels", cxn, label_set=label_set, label_conf=label_conf)
+    labels = db.canned_select(cxn, "labels", label_set=label_set, label_conf=label_conf)
     labels = sorted(labels, key=lambda lb: lb["path"])
     grouped = itertools.groupby(labels, lambda lb: lb["path"])
 

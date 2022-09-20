@@ -80,14 +80,14 @@ def insert_matrix(cxn, matrix, char_set):
         for (c1, c2), rec in matrix.items()
     ]
     db.execute(cxn, "delete from char_sub_matrix where char_set = ?", (char_set,))
-    db.canned_insert("char_sub_matrix", cxn, batch)
+    db.canned_insert(cxn, "char_sub_matrix", batch)
 
 
 def calc_scores(old_chars, new_chars, matrix, image_size, font):
     """Calculate character substitution values.
 
     Substitution values go from 2 to -2. The cutoff values for converting a scores into
-    substitution values are magic constants.
+    substitution values are _magic_ constants.
     """
     all_chars = [Char(c, image_size, font) for c in sorted(old_chars | new_chars)]
 

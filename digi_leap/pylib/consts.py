@@ -12,7 +12,7 @@ CHAR_DB = (
     ROOT_DIR
     / "digi_leap"
     / "pylib"
-    / "label_builder"
+    / "builder"
     / "line_align"
     / "char_sub_matrix.sqlite"
 )

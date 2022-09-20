@@ -1,3 +1,86 @@
+create table if not exists consensuses (
+    consensus_id   integer primary key autoincrement,
+    label_id       integer,
+    consensus_set  text,
+    ocr_set        text,
+    consensus_text text
+);
+create index if not exists cons_label_id on consensuses (label_id);
+
+
+create table if not exists gold_standard (
+    gold_id     integer primary key autoincrement,
+    sheet_id    integer,
+    label_id    integer,
+    gold_set    text,
+    gold_text   text,
+    transcriber text,
+    validator   text,
+    notes       text
+);
+
+
+create table if not exists label_finder_tests (
+    test_id     integer primary key autoincrement,
+    test_set    text,
+    sheet_id    integer,
+    test_class  text,
+    test_conf   real,
+    test_left   integer,
+    test_top    integer,
+    test_right  integer,
+    test_bottom integer
+);
+
+
+create table if not exists label_finder_train (
+    train_id     integer primary key autoincrement,
+    train_set    text,
+    sheet_id     integer,
+    train_class  text,
+    train_left   integer,
+    train_top    integer,
+    train_right  integer,
+    train_bottom integer
+);
+
+
+create table if not exists labels (
+    label_id     integer primary key autoincrement,
+    sheet_id     integer,
+    label_set    text,
+    class        text,
+    label_conf   real,
+    label_left   integer,
+    label_top    integer,
+    label_right  integer,
+    label_bottom integer
+);
+create index if not exists labels_sheet_id on labels (sheet_id);
+
+
+create table if not exists ocr_scores (
+    score_id   integer primary key autoincrement,
+    label_id   integer,
+    gold_id    integer,
+    gold_set   text,
+    score_set  text,
+    pipeline   text,
+    score_text text,
+    score      integer
+);
+
+
+create table if not exists ocr_texts (
+    ocr_id     integer primary key autoincrement,
+    label_id   integer,
+    ocr_set    text,
+    pipeline   text,
+    ocr_text   text
+);
+create index if not exists ocr_label_id on ocr_texts (label_id);
+
+
 create table if not exists sheets (
     sheet_id  integer primary key autoincrement,
     sheet_set text,
@@ -23,40 +106,6 @@ create table if not exists subjects_to_sheets (
 create index if not exists subs_to_sheets_idx on subjects_to_sheets (coreid);
 
 
-create table if not exists labels (
-    label_id     integer primary key autoincrement,
-    sheet_id     integer,
-    label_set    text,
-    class        text,
-    label_conf   real,
-    label_left   integer,
-    label_top    integer,
-    label_right  integer,
-    label_bottom integer
-);
-create index if not exists labels_sheet_id on labels (sheet_id);
-
-
-create table if not exists ocr_texts (
-    ocr_id     integer primary key autoincrement,
-    label_id   integer,
-    ocr_set    text,
-    pipeline   text,
-    ocr_text   text
-);
-create index if not exists ocr_label_id on ocr_texts (label_id);
-
-
-create table if not exists consensuses (
-    consensus_id   integer primary key autoincrement,
-    label_id       integer,
-    consensus_set  text,
-    ocr_set        text,
-    consensus_text text
-);
-create index if not exists cons_label_id on consensuses (label_id);
-
-
 create table if not exists traits (
     trait_id     integer primary key autoincrement,
     trait_set    text,
@@ -68,62 +117,3 @@ create table if not exists traits (
 create index if not exists traits_trait_set on traits (trait_set);
 create index if not exists traits_cons_id on traits (consensus_id);
 create index if not exists traits_trait on traits (trait);
-
-
-create table if not exists label_finder_train (
-    train_id     integer primary key autoincrement,
-    train_set    text,
-    sheet_id     integer,
-    train_class  text,
-    train_left   integer,
-    train_top    integer,
-    train_right  integer,
-    train_bottom integer
-);
-
-
-create table if not exists label_finder_tests (
-    test_id     integer primary key autoincrement,
-    test_set    text,
-    sheet_id    integer,
-    test_class  text,
-    test_conf   real,
-    test_left   integer,
-    test_top    integer,
-    test_right  integer,
-    test_bottom integer
-);
-
-
-create table if not exists runs (
-    run_id   integer primary key autoincrement,
-    caller   text,
-    args     text,
-    comments text,
-    started  date default (datetime('now','localtime')),
-    finished date
-);
-
-
-create table if not exists gold_standard (
-    gold_id     integer primary key autoincrement,
-    sheet_id    integer,
-    label_id    integer,
-    gold_set    text,
-    gold_text   text,
-    transcriber text,
-    validator   text,
-    notes       text
-);
-
-
-create table if not exists ocr_scores (
-    score_id   integer primary key autoincrement,
-    label_id   integer,
-    gold_id    integer,
-    gold_set   text,
-    score_set  text,
-    pipeline   text,
-    score_text text,
-    score      integer
-);

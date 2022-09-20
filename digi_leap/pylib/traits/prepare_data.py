@@ -16,7 +16,7 @@ def prepare(args):
     tokenizer.setup_tokenizer(nlp)
 
     with db.connect(args.database) as cxn:
-        all_traits = db.canned_select("traits", cxn, trait_set=args.trait_set)
+        all_traits = db.canned_select(cxn, "traits", trait_set=args.trait_set)
 
     groups = itertools.groupby(all_traits, key=lambda t: [t["consensus_id"]])
 

@@ -3,8 +3,8 @@ import unittest
 
 import cppimport.import_hook  # noqa pylint: disable=unused-import
 
-from digi_leap.pylib.label_builder.line_align import char_sub_matrix as subs
-from digi_leap.pylib.label_builder.line_align import line_align_py  # noqa
+from digi_leap.pylib.builder.line_align import char_sub_matrix as subs
+from digi_leap.pylib.builder.line_align import line_align_py  # noqa
 
 
 class TestAlign(unittest.TestCase):
