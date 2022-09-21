@@ -14,14 +14,6 @@ from ..ocr_labels import Ensemble
 def build(args: Namespace) -> None:
     os.makedirs(args.expedition_dir, exist_ok=True)
 
-    sql = """
-        select *
-        from   gold_standard
-        join   labels using (label_id)
-        join   sheets using (sheet_id)
-        where  gold_set = ?
-        """
-
     csv_path = args.expedition_dir / "manifest.csv"
     with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
         run_id = db.insert_run(cxn, args)
@@ -31,7 +23,7 @@ def build(args: Namespace) -> None:
         writer = csv.writer(csv_file)
         writer.writerow("gold_id image_file text_file pipeline database".split())
 
-        golden = db.execute(cxn, sql, [args.gold_set])
+        golden = db.canned_select(cxn, "gold_standard", gold_set=args.gold_set)
 
         for gold in tqdm(golden):
             image = get_golden_label(gold)

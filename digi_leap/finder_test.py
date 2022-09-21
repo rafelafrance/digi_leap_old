@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pylib import consts
 from pylib import log
-from pylib.finder.engines import a_test_engine
+from pylib.finder.engines import tester_engine
 from pylib.finder.models import efficient_det_model
 from pylib.finder.models import model_utils
 
@@ -19,7 +19,7 @@ def main():
         image_size=args.image_size,
         pretrained=False,
     )
-    a_test_engine.evaluate(model, args)
+    tester_engine.evaluate(model, args)
     log.finished()
 
 

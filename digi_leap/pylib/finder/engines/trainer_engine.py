@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 
 from . import engine_utils
 from ...db import db
@@ -64,7 +65,9 @@ def one_epoch(model, device, loader, optimizer=None):
         box_loss=0.0,
     )
 
-    for images, annotations, *_ in loader:
+    desc = "Train" if optimizer else "Val  "
+
+    for images, annotations, *_ in tqdm(loader, desc=desc):
         images = images.to(device)
 
         annotations["bbox"] = [b.to(device) for b in annotations["bbox"]]

@@ -57,8 +57,7 @@ def add_chars(args):
 
 
 def select_matrix(cxn, char_set):
-    sql = """select * from char_sub_matrix where char_set = ?"""
-    rows = db.execute(cxn, sql, (char_set,))
+    rows = db.canned_select(cxn, "char_sub_matrix", char_set=char_set)
     matrix = {}
     for row in rows:
         char1, char2 = row["char1"], row["char2"]
@@ -79,7 +78,7 @@ def insert_matrix(cxn, matrix, char_set):
         }
         for (c1, c2), rec in matrix.items()
     ]
-    db.execute(cxn, "delete from char_sub_matrix where char_set = ?", (char_set,))
+    db.canned_delete(cxn, "char_sub_matrix", char_set=char_set)
     db.canned_insert(cxn, "char_sub_matrix", batch)
 
 
@@ -141,7 +140,6 @@ def get_max_iou(pix1, pix2):
 # #####################################################################################
 def select_char_sub_matrix(char_set="default"):
     with db.connect(consts.CHAR_DB) as cxn:
-        sql = """select * from char_sub_matrix where char_set = ?"""
-        rows = [dict(r) for r in db.execute(cxn, sql, (char_set,))]
+        rows = db.canned_select(cxn, "char_sub_matrix", char_set=char_set)
         matrix = {f'{r["char1"]}{r["char2"]}': r["sub"] for r in rows}
         return matrix

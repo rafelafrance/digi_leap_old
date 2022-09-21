@@ -30,13 +30,16 @@ class SpellWell:
     def db_to_memory(self):
         create1 = """
             create table spells as
-            select * from aux.misspellings where freq >= ? and length(miss) >= ?;"""
+            select * from aux.misspellings where freq >= ? and length(miss) >= ?;
+            """
         create2 = """
             create table vocab as
-            select * from aux.vocab where freq >= ?;"""
+            select * from aux.vocab where freq >= ?;
+            """
         indexes = """
             create index spells_miss on spells (miss);
-            create index vocab_word on vocab (word);"""
+            create index vocab_word on vocab (word);
+            """
         try:
             self.cxn.execute(f"attach database '{self.vocab_db}' as aux")
             self.cxn.execute(create1, (self.min_freq, self.min_len))

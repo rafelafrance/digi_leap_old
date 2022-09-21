@@ -65,12 +65,12 @@ def run_evaluator(model, device, loader):
                 batch.append(
                     {
                         "sheet_id": sheet_id.item(),
-                        "pred_class": int(pred_class.item()),
-                        "pred_conf": conf.item(),
-                        "pred_left": int(left.item()),
-                        "pred_top": int(top.item()),
-                        "pred_right": int(right.item()),
-                        "pred_bottom": int(bottom.item()),
+                        "test_class": int(pred_class.item()),
+                        "test_conf": conf.item(),
+                        "test_left": int(left.item()),
+                        "test_top": int(top.item()),
+                        "test_right": int(right.item()),
+                        "test_bottom": int(bottom.item()),
                     }
                 )
 
@@ -86,7 +86,7 @@ def run_evaluator(model, device, loader):
 
 
 def insert_evaluation_records(cxn, batch, test_set, image_size):
-    rows = db.execute(cxn, "select * from sheets where split = 'test'")
+    rows = db.canned_select(cxn, "all_sheet_split", split="test")
 
     sheets: dict[str, tuple] = {}
 
@@ -97,17 +97,17 @@ def insert_evaluation_records(cxn, batch, test_set, image_size):
 
     for row in batch:
         row["test_set"] = test_set
-        row["pred_class"] = consts.CLASS2NAME[row["pred_class"]]
+        row["test_class"] = consts.CLASS2NAME[row["test_class"]]
 
         wide, high = sheets[row["sheet_id"]]
 
-        row["pred_left"] = int(row["pred_left"] * wide)
-        row["pred_right"] = int(row["pred_right"] * wide)
+        row["test_left"] = int(row["test_left"] * wide)
+        row["test_right"] = int(row["test_right"] * wide)
 
-        row["pred_top"] = int(row["pred_top"] * high)
-        row["pred_bottom"] = int(row["pred_bottom"] * high)
+        row["test_top"] = int(row["test_top"] * high)
+        row["test_bottom"] = int(row["test_bottom"] * high)
 
-    db.execute(cxn, "delete from label_finder_tests where test_set = ?", (test_set,))
+    db.canned_delete(cxn, "label_finder_tests", test_set=test_set)
     db.canned_insert(cxn, "label_finder_tests", batch)
 
 

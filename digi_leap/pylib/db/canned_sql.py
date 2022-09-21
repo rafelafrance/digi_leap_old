@@ -11,10 +11,10 @@ CANNED_INSERTS = {
         """,
     "label_finder_tests": """
         insert into label_finder_tests
-               ( train_set,   sheet_id,  train_class,  pred_conf,
-                 train_left,  train_top,  train_right,  train_bottom)
-        values (:train_set,  :sheet_id, :train_class, :pred_conf,
-                :train_left, :train_top, :train_right, :train_bottom);
+               ( test_set,   sheet_id,  test_class,  test_conf,
+                 test_left,  test_top,  test_right,  test_bottom)
+        values (:test_set,  :sheet_id, :test_class, :test_conf,
+                :test_left, :test_top, :test_right, :test_bottom);
         """,
     "label_finder_train": """
         insert into label_finder_train
@@ -54,12 +54,25 @@ CANNED_INSERTS = {
 }
 
 CANNED_SELECTS = {
+    "all_sheet_split": """
+        select * from sheets where split = :split
+        """,
+    "char_sub_matrix": """
+        select * from char_sub_matrix where char_set = :char_set
+        """,
     "consensuses": """
         select *
         from   consensuses
         join   labels using (label_id)
         join   sheets using (sheet_id)
         where  consensus_set = :consensus_set
+        """,
+    "gold_standard": """
+        select *
+        from   gold_standard
+        join   labels using (label_id)
+        join   sheets using (sheet_id)
+        where  gold_set = :gold_set
         """,
     "labels": """
         select *
@@ -110,4 +123,11 @@ CANNED_SELECTS = {
 }
 
 
-CANNED_DELETES = {}
+CANNED_DELETES = {
+    "char_sub_matrix": """
+        delete from char_sub_matrix where char_set = :char_set
+        """,
+    "label_finder_tests": """
+        delete from label_finder_tests where test_set = :test_set
+        """,
+}
