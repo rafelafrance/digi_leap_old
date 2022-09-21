@@ -30,7 +30,9 @@ def predict(model, args: Namespace):
         model.eval()
         batch = run_prediction(model, device, test_loader)
 
-        insert_label_records(cxn, batch, args.label_set, args.image_size)
+        insert_label_records(
+            cxn, batch, args.sheet_set, args.label_set, args.image_size
+        )
 
         db.update_run_finished(cxn, run_id)
 
@@ -65,8 +67,8 @@ def run_prediction(model, device, loader):
     return batch
 
 
-def insert_label_records(cxn, batch, label_set, image_size):
-    rows = db.execute(cxn, "select * from sheets")
+def insert_label_records(cxn, batch, sheet_set, label_set, image_size):
+    rows = db.canned_select(cxn, "sheets_all", sheet_set=sheet_set)
     sheets: dict[str, tuple] = {}
 
     for row in rows:
@@ -86,13 +88,13 @@ def insert_label_records(cxn, batch, label_set, image_size):
         row["label_top"] = int(row["label_top"] * high)
         row["label_bottom"] = int(row["label_bottom"] * high)
 
-    db.execute(cxn, "delete from labels where label_set = ?", (label_set,))
+    db.canned_delete(cxn, "labels", label_set=label_set)
     db.canned_insert(cxn, "labels", batch)
 
 
 def get_data_loader(cxn, args):
     logging.info("Loading image data.")
-    raw_data = db.execute(cxn, "select * from sheets")
+    raw_data = db.canned_select(cxn, "sheets_all", sheet_set=args.sheet_set)
     dataset = UnlabeledData(raw_data, args.image_size)
     return DataLoader(
         dataset,

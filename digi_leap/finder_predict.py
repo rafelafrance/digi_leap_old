@@ -42,18 +42,25 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--load-model",
+        "--sheet-set",
         required=True,
-        type=Path,
-        metavar="PATH",
-        help="""Path model to continue training.""",
+        metavar="NAME",
+        help="""Predict labels for these sheets.""",
     )
 
     arg_parser.add_argument(
         "--label-set",
         metavar="NAME",
         required=True,
-        help="""Which which labels to use.""",
+        help="""Write labels to this set.""",
+    )
+
+    arg_parser.add_argument(
+        "--load-model",
+        required=True,
+        type=Path,
+        metavar="PATH",
+        help="""Path model to continue training.""",
     )
 
     arg_parser.add_argument(

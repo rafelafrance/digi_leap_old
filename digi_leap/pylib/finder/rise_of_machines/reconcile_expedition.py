@@ -81,8 +81,8 @@ class Sheets:
                 label.reclassify()
 
     def insert(self, cxn, sheet_set, train_set):
-        cxn.execute("delete from sheets where sheet_set = ?", (sheet_set,))
-        cxn.execute("delete from labels where label_set = ?", (train_set,))
+        db.canned_delete(cxn, "sheets", sheet_set=sheet_set)
+        db.canned_delete(cxn, "label_train", train_set=train_set)
         for sheet in self.sheets.values():
             sheet.insert(cxn, sheet_set, train_set)
 
@@ -182,7 +182,7 @@ class Sheet:
         batch = []
         for label in self.old_labels + self.new_labels:
             batch.append(label.build_insert(sheet_id, self, train_set))
-        db.canned_insert(cxn, "label_finder_train", batch)
+        db.canned_insert(cxn, "label_train", batch)
 
 
 @dataclass()

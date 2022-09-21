@@ -16,11 +16,11 @@ def build(args):
         for split in ["train", "val", "test"]:
             image_dir, label_dir = make_dirs(args.yolo_dir, split)
 
-            train_labels = db.canned_select(
-                cxn, "train_labels", split=split, train_set=args.train_set
+            label_train = db.canned_select(
+                cxn, "label_train", split=split, train_set=args.train_set
             )
 
-            grouped = groupby(train_labels, key=lambda lb: (lb["sheet_id"], lb["path"]))
+            grouped = groupby(label_train, key=lambda lb: (lb["sheet_id"], lb["path"]))
 
             for (sheet_id, sheet_path), labels in tqdm(grouped):
                 image_path = image_dir / f"{sheet_id}.jpg"

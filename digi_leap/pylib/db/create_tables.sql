@@ -20,9 +20,10 @@ create table if not exists gold_standard (
 );
 
 
-create table if not exists label_finder_tests (
+create table if not exists label_tests (
     test_id     integer primary key autoincrement,
     test_set    text,
+    train_set   text,
     sheet_id    integer,
     test_class  text,
     test_conf   real,
@@ -33,7 +34,7 @@ create table if not exists label_finder_tests (
 );
 
 
-create table if not exists label_finder_train (
+create table if not exists label_train (
     train_id     integer primary key autoincrement,
     train_set    text,
     sheet_id     integer,

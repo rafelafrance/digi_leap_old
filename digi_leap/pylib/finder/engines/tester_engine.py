@@ -36,7 +36,9 @@ def evaluate(model, args: Namespace):
         model.eval()
         batch, stats = run_evaluator(model, device, eval_loader)
 
-        insert_evaluation_records(cxn, batch, args.test_set, args.image_size)
+        insert_evaluation_records(
+            cxn, batch, args.sheet_set, args.test_set, args.image_size
+        )
 
         log_stats(stats, cxn, run_id)
 
@@ -85,8 +87,8 @@ def run_evaluator(model, device, loader):
     )
 
 
-def insert_evaluation_records(cxn, batch, test_set, image_size):
-    rows = db.canned_select(cxn, "all_sheet_split", split="test")
+def insert_evaluation_records(cxn, batch, sheet_set, test_set, image_size):
+    rows = db.canned_select(cxn, "sheets_split", sheet_set=sheet_set, split="test")
 
     sheets: dict[str, tuple] = {}
 
@@ -107,14 +109,14 @@ def insert_evaluation_records(cxn, batch, test_set, image_size):
         row["test_top"] = int(row["test_top"] * high)
         row["test_bottom"] = int(row["test_bottom"] * high)
 
-    db.canned_delete(cxn, "label_finder_tests", test_set=test_set)
-    db.canned_insert(cxn, "label_finder_tests", batch)
+    db.canned_delete(cxn, "label_tests", test_set=test_set)
+    db.canned_insert(cxn, "label_tests", batch)
 
 
 def get_data_loader(cxn, args):
     logging.info("Loading eval data.")
     raw_data = db.canned_select(
-        cxn, "train_split", split="test", train_set=args.train_set
+        cxn, "label_train_split", split="test", train_set=args.train_set
     )
     dataset = LabeledData(raw_data, args.image_size, augment=False)
     return DataLoader(

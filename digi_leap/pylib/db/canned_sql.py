@@ -9,15 +9,15 @@ CANNED_INSERTS = {
                          ( label_id,  consensus_set,  ocr_set,  consensus_text)
                   values (:label_id, :consensus_set, :ocr_set, :consensus_text);
         """,
-    "label_finder_tests": """
-        insert into label_finder_tests
-               ( test_set,   sheet_id,  test_class,  test_conf,
-                 test_left,  test_top,  test_right,  test_bottom)
-        values (:test_set,  :sheet_id, :test_class, :test_conf,
-                :test_left, :test_top, :test_right, :test_bottom);
+    "label_tests": """
+        insert into label_tests
+               ( test_set,   train_set,  sheet_id,    test_class,  test_conf,
+                 test_left,  test_top,   test_right,  test_bottom)
+        values (:test_set,  :train_set, :sheet_id,   :test_class, :test_conf,
+                :test_left, :test_top,  :test_right, :test_bottom);
         """,
-    "label_finder_train": """
-        insert into label_finder_train
+    "label_train": """
+        insert into label_train
                ( train_set,   sheet_id,  train_class,
                  train_left,  train_top,  train_right,  train_bottom)
         values (:train_set,  :sheet_id, :train_class,
@@ -25,9 +25,9 @@ CANNED_INSERTS = {
         """,
     "labels": """
         insert into labels
-               ( sheet_id,    label_set,  class,  label_conf,
+               ( sheet_id,    label_set,  class,        label_conf,
                  label_left,  label_top,  label_right,  label_bottom)
-        values (:sheet_id,   :label_set, :class, :label_conf,
+        values (:sheet_id,   :label_set, :class,       :label_conf,
                 :label_left, :label_top, :label_right, :label_bottom);
         """,
     "ocr_scores": """
@@ -54,9 +54,6 @@ CANNED_INSERTS = {
 }
 
 CANNED_SELECTS = {
-    "all_sheet_split": """
-        select * from sheets where split = :split
-        """,
     "char_sub_matrix": """
         select * from char_sub_matrix where char_set = :char_set
         """,
@@ -67,12 +64,35 @@ CANNED_SELECTS = {
         join   sheets using (sheet_id)
         where  consensus_set = :consensus_set
         """,
+    "consensuses_sample": """
+        select *
+        from consensuses
+        join labels using (label_id)
+        join sheets using (sheet_id)
+        where consensus_set = :consensus_set
+        order by random()
+        """,
     "gold_standard": """
         select *
         from   gold_standard
         join   labels using (label_id)
         join   sheets using (sheet_id)
         where  gold_set = :gold_set
+        """,
+    "label_train": """
+        select *
+        from   label_train
+        join   sheets using (sheet_id)
+        where  split = :split
+        and    train_set = :train_set
+        order by sheet_id
+        """,
+    "label_train_split": """
+        select    *
+        from      sheets
+        left join label_train using (sheet_id)
+        where     split = :split
+        and       train_set = :train_set
         """,
     "labels": """
         select *
@@ -81,6 +101,9 @@ CANNED_SELECTS = {
         where  label_set = :label_set
         and    label_conf >= :label_conf
         """,
+    "ocr_scores": """
+        select * from ocr_scores where score_set = :score_set
+        """,
     "ocr_texts": """
         select *
         from   ocr_texts
@@ -88,28 +111,16 @@ CANNED_SELECTS = {
         join   sheets using (sheet_id)
         where  ocr_set = :ocr_set
         """,
-    "sample_consensuses": """
-        select *
-        from consensuses
-        join labels using (label_id)
-        join sheets using (sheet_id)
-        where consensus_set = :consensus_set
+    "sheets_all": """
+        select * from sheets where sheet_set = :sheet_set
+        """,
+    "sheets_shuffle": """
+        select sheet_id from sheets
+        where  sheet_set = :sheet_set
         order by random()
         """,
-    "train_labels": """
-        select *
-        from   label_finder_train
-        join   sheets using (sheet_id)
-        where  split = :split
-        and    train_set = :train_set
-        order by sheet_id
-        """,
-    "train_split": """
-        select    *
-        from      sheets
-        left join label_finder_train using (sheet_id)
-        where     split = :split
-        and       train_set = :train_set
+    "sheets_split": """
+        select * from sheets where sheet_set = :sheet_set and split = :split
         """,
     "traits": """
         select *
@@ -127,7 +138,25 @@ CANNED_DELETES = {
     "char_sub_matrix": """
         delete from char_sub_matrix where char_set = :char_set
         """,
-    "label_finder_tests": """
-        delete from label_finder_tests where test_set = :test_set
+    "labels": """
+        delete from labels where label_set = :label_set
+        """,
+    "label_tests": """
+        delete from label_tests where test_set = :test_set
+        """,
+    "label_train": """
+        delete from label_train where train_set = :train_set
+        """,
+    "ocr_scores": """
+        delete from ocr_scores where score_set = :score_set
+        """,
+    "ocr_texts": """
+        delete from ocr_texts where ocr_set = :ocr_set
+        """,
+    "sheets": """
+        delete from sheets where sheet_set = :sheet_set
+        """,
+    "traits": """
+        delete from traits where trait_set = :trait_set
         """,
 }

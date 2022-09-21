@@ -35,6 +35,10 @@ def select(cxn, sql, one_column=False, **kwargs):
     return [dict(r) for r in rows]
 
 
+def update(cxn, sql, **kwargs):
+    cxn.execute(sql, dict(kwargs))
+
+
 def canned_insert(cxn, table, batch):
     sql = canned_sql.CANNED_INSERTS[table]
     cxn.executemany(sql, batch)

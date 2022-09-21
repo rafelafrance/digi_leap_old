@@ -24,7 +24,7 @@ def reconcile(args: Namespace) -> None:
             subject.merge_box_groups()
 
         df = get_reconciled_boxes(subjects, args.reconciled_set)
-        df.to_sql("label_finder_train", cxn, if_exists="append", index=False)
+        df.to_sql("label_train", cxn, if_exists="append", index=False)
 
         db.update_run_finished(cxn, run_id)
 

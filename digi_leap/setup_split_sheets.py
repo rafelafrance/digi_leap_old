@@ -16,19 +16,13 @@ def assign_sheets(args):
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
-        select = """
-            select sheet_id from sheets
-             where (split is null or split = '')
-               and sheet_set = ?
-             order by random()
-            """
-        rows = db.execute(cxn, select, (args.sheet_set,)).fetchall()
+        rows = db.canned_select(cxn, "sheets_shuffle", sheet_set=args.sheet_set)
 
         count = len(rows)
         val_split = round(count * (args.test_split + args.val_split))
         test_split = round(count * args.test_split)
 
-        update = """update sheets set split = ? where sheet_id = ?"""
+        update = """update sheets set split = :split where sheet_id = :sheet_id"""
         for i, row in enumerate(rows):
             if i <= test_split:
                 split = "test"
@@ -36,7 +30,7 @@ def assign_sheets(args):
                 split = "val"
             else:
                 split = "train"
-            db.execute(cxn, update, (split, row["sheet_id"]))
+            db.update(cxn, update, split=split, sheet_id=row["sheet_id"])
 
         db.update_run_finished(cxn, run_id)
 

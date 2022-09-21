@@ -10,7 +10,7 @@ def ner(args):
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
-        cxn.execute("delete from traits where trait_set = ?", (args.trait_set,))
+        cxn.canned_delete(cxn, "traits", trait_set=args.trait_set)
 
         nlp = pipeline.build_pipeline()
 

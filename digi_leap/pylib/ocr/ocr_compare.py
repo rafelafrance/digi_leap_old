@@ -97,15 +97,13 @@ def score_batch(golden, score_set, gold_set) -> list[dict]:
 
 def insert_scores(scores, database, score_set):
     with db.connect(database) as cxn:
-        db.execute(cxn, "delete from ocr_scores where score_set = ?", (score_set,))
+        db.canned_delete(cxn, "ocr_scores", score_set=score_set)
         db.canned_insert(cxn, "ocr_scores", scores)
 
 
 def select_scores(database, score_set):
     with db.connect(database) as cxn:
-        results = db.execute(
-            cxn, "select * from ocr_scores where score_set = ?", (score_set,)
-        )
+        results = db.canned_select(cxn, "ocr_scores", score_set=score_set)
         scores = [dict(r) for r in results]
     return scores
 
@@ -155,16 +153,9 @@ def transform_image(image, transform):
 
 # ##################################################################################
 def select_gold_std(database, gold_set):
-    sql = """
-        select *
-        from gold_standard
-        join labels using (label_id)
-        join sheets using (sheet_id)
-        where gold_set = ?
-        """
     with db.connect(database) as cxn:
-        gold = cxn.execute(sql, (gold_set,))
-    return [dict(r) for r in gold]
+        gold = db.canned_select(cxn, "gold_standard", gold_set=gold_set)
+    return gold
 
 
 def insert_gold_std(csv_path, database, gold_set):
