@@ -9,7 +9,7 @@ from tqdm import tqdm
 from . import engine_utils
 from ... import consts
 from ...db import db
-from ..datasets.labeled_data import LabeledData
+from ..datasets.labeled_data_effdet import LabeledData
 from ..models import model_utils
 
 
@@ -37,7 +37,7 @@ def evaluate(model, args: Namespace):
         batch, stats = run_evaluator(model, device, eval_loader)
 
         insert_evaluation_records(
-            cxn, batch, args.sheet_set, args.test_set, args.image_size
+            cxn, batch, args.train_set, args.test_set, args.image_size
         )
 
         log_stats(stats, cxn, run_id)
@@ -60,9 +60,9 @@ def run_evaluator(model, device, loader):
         annotations["img_size"] = annotations["img_size"].to(device)
         annotations["img_scale"] = annotations["img_scale"].to(device)
 
-        losses = model(images, annotations)
+        preds = model(images, annotations)
 
-        for detections, sheet_id in zip(losses["detections"], sheet_ids):
+        for detections, sheet_id in zip(preds["detections"], sheet_ids):
             for left, top, right, bottom, conf, pred_class in detections:
                 batch.append(
                     {
@@ -76,9 +76,9 @@ def run_evaluator(model, device, loader):
                     }
                 )
 
-        running_loss.total_loss += losses["loss"].item()
-        running_loss.class_loss += losses["class_loss"].item()
-        running_loss.box_loss += losses["box_loss"].item()
+        running_loss.total_loss += preds["loss"].item()
+        running_loss.class_loss += preds["class_loss"].item()
+        running_loss.box_loss += preds["box_loss"].item()
 
     return batch, Stats(
         total_loss=running_loss.total_loss / len(loader),
@@ -87,8 +87,8 @@ def run_evaluator(model, device, loader):
     )
 
 
-def insert_evaluation_records(cxn, batch, sheet_set, test_set, image_size):
-    rows = db.canned_select(cxn, "sheets_split", sheet_set=sheet_set, split="test")
+def insert_evaluation_records(cxn, batch, train_set, test_set, image_size):
+    rows = db.canned_select(cxn, "label_train_split", train_set=train_set, split="test")
 
     sheets: dict[str, tuple] = {}
 

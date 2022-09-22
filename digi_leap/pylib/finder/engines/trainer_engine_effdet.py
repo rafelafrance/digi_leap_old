@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from . import engine_utils
 from ...db import db
-from ..datasets.labeled_data import LabeledData
+from ..datasets.labeled_data_effdet import LabeledData
 from ..models import model_utils
 
 

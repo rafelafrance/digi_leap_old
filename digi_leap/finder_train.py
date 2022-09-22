@@ -5,8 +5,8 @@ import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.finder.engines import trainer_engine
-from pylib.finder.engines import trainer_engine_fasterrrcnn
+from pylib.finder.engines import trainer_engine_effdet
+from pylib.finder.engines import trainer_engine_fasterrcnn
 from pylib.finder.models import model_utils
 
 
@@ -18,9 +18,9 @@ def main():
     model = model_utils.MODELS[args.model](args)
 
     if args.model == "tf_efficientnetv2_s":
-        trainer_engine.train(model, args)
+        trainer_engine_effdet.train(model, args)
     else:
-        trainer_engine_fasterrrcnn.train(model, args)
+        trainer_engine_fasterrcnn.train(model, args)
 
     log.finished()
 

@@ -3,23 +3,21 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib import consts
 from pylib import log
-from pylib.finder.engines import tester_engine
-from pylib.finder.models import efficient_det_model
+from pylib.finder.engines import tester_engine_effdet
 from pylib.finder.models import model_utils
 
 
 def main():
     log.started()
     args = parse_args()
-    model = efficient_det_model.create_model(
-        len(consts.CLASSES),
-        name=args.model,
-        image_size=args.image_size,
-        pretrained=False,
-    )
-    tester_engine.evaluate(model, args)
+
+    model = model_utils.MODELS[args.model](args)
+
+    # if args.model == "tf_efficientnetv2_s":
+    tester_engine_effdet.evaluate(model, args)
+    # else:
+    #     tester_engine_fasterrcnn.evaluate(model, args)
     log.finished()
 
 

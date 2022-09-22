@@ -8,7 +8,7 @@ from tqdm import tqdm
 from . import engine_utils
 from ... import consts
 from ...db import db
-from ..datasets.unlabeled_data import UnlabeledData
+from ..datasets.unlabeled_data_effdet import UnlabeledData
 from ..models import model_utils
 
 
@@ -40,17 +40,12 @@ def predict(model, args: Namespace):
 def run_prediction(model, device, loader):
     batch = []
 
-    for images, annotations, sheet_ids in tqdm(loader):
+    for images, sheet_ids in tqdm(loader):
         images = images.to(device)
 
-        annotations["bbox"] = [b.to(device) for b in annotations["bbox"]]
-        annotations["cls"] = [c.to(device) for c in annotations["cls"]]
-        annotations["img_size"] = annotations["img_size"].to(device)
-        annotations["img_scale"] = annotations["img_scale"].to(device)
+        preds = model(images)
 
-        losses = model(images, annotations)
-
-        for detections, sheet_id in zip(losses["detections"], sheet_ids):
+        for detections, sheet_id in zip(preds["detections"], sheet_ids):
             for left, top, right, bottom, conf, pred_class in detections:
                 batch.append(
                     {
@@ -68,7 +63,7 @@ def run_prediction(model, device, loader):
 
 
 def insert_label_records(cxn, batch, sheet_set, label_set, image_size):
-    rows = db.canned_select(cxn, "sheets_all", sheet_set=sheet_set)
+    rows = db.canned_select(cxn, "sheets", sheet_set=sheet_set)
     sheets: dict[str, tuple] = {}
 
     for row in rows:
@@ -94,7 +89,7 @@ def insert_label_records(cxn, batch, sheet_set, label_set, image_size):
 
 def get_data_loader(cxn, args):
     logging.info("Loading image data.")
-    raw_data = db.canned_select(cxn, "sheets_all", sheet_set=args.sheet_set)
+    raw_data = db.canned_select(cxn, "sheets", sheet_set=args.sheet_set)
     dataset = UnlabeledData(raw_data, args.image_size)
     return DataLoader(
         dataset,

@@ -22,7 +22,6 @@ class UnlabeledData(Dataset):
 
     @staticmethod
     def build_sheets(ims) -> list[UnlabeledSheet]:
-        """Group labels by sheet."""
         return [UnlabeledSheet(i["path"], torch.tensor([i["sheet_id"]])) for i in ims]
 
     def __len__(self):

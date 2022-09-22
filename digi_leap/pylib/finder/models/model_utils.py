@@ -18,20 +18,25 @@ def load_model_state(model, load_model):
 
 def tf_efficientnetv2_s(args):
     model = edm.create_model(
-        len(consts.CLASSES), name=args.model, image_size=args.image_size
+        len(consts.CLASSES),
+        name=args.model,
+        image_size=args.image_size,
+        pretrained=not bool(args.load_model),
     )
     return model
 
 
-def fasterrcnn_resnet50_fpn(_):
-    model = detection.fasterrcnn_resnet50_fpn(pretrained=True)
+def fasterrcnn_resnet50_fpn(args):
+    pretrained = not bool(args.load_model)
+    model = detection.fasterrcnn_resnet50_fpn(pretrained=pretrained)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(consts.CLASSES))
     return model
 
 
-def fasterrcnn_resnet50_fpn_v2(_):
-    model = detection.fasterrcnn_resnet50_fpn_v2(pretrained=True)
+def fasterrcnn_resnet50_fpn_v2(args):
+    pretrained = not bool(args.load_model)
+    model = detection.fasterrcnn_resnet50_fpn_v2(pretrained=pretrained)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(consts.CLASSES))
     return model

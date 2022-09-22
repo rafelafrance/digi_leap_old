@@ -111,7 +111,7 @@ CANNED_SELECTS = {
         join   sheets using (sheet_id)
         where  ocr_set = :ocr_set
         """,
-    "sheets_all": """
+    "sheets": """
         select * from sheets where sheet_set = :sheet_set
         """,
     "sheets_shuffle": """

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pylib import consts
 from pylib import log
-from pylib.finder.engines import predictor_engine
+from pylib.finder.engines import predictor_engine_effdet
 from pylib.finder.models import efficient_det_model
 from pylib.finder.models import model_utils
 
@@ -20,7 +20,7 @@ def main():
         image_size=args.image_size,
         pretrained=False,
     )
-    predictor_engine.predict(model, args)
+    predictor_engine_effdet.predict(model, args)
     log.finished()
 
 

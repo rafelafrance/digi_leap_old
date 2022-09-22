@@ -1,0 +1,6 @@
+# from pycocotools.coco import COCO
+# from pycocotools.cocoeval import COCOeval
+# def coco_map():
+#     ...
+# def to_coco_format(bboxes):
+#     ...
