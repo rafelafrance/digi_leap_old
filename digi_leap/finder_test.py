@@ -5,6 +5,7 @@ from pathlib import Path
 
 from pylib import log
 from pylib.finder.engines import tester_engine_effdet
+from pylib.finder.engines import tester_engine_fasterrcnn
 from pylib.finder.models import model_utils
 
 
@@ -14,10 +15,10 @@ def main():
 
     model = model_utils.MODELS[args.model](args)
 
-    # if args.model == "tf_efficientnetv2_s":
-    tester_engine_effdet.evaluate(model, args)
-    # else:
-    #     tester_engine_fasterrcnn.evaluate(model, args)
+    if args.model == "tf_efficientnetv2_s":
+        tester_engine_effdet.evaluate(model, args)
+    else:
+        tester_engine_fasterrcnn.evaluate(model, args)
     log.finished()
 
 

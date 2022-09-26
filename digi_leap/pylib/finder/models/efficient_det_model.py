@@ -26,10 +26,10 @@ def create_model(
     return DetBenchTrain(net, config)
 
 
-def get_model(num_classes=1, name="efficientdet_d0"):
-    config = effdet.get_efficientdet_config(name)
-    config.update({"num_classes": num_classes})
-
-    net = EfficientDet(config, pretrained_backbone=True)
-    net.class_net = HeadNet(config, num_outputs=num_classes)
-    return DetBenchTrain(net, config)
+# def get_model(num_classes=1, name="efficientdet_d0"):
+#     config = effdet.get_efficientdet_config(name)
+#     config.update({"num_classes": num_classes})
+#
+#     net = EfficientDet(config, pretrained_backbone=True)
+#     net.class_net = HeadNet(config, num_outputs=num_classes)
+#     return DetBenchTrain(net, config)

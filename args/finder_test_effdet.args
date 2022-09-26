@@ -1,7 +1,7 @@
 --database=data/sernec/sernec.sqlite
 --load-model=data/models/efficientnetv2_s_1.pt
 --train-set=rom-2022-08-30
---test-set=rom_tf_efficientnetv2_s_1
+--test-set=rom-efficientnetv2_s_1
 --workers=8
 --batch-size=4
 --notes='Evaluating an efficientdet model'

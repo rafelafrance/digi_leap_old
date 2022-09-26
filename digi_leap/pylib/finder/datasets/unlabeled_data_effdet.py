@@ -8,6 +8,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from PIL import Image
 from torch.utils.data import Dataset
 
+from . import labeled_data_effdet
 from ... import consts
 
 UnlabeledSheet = namedtuple("UnlabeledSheet", "path sheet_id")
@@ -64,3 +65,7 @@ class UnlabeledData(Dataset):
             xform,
             bbox_params=album.BboxParams(format="pascal_voc", label_fields=["targets"]),
         )
+
+    @staticmethod
+    def collate_fn(batch):
+        labeled_data_effdet.LabeledData.collate_fn(batch)

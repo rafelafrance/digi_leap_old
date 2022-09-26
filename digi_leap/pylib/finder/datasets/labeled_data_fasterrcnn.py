@@ -127,3 +127,7 @@ class LabeledData(Dataset):
         ]
 
         return transforms.Compose(xform)
+
+    @staticmethod
+    def collate_fn(batch):
+        return tuple(zip(*batch))

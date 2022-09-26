@@ -1,6 +1,5 @@
 import logging
 from argparse import Namespace
-from dataclasses import dataclass
 
 import torch
 from torch.utils.data import DataLoader
@@ -8,15 +7,8 @@ from tqdm import tqdm
 
 from ... import consts
 from ...db import db
-from ..datasets.labeled_data_effdet import LabeledData
+from ..datasets.labeled_data_fasterrcnn import LabeledData
 from ..models import model_utils
-
-
-@dataclass
-class Stats:
-    total_loss: float = float("Inf")
-    class_loss: float = float("Inf")
-    box_loss: float = float("Inf")
 
 
 def evaluate(model, args: Namespace):
@@ -28,46 +20,38 @@ def evaluate(model, args: Namespace):
         model_utils.load_model_state(model, args.load_model)
         model.to(device)
 
-        eval_loader = get_data_loader(cxn, args)
+        test_loader = get_test_loader(cxn, args)
 
         logging.info("Evaluation started.")
 
         model.eval()
-        batch, stats = run_evaluator(model, device, eval_loader)
+        batch = run_evaluator(model, test_loader, device)
 
         insert_evaluation_records(
             cxn, batch, args.train_set, args.test_set, args.image_size
         )
 
-        log_stats(stats, cxn, run_id)
+        db.update_run_finished(cxn, run_id)
 
 
-def run_evaluator(model, device, loader):
+def run_evaluator(model, loader, device):
     batch = []
 
-    running_loss = Stats(
-        total_loss=0.0,
-        class_loss=0.0,
-        box_loss=0.0,
-    )
+    for images, targets, *_ in tqdm(loader):
+        images = list(image.to(device) for image in images)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-    for images, annotations, sheet_ids in tqdm(loader):
-        images = images.to(device)
+        with torch.no_grad():
+            preds = model(images, targets)
 
-        annotations["bbox"] = [b.to(device) for b in annotations["bbox"]]
-        annotations["cls"] = [c.to(device) for c in annotations["cls"]]
-        annotations["img_size"] = annotations["img_size"].to(device)
-        annotations["img_scale"] = annotations["img_scale"].to(device)
-
-        preds = model(images, annotations)
-
-        for detections, sheet_id in zip(preds["detections"], sheet_ids):
-            for left, top, right, bottom, conf, pred_class in detections:
+        for target, pred in zip(targets, preds):
+            for box, label, score in zip(pred["boxes"], pred["labels"], pred["scores"]):
+                left, top, right, bottom = box
                 batch.append(
                     {
-                        "sheet_id": sheet_id.item(),
-                        "test_class": int(pred_class.item()),
-                        "test_conf": conf.item(),
+                        "sheet_id": target["image_id"].item(),
+                        "test_class": int(label.item()),
+                        "test_conf": score.item(),
                         "test_left": int(left.item()),
                         "test_top": int(top.item()),
                         "test_right": int(right.item()),
@@ -75,15 +59,7 @@ def run_evaluator(model, device, loader):
                     }
                 )
 
-        running_loss.total_loss += preds["loss"].item()
-        running_loss.class_loss += preds["class_loss"].item()
-        running_loss.box_loss += preds["box_loss"].item()
-
-    return batch, Stats(
-        total_loss=running_loss.total_loss / len(loader),
-        class_loss=running_loss.class_loss / len(loader),
-        box_loss=running_loss.box_loss / len(loader),
-    )
+    return batch
 
 
 def insert_evaluation_records(cxn, batch, train_set, test_set, image_size):
@@ -98,9 +74,8 @@ def insert_evaluation_records(cxn, batch, train_set, test_set, image_size):
 
     for row in batch:
         row["test_set"] = test_set
-
-        test_class = row["test_class"] % len(consts.CLASSES)  # TODO I don't know
-        row["test_class"] = consts.CLASS2NAME[test_class]
+        row["train_set"] = train_set
+        row["test_class"] = consts.CLASS2NAME[row["test_class"]]
 
         wide, high = sheets[row["sheet_id"]]
 
@@ -114,8 +89,8 @@ def insert_evaluation_records(cxn, batch, train_set, test_set, image_size):
     db.canned_insert(cxn, "label_tests", batch)
 
 
-def get_data_loader(cxn, args):
-    logging.info("Loading eval data.")
+def get_test_loader(cxn, args):
+    logging.info("Loading training data.")
     raw_data = db.canned_select(
         cxn, "label_train_split", split="test", train_set=args.train_set
     )
@@ -127,13 +102,3 @@ def get_data_loader(cxn, args):
         collate_fn=LabeledData.collate_fn,
         pin_memory=True,
     )
-
-
-def log_stats(stats, cxn, run_id):
-    comments = (
-        f"Eval: total loss {stats.total_loss:0.6f}  "
-        f"class loss {stats.class_loss:0.6f}  "
-        f"box loss {stats.box_loss:0.6f}"
-    )
-    logging.info(comments)
-    db.update_run_comments(cxn, run_id, comments)

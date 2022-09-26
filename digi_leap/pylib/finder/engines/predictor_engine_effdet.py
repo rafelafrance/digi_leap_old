@@ -5,7 +5,6 @@ import torch.multiprocessing
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from . import engine_utils
 from ... import consts
 from ...db import db
 from ..datasets.unlabeled_data_effdet import UnlabeledData
@@ -43,7 +42,8 @@ def run_prediction(model, device, loader):
     for images, sheet_ids in tqdm(loader):
         images = images.to(device)
 
-        preds = model(images)
+        with torch.no_grad():
+            preds = model(images)
 
         for detections, sheet_id in zip(preds["detections"], sheet_ids):
             for left, top, right, bottom, conf, pred_class in detections:
@@ -95,6 +95,6 @@ def get_data_loader(cxn, args):
         dataset,
         batch_size=args.batch_size,
         num_workers=args.workers,
-        collate_fn=engine_utils.collate_fn,
+        collate_fn=UnlabeledData.collate_fn,
         pin_memory=True,
     )
