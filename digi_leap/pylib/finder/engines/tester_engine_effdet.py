@@ -94,12 +94,13 @@ def insert_evaluation_records(cxn, batch, train_set, test_set, image_size):
     for row in rows:
         wide = row["width"] / image_size
         high = row["height"] / image_size
-        sheets[row["sheet_id"]] = (wide, high)
+        sheets[row["sheet_id"]] = wide, high
 
     for row in batch:
         row["test_set"] = test_set
+        row["train_set"] = train_set
 
-        test_class = row["test_class"] % len(consts.CLASSES)  # TODO I don't know
+        test_class = row["test_class"] % len(consts.CLASSES)  # TODO I don't know WTF
         row["test_class"] = consts.CLASS2NAME[test_class]
 
         wide, high = sheets[row["sheet_id"]]

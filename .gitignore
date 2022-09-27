@@ -61,7 +61,8 @@ model-best/
 model-last/
 
 
-rust/
+# Ignore rust code for now
+digi-leap-rs/
 
 # Added by cargo
 target/

@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Convert training labels into YOLO7 format."""
+"""Convert YOLO results into Digi-Leap data."""
 import argparse
 import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.finder.yolo import build_data
+from pylib.finder.yolo import import_yolo
 
 
 def main():
     log.started()
     args = parse_args()
-    build_data.build(args)
+    import_yolo.load(args)
     log.finished()
 
 
 def parse_args():
-    description = """This script converts label training data into TOLOv7 format."""
+    description = """This script converts label training data into YOLOv7 format."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -31,11 +31,11 @@ def parse_args():
     )
 
     arg_parser.add_argument(
-        "--yolo-dir",
+        "--yolo-json",
         type=Path,
         metavar="PATH",
         required=True,
-        help="""Save YOLO formatted data to this directory.""",
+        help="""Path to the YOLO results JSON file.""",
     )
 
     arg_parser.add_argument(
@@ -46,12 +46,26 @@ def parse_args():
     )
 
     arg_parser.add_argument(
-        "--yolo-size",
+        "--test-set",
+        metavar="NAME",
+        required=True,
+        help="""Name this label finder test set.""",
+    )
+
+    arg_parser.add_argument(
+        "--image-size",
         type=int,
         metavar="INT",
         default=640,
-        help="""Resize images to this height & width in pixels.
+        help="""Images were resized to this height & width in pixels.
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--notes",
+        default="",
+        metavar="TEXT",
+        help="""Notes about this run. Enclose them in quotes.""",
     )
 
     args = arg_parser.parse_args()

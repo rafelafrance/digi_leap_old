@@ -79,6 +79,15 @@ CANNED_SELECTS = {
         join   sheets using (sheet_id)
         where  gold_set = :gold_set
         """,
+    "label_test": """
+        select *
+        from   label_tests
+        join   sheets using (sheet_id)
+        where  test_set  =  :test_set
+        and    train_set =  :train_set
+        and    test_conf >= :test_conf
+        order by sheet_id
+        """,
     "label_train": """
         select *
         from   label_train
@@ -142,7 +151,7 @@ CANNED_DELETES = {
         delete from labels where label_set = :label_set
         """,
     "label_tests": """
-        delete from label_tests where test_set = :test_set
+        delete from label_tests where test_set = :test_set and train_set = :train_set
         """,
     "label_train": """
         delete from label_train where train_set = :train_set
