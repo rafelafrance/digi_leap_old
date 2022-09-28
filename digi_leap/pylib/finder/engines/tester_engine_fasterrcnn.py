@@ -68,24 +68,24 @@ def insert_evaluation_records(cxn, batch, train_set, test_set, image_size):
     sheets: dict[str, tuple] = {}
 
     for row in rows:
-        wide = row["width"] / image_size
-        high = row["height"] / image_size
-        sheets[row["sheet_id"]] = (wide, high)
+        scale_x = row["width"] / image_size
+        scale_y = row["height"] / image_size
+        sheets[row["sheet_id"]] = (scale_x, scale_y)
 
     for row in batch:
         row["test_set"] = test_set
         row["train_set"] = train_set
-        row["test_class"] = consts.CLASS2NAME[row["test_class"]]
+        row["test_class"] = consts.CLASS2NAME[row["test_class"] % len(consts.CLASSES)]
 
-        wide, high = sheets[row["sheet_id"]]
+        scale_x, scale_y = sheets[row["sheet_id"]]
 
-        row["test_left"] = int(row["test_left"] * wide)
-        row["test_right"] = int(row["test_right"] * wide)
+        row["test_left"] = int(row["test_left"] * scale_x)
+        row["test_right"] = int(row["test_right"] * scale_x)
 
-        row["test_top"] = int(row["test_top"] * high)
-        row["test_bottom"] = int(row["test_bottom"] * high)
+        row["test_top"] = int(row["test_top"] * scale_y)
+        row["test_bottom"] = int(row["test_bottom"] * scale_y)
 
-    db.canned_delete(cxn, "label_tests", test_set=test_set)
+    db.canned_delete(cxn, "label_tests", train_set=train_set, test_set=test_set)
     db.canned_insert(cxn, "label_tests", batch)
 
 

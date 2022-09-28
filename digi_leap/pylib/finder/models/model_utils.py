@@ -30,7 +30,9 @@ def fasterrcnn_resnet50_fpn(args):
     pretrained = not bool(args.load_model)
     model = detection.fasterrcnn_resnet50_fpn(pretrained=pretrained)
     in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, len(consts.CLASSES))
+    model.roi_heads.box_predictor = FastRCNNPredictor(
+        in_features, len(consts.CLASSES) + 1
+    )
     return model
 
 
