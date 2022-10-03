@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Convert training labels into YOLO7 format."""
+"""Read in YOLO inference results."""
 import argparse
 import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.finder.yolo import export_yolo
+from pylib.finder.yolo import inference_ingest_yolo
 
 
 def main():
     log.started()
     args = parse_args()
-    export_yolo.build(args)
+    inference_ingest_yolo.ingest(args)
     log.finished()
 
 
 def parse_args():
-    description = """This script converts label training data into YOLOv7 format."""
+    description = """Read in YOLO inference results."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -35,23 +35,28 @@ def parse_args():
         type=Path,
         metavar="PATH",
         required=True,
-        help="""Save YOLO formatted data to this directory.""",
+        help="""Read YOLO results from this directory.""",
     )
 
     arg_parser.add_argument(
-        "--train-set",
+        "--sheet-set",
+        required=True,
+        metavar="NAME",
+        help="""Get sheet information from this sheet set.""",
+    )
+
+    arg_parser.add_argument(
+        "--label-set",
         metavar="NAME",
         required=True,
-        help="""Which labels to use.""",
+        help="""Write labels to this set.""",
     )
 
     arg_parser.add_argument(
-        "--image-size",
-        type=int,
-        metavar="INT",
-        default=640,
-        help="""Resize images to this height & width in pixels.
-            (default: %(default)s)""",
+        "--notes",
+        default="",
+        metavar="TEXT",
+        help="""Notes about this run. Enclose them in quotes.""",
     )
 
     args = arg_parser.parse_args()

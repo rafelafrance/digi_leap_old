@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Convert training labels into YOLO7 format."""
+"""Create a new dataset for YOLO inference."""
 import argparse
 import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.finder.yolo import export_yolo
+from pylib.finder.yolo import inference_prepare_yolo
 
 
 def main():
     log.started()
     args = parse_args()
-    export_yolo.build(args)
+    inference_prepare_yolo.build(args)
     log.finished()
 
 
 def parse_args():
-    description = """This script converts label training data into YOLOv7 format."""
+    description = """Create images and data for YOLO inference."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -35,14 +35,14 @@ def parse_args():
         type=Path,
         metavar="PATH",
         required=True,
-        help="""Save YOLO formatted data to this directory.""",
+        help="""Save YOLO formatted images to this directory.""",
     )
 
     arg_parser.add_argument(
-        "--train-set",
-        metavar="NAME",
+        "--sheet-set",
         required=True,
-        help="""Which labels to use.""",
+        metavar="NAME",
+        help="""Create this sheet set.""",
     )
 
     arg_parser.add_argument(
@@ -52,6 +52,20 @@ def parse_args():
         default=640,
         help="""Resize images to this height & width in pixels.
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=float,
+        default=3000,
+        help="""Sample this many sheets. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--notes",
+        default="",
+        metavar="TEXT",
+        help="""Notes about this run. Enclose them in quotes.""",
     )
 
     args = arg_parser.parse_args()
