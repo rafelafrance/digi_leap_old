@@ -92,6 +92,7 @@ def filter_labels(labels, threshold=0.4):
 
 
 def create_sheet_image(path, labels, reduce_by=1):
+    path = path.removeprefix("../")
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
 

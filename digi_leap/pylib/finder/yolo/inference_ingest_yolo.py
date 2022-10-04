@@ -6,19 +6,28 @@ from ...db import db
 
 def ingest(args: Namespace) -> None:
     with db.connect(args.database) as cxn:
-        run_id = db.insert_run(cxn, args)
+        # run_id = db.insert_run(cxn, args)
 
         sheets = db.canned_select(cxn, "sheets", sheet_set=args.sheet_set)
         sheets = {s["coreid"]: s for s in sheets}
 
         labels = read_yolo_labels(args.yolo_dir)
+        filter_labels(labels)
 
         batch = resize_labels(labels, sheets, args.label_set)
 
         db.canned_delete(cxn, "labels", label_set=args.label_set)
         db.canned_insert(cxn, "labels", batch)
 
-        db.update_run_finished(cxn, run_id)
+        # db.update_run_finished(cxn, run_id)
+
+
+def filter_labels(results, threshold=3.0):
+    for i, (coreid, labels) in enumerate(results.items()):
+        labels = [lb for lb in labels if lb["wide"] < 0.5 and lb["high"] < 0.5]
+        # labels = [lb for lb in labels if lb["wide"] / lb["high"] < threshold]
+        labels = [lb for lb in labels if (lb["high"] / lb["wide"]) < threshold]
+        results[coreid] = labels
 
 
 def resize_labels(results, sheets, label_set):

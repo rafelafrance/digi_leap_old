@@ -1,0 +1,4 @@
+--database=data/sernec/sernec.sqlite
+--expedition-dir=data/temp/rise_of_machines2
+--label-set=other_2022-10-04
+--reduce-by=4
