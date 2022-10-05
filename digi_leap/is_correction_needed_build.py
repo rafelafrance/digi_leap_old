@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an expedition to determine the quality of label finder output."""
+"""Build an expedition to determine the quality of OCR output."""
 import argparse
 import textwrap
 from pathlib import Path
@@ -11,12 +11,15 @@ from traiter import log
 def main():
     log.started()
     args = parse_args()
-    build_expedition.build(args)
+    if args.side_by_side:
+        build_expedition.build_side_by_side(args)
+    else:
+        build_expedition.build_2_files(args)
     log.finished()
 
 
 def parse_args() -> argparse.Namespace:
-    description = """Build the "Is Correction Needed?" expedition.  (-RrDdbnp)"""
+    description = """Build the 'Is Correction Needed?' expedition"""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -39,82 +42,24 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--gold-set",
+        "--ocr-set",
         required=True,
         metavar="NAME",
-        help="""Get labels from this gold set.""",
+        help="""Use this OCR output.""",
     )
 
     arg_parser.add_argument(
-        "-R",
-        "--none-easyocr",
+        "--side-by-side",
         action="store_true",
-        help="""Add a step to the OCR pipeline that runs EasyOCR without image
-            manipulation.""",
+        help="Change the output to save the output as one file with image and text.",
     )
 
     arg_parser.add_argument(
-        "-r",
-        "--none-tesseract",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that runs Tesseract without image
-            manipulation.""",
-    )
-
-    arg_parser.add_argument(
-        "-D",
-        "--deskew-easyocr",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that deskews the label image before
-            running EasyOCR.""",
-    )
-
-    arg_parser.add_argument(
-        "-d",
-        "--deskew-tesseract",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that deskews the label image before
-            running Tesseract.""",
-    )
-
-    arg_parser.add_argument(
-        "-B",
-        "--binarize-easyocr",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that binarizes the label image before
-            running EasyOCR.""",
-    )
-
-    arg_parser.add_argument(
-        "--binarize-tesseract",
-        "-b",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that binarizes the label image before
-            running Tesseract.""",
-    )
-
-    arg_parser.add_argument(
-        "--denoise-easyocr",
-        "-N",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that denoises the label image before
-            running EasyOCR.""",
-    )
-
-    arg_parser.add_argument(
-        "-n",
-        "--denoise-tesseract",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that denoises the label image before
-            running Tesseract.""",
-    )
-
-    arg_parser.add_argument(
-        "-p",
-        "--post-process",
-        action="store_true",
-        help="""Add a step to the OCR pipeline that post-processes the OCR text
-            sequence with a spell checker etc.""",
+        "--min-words",
+        default=10,
+        type=int,
+        metavar="COUNT",
+        help="""A label must have this many words to make it into the expedition.""",
     )
 
     arg_parser.add_argument(

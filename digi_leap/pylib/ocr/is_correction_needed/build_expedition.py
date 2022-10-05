@@ -3,7 +3,9 @@ import os
 import warnings
 from argparse import Namespace
 from pathlib import Path
+from textwrap import wrap
 
+import matplotlib.pyplot as plt
 from PIL import Image
 from tqdm import tqdm
 
@@ -11,7 +13,7 @@ from ...db import db
 from ..ocr_labels import Ensemble
 
 
-def build(args: Namespace) -> None:
+def build_2_files(args: Namespace) -> None:
     os.makedirs(args.expedition_dir, exist_ok=True)
 
     csv_path = args.expedition_dir / "manifest.csv"
@@ -21,26 +23,23 @@ def build(args: Namespace) -> None:
         ensemble = Ensemble(args)
 
         writer = csv.writer(csv_file)
-        writer.writerow("gold_id image_file text_file pipeline database".split())
+        writer.writerow("ocr_id image_file text_file pipeline database".split())
 
-        golden = db.canned_select(cxn, "gold_standard", gold_set=args.gold_set)
+        recs = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
-        for gold in tqdm(golden):
-            image = get_golden_label(gold)
-            text = ensemble.run(image)
+        for rec in tqdm(recs):
+            image = get_label(rec)
 
-            image_path = (
-                Path(args.expedition_dir) / f"gold_id_{gold['gold_id']:04d}.jpg"
-            )
+            image_path = Path(args.expedition_dir) / f"ocr_id_{rec['ocr_id']:04d}.jpg"
             image.save(str(image_path))
 
             text_path = image_path.with_suffix(".txt")
             with open(text_path, "w") as out_file:
-                out_file.write(text)
+                out_file.write(rec)
 
             writer.writerow(
                 [
-                    gold["gold_id"],
+                    rec["ocr_id"],
                     image_path.name,
                     text_path.name,
                     ensemble.pipeline,
@@ -51,16 +50,67 @@ def build(args: Namespace) -> None:
         db.update_run_finished(cxn, run_id)
 
 
-def get_golden_label(gold):
+def get_label(rec):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-        image = Image.open(gold["path"]).convert("RGB")
+        image = Image.open(rec["path"]).convert("RGB")
         image = image.crop(
             (
-                gold["label_left"],
-                gold["label_top"],
-                gold["label_right"],
-                gold["label_bottom"],
+                rec["label_left"],
+                rec["label_top"],
+                rec["label_right"],
+                rec["label_bottom"],
             )
         )
     return image
+
+
+def build_side_by_side(args: Namespace) -> None:
+    with db.connect(args.database) as cxn:
+        run_id = db.insert_run(cxn, args)
+        os.makedirs(args.expedition_dir, exist_ok=True)
+
+        recs = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
+
+        with warnings.catch_warnings():  # Turn off EXIF warnings
+            warnings.filterwarnings("ignore", category=UserWarning)
+            for rec in tqdm(recs):
+                words = rec["ocr_text"].split()
+
+                if len(words) < args.min_words:
+                    continue
+
+                with Image.open(rec["path"]) as sheet:
+                    label = sheet.crop(
+                        (
+                            rec["label_left"],
+                            rec["label_top"],
+                            rec["label_right"],
+                            rec["label_bottom"],
+                        )
+                    )
+
+                    text = "\n".join(wrap(rec["ocr_text"]))
+
+                    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 10))
+                    fig.set_facecolor("white")
+
+                    ax1.axis("off")
+                    ax1.set_anchor("NE")
+                    ax1.imshow(label)
+
+                    ax2.axis("off")
+                    ax1.set_anchor("NW")
+                    ax2.text(
+                        0.0,
+                        1.0,
+                        text,
+                        verticalalignment="top",
+                        color="black",
+                        fontsize=16,
+                    )
+                    out_path = args.expedition_dir / str(rec["label_id"])
+                    plt.savefig(out_path)
+                    plt.close(fig)
+
+        db.update_run_finished(cxn, run_id)

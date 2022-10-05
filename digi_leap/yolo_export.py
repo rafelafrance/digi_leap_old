@@ -4,8 +4,8 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib import log
 from pylib.finder.yolo import export_yolo
+from traiter import log
 
 
 def main():
