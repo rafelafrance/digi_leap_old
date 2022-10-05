@@ -9,7 +9,7 @@ from collections import namedtuple
 
 import regex as re
 
-from ...consts import VOCAB_DB
+from digi_leap.pylib.consts import VOCAB_DB
 
 Spell = namedtuple("Spell", "word dist freq")
 
