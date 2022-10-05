@@ -1,8 +1,0 @@
---database=data/sernec/sernec.sqlite
---save-model=data/models/test_efficientnetv2_s_1.pt
---train-set=rom-2022-08-30
---log-dir=data/runs/test_efficientnetv2_s
---workers=8
---batch-size=4
---epochs=20
---limit=20

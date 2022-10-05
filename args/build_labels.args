@@ -1,5 +1,0 @@
---database=data/sernec/sernec.sqlite
---ocr-set=tf_efficientnetv2_s_2022-03-11
---consensus-set=add_spaces_2022-04-08
---workers=8
---batch-size=100

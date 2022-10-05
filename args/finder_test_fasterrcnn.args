@@ -1,7 +1,0 @@
---database=data/sernec/sernec.sqlite
---load-model=data/models/faster_rcnn.pt
---model=fasterrcnn_resnet50_fpn_v2
---train-set=rom-2022-08-30
---test-set=rom-fasterrcnn
---workers=8
---batch-size=2
