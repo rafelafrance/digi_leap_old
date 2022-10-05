@@ -15,24 +15,22 @@ def build(args: Namespace) -> None:
         run_id = db.insert_run(cxn, args)
         os.makedirs(args.expedition_dir, exist_ok=True)
 
-        consensuses = db.canned_select(
-            cxn, "sample_cons", consensus_set=args.consensus_set
-        )
+        texts = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
         with warnings.catch_warnings():  # Turn off EXIF warnings
             warnings.filterwarnings("ignore", category=UserWarning)
-            for cons in tqdm(consensuses):
-                words = cons["consensus_text"].split()
+            for text in tqdm(texts):
+                words = text["ocr_text"].split()
                 if len(words) < args.min_words:
                     continue
 
-                with Image.open(cons["path"]) as sheet:
+                with Image.open(text["path"]) as sheet:
                     label = sheet.crop(
                         (
-                            cons["label_left"],
-                            cons["label_top"],
-                            cons["label_right"],
-                            cons["label_bottom"],
+                            text["label_left"],
+                            text["label_top"],
+                            text["label_right"],
+                            text["label_bottom"],
                         )
                     )
 
@@ -48,12 +46,12 @@ def build(args: Namespace) -> None:
                     ax2.text(
                         0.0,
                         1.0,
-                        cons["consensus_text"],
+                        text["ocr_text"],
                         verticalalignment="top",
                         color="black",
                         fontsize=16,
                     )
-                    out_path = args.expedition_dir / str(cons["label_id"])
+                    out_path = args.expedition_dir / str(text["label_id"])
                     plt.savefig(out_path)
                     plt.close(fig)
 

@@ -4,11 +4,6 @@ CANNED_INSERTS = {
                ( char1,  char2,  char_set,  score,  sub)
         values (:char1, :char2, :char_set, :score, :sub);
         """,
-    "consensuses": """
-        insert into consensuses
-                         ( label_id,  consensus_set,  ocr_set,  consensus_text)
-                  values (:label_id, :consensus_set, :ocr_set, :consensus_text);
-        """,
     "label_tests": """
         insert into label_tests
                ( test_set,   train_set,  sheet_id,    test_class,  test_conf,
@@ -48,29 +43,14 @@ CANNED_INSERTS = {
         values (:sheet_set, :path, :width, :height, :coreid, :split);
         """,
     "traits": """
-        insert into traits ( trait_set,  consensus_id,  trait,  data)
-                    values (:trait_set, :consensus_id, :trait, :data);
+        insert into traits ( trait_set,  ocr_id,  trait,  data)
+                    values (:trait_set, :ocr_id, :trait, :data);
         """,
 }
 
 CANNED_SELECTS = {
     "char_sub_matrix": """
         select * from char_sub_matrix where char_set = :char_set
-        """,
-    "consensuses": """
-        select *
-        from   consensuses
-        join   labels using (label_id)
-        join   sheets using (sheet_id)
-        where  consensus_set = :consensus_set
-        """,
-    "consensuses_sample": """
-        select *
-        from consensuses
-        join labels using (label_id)
-        join sheets using (sheet_id)
-        where consensus_set = :consensus_set
-        order by random()
         """,
     "gold_standard": """
         select *
@@ -134,11 +114,11 @@ CANNED_SELECTS = {
     "traits": """
         select *
         from   traits
-        join   consensuses using (consensus_id)
+        join   ocr_texts using (ocr_id)
         join   labels using (label_id)
         join   sheets using (sheet_id)
         where  trait_set = :trait_set
-        order by consensus_id, trait_id
+        order by ocr_id, trait_id
         """,
 }
 

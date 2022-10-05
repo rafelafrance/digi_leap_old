@@ -33,7 +33,7 @@ def write(args):
         formatted = []
 
         all_traits = db.canned_select(cxn, "traits", trait_set=args.trait_set)
-        groups = itertools.groupby(all_traits, key=lambda t: [t["consensus_id"]])
+        groups = itertools.groupby(all_traits, key=lambda t: [t["ocr_id"]])
 
         for _, rows in groups:
             rows = [dict(r) for r in rows]
@@ -43,7 +43,7 @@ def write(args):
             formatted.append(
                 Formatted(
                     row["label_id"],
-                    format_text(rows[0]["consensus_text"], rows, classes),
+                    format_text(rows[0]["ocr_text"], rows, classes),
                     format_traits(rows, classes),
                 )
             )

@@ -1,13 +1,3 @@
-create table if not exists consensuses (
-    consensus_id   integer primary key autoincrement,
-    label_id       integer,
-    consensus_set  text,
-    ocr_set        text,
-    consensus_text text
-);
-create index if not exists cons_label_id on consensuses (label_id);
-
-
 create table if not exists gold_standard (
     gold_id     integer primary key autoincrement,
     sheet_id    integer,
@@ -108,13 +98,13 @@ create index if not exists subs_to_sheets_idx on subjects_to_sheets (coreid);
 
 
 create table if not exists traits (
-    trait_id     integer primary key autoincrement,
-    trait_set    text,
-    consensus_id text,
-    method       text,
-    trait        text,
-    data         text
+    trait_id  integer primary key autoincrement,
+    trait_set text,
+    ocr_id    integer,
+    method    text,
+    trait     text,
+    data      text
 );
 create index if not exists traits_trait_set on traits (trait_set);
-create index if not exists traits_cons_id on traits (consensus_id);
+create index if not exists traits_ocr_id on traits (ocr_id);
 create index if not exists traits_trait on traits (trait);

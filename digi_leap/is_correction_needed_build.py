@@ -113,7 +113,7 @@ def parse_args() -> argparse.Namespace:
         "-p",
         "--post-process",
         action="store_true",
-        help="""Add a step to the OCR pipeline that post-processes the consensus
+        help="""Add a step to the OCR pipeline that post-processes the OCR text
             sequence with a spell checker etc.""",
     )
 
