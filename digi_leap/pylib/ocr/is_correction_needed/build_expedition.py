@@ -63,9 +63,14 @@ def get_label(rec):
 
 
 def build_side_by_side(args: Namespace) -> None:
-    with db.connect(args.database) as cxn:
+    os.makedirs(args.expedition_dir, exist_ok=True)
+    csv_path = args.expedition_dir / "manifest.csv"
+
+    with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
         run_id = db.insert_run(cxn, args)
-        os.makedirs(args.expedition_dir, exist_ok=True)
+
+        writer = csv.writer(csv_file)
+        writer.writerow("ocr_id image_file ocr_set database".split())
 
         recs = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
@@ -110,5 +115,14 @@ def build_side_by_side(args: Namespace) -> None:
                     out_path = args.expedition_dir / str(rec["label_id"])
                     plt.savefig(out_path)
                     plt.close(fig)
+
+                    writer.writerow(
+                        [
+                            rec["ocr_id"],
+                            out_path.name,
+                            rec["ocr_set"],
+                            str(args.database).replace(".", "_").replace("/", "_"),
+                        ]
+                    )
 
         db.update_run_finished(cxn, run_id)
