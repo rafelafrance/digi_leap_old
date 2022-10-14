@@ -1,0 +1,3 @@
+--database=data/sernec/sernec.sqlite
+--ocr-set=linebreaks_2022-10-14
+--expedition-dir=data/temp/is_correction_needed_two_files

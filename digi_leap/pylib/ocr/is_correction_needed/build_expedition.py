@@ -10,7 +10,6 @@ from PIL import Image
 from tqdm import tqdm
 
 from ...db import db
-from ..ocr_labels import Ensemble
 
 
 def build_2_files(args: Namespace) -> None:
@@ -20,10 +19,8 @@ def build_2_files(args: Namespace) -> None:
     with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
         run_id = db.insert_run(cxn, args)
 
-        ensemble = Ensemble(args)
-
         writer = csv.writer(csv_file)
-        writer.writerow("ocr_id image_file text_file pipeline database".split())
+        writer.writerow("ocr_id image_file text_file ocr_set database".split())
 
         recs = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
@@ -35,14 +32,14 @@ def build_2_files(args: Namespace) -> None:
 
             text_path = image_path.with_suffix(".txt")
             with open(text_path, "w") as out_file:
-                out_file.write(rec)
+                out_file.write(rec["ocr_text"])
 
             writer.writerow(
                 [
                     rec["ocr_id"],
                     image_path.name,
                     text_path.name,
-                    ensemble.pipeline,
+                    rec["ocr_set"],
                     str(args.database).replace(".", "_").replace("/", "_"),
                 ]
             )
@@ -90,7 +87,8 @@ def build_side_by_side(args: Namespace) -> None:
                         )
                     )
 
-                    text = "\n".join(wrap(rec["ocr_text"]))
+                    text = ["\n".join(wrap(ln)) for ln in rec["ocr_text"].splitlines()]
+                    text = "\n".join(text)
 
                     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 10))
                     fig.set_facecolor("white")
