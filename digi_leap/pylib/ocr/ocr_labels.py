@@ -69,7 +69,7 @@ class Ensemble:
         return ",".join(pipes)
 
     def run(self, image):
-        lines = [" ".join(ln.split()) for ln in self.ocr(image)]
+        lines = [ln for ln in self.ocr(image)]
         lines = label_builder.filter_lines(lines, self.line_align)
         text = self.line_align.align(lines)
         text = label_builder.consensus(text)
@@ -106,11 +106,13 @@ def ocr_labels(args: argparse.Namespace) -> None:
     ensemble = Ensemble(args)
 
     with db.connect(args.database) as cxn:
-        run_id = db.insert_run(cxn, args)
+        # run_id = db.insert_run(cxn, args)
 
         db.canned_delete(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
-        sheets = get_sheet_labels(cxn, args.classes, args.label_set, args.label_conf)
+        sheets = get_sheet_labels(
+            cxn, args.classes, args.label_set, args.label_conf, args.limit
+        )
 
         with warnings.catch_warnings():  # Turn off EXIF warnings
             warnings.filterwarnings("ignore", category=UserWarning)
@@ -140,12 +142,14 @@ def ocr_labels(args: argparse.Namespace) -> None:
                     )
                 db.canned_insert(cxn, "ocr_texts", batch)
 
-            db.update_run_finished(cxn, run_id)
+            # db.update_run_finished(cxn, run_id)
 
 
-def get_sheet_labels(cxn, classes, label_set, label_conf):
+def get_sheet_labels(cxn, classes, label_set, label_conf, limit):
     sheets = {}
-    labels = db.canned_select(cxn, "labels", label_set=label_set, label_conf=label_conf)
+    labels = db.canned_select(
+        cxn, "labels", label_set=label_set, label_conf=label_conf, limit=limit
+    )
     labels = sorted(labels, key=lambda lb: lb["path"])
     grouped = itertools.groupby(labels, lambda lb: lb["path"])
 

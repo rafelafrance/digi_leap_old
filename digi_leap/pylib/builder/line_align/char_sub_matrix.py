@@ -20,7 +20,8 @@ class Char:
         """Put char pixels into a matrix."""
         image = Image.new("L", (self.image_size, self.image_size), color="black")
         draw = ImageDraw.Draw(image)
-        draw.text((0, 0), self.char, font=self.font, anchor="lt", fill="white")
+        char = " " if self.char.isspace() else self.char
+        draw.text((0, 0), char, font=self.font, anchor="lt", fill="white")
         pix = np.asarray(image) > 128
         pix = pix.astype("float")
         return pix
@@ -100,7 +101,7 @@ def calc_scores(old_chars, new_chars, matrix, image_size, font):
             elif char1 == char2:
                 score = None
                 sub = 2.0
-            elif char1.char == " " or char2.char == " ":
+            elif char1.char.isspace() or char2.char.isspace():
                 score = np.sum(char2.pix)
                 sub = -1.0 if score < 20 else -2.0  # MAGIC TODO
             else:

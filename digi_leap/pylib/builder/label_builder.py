@@ -54,7 +54,7 @@ SUBSTITUTIONS = [
     # Replace ™ trademark with a double quote
     ("™", '"'),
     # Remove space before some punctuation: x . -> x.
-    (r"(\S)\s([;:.,\)\]\}])", r"\1\2"),
+    (r"(\S)\s+([;:.,°\)\]\}])", r"\1\2"),
     # Compress spaces
     (r"\s\s+", " "),
     # Convert single capital letter, punctuation to capital dot: L' -> L.

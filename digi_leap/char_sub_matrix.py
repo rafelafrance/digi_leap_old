@@ -34,10 +34,9 @@ def parse_args() -> argparse.Namespace:
         "--chars",
         default=consts.CHARS,
         metavar="CHARS",
-        help="""A string containing the characters to add to the matrix. You may want
-            to add a space character but other whitespace characters are not useful.
-            Characters here will replace those in the char-set. Default includes a
-            space. (default: %(default)s)""",
+        help="""A string containing the characters to add to the matrix. Characters
+            here will replace those in the char-set. Default includes a space and
+            a newline. (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

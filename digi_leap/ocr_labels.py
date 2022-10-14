@@ -144,6 +144,12 @@ def parse_args() -> argparse.Namespace:
         help="""Notes about this run. Enclose them in quotes.""",
     )
 
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Limit to this many labels.""",
+    )
+
     args = arg_parser.parse_args()
     return args
 

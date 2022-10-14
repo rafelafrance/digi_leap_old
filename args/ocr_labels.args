@@ -1,3 +1,10 @@
 --database=data/sernec/sernec.sqlite
 --label-set=other_2022-10-04
---ocr-set=other_2022-10-04
+--ocr-set=linebreaks_2022-10-14
+--none-easyocr
+--none-tesseract
+--deskew-easyocr
+--deskew-tesseract
+--binarize-tesseract
+--denoise-tesseract
+--post-process

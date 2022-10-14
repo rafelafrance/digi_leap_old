@@ -1,7 +1,18 @@
-"""OCR images."""
+from dataclasses import dataclass
+from dataclasses import field
+
 import easyocr
 import numpy as np
 import pytesseract
+
+from ..builder import label_builder
+
+
+@dataclass
+class Line:
+    """Holds data for building one line from several OCR scans of the same text."""
+
+    boxes: list[dict] = field(default_factory=list)
 
 
 class EngineConfig:
@@ -72,17 +83,61 @@ def easyocr_engine(image) -> list[dict]:
 
 def easy_text(image):
     """Return text without other information."""
-    image = np.asarray(image)
-    text = EngineConfig.easy_ocr.readtext(
-        image, blocklist=EngineConfig.char_blacklist, detail=0, paragraph=True
-    )
-    text = " ".join(text)
-    text = " ".join(text.split())
-    return text
+    ocr_boxes = easyocr_engine(image)
+    return build_text(ocr_boxes)
 
 
 def tess_text(image):
     """Return text without other information."""
-    text = pytesseract.image_to_string(image, config=EngineConfig.tess_config)
-    text = " ".join(text.split())
+    ocr_boxes = tesseract_engine(image)
+    return build_text(ocr_boxes)
+
+
+def build_text(ocr_boxes):
+    lines = get_lines(ocr_boxes)
+
+    text = []
+    for ln in lines:
+        line = " ".join([b["ocr_text"] for b in ln.boxes])
+        line = label_builder.substitute(line)
+        text.append(line)
+
+    text = "\n".join(text)
     return text
+
+
+def get_lines(ocr_boxes, vert_overlap=0.3):
+    """Find lines of text from an OCR bounding boxes."""
+    boxes = sorted(ocr_boxes, key=lambda b: b["ocr_left"])
+    lines: list[Line] = []
+
+    for box in boxes:
+        overlap = [(find_overlap(line, box), line) for line in lines]
+        overlap = sorted(overlap, key=lambda o: -o[0])
+
+        if overlap and overlap[0][0] > vert_overlap:
+            line = overlap[0][1]
+            line.boxes.append(box)
+        else:
+            line = Line()
+            line.boxes.append(box)
+            lines.append(line)
+
+    lines = sorted(lines, key=lambda r: r.boxes[0]["ocr_top"])
+    return lines
+
+
+def find_overlap(line: Line, ocr_box, eps=1):
+    """Find the vertical overlap between a line and an OCR bounding box.
+    This is expressed as a fraction of the smallest height of the line
+    & OCR bounding box.
+    """
+    last = line.boxes[-1]
+    min_height = min(
+        last["ocr_bottom"] - last["ocr_top"],
+        ocr_box["ocr_bottom"] - ocr_box["ocr_top"],
+    )
+    y_min = max(last["ocr_top"], ocr_box["ocr_top"])
+    y_max = min(last["ocr_bottom"], ocr_box["ocr_bottom"])
+    inter = max(0, y_max - y_min)
+    return inter / (min_height + eps)
