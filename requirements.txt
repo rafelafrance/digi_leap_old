@@ -6,6 +6,7 @@ cython
 python-dateutil
 easyocr
 effdet
+fastapi
 gensim
 jinja2
 jupyter
@@ -16,14 +17,14 @@ pandas
 pybind11
 pycocotools
 pytesseract
+python-multipart
 regex
 scikit-image
 scikit-learn
 scipy
 spacy==3.3.0
 tqdm
-
-opencv-python-headless==4.5.4.60
+uvicorn[standard]
 
 # torch
 # torchvision
