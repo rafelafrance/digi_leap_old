@@ -18,8 +18,8 @@ def main():
 def parse_args() -> argparse.Namespace:
     # The current best ensemble
     # [[, easyocr], [, tesseract], [deskew, easyocr], [deskew, tesseract],
-    # [binarize, tesseract], [denoise, tesseract], [post_process]]
-    description = """OCR images of labels. (Try this ensemble: -RrDdbnp)"""
+    # [binarize, tesseract], [denoise, tesseract], [pre_process], [post_process]]
+    description = """OCR images of labels. (Try this ensemble: -RrDdbnPp)"""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -130,11 +130,21 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
+        "-P",
+        "--pre-process",
+        action="store_true",
+        help="""Add a step to the OCR pipeline that pre-processes the OCR text before
+            the building the consensus sequence. This step performs simple text
+            substitutions that may help build the consensus sequence.""",
+    )
+
+    arg_parser.add_argument(
         "-p",
         "--post-process",
         action="store_true",
         help="""Add a step to the OCR pipeline that post-processes the OCR text
-            sequence with a spell checker etc.""",
+            sequence with a spell checker etc. after building the consensus sequence.
+            """,
     )
 
     arg_parser.add_argument(

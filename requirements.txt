@@ -16,6 +16,7 @@ numpy
 pandas
 pybind11
 pycocotools
+pydantic
 pytesseract
 python-multipart
 regex
@@ -26,5 +27,6 @@ spacy==3.3.0
 tqdm
 uvicorn[standard]
 
-# torch
-# torchvision
+# Use the
+torch
+torchvision

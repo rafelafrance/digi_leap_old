@@ -27,6 +27,7 @@ class Ensemble:
         self.binarize_tesseract = args.binarize_tesseract
         self.denoise_easyocr = args.denoise_easyocr
         self.denoise_tesseract = args.denoise_tesseract
+        self.pre_process = args.pre_process
         self.post_process = args.post_process
 
         matrix = subs.select_char_sub_matrix(char_set="default")
@@ -64,6 +65,8 @@ class Ensemble:
             pipes.append("[denoise,easyocr]")
         if self.denoise_tesseract:
             pipes.append("[denoise,tesseract]")
+        if self.pre_process:
+            pipes.append("[pre_process]")
         if self.post_process:
             pipes.append("[post_process]")
         return ",".join(pipes)
@@ -84,21 +87,21 @@ class Ensemble:
 
         lines = []
         if self.none_easyocr:
-            lines.append(ocr_runner.easy_text(image))
+            lines.append(ocr_runner.easy_text(image, pre_process=self.pre_process))
         if self.none_tesseract:
-            lines.append(ocr_runner.tess_text(image))
+            lines.append(ocr_runner.tess_text(image, pre_process=self.pre_process))
         if self.deskew_easyocr:
-            lines.append(ocr_runner.easy_text(deskew))
+            lines.append(ocr_runner.easy_text(deskew, pre_process=self.pre_process))
         if self.deskew_tesseract:
-            lines.append(ocr_runner.tess_text(deskew))
+            lines.append(ocr_runner.tess_text(deskew, pre_process=self.pre_process))
         if self.binarize_easyocr:
-            lines.append(ocr_runner.easy_text(binary))
+            lines.append(ocr_runner.easy_text(binary, pre_process=self.pre_process))
         if self.binarize_tesseract:
-            lines.append(ocr_runner.tess_text(binary))
+            lines.append(ocr_runner.tess_text(binary, pre_process=self.pre_process))
         if self.denoise_easyocr:
-            lines.append(ocr_runner.easy_text(denoise))
+            lines.append(ocr_runner.easy_text(denoise, pre_process=self.pre_process))
         if self.denoise_tesseract:
-            lines.append(ocr_runner.tess_text(denoise))
+            lines.append(ocr_runner.tess_text(denoise, pre_process=self.pre_process))
         return lines
 
 
@@ -106,7 +109,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
     ensemble = Ensemble(args)
 
     with db.connect(args.database) as cxn:
-        # run_id = db.insert_run(cxn, args)
+        run_id = db.insert_run(cxn, args)
 
         db.canned_delete(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
@@ -142,7 +145,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                     )
                 db.canned_insert(cxn, "ocr_texts", batch)
 
-            # db.update_run_finished(cxn, run_id)
+            db.update_run_finished(cxn, run_id)
 
 
 def get_sheet_labels(cxn, classes, label_set, label_conf, limit):

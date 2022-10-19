@@ -7,4 +7,5 @@
 --deskew-tesseract
 --binarize-tesseract
 --denoise-tesseract
+--pre-process
 --post-process

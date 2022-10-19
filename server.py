@@ -6,17 +6,18 @@ import tempfile
 import warnings
 from pathlib import Path
 from subprocess import check_call
+from typing import Optional
 
+from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import File
-from fastapi import Form
 from fastapi import HTTPException
 from fastapi import UploadFile
 from PIL import Image
+from pydantic import BaseModel
 
 from digi_leap.pylib import consts
 
-# from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -29,31 +30,42 @@ with open(KEYS) as key_file:
 KEY = KEY["key"]
 
 
+class FindLabels(BaseModel):
+    magic_word: str  # TODO: Use passwords or OAuth2?
+    conf: Optional[float] = None
+
+
 @app.post("/find-labels")
 async def find_labels(
-    api_key: str = Form(...),  # TODO: We need to do better!
-    conf: float = Form(...),
+    params: FindLabels = Depends(),
     files: list[UploadFile] = File(...),
 ):
+    print(params)
+    auth(params.magic_word)
+
     results = {}
+    scales = {}
 
-    # TODO: Fix this!
-    if api_key != KEY:
-        raise HTTPException(status_code=401, detail="Wrong API key")
+    with tempfile.TemporaryDirectory(prefix="yolo_") as yolo_dir:
+        in_dir, out_dir = await create_dirs(yolo_dir)
 
-    for file_ in files:
-        contents = await file_.read()
+        for file_ in files:
+            contents = await file_.read()
+            stem = Path(file_.filename).stem
+            scales[stem] = await save_image(contents, file_, in_dir)
 
-        with tempfile.TemporaryDirectory(prefix="yolo_") as yolo_dir:
-            in_dir, out_dir = await create_dirs(yolo_dir)
-            scale_x, scale_y = await save_image(contents, file_, in_dir)
-            await run_yolo(in_dir, out_dir, conf)
+        await run_yolo(in_dir, out_dir, params.conf)
 
-            label_dir = out_dir / "exp" / "labels"
-            for path in label_dir.glob("*.txt"):
-                await get_all_bboxes(file_, path, results, scale_x, scale_y)
+        label_dir = out_dir / "exp" / "labels"
+        for path in label_dir.glob("*.txt"):
+            await get_all_bboxes(path, results, scales)
 
     return json.dumps(results)
+
+
+def auth(magic_word):
+    if magic_word != KEY:
+        raise HTTPException(status_code=401, detail="There is no magic in that word")
 
 
 async def create_dirs(yolo_dir):
@@ -94,12 +106,14 @@ async def run_yolo(in_dir, out_dir, conf):
     check_call(cmd, shell=True)
 
 
-async def get_all_bboxes(file, path, results, scale_x, scale_y):
-    results[file.filename] = []
+async def get_all_bboxes(path, results, scales):
+    stem = path.stem
+    scale_x, scale_y = scales[stem]
+    results[stem] = []
     with open(path) as txt_file:
-        for ln in txt_file.readlines():
-            bbox = get_bbox(ln, scale_x, scale_y)
-            results[file.filename].append(bbox)
+        for line in txt_file.readlines():
+            bbox = get_bbox(line, scale_x, scale_y)
+            results[stem].append(bbox)
 
 
 def get_bbox(line, scale_x, scale_y):

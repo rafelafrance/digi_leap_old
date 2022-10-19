@@ -10,7 +10,7 @@ from ..builder import label_builder
 
 @dataclass
 class Line:
-    """Holds data for building one line from several OCR scans of the same text."""
+    """Holds data for building one line of OCR text."""
 
     boxes: list[dict] = field(default_factory=list)
 
@@ -81,25 +81,24 @@ def easyocr_engine(image) -> list[dict]:
     return results
 
 
-def easy_text(image):
-    """Return text without other information."""
+def easy_text(image, pre_process=True):
     ocr_boxes = easyocr_engine(image)
-    return build_text(ocr_boxes)
+    return build_text(ocr_boxes, pre_process=pre_process)
 
 
-def tess_text(image):
-    """Return text without other information."""
+def tess_text(image, pre_process=True):
     ocr_boxes = tesseract_engine(image)
-    return build_text(ocr_boxes)
+    return build_text(ocr_boxes, pre_process=pre_process)
 
 
-def build_text(ocr_boxes):
+def build_text(ocr_boxes, pre_process=True):
     lines = get_lines(ocr_boxes)
 
     text = []
     for ln in lines:
         line = " ".join([b["ocr_text"] for b in ln.boxes])
-        line = label_builder.substitute(line)
+        if pre_process:
+            line = label_builder.substitute(line)
         text.append(line)
 
     text = "\n".join(text)
