@@ -103,7 +103,7 @@ def consensus(aligned: list[str]) -> str:
     """Build a consensus string from the aligned copies.
 
     Look at all characters of the multiple alignment and choose the most common one,
-    using heuristics as a tiebreaker..
+    using heuristics as a tiebreaker.
     """
     cons = []
     for i in range(len(aligned[0])):

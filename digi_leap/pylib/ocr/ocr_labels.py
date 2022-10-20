@@ -1,4 +1,3 @@
-"""OCR a set of labels."""
 import argparse
 import itertools
 import warnings
@@ -7,106 +6,13 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 
-from . import label_transformer as lt
-from . import ocr_runner
 from .. import box_calc
-from ..builder import label_builder
-from ..builder.line_align import char_sub_matrix as subs
-from ..builder.line_align import line_align_py  # noqa
-from ..builder.spell_well import SpellWell
 from ..db import db
-
-
-class Ensemble:
-    def __init__(self, args):
-        self.none_easyocr = args.none_easyocr
-        self.none_tesseract = args.none_tesseract
-        self.deskew_easyocr = args.deskew_easyocr
-        self.deskew_tesseract = args.deskew_tesseract
-        self.binarize_easyocr = args.binarize_easyocr
-        self.binarize_tesseract = args.binarize_tesseract
-        self.denoise_easyocr = args.denoise_easyocr
-        self.denoise_tesseract = args.denoise_tesseract
-        self.pre_process = args.pre_process
-        self.post_process = args.post_process
-
-        matrix = subs.select_char_sub_matrix(char_set="default")
-        self.line_align = line_align_py.LineAlign(matrix)
-        self.spell_well = SpellWell()
-
-    @property
-    def need_deskew(self):
-        return self.deskew_easyocr or self.deskew_tesseract
-
-    @property
-    def need_binarize(self):
-        return self.binarize_easyocr or self.binarize_tesseract
-
-    @property
-    def need_denoise(self):
-        return self.denoise_easyocr or self.denoise_tesseract
-
-    @property
-    def pipeline(self):
-        pipes = []
-        if self.none_easyocr:
-            pipes.append("[,easyocr]")
-        if self.none_tesseract:
-            pipes.append("[,tesseract]")
-        if self.deskew_easyocr:
-            pipes.append("[deskew,easyocr]")
-        if self.deskew_tesseract:
-            pipes.append("[deskew,tesseract]")
-        if self.binarize_easyocr:
-            pipes.append("[binarize,easyocr]")
-        if self.binarize_tesseract:
-            pipes.append("[binarize,tesseract]")
-        if self.denoise_easyocr:
-            pipes.append("[denoise,easyocr]")
-        if self.denoise_tesseract:
-            pipes.append("[denoise,tesseract]")
-        if self.pre_process:
-            pipes.append("[pre_process]")
-        if self.post_process:
-            pipes.append("[post_process]")
-        return ",".join(pipes)
-
-    def run(self, image):
-        lines = [ln for ln in self.ocr(image)]
-        lines = label_builder.filter_lines(lines, self.line_align)
-        text = self.line_align.align(lines)
-        text = label_builder.consensus(text)
-        if self.post_process:
-            text = label_builder.post_process_text(text, self.spell_well)
-        return text
-
-    def ocr(self, image):
-        deskew = lt.transform_label("deskew", image) if self.need_deskew else None
-        binary = lt.transform_label("binarize", image) if self.need_binarize else None
-        denoise = lt.transform_label("denoise", image) if self.need_denoise else None
-
-        lines = []
-        if self.none_easyocr:
-            lines.append(ocr_runner.easy_text(image, pre_process=self.pre_process))
-        if self.none_tesseract:
-            lines.append(ocr_runner.tess_text(image, pre_process=self.pre_process))
-        if self.deskew_easyocr:
-            lines.append(ocr_runner.easy_text(deskew, pre_process=self.pre_process))
-        if self.deskew_tesseract:
-            lines.append(ocr_runner.tess_text(deskew, pre_process=self.pre_process))
-        if self.binarize_easyocr:
-            lines.append(ocr_runner.easy_text(binary, pre_process=self.pre_process))
-        if self.binarize_tesseract:
-            lines.append(ocr_runner.tess_text(binary, pre_process=self.pre_process))
-        if self.denoise_easyocr:
-            lines.append(ocr_runner.easy_text(denoise, pre_process=self.pre_process))
-        if self.denoise_tesseract:
-            lines.append(ocr_runner.tess_text(denoise, pre_process=self.pre_process))
-        return lines
+from .ensemble import Ensemble
 
 
 def ocr_labels(args: argparse.Namespace) -> None:
-    ensemble = Ensemble(args)
+    ensemble = Ensemble(**vars(args))
 
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
@@ -134,7 +40,7 @@ def ocr_labels(args: argparse.Namespace) -> None:
                         )
                     )
 
-                    text = ensemble.run(label)
+                    text = await ensemble.run(label)
                     batch.append(
                         {
                             "label_id": lb["label_id"],

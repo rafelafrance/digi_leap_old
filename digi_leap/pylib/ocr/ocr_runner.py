@@ -29,7 +29,7 @@ class EngineConfig:
     )
 
 
-def tesseract_engine(image) -> list[dict]:
+async def tesseract_engine(image) -> list[dict]:
     df = pytesseract.image_to_data(
         image, config=EngineConfig.tess_config, output_type="data.frame"
     )
@@ -62,7 +62,7 @@ def tesseract_engine(image) -> list[dict]:
     return results
 
 
-def easyocr_engine(image) -> list[dict]:
+async def easyocr_engine(image) -> list[dict]:
     results = []
     image = np.asarray(image)
     raw = EngineConfig.easy_ocr.readtext(image, blocklist=EngineConfig.char_blacklist)
@@ -81,13 +81,13 @@ def easyocr_engine(image) -> list[dict]:
     return results
 
 
-def easy_text(image, pre_process=True):
-    ocr_boxes = easyocr_engine(image)
+async def easy_text(image, pre_process=True) -> str:
+    ocr_boxes = await easyocr_engine(image)
     return build_text(ocr_boxes, pre_process=pre_process)
 
 
-def tess_text(image, pre_process=True):
-    ocr_boxes = tesseract_engine(image)
+async def tess_text(image, pre_process=True) -> str:
+    ocr_boxes = await tesseract_engine(image)
     return build_text(ocr_boxes, pre_process=pre_process)
 
 
@@ -98,6 +98,7 @@ def build_text(ocr_boxes, pre_process=True):
     for ln in lines:
         line = " ".join([b["ocr_text"] for b in ln.boxes])
         if pre_process:
+            line = line.strip()
             line = label_builder.substitute(line)
         text.append(line)
 
