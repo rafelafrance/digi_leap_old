@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends
 from fastapi import File
 from fastapi import Form
 from fastapi import UploadFile
@@ -12,17 +12,16 @@ from digi_leap.pylib.ocr.ensemble import Ensemble
 from digi_leap.pylib.server import common
 from digi_leap.pylib.server import label_finder as finder
 
-app = FastAPI()
+
+app = common.setup()
 
 
 @app.post("/find-labels")
 async def find_labels(
-    magic: str = Form(),
+    _: str = Depends(common.auth),
     conf: float = Form(0.1),
     files: list[UploadFile] = File(),
 ):
-    common.auth(magic)
-
     results = {}
     scales = {}
 
@@ -44,16 +43,19 @@ async def find_labels(
 
 
 @app.post("/ocr-labels")
-async def ocr_labels(magic: str = Form(), files: list[UploadFile] = File(...)):
-    common.auth(magic)
-
+async def ocr_labels(
+    _: str = Depends(common.auth),
+    files: list[UploadFile] = File(...),
+):
     results = {}
     ensemble = Ensemble(
         none_easyocr=True,
         none_tesseract=True,
         deskew_easyocr=True,
         deskew_tesseract=True,
+        binarize_easyocr=False,
         binarize_tesseract=True,
+        denoise_easyocr=False,
         denoise_tesseract=True,
         pre_process=True,
         post_process=True,
