@@ -19,7 +19,6 @@ with open(KEYS) as key_file:
     KEY = json.load(key_file)
 KEY = KEY["key"].encode()
 
-
 security = HTTPBasic()
 
 
@@ -30,7 +29,7 @@ def setup():
     app = FastAPI(
         title="Digi-Leap",
         description=description,
-        url="??",
+        url="http://localhost:8000",
         version="0.1.0",
         contact={},
         license_info={

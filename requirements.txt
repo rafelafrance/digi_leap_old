@@ -24,9 +24,10 @@ scikit-image
 scikit-learn
 scipy
 spacy==3.3.0
+ttkthemes
 tqdm
 uvicorn[standard]
 
-# Use the
+# Use the GPU version
 torch
 torchvision
