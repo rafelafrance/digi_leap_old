@@ -20,6 +20,7 @@ pydantic
 pytesseract
 python-multipart
 regex
+requests
 scikit-image
 scikit-learn
 scipy

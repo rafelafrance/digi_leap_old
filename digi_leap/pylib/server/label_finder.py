@@ -47,24 +47,23 @@ async def run_yolo(in_dir, out_dir, conf):
 
 async def get_all_bboxes(path, results, scales):
     stem = path.stem
-    scale_x, scale_y = scales[stem]
-    results[stem] = []
-    with open(path) as txt_file:
-        for line in txt_file.readlines():
-            bbox = get_bbox(line, scale_x, scale_y)
-            results[stem].append(bbox)
+    sx, sy = scales[stem]
+    with open(path) as txt:
+        results[stem] = [bb for ln in txt.readlines() if (bb := get_bbox(ln, sx, sy))]
 
 
 def get_bbox(line, scale_x, scale_y):
     row = line.split()
     cls = row[0]
-    left, top, wide, high, conf = (float(v) for v in row[1:])
+    x, y, wide, high, conf = (float(v) for v in row[1:])
+    if high > 0.5 or wide > 0.5:
+        return None
     bbox = {
         "class": consts.CLASS2NAME[int(cls)],
-        "left": int(left * scale_x),
-        "top": int(top * scale_y),
-        "right": int((left + wide) * scale_x),
-        "bottom": int((top + high) * scale_y),
+        "left": int((x - (wide / 2.0)) * scale_x),
+        "top": int((y - (high / 2.0)) * scale_y),
+        "right": int((x + (wide / 2.0)) * scale_x),
+        "bottom": int((y + (high / 2.0)) * scale_y),
         "conf": float(conf),
     }
     return bbox

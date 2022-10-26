@@ -14,10 +14,14 @@ from PIL import Image
 from .. import consts
 
 
-KEYS = consts.DATA_DIR / "secrets" / "api_keys.json"
-with open(KEYS) as key_file:
-    KEY = json.load(key_file)
-KEY = KEY["key"].encode()
+def api_key():
+    keys = consts.DATA_DIR / "secrets" / "api_keys.json"
+    with open(keys) as key_file:
+        key = json.load(key_file)
+    return key["key"]
+
+
+KEY = api_key().encode()
 
 security = HTTPBasic()
 
@@ -29,11 +33,12 @@ def setup():
     app = FastAPI(
         title="Digi-Leap",
         description=description,
-        url="http://localhost:8000",
+        url="http://localhost:8000",  # TODO??
         version="0.1.0",
         contact={},
         license_info={
             "name": "MIT License",
+            # TODO: Tag a release and use its URL
             "url": "https://github.com/rafelafrance/digi_leap/blob/main/LICENSE",
         },
     )
