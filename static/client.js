@@ -5,7 +5,7 @@ const CTX = CANVAS.getContext('2d');
 CTX.canvas.width = 1000;
 CTX.canvas.height = 1000;
 
-let OLD_CANVAS = null;
+let BEFORE_DRAW = null;
 
 let SCALE = {x: 1.0, y: 1.0};
 let LABELS = [];
@@ -61,9 +61,11 @@ const drawBoxes = () => {
 }
 
 const mouseDownListener = (evt) => {
+    const action = document.querySelector('input[name="action"]:checked').value;
+    if (action != "Draw") { return false; }
     START_POS = canvasOffset(evt);
     DRAWING = true;
-    OLD_CANVAS = cloneCanvas(CANVAS);
+    BEFORE_DRAW = cloneCanvas(CANVAS);
 }
 
 const mouseMoveListener = (evt) => {
@@ -71,7 +73,7 @@ const mouseMoveListener = (evt) => {
 
   END_POS = canvasOffset(evt);
 
-  CTX.drawImage(OLD_CANVAS, 0, 0);
+  CTX.drawImage(BEFORE_DRAW, 0, 0);
 
   drawRectangle();
 }
@@ -172,6 +174,10 @@ const ocrLabels = () => {
     const data = new FormData();
     data.append('labels', JSON.stringify(LABELS));
     data.append('sheet', files.files[0]);
+    data.append(
+        "filter",
+        document.querySelector('input[name="which-labels"]:checked').value,
+    );
 
     req.open('POST', `${window.location.href}ocr-labels`, true);
     req.onreadystatechange = labelsOcred;

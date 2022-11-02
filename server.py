@@ -65,9 +65,10 @@ async def find_labels(
 async def ocr_labels(
     _: str = Depends(common.auth),
     labels: str = Form(""),
+    filter: str = Form("all"),
     sheet: UploadFile = File(),
 ):
-    labels = json.loads(labels) if labels else None
+    labels = json.loads(labels) if labels else []
 
     results = []
 
@@ -84,11 +85,11 @@ async def ocr_labels(
         post_process=True,
     )
 
-    contents = await sheet.read()
-    image = await common.get_image(contents)
+    image = await sheet.read()
+    image = await common.get_image(image)
 
-    if labels is None:
-        text = await ensemble.run(sheet)
+    if not labels:
+        text = await ensemble.run(image)
         results.append(
             {
                 "type": "unknown",
@@ -103,7 +104,7 @@ async def ocr_labels(
     else:
         for lb in labels:
             label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
-            if lb["type"].lower() == "typewritten":
+            if filter == "all" or lb["type"].lower() == filter:
                 text = await ensemble.run(label)
             else:
                 text = ""

@@ -28,27 +28,25 @@
         <label class="Other" for="other">Other label</label>
         <input type="radio" id="remove" name="action" value="Remove">
         <label class="Remove" for="remove">Remove label</label>
-        <hr />
         <input type="radio" id="draw" name="action" value="Draw">
-        <label class="Draw" for="draw">Draw around a missing label</label>
+        <label class="Draw" for="draw">New label</label>
     </fieldset>
     <fieldset>
         <legend>Process labels</legend>
         <input type="radio" name="which-labels" id="typewritten-labels" value="typewritten" checked>
-        <label for="typewritten-labels">Save typewritten labels</label>
-        <input type="radio" name="which-labels" id="all-labels" value="all-labels">
-        <label for="all-labels">Save all labels</label>
+        <label for="typewritten-labels">Typewritten labels</label>
+        <input type="radio" name="which-labels" id="all-labels" value="all">
+        <label for="all-labels">All labels</label>
         <button id="save-labels">Save labels</button>
         <button id="ocr-labels">OCR labels</button>
     </fieldset>
     <fieldset>
-        <legend>Update OCR text</legend>
-        <button>Update OCR text</button>
+        <legend>OCR text</legend>
         <button id="save-text">Save OCR text</button>
     </fieldset>
 
-    <canvas></canvas>
     <textarea rows="20" cols="80"></textarea>
+    <canvas></canvas>
 </body>
 
 <script src="/static/client.js"></script>
