@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Digi-Leap</title>
+    <link rel="stylesheet" type="text/css" href="/static/client.css">
+    <link rel="icon" href="/static/digi-leap-icon.png" type="image/png">
+</head>
+
+<body>
+    <h1>Does this work?</h1>
+    <fieldset>
+        <legend>Select an image</legend>
+        <input id="files" name="files" type="file" accept="image/*" />
+    </fieldset>
+    <fieldset>
+        <legend>Find labels</legend>
+        <label>Confidence
+            <input name="conf" id="conf" type="number" value="0.1" step="0.01" min="0.0" max="1.0" />
+        </label>
+        <button id="find-labels">Find labels</button>
+    </fieldset>
+    <fieldset>
+        <legend>Update labels</legend>
+        <input type="radio" id="typewritten" name="action" value="Typewritten" checked>
+        <label class="Typewritten" for="typewritten">Typewritten label</label>
+        <input type="radio" id="other" name="action" value="Other">
+        <label class="Other" for="other">Other label</label>
+        <input type="radio" id="remove" name="action" value="Remove">
+        <label class="Remove" for="remove">Remove label</label>
+        <hr />
+        <input type="radio" id="draw" name="action" value="Draw">
+        <label class="Draw" for="draw">Draw around a missing label</label>
+    </fieldset>
+    <fieldset>
+        <legend>Process labels</legend>
+        <input type="radio" name="which-labels" id="typewritten-labels" value="typewritten" checked>
+        <label for="typewritten-labels">Save typewritten labels</label>
+        <input type="radio" name="which-labels" id="all-labels" value="all-labels">
+        <label for="all-labels">Save all labels</label>
+        <button id="save-labels">Save labels</button>
+        <button id="ocr-labels">OCR labels</button>
+    </fieldset>
+    <fieldset>
+        <legend>Update OCR text</legend>
+        <button>Update OCR text</button>
+        <button id="save-text">Save OCR text</button>
+    </fieldset>
+
+    <canvas></canvas>
+    <textarea rows="20" cols="80"></textarea>
+</body>
+
+<script src="/static/client.js"></script>
+
+</html>

@@ -22,18 +22,12 @@ source ./.venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
 
-# ##############################################################################
-# I want to use the GPU when possible.
-
- python -m pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu113
-
 
 # ##############################################################################
 # NLP datasets - NOTE: we're using a larger than normal spacy model
 
 python -c 'import nltk; nltk.download("words")'
 
-python -m pip install --upgrade spacy==3.3.0
 python -m spacy download en_core_web_md
 
 
@@ -60,8 +54,8 @@ python -m pip install -U jupyterlab-lsp
 python -m pip install -U jupyterlab-spellchecker
 python -m pip install -U aquirdturtle-collapsible-headings
 python -m pip install -U nbdime
-python -m pip install -U jupyterlab-code-formatter==1.4.10
-python -m pip install -U jupyterlab-git==0.36.0
+python -m pip install -U jupyterlab-code-formatter
+python -m pip install -U jupyterlab-git
 
 jupyter labextension install jupyterlab_onedarkpro
 jupyter server extension enable --py jupyterlab_git

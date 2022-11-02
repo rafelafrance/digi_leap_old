@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import json
 import tempfile
-from pathlib import Path
 
 from fastapi import Depends
 from fastapi import File
 from fastapi import Form
+from fastapi import Request
 from fastapi import UploadFile
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from digi_leap.pylib.ocr.ensemble import Ensemble
 from digi_leap.pylib.server import common
@@ -14,30 +18,45 @@ from digi_leap.pylib.server import label_finder as finder
 
 
 app = common.setup()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+TEMPLATES = Jinja2Templates(directory="static")
+
+
+class Label(BaseModel):
+    left: int = 0
+    top: int = 0
+    right: int = 0
+    bottom: int = 0
+    conf: float = 1.0
+    type: str = ""
+    text: str = ""
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return TEMPLATES.TemplateResponse("client.html", {"request": request})
 
 
 @app.post("/find-labels")
 async def find_labels(
     _: str = Depends(common.auth),
+    sheet: UploadFile = File(),
     conf: float = Form(0.1),
-    files: list[UploadFile] = File(),
 ):
-    results = {}
-    scales = {}
+    results = []
 
     with tempfile.TemporaryDirectory(prefix="yolo_") as yolo_dir:
         in_dir, out_dir = await finder.create_dirs(yolo_dir)
 
-        for file_ in files:
-            stem = Path(file_.filename).stem
-            contents = await file_.read()
-            scales[stem] = await finder.save_image(contents, file_, in_dir)
+        contents = await sheet.read()
+        scale = await finder.save_image(contents, sheet, in_dir)
 
         await finder.run_yolo(in_dir, out_dir, conf)
 
         label_dir = out_dir / "exp" / "labels"
         for path in label_dir.glob("*.txt"):
-            await finder.get_all_bboxes(path, results, scales)
+            results += await finder.get_all_bboxes(path, scale)
 
     return json.dumps(results)
 
@@ -45,9 +64,13 @@ async def find_labels(
 @app.post("/ocr-labels")
 async def ocr_labels(
     _: str = Depends(common.auth),
-    files: list[UploadFile] = File(...),
+    labels: str = Form(""),
+    sheet: UploadFile = File(),
 ):
-    results = {}
+    labels = json.loads(labels) if labels else None
+
+    results = []
+
     ensemble = Ensemble(
         none_easyocr=True,
         none_tesseract=True,
@@ -60,11 +83,39 @@ async def ocr_labels(
         pre_process=True,
         post_process=True,
     )
-    for file_ in files:
-        stem = Path(file_.filename).stem
-        contents = await file_.read()
-        image = await common.get_image(contents)
-        text = await ensemble.run(image)
-        results[stem] = text
+
+    contents = await sheet.read()
+    image = await common.get_image(contents)
+
+    if labels is None:
+        text = await ensemble.run(sheet)
+        results.append(
+            {
+                "type": "unknown",
+                "left": 0,
+                "top": 0,
+                "right": image.size[0] - 1,
+                "bottom": image.size[1] - 1,
+                "text": text,
+            }
+        )
+
+    else:
+        for lb in labels:
+            label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
+            if lb["type"].lower() == "typewritten":
+                text = await ensemble.run(label)
+            else:
+                text = ""
+            results.append(
+                {
+                    "type": lb["type"],
+                    "left": lb["left"],
+                    "top": lb["top"],
+                    "right": lb["right"],
+                    "bottom": lb["bottom"],
+                    "text": text,
+                }
+            )
 
     return json.dumps(results)

@@ -1,0 +1,47 @@
+rect.Typewritten {
+    stroke: #d95f02;
+}
+
+label.Typewritten {
+    color: #d95f02;
+}
+
+rect.Draw {
+    stroke: #d95f02;
+}
+
+label.Draw {
+    color: #d95f02;
+}
+
+rect.Other {
+    stroke: #1b9e77;
+}
+
+label.Other {
+    color: #1b9e77;
+}
+
+rect.Handwritten {
+    stroke: #1b9e77;
+}
+
+rect.Both {
+    stroke: #1b9e77;
+}
+
+rect.Barcode {
+    stroke: #1b9e77;
+}
+
+rect.Remove {
+    stroke: #7570b388;
+}
+
+label.Remove {
+    color: #7570b3;
+}
+
+fieldset {
+    display: inline;
+}
