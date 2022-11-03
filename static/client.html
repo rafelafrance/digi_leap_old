@@ -8,45 +8,73 @@
 </head>
 
 <body>
-    <h1>Does this work?</h1>
-    <fieldset>
-        <legend>Select an image</legend>
-        <input id="files" name="files" type="file" accept="image/*" />
-    </fieldset>
-    <fieldset>
-        <legend>Find labels</legend>
-        <label>Confidence
-            <input name="conf" id="conf" type="number" value="0.1" step="0.01" min="0.0" max="1.0" />
-        </label>
-        <button id="find-labels">Find labels</button>
-    </fieldset>
-    <fieldset>
-        <legend>Update labels</legend>
-        <input type="radio" id="typewritten" name="action" value="Typewritten" checked>
-        <label class="Typewritten" for="typewritten">Typewritten label</label>
-        <input type="radio" id="other" name="action" value="Other">
-        <label class="Other" for="other">Other label</label>
-        <input type="radio" id="remove" name="action" value="Remove">
-        <label class="Remove" for="remove">Remove label</label>
-        <input type="radio" id="draw" name="action" value="Draw">
-        <label class="Draw" for="draw">New label</label>
-    </fieldset>
-    <fieldset>
-        <legend>Process labels</legend>
-        <input type="radio" name="which-labels" id="typewritten-labels" value="typewritten" checked>
-        <label for="typewritten-labels">Typewritten labels</label>
-        <input type="radio" name="which-labels" id="all-labels" value="all">
-        <label for="all-labels">All labels</label>
-        <button id="save-labels">Save labels</button>
-        <button id="ocr-labels">OCR labels</button>
-    </fieldset>
-    <fieldset>
-        <legend>OCR text</legend>
-        <button id="save-text">Save OCR text</button>
-    </fieldset>
-
-    <textarea rows="20" cols="80"></textarea>
-    <canvas></canvas>
+    <div class="grid">
+        <h1>Digi-Leap</h1>
+        <div class="form">
+            <div class="cell">
+                <input id="files" name="files" type="file" accept="image/*" />
+            </div>
+            <div class="cell params">
+                <label>Image type</label>
+                <label>
+                    <input type="radio" name="type" value="sheet" onchange="setState()"" checked>
+                    Sheet
+                </label>
+                <label>
+                    <input type="radio" name="type" value="label" onchange="setState()">
+                    Label
+                </label>
+                <div class="cell main">
+                    <button id="find-labels">Find labels</button>
+                    <button id="ocr-labels">OCR labels</button>
+                </div>
+                </div>
+            <hr/>
+           <div class="cell params">
+                <label for="conf">Confidence</label>
+                <input id="conf" type="number" value="0.1" step="0.01" min="0.0" max="1.0" />
+            </div>
+            <div class="cell params">
+                <label>Which labels</label>
+                <label>
+                    <input type="radio" name="which" id="typewritten" value="typewritten" checked>
+                    Typewritten
+                </label>
+                <label>
+                    <input type="radio" name="which" id="all" value="all">
+                    All
+                </label>
+            </div>
+            <div class="cell params">
+                <label for="fix">Fix labels</label>
+                <select id="fix">
+                    <option value="">-- Fix --</option>
+                    <option value="Typewritten">Convert to typewritten</option>
+                    <option value="Other">Not a typewritten label</option>
+                    <option value="Remove">Delete a box</option>
+                    <option value="Draw">Add a label</option>
+                </select>
+            </div>
+            <hr/>
+            <div class="cell">
+                <button id="save-labels">Save labels</button>
+            </div>
+        </div>
+        <div class="text">
+            <div class="cell params">
+                <label for="index">Label index</label>
+                <input type="number" id="index" value="0" step="1" min="0" max="0" onchange="updateText()" />
+                <input type="text" id="info" disabled="disabled" value="" />
+            </div>
+            <textarea rows="10" cols="72"></textarea>
+            <div class="cell">
+                <button id="save-text">Save text</button>
+            </div>
+       </div>
+        <div class="image">
+            <canvas></canvas>
+        </div>
+    </div>
 </body>
 
 <script src="/static/client.js"></script>

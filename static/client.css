@@ -1,0 +1,70 @@
+@font-face {
+    font-family: "SourceSansPro";
+    src: url("/static/Source_Sans_Pro/SourceSansPro-Regular.ttf") format('truetype'),
+         url("/static/Source_Sans_Pro/SourceSansPro-Bold.ttf") format('truetype');
+}
+
+body {
+    font-family: "SourceSansPro", sans-serif;
+    line-height: 1.2rem;
+    font-size: 1.2rem;
+    background-color: rgb(253, 253, 253);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 80px 380px 1fr;
+    margin: 2em;
+    gap: 20px;
+    grid-template-areas:
+        "header header header"
+        "form   form   text"
+        "image  image  image";
+}
+
+h1 {
+    grid-area: header;
+    text-align: center;
+}
+
+input, select, button {
+    font-family: "SourceSansPro", sans-serif;
+    font-size: 1.2rem;
+}
+
+textarea {
+    font-family: "SourceSansPro", sans-serif;
+    font-size: 1.1rem;
+}
+
+.form {
+    grid-area: form;
+}
+
+.text {
+    grid-area: text;
+}
+
+.image {
+    grid-area: image;
+}
+
+.cell {
+    display: block;
+    margin: 1.2rem;
+}
+
+.params label {
+    display: inline-block;
+    width: 8rem;
+}
+
+hr {
+    width: 80%;
+    color: rgb(250, 250, 245);
+}
+
+#info {
+    border: 0;
+}

@@ -6,6 +6,7 @@ CTX.canvas.width = 1000;
 CTX.canvas.height = 1000;
 
 let BEFORE_DRAW = null;
+let BEFORE_BOXES = null;
 
 let SCALE = {x: 1.0, y: 1.0};
 let LABELS = [];
@@ -14,8 +15,57 @@ const IMAGE = new Image();
 
 let START_POS = {x: 0, y: 0};
 let END_POS = {x: 0, y: 0};
-let DRAWING = false;
+let FIXING = false;
 
+
+async function displaySheet() {
+    if (!files.value) { return; }
+
+    const url = await readFileAsDataURL(files.files[0]);
+    await loadImage(url);
+
+    let width = IMAGE.width;
+    let height = IMAGE.height;
+
+    SCALE.x = 1.0;
+    SCALE.y = 1.0;
+
+    if (IMAGE.width > CTX.canvas.width || IMAGE.height > CTX.canvas.height) {
+        if (IMAGE.height > IMAGE.width) {
+            let ratio = IMAGE.width / IMAGE.height;
+            height = CTX.canvas.height;
+            width = height * ratio;
+        } else {
+            let ratio = IMAGE.height / IMAGE.width;
+            width = CTX.canvas.width;
+            height = width * ratio;
+        }
+        SCALE.y = height / IMAGE.height;
+        SCALE.x = width / IMAGE.width;
+    }
+
+    CTX.clearRect(0, 0, CTX.canvas.width, CTX.canvas.height);
+    CTX.drawImage(IMAGE, 0, 0, IMAGE.width, IMAGE.height, 0, 0, width, height);
+    BEFORE_BOXES = cloneCanvas(CANVAS);
+
+    LABELS = [];
+    setState();
+}
+
+const loadImage = (url) => new Promise((resolve, reject) => {
+    IMAGE.addEventListener('load', () => resolve(IMAGE));
+    IMAGE.addEventListener('error', (err) => reject(err));
+    IMAGE.src = url;
+});
+
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader);
+        reader.readAsDataURL(file);
+    });
+}
 
 const cloneCanvas = (oldCanvas)  => {
     let newCanvas = document.createElement('canvas');
@@ -48,7 +98,7 @@ const drawRectangle = async () => {
 }
 
 const drawBoxes = () => {
-    LABELS.forEach((lb) => {
+    LABELS.forEach(lb => {
         CTX.strokeStyle = lb.type.toLowerCase() == "typewritten" ? "#d95f02" : "#1b9e77";
         CTX.lineWidth = 3;
         CTX.strokeRect(
@@ -61,70 +111,50 @@ const drawBoxes = () => {
 }
 
 const mouseDownListener = (evt) => {
-    const action = document.querySelector('input[name="action"]:checked').value;
-    if (action != "Draw") { return false; }
-    START_POS = canvasOffset(evt);
-    DRAWING = true;
-    BEFORE_DRAW = cloneCanvas(CANVAS);
+    const fix = document.getElementById('fix').value;
+    if (fix == "Draw") {
+        START_POS = canvasOffset(evt);
+        FIXING = true;
+        BEFORE_DRAW = cloneCanvas(CANVAS);
+    } else if (["Typewritten", "Other", "Remove"].includes(fix)) {
+    } else {
+        return false;
+    }
 }
 
 const mouseMoveListener = (evt) => {
-  if(!DRAWING) { return };
+    if(!FIXING) { return };
 
-  END_POS = canvasOffset(evt);
+    END_POS = canvasOffset(evt);
 
-  CTX.drawImage(BEFORE_DRAW, 0, 0);
+    CTX.drawImage(BEFORE_DRAW, 0, 0);
 
-  drawRectangle();
+    drawRectangle();
+}
+
+const inLabel = (evt, lb) => {
+    const pos = canvasOffset(evt);
+    pos.x /= SCALE.x;
+    pos.y /= SCALE.y;
+    return lb.left <= pos.x && lb.right >= pos.x && lb.top <= pos.y && lb.bottom >= pos.y;
 }
 
 const mouseUpListener = (evt) => {
-  DRAWING = false;
-}
-
-const loadImage = (url) => new Promise((resolve, reject) => {
-    IMAGE.addEventListener('load', () => resolve(IMAGE));
-    IMAGE.addEventListener('error', (err) => reject(err));
-    IMAGE.src = url;
-});
-
-function readFileAsDataURL(file) {
-    return new Promise((resolve, reject) => {
-        let reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(reader);
-        reader.readAsDataURL(file);
-    });
-}
-
-async function displaySheet() {
-    if (!files.value) { return; }
-
-    const url = await readFileAsDataURL(files.files[0]);
-    await loadImage(url);
-
-    let width = IMAGE.width;
-    let height = IMAGE.height;
-
-    SCALE.x = 1.0;
-    SCALE.y = 1.0;
-
-    if (IMAGE.width > CTX.canvas.width || IMAGE.height > CTX.canvas.height) {
-        if (IMAGE.height > IMAGE.width) {
-            let ratio = IMAGE.width / IMAGE.height;
-            height = CTX.canvas.height;
-            width = height * ratio;
-        } else {
-            let ratio = IMAGE.height / IMAGE.width;
-            width = CTX.canvas.width;
-            height = width * ratio;
-        }
-        SCALE.y = height / IMAGE.height;
-        SCALE.x = width / IMAGE.width;
+    const fix = document.getElementById('fix').value;
+    if (fix == 'Draw') {
+        // Build new label
+    } else if (["Typewritten", "Other"].includes(fix)) {
+        const pos = canvasOffset(evt);
+        LABELS.forEach(lb => {
+            if (inLabel(evt, lb)) { lb.type = fix; }
+        });
+        drawBoxes();
+    } else if (fix == "Remove") {
+        CTX.drawImage(BEFORE_BOXES, 0, 0);
+        LABELS = LABELS.filter(lb => !inLabel(evt, lb));
+        drawBoxes();
     }
-
-    CTX.clearRect(0, 0, CTX.canvas.width, CTX.canvas.height);
-    CTX.drawImage(IMAGE, 0, 0, IMAGE.width, IMAGE.height, 0, 0, width, height);
+    FIXING = false;
 }
 
 const findLabels = () => {
@@ -135,6 +165,7 @@ const findLabels = () => {
                 LABELS = JSON.parse(req.responseText);
                 LABELS = JSON.parse(LABELS);  // WTF?!
                 drawBoxes();
+                setState();
             } else {
                 alert('Find labels error');
             }
@@ -162,10 +193,11 @@ const ocrLabels = () => {
                 LABELS = labels;
                 console.log(labels)
                 let text = "";
-                labels.forEach((lb) => {
+                labels.forEach(lb => {
                     text += lb.text;
                 });
                 document.querySelector('textarea').value = text;
+                setState();
             } else {
                 alert('OCR labels error');
             }
@@ -176,7 +208,7 @@ const ocrLabels = () => {
     data.append('sheet', files.files[0]);
     data.append(
         "filter",
-        document.querySelector('input[name="which-labels"]:checked').value,
+        document.querySelector('input[name="which"]:checked').value,
     );
 
     req.open('POST', `${window.location.href}ocr-labels`, true);
@@ -184,6 +216,82 @@ const ocrLabels = () => {
     req.setRequestHeader('Conteint-Type', 'multipart/form-data');
     req.overrideMimeType('multipart/form-data;');
     req.send(data);
+}
+
+const updateText = () => {
+    const index = document.getElementById("index");
+    const textarea = document.querySelector("textarea");
+    const active = LABELS.length != 0; // && !args.disabled;
+    const label = LABELS[index.value - 1]
+    textarea.value = active ? label.text : "";
+    info.value = !active ? "" : `${label.type} (${label.left}, ${label.top})`;
+}
+
+const setState = () => {
+    const image_selected = !!files.value;
+    const has_labels = LABELS.length != 0;
+    const type = document.querySelector('input[name="type"]:checked').value;
+    const has_text = LABELS.some(lb => lb.text != "");
+
+    const toggleText = (args) => {
+        const index = document.getElementById("index");
+        const info = document.getElementById("info");
+        const textarea = document.querySelector("textarea");
+        const active = LABELS.length != 0 && !args.disabled;
+        index.disabled = !active;
+        index.min = active ? "1" : "0";
+        index.max = active ? `${LABELS.length}` : "0";
+        index.value = active ? "1" : "";
+        textarea.disabled = !active;
+        textarea.value = active ? LABELS[0].text : "";
+        info.value = !active ? "" : `${LABELS[0].type} (${LABELS[0].left}, ${LABELS[0].top})`;
+    }
+
+    // FIXME
+    if (!image_selected) {
+        LABELS = [];
+        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
+        document.getElementById("find-labels").disabled = true;
+        document.getElementById("ocr-labels").disabled = true;
+        document.getElementById("fix").disabled = true;
+        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = true);
+        document.getElementById("save-labels").disabled = true;
+        document.getElementById("save-text").disabled = true;
+        toggleText({disabled: true});
+    } else if (!has_labels && type == "sheet") {
+        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
+        document.getElementById("find-labels").disabled = false;
+        document.getElementById("ocr-labels").disabled = true;
+        document.getElementById("fix").disabled = true;
+        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = false);
+        document.getElementById("save-labels").disabled = true;
+        document.getElementById("save-text").disabled = true;
+        toggleText({disabled: true});
+    } else if (!has_labels && type == "label") {
+        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
+        document.getElementById("find-labels").disabled = true;
+        document.getElementById("ocr-labels").disabled = false;
+        document.getElementById("fix").disabled = true;
+        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = true);
+        document.getElementById("save-labels").disabled = true;
+        document.getElementById("save-text").disabled = true;
+        toggleText({disabled: true});
+    } else if (has_labels && type == "sheet") {
+        console.log("enabled")
+        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
+        document.getElementById("find-labels").disabled = false;
+        document.getElementById("ocr-labels").disabled = false;
+        document.getElementById("fix").disabled = false;
+        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = false);
+        document.getElementById("save-labels").disabled = true;
+        document.getElementById("save-text").disabled = true;
+        toggleText({disabled: false});
+  }
+}
+
+const initialize = () => {
+    displaySheet();
+    setState();
 }
 
 
@@ -203,4 +311,4 @@ CANVAS.addEventListener('mousedown', mouseDownListener);
 CANVAS.addEventListener('mousemove', mouseMoveListener);
 CANVAS.addEventListener('mouseup', mouseUpListener);
 
-displaySheet();
+initialize();
