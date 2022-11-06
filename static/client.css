@@ -14,7 +14,7 @@ body {
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 80px 380px 1fr;
+    grid-template-rows: 100px 380px 1fr;
     margin: 2em;
     gap: 20px;
     grid-template-areas:
@@ -26,6 +26,7 @@ body {
 h1 {
     grid-area: header;
     text-align: center;
+    font-size: 3.2rem;
 }
 
 input, select, button {
@@ -62,7 +63,7 @@ textarea {
 
 hr {
     width: 80%;
-    color: rgb(250, 250, 245);
+    color: rgb(250, 250, 255);
 }
 
 #info {

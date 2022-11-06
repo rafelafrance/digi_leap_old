@@ -222,93 +222,89 @@ const updateText = () => {
     const index = document.getElementById("index");
     const textarea = document.querySelector("textarea");
     const active = LABELS.length != 0; // && !args.disabled;
-    const label = LABELS[index.value - 1]
+    const label = LABELS[index.value - 1];
     textarea.value = active ? label.text : "";
     info.value = !active ? "" : `${label.type} (${label.left}, ${label.top})`;
 }
 
 const setState = () => {
     const image_selected = !!files.value;
-    const has_labels = LABELS.length != 0;
     const type = document.querySelector('input[name="type"]:checked').value;
-    const has_text = LABELS.some(lb => lb.text != "");
+    const has_labels = LABELS.length != 0;
+    const has_text = LABELS.some(lb => !!lb.text);
 
-    const toggleText = (args) => {
-        const index = document.getElementById("index");
-        const info = document.getElementById("info");
-        const textarea = document.querySelector("textarea");
-        const active = LABELS.length != 0 && !args.disabled;
-        index.disabled = !active;
-        index.min = active ? "1" : "0";
-        index.max = active ? `${LABELS.length}` : "0";
-        index.value = active ? "1" : "";
-        textarea.disabled = !active;
-        textarea.value = active ? LABELS[0].text : "";
-        info.value = !active ? "" : `${LABELS[0].type} (${LABELS[0].left}, ${LABELS[0].top})`;
+    const toggleImageType = ({image_selected, type, has_labels}) => {
+        const sheet_ready = image_selected && type == "sheet";
+        const labels_ready = sheet_ready && has_labels;
+        const can_ocr = image_selected && (type == "label" || (type == "sheet" && has_labels));
+        document.getElementById("find-labels").disabled = !image_selected || type != "sheet";
+        document.getElementById("ocr-labels").disabled = !can_ocr;
+        document.getElementById("conf").disabled = !sheet_ready;
+        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = !sheet_ready);
+        document.getElementById("fix").disabled = !labels_ready;
+        document.getElementById("save-labels").disabled = !labels_ready;
     }
 
-    // FIXME
+    const toggleText = ({has_text}) => {
+        const index = document.getElementById("index");
+        index.disabled = !has_text;
+        index.min = has_text ? "1" : "0";
+        index.max = has_text ? `${LABELS.length}` : "0";
+        index.value = has_text ? "1" : "";
+
+        const textarea = document.querySelector("textarea");
+        textarea.disabled = !has_text;
+        textarea.value = has_text ? LABELS[0].text : "";
+
+        const info = document.getElementById("info");
+        info.value = has_text ? `${LABELS[0].type} (${LABELS[0].left}, ${LABELS[0].top})` : "";
+
+        document.getElementById("save-text").disabled = !has_text;
+    }
+
     if (!image_selected) {
         LABELS = [];
-        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
-        document.getElementById("find-labels").disabled = true;
-        document.getElementById("ocr-labels").disabled = true;
-        document.getElementById("fix").disabled = true;
-        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = true);
-        document.getElementById("save-labels").disabled = true;
-        document.getElementById("save-text").disabled = true;
-        toggleText({disabled: true});
-    } else if (!has_labels && type == "sheet") {
-        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
-        document.getElementById("find-labels").disabled = false;
-        document.getElementById("ocr-labels").disabled = true;
-        document.getElementById("fix").disabled = true;
-        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = false);
-        document.getElementById("save-labels").disabled = true;
-        document.getElementById("save-text").disabled = true;
-        toggleText({disabled: true});
-    } else if (!has_labels && type == "label") {
-        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
-        document.getElementById("find-labels").disabled = true;
-        document.getElementById("ocr-labels").disabled = false;
-        document.getElementById("fix").disabled = true;
-        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = true);
-        document.getElementById("save-labels").disabled = true;
-        document.getElementById("save-text").disabled = true;
-        toggleText({disabled: true});
-    } else if (has_labels && type == "sheet") {
-        console.log("enabled")
-        document.querySelectorAll('input[name="type"]').forEach(r => r.disabled = false);
-        document.getElementById("find-labels").disabled = false;
-        document.getElementById("ocr-labels").disabled = false;
-        document.getElementById("fix").disabled = false;
-        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = false);
-        document.getElementById("save-labels").disabled = true;
-        document.getElementById("save-text").disabled = true;
-        toggleText({disabled: false});
-  }
+    }
+    toggleImageType({image_selected, type, has_labels});
+    toggleText({has_text});
 }
+
 
 const initialize = () => {
     displaySheet();
     setState();
+    showConf();
+
+    document.getElementById('files')
+        .addEventListener('change', async (evt) => { displaySheet(); }, false);
+
+    document.getElementById('find-labels')
+        .addEventListener('click', findLabels);
+
+    document.getElementById('ocr-labels')
+        .addEventListener('click', ocrLabels);
+
+    document.getElementById('index')
+        .addEventListener('change', updateText);
+
+    document.querySelector('textarea')
+        .addEventListener('change', () => {
+        const index = document.getElementById("index");
+        LABELS[index.value - 1].text = document.querySelector("textarea").value;
+    });
+
+    document.getElementById('conf')
+        .addEventListener('change', () => {
+            document.getElementById("show-conf").value = conf.value;
+        });
+
+    document.querySelectorAll('input[name="type"]')
+        .forEach(r => r.addEventListener('change', setState));
+
+
+    CANVAS.addEventListener('mousedown', mouseDownListener);
+    CANVAS.addEventListener('mousemove', mouseMoveListener);
+    CANVAS.addEventListener('mouseup', mouseUpListener);
 }
-
-
-document
-    .getElementById('files')
-    .addEventListener('change', async (evt) => { displaySheet(); }, false);
-
-document
-    .getElementById('find-labels')
-    .addEventListener('click', findLabels);
-
-document
-    .getElementById('ocr-labels')
-    .addEventListener('click', ocrLabels);
-
-CANVAS.addEventListener('mousedown', mouseDownListener);
-CANVAS.addEventListener('mousemove', mouseMoveListener);
-CANVAS.addEventListener('mouseup', mouseUpListener);
 
 initialize();
