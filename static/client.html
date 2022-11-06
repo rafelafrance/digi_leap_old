@@ -17,11 +17,11 @@
         <div class="cell params">
             <label>Image type</label>
             <label>
-                <input type="radio" name="type" value="sheet" checked />
+                <input type="radio" name="type" value="sheet" checked/>
                 Sheet
             </label>
             <label>
-                <input type="radio" name="type" value="label" />
+                <input type="radio" name="type" value="label"/>
                 Label
             </label>
             <div class="cell main">
@@ -32,7 +32,7 @@
         <hr/>
         <div class="cell params">
             <label for="conf">Confidence</label>
-            <input id="conf" type="range" value="0.5" step="0.05" min="0.05" max="1.0" />
+            <input id="conf" type="range" value="0.5" step="0.05" min="0.05" max="1.0"/>
             <output id="show-conf"></output>
         </div>
         <div class="cell params">
@@ -56,10 +56,6 @@
                 <option value="Draw">Add a label</option>
             </select>
         </div>
-        <hr/>
-        <div class="cell">
-            <button id="save-labels">Save labels</button>
-        </div>
     </div>
     <div class="text">
         <div class="cell params">
@@ -67,15 +63,20 @@
             <input type="number" id="index" value="0" step="1" min="0" max="0"/>
             <input type="text" id="info" disabled="disabled" value=""/>
         </div>
-        <textarea rows="10" cols="72"></textarea>
+        <textarea id="text" rows="10" cols="72"></textarea>
         <div class="cell">
+            <button id="save-label">Save label</button>
             <button id="save-text">Save text</button>
         </div>
     </div>
-    <div class="image">
-        <canvas></canvas>
+    <div class="sheet">
+        <canvas id="sheet-canvas"></canvas>
+    </div>
+    <div class="label">
+        <canvas id="label-canvas"></canvas>
     </div>
 </div>
+<canvas id="original-canvas" style="display: none;"></canvas>
 </body>
 
 <script src="/static/client.js"></script>

@@ -13,14 +13,14 @@ body {
 
 .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 50% 50%;
     grid-template-rows: 100px 380px 1fr;
     margin: 2em;
     gap: 20px;
     grid-template-areas:
-        "header header header"
-        "form   form   text"
-        "image  image  image";
+        "header header"
+        "form   text"
+        "sheet  label";
 }
 
 h1 {
@@ -47,8 +47,12 @@ textarea {
     grid-area: text;
 }
 
-.image {
-    grid-area: image;
+.sheet {
+    grid-area: sheet;
+}
+
+.label {
+    grid-area: label;
 }
 
 .cell {
