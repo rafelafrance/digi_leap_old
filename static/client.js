@@ -17,12 +17,39 @@ class Canvas {
         ctx2.drawImage(this.canvas, 0, 0);
         return newCanvas;
     }
-}
 
-const SHEET_IMAGE = new Image();
+    clear() {
+        const ctx_w = this.ctx.canvas.width;
+        const ctx_h = this.ctx.canvas.height;
+        this.ctx.clearRect(0, 0, ctx_w, ctx_h);
+    }
+
+    getScale(img_w, img_h) {
+        const ctx_w = this.ctx.canvas.width;
+        const ctx_h = this.ctx.canvas.height;
+        let new_w = img_w;
+        let new_h = img_h;
+
+        this.scale = {x: 1.0, y: 1.0}
+
+        if (img_w > ctx_w || img_h > ctx_h) {
+            new_h = ctx_h;
+            new_w = ctx_w;
+            if (img_h > img_w) {
+                new_w = new_h * img_w / img_h;
+            } else {
+                new_h = new_w * img_h / img_w;
+            }
+            this.scale = {x: new_w / img_w, y: new_h / img_h}
+        }
+        return [ctx_w, ctx_h, new_w, new_h];
+    }
+}
 
 const SHEET = new Canvas(document.getElementById('sheet-canvas'));
 const LABEL = new Canvas(document.getElementById('label-canvas'));
+
+const IMAGE = new Image();  // Upload images here before putting them into a canvas
 
 const DRAW = {
     active: false,
@@ -30,33 +57,10 @@ const DRAW = {
     end: {x: 0, y: 0},
 };
 
-let BEFORE_DRAW = null;
-let CLEAN_SHEET = null;
-let FULL_SIZE = null;
+let BEFORE_DRAW = null;  // Save a sheet image before drawing a new box
+let CLEAN_SHEET = null;  // Save a sheet image before adding any boxes
+let ORIGINAL = null;  // An offscreen canvas that holds the original image
 let ALL_LABELS = [];
-
-const getScale = (pic, img_w, img_h) => {
-    const ctx_w = pic.ctx.canvas.width;
-    const ctx_h = pic.ctx.canvas.height;
-    let new_w = img_w;
-    let new_h = img_h;
-
-    pic.scale.x = 1.0;
-    pic.scale.y = 1.0;
-
-    if (img_w > ctx_w || img_h > ctx_h) {
-        new_h = ctx_h;
-        new_w = ctx_w;
-        if (img_h > img_w) {
-            new_w = new_h * img_w / img_h;
-        } else {
-            new_h = new_w * img_h / img_w;
-        }
-        pic.scale.x = new_w / img_w;
-        pic.scale.y = new_h / img_h;
-    }
-    return [ctx_w, ctx_h, new_w, new_h];
-}
 
 const readFileAsDataURL = (file) => {
     return new Promise((resolve, reject) => {
@@ -68,27 +72,30 @@ const readFileAsDataURL = (file) => {
 }
 
 const loadImage = (url) => new Promise((resolve, reject) => {
-    SHEET_IMAGE.addEventListener('load', () => resolve(SHEET_IMAGE));
-    SHEET_IMAGE.addEventListener('error', (err) => reject(err));
-    SHEET_IMAGE.src = url;
+    IMAGE.addEventListener('load', () => resolve(IMAGE));
+    IMAGE.addEventListener('error', (err) => reject(err));
+    IMAGE.src = url;
 });
 
 const displaySheet = async () => {
-    const files = document.getElementById('files');
-    if (!files.value) { return; }
+    const image_file = document.getElementById('image-file');
+    if (!image_file.value) {
+        SHEET.clear();
+        return;
+    }
 
-    const url = await readFileAsDataURL(files.files[0]);
+    const url = await readFileAsDataURL(image_file.files[0]);
     await loadImage(url);
 
-    const img_w = SHEET_IMAGE.width;
-    const img_h = SHEET_IMAGE.height;
-    FULL_SIZE = new Canvas(new OffscreenCanvas(img_w, img_h));
-    FULL_SIZE.ctx.drawImage(SHEET_IMAGE, 0, 0, img_w, img_h, 0, 0, img_w, img_h);
+    const img_w = IMAGE.width;
+    const img_h = IMAGE.height;
+    ORIGINAL = new Canvas(new OffscreenCanvas(img_w, img_h));
+    ORIGINAL.ctx.drawImage(IMAGE, 0, 0, img_w, img_h, 0, 0, img_w, img_h);
 
-    const [ctx_w, ctx_h, new_w, new_h] = getScale(LABEL, img_w, img_h);
+    const [ctx_w, ctx_h, new_w, new_h] = SHEET.getScale(img_w, img_h);
 
-    SHEET.ctx.clearRect(0, 0, ctx_w, ctx_h);
-    SHEET.ctx.drawImage(FULL_SIZE.canvas, 0, 0, img_w, img_h, 0, 0, new_w, new_h);
+    SHEET.clear();
+    SHEET.ctx.drawImage(ORIGINAL.canvas, 0, 0, img_w, img_h, 0, 0, new_w, new_h);
 
     CLEAN_SHEET = SHEET.cloneCanvas();
 
@@ -96,23 +103,26 @@ const displaySheet = async () => {
     setState();
 }
 
-const updateLabel = () => {
-    const index = document.getElementById('index');
-    const textarea = document.getElementById('text');
+const displayLabel = () => {
     const enabled = ALL_LABELS.length != 0;
+    if (!enabled) {
+        LABEL.clear();
+        return;
+    }
+    const index = document.getElementById('index');
     const label = ALL_LABELS[index.value - 1];
     const info = document.getElementById('info');
 
-    textarea.value = enabled ? label.text : '';
-    info.value = `type: ${label.type}, x: ${label.left}, y: ${label.top}`;
+    document.getElementById('text').value = enabled ? label.text : '';
+    showLabelInfo(label);
 
     const img_w = label.right - label.left;
     const img_h = label.bottom - label.top;
-    const [ctx_w, ctx_h, new_w, new_h] = getScale(LABEL, img_w, img_h);
+    const [ctx_w, ctx_h, new_w, new_h] = LABEL.getScale(img_w, img_h);
 
-    LABEL.ctx.clearRect(0, 0, ctx_w, ctx_h);
+    LABEL.clear();
     LABEL.ctx.drawImage(
-        FULL_SIZE.canvas, label.left, label.top, img_w, img_h, 0, 0, new_w, new_h
+        ORIGINAL.canvas, label.left, label.top, img_w, img_h, 0, 0, new_w, new_h
     );
 }
 
@@ -134,6 +144,14 @@ const drawBoxes = () => {
             (lb.bottom - lb.top) * SHEET.scale.y,
         );
     });
+}
+
+const insideLabel = (evt, lb) => {
+    const pos = canvasOffset(evt);
+    pos.x /= SHEET.scale.x;
+    pos.y /= SHEET.scale.y;
+    return lb.left <= pos.x && lb.right >= pos.x
+        && lb.top <= pos.y && lb.bottom >= pos.y;
 }
 
 const mouseDownListener = (evt) => {
@@ -165,28 +183,36 @@ const mouseMoveListener = (evt) => {
     );
 }
 
-const insideLabel = (evt, lb) => {
-    const pos = canvasOffset(evt);
-    pos.x /= SHEET.scale.x;
-    pos.y /= SHEET.scale.y;
-    return lb.left <= pos.x && lb.right >= pos.x
-        && lb.top <= pos.y && lb.bottom >= pos.y;
-}
-
 const mouseUpListener = (evt) => {
     const fix = document.getElementById('fix').value;
     if (fix == 'Draw') {
-        // Build new label
-    } else if (['Typewritten', 'Other'].includes(fix)) {
-        const pos = canvasOffset(evt);
-        ALL_LABELS.forEach(lb => {
-            if (insideLabel(evt, lb)) { lb.type = fix; }
+        ALL_LABELS.push({
+            type: 'Typewritten',
+            left: Math.min(DRAW.start.x, DRAW.end.x) / SHEET.scale.x,
+            top: Math.min(DRAW.start.y, DRAW.end.y) / SHEET.scale.y,
+            right: Math.max(DRAW.start.x, DRAW.end.x) / SHEET.scale.x,
+            bottom: Math.max(DRAW.start.y, DRAW.end.y) / SHEET.scale.y,
+            conf: 1.0,
+            text: '',
         });
-        drawBoxes();
+        setState();
+        document.getElementById('index').value = ALL_LABELS.length;
+        displayLabel();
+    } else if (['Typewritten', 'Other'].includes(fix)) {
+        ALL_LABELS.forEach((lb, i) => {
+            if (insideLabel(evt, lb)) {
+                lb.type = fix;
+                drawBoxes();
+                setState();
+                document.getElementById('index').value = i + 1;
+                displayLabel();
+            }
+        });
     } else if (fix == 'Remove') {
         SHEET.ctx.drawImage(CLEAN_SHEET, 0, 0);
         ALL_LABELS = ALL_LABELS.filter(lb => !insideLabel(evt, lb));
         drawBoxes();
+        setState();
     }
     DRAW.active = false;
 }
@@ -206,7 +232,8 @@ const findLabels = () => {
         }
     }
     const data = new FormData();
-    data.append('sheet', files.files[0]);
+    const image_file = document.getElementById('image-file');
+    data.append('sheet', image_file.files[0]);
     data.append('conf', document.getElementById('conf').value);
 
     req.open('POST', `${window.location.href}find-labels`, true);
@@ -223,13 +250,7 @@ const ocrLabels = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
                 let labels = JSON.parse(req.responseText);
-                labels = JSON.parse(labels);  // WTF?!
-                ALL_LABELS = labels;
-                let text = '';
-                labels.forEach(lb => {
-                    text += lb.text;
-                });
-                document.getElementById('text').value = text;
+                ALL_LABELS = JSON.parse(labels);  // WTF?!
                 setState();
             } else {
                 alert('OCR labels error');
@@ -237,9 +258,10 @@ const ocrLabels = () => {
         }
     }
     const data = new FormData();
+    const image_file = document.getElementById('image-file');
     data.append('labels', JSON.stringify(ALL_LABELS));
-    data.append('sheet', files.files[0]);
-    data.append('filter', 'Typewritten');
+    data.append('sheet', image_file.files[0]);
+    data.append('filter', 'typewritten');
 
     req.open('POST', `${window.location.href}ocr-labels`, true);
     req.onreadystatechange = labelsOcred;
@@ -249,36 +271,46 @@ const ocrLabels = () => {
 }
 
 const setState = () => {
-    const image_selected = !!files.value;
-    const type = document.querySelector('input[name="type"]:checked').value;
+    const image_file = document.getElementById('image-file');
+    const image_selected = !!image_file.value;
+    const type = document.querySelector('input[name="image-type"]:checked').value;
     const has_labels = ALL_LABELS.length != 0;
-    const has_text = ALL_LABELS.some(lb => !!lb.text);
 
     if (!image_selected) { ALL_LABELS = []; }
 
     const sheet_ready = image_selected && type == 'sheet';
-    const labels_ready = sheet_ready && has_labels;
     const can_ocr = image_selected && (type == 'label' || (type == 'sheet' && has_labels));
     document.getElementById('find-labels').disabled = !image_selected || type != 'sheet';
     document.getElementById('ocr-labels').disabled = !can_ocr;
     document.getElementById('conf').disabled = !sheet_ready;
-    document.getElementById('fix').disabled = !labels_ready;
+    document.getElementById('fix').disabled = !sheet_ready;
 
     const index = document.getElementById('index');
-    index.disabled = !has_text;
-    index.min = has_text ? '1' : '0';
-    index.max = has_text ? `${ALL_LABELS.length}` : '0';
-    index.value = has_text ? '1' : '';
+    index.disabled = !has_labels;
+    index.min = has_labels ? '1' : '0';
+    index.max = has_labels ? `${ALL_LABELS.length}` : '0';
+    const max = parseInt(index.max);
+    const val = isNaN(parseInt(index.value)) ? 1 : parseInt(index.value);
+    index.value = has_labels ? `${Math.min(max, val)}` : '';
 
     const textarea = document.getElementById('text');
-    textarea.disabled = !has_text;
-    textarea.value = has_text ? ALL_LABELS[0].text : '';
+    textarea.disabled = !has_labels;
+    textarea.value = has_labels ? ALL_LABELS[0].text : '';
 
     const info = document.getElementById('info');
-    info.value = '';
-    if (has_text) {
-        info.value = `${ALL_LABELS[0].type} `
-            + `(${ALL_LABELS[0].left}, ${ALL_LABELS[0].top})`;
+    info.value = has_labels ? showLabelInfo(ALL_LABELS[0]) : '';
+    displayLabel();
+    showConf();
+}
+
+const showLabelInfo = (label) => {
+    const info = document.getElementById('info');
+    const type = document.querySelector('input[name="image-type"]:checked').value;
+    if (type == 'sheet') {
+        const conf = label.conf ? `conf ${label.conf}, ` : ''
+        info.value = `type: ${label.type}, ${conf} x: ${label.left}, y: ${label.top}`;
+    } else {
+        info.value = '';
     }
 }
 
@@ -286,12 +318,16 @@ const showConf = () => {
     document.getElementById('show-conf').value = conf.value;
 }
 
+const reset = () => {
+    ALL_LABELS = [];
+    setState();
+    SHEET.ctx.drawImage(CLEAN_SHEET, 0, 0);
+}
+
 (() => {
     displaySheet();
-    setState();
-    showConf();
 
-    document.getElementById('files')
+    document.getElementById('image-file')
         .addEventListener('change', async (evt) => { displaySheet(); }, false);
 
     document.getElementById('find-labels')
@@ -301,7 +337,7 @@ const showConf = () => {
         .addEventListener('click', ocrLabels);
 
     document.getElementById('index')
-        .addEventListener('change', updateLabel);
+        .addEventListener('change', displayLabel);
 
     document.getElementById('text')
         .addEventListener('change', () => {
@@ -310,10 +346,10 @@ const showConf = () => {
     });
 
     document.getElementById('conf')
-        .addEventListener('change', showConf);
+        .addEventListener('input', showConf);
 
-    document.querySelectorAll('input[name="type"]')
-        .forEach(r => r.addEventListener('change', setState));
+    document.querySelectorAll('input[name="image-type"]')
+        .forEach(r => r.addEventListener('change', reset));
 
     SHEET.canvas.addEventListener('mousedown', mouseDownListener);
     SHEET.canvas.addEventListener('mousemove', mouseMoveListener);

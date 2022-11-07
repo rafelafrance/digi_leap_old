@@ -104,7 +104,7 @@ async def ocr_labels(
     else:
         for lb in labels:
             label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
-            if filter == "all" or lb["type"].lower() == filter:
+            if filter == "all" or lb["type"].lower() == filter.lower():
                 text = await ensemble.run(label)
             else:
                 text = ""
