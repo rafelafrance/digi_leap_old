@@ -1,14 +1,10 @@
 'use strict';
 
-class Picture {
-    constructor(id) {
-        const canvas = document.getElementById(id);
+class Canvas {
+    constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        this.full_size = new Image();
         this.scale = {x: 1.0, y: 1.0};
-        this.before_boxes = null;
-        this.before_draw = null;
     }
 
     cloneCanvas() {
@@ -23,8 +19,10 @@ class Picture {
     }
 }
 
-const SHEET = new Picture('sheet-canvas');
-const LABEL = new Picture('label-canvas');
+const SHEET_IMAGE = new Image();
+
+const SHEET = new Canvas(document.getElementById('sheet-canvas'));
+const LABEL = new Canvas(document.getElementById('label-canvas'));
 
 const DRAW = {
     active: false,
@@ -32,13 +30,12 @@ const DRAW = {
     end: {x: 0, y: 0},
 };
 
+let BEFORE_DRAW = null;
+let CLEAN_SHEET = null;
+let FULL_SIZE = null;
 let ALL_LABELS = [];
 
-
-const scaleImage = (pic) => {
-    if (!pic.full_size) { return; }
-    const img_w = pic.full_size.width;
-    const img_h = pic.full_size.height;
+const getScale = (pic, img_w, img_h) => {
     const ctx_w = pic.ctx.canvas.width;
     const ctx_h = pic.ctx.canvas.height;
     let new_w = img_w;
@@ -58,11 +55,23 @@ const scaleImage = (pic) => {
         pic.scale.x = new_w / img_w;
         pic.scale.y = new_h / img_h;
     }
-
-    pic.ctx.clearRect(0, 0, ctx_w, ctx_h);
-    pic.ctx.drawImage(pic.full_size, 0, 0, img_w, img_h, 0, 0, new_w, new_h);
+    return [ctx_w, ctx_h, new_w, new_h];
 }
 
+const readFileAsDataURL = (file) => {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader);
+        reader.readAsDataURL(file);
+    });
+}
+
+const loadImage = (url) => new Promise((resolve, reject) => {
+    SHEET_IMAGE.addEventListener('load', () => resolve(SHEET_IMAGE));
+    SHEET_IMAGE.addEventListener('error', (err) => reject(err));
+    SHEET_IMAGE.src = url;
+});
 
 const displaySheet = async () => {
     const files = document.getElementById('files');
@@ -71,9 +80,17 @@ const displaySheet = async () => {
     const url = await readFileAsDataURL(files.files[0]);
     await loadImage(url);
 
-    scaleImage(SHEET);
+    const img_w = SHEET_IMAGE.width;
+    const img_h = SHEET_IMAGE.height;
+    FULL_SIZE = new Canvas(new OffscreenCanvas(img_w, img_h));
+    FULL_SIZE.ctx.drawImage(SHEET_IMAGE, 0, 0, img_w, img_h, 0, 0, img_w, img_h);
 
-    SHEET.before_boxes = SHEET.cloneCanvas();
+    const [ctx_w, ctx_h, new_w, new_h] = getScale(LABEL, img_w, img_h);
+
+    SHEET.ctx.clearRect(0, 0, ctx_w, ctx_h);
+    SHEET.ctx.drawImage(FULL_SIZE.canvas, 0, 0, img_w, img_h, 0, 0, new_w, new_h);
+
+    CLEAN_SHEET = SHEET.cloneCanvas();
 
     ALL_LABELS = [];
     setState();
@@ -89,37 +106,14 @@ const updateLabel = () => {
     textarea.value = enabled ? label.text : '';
     info.value = `type: ${label.type}, x: ${label.left}, y: ${label.top}`;
 
-    const width = label.right - label.left;
-    const height = label.bottom - label.top;
-    const data = SHEET.full_size.ctx.getImageData(label.left, label.top, width, height);
-    LABEL.full_size.ctx.putImageData(data, 0, 0);
-    // LABEL.full_size = LABEL.ctx.drawImage(
-    //     SHEET.full_size,
-    //     label.left,
-    //     label.top,
-    //     width,
-    //     height,
-    //     0,
-    //     0,
-    //     width,
-    //     height,
-    // );
-    scaleImage(LABEL);
-}
+    const img_w = label.right - label.left;
+    const img_h = label.bottom - label.top;
+    const [ctx_w, ctx_h, new_w, new_h] = getScale(LABEL, img_w, img_h);
 
-const loadImage = (url) => new Promise((resolve, reject) => {
-    SHEET.full_size.addEventListener('load', () => resolve(SHEET.full_size));
-    SHEET.full_size.addEventListener('error', (err) => reject(err));
-    SHEET.full_size.src = url;
-});
-
-function readFileAsDataURL(file) {
-    return new Promise((resolve, reject) => {
-        let reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(reader);
-        reader.readAsDataURL(file);
-    });
+    LABEL.ctx.clearRect(0, 0, ctx_w, ctx_h);
+    LABEL.ctx.drawImage(
+        FULL_SIZE.canvas, label.left, label.top, img_w, img_h, 0, 0, new_w, new_h
+    );
 }
 
 const canvasOffset = (evt) => {
@@ -129,10 +123,9 @@ const canvasOffset = (evt) => {
     return {x, y};
 }
 
-
 const drawBoxes = () => {
     ALL_LABELS.forEach(lb => {
-        SHEET.ctx.strokeStyle = lb.type.toLowerCase() == 'typewritten' ? '#d95f02' : '#1b9e77';
+        SHEET.ctx.strokeStyle = lb.type == 'Typewritten' ? '#d95f02' : '#1b9e77';
         SHEET.ctx.lineWidth = 3;
         SHEET.ctx.strokeRect(
             lb.left * SHEET.scale.x,
@@ -148,7 +141,7 @@ const mouseDownListener = (evt) => {
     if (fixing == 'Draw') {
         DRAW.start = canvasOffset(evt);
         DRAW.active = true;
-        SHEET.before_draw = SHEET.cloneCanvas();
+        BEFORE_DRAW = SHEET.cloneCanvas();
     } else if (['Typewritten', 'Other', 'Remove'].includes(fixing)) {
     } else {
         return false;
@@ -160,7 +153,7 @@ const mouseMoveListener = (evt) => {
 
     DRAW.end = canvasOffset(evt);
 
-    SHEET.ctx.drawImage(SHEET.before_draw, 0, 0);
+    SHEET.ctx.drawImage(BEFORE_DRAW, 0, 0);
 
     SHEET.ctx.strokeStyle = '#d95f02';
     SHEET.ctx.lineWidth = 3;
@@ -191,7 +184,7 @@ const mouseUpListener = (evt) => {
         });
         drawBoxes();
     } else if (fix == 'Remove') {
-        SHEET.ctx.drawImage(SHEET.before_boxes, 0, 0);
+        SHEET.ctx.drawImage(CLEAN_SHEET, 0, 0);
         ALL_LABELS = ALL_LABELS.filter(lb => !insideLabel(evt, lb));
         drawBoxes();
     }
@@ -273,7 +266,6 @@ const setState = () => {
         document.getElementById('conf').disabled = !sheet_ready;
         document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = !sheet_ready);
         document.getElementById('fix').disabled = !labels_ready;
-        document.getElementById('save-label').disabled = !labels_ready;
     }
 
     const toggleText = ({has_text}) => {
@@ -299,9 +291,6 @@ const setState = () => {
         info.value = `${ALL_LABELS[0].type} `
             + `(${ALL_LABELS[0].left}, ${ALL_LABELS[0].top})`;
     }
-
-    document.getElementById('save-text').disabled = !has_text;
-
 }
 
 const showConf = () => {
