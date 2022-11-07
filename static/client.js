@@ -239,10 +239,7 @@ const ocrLabels = () => {
     const data = new FormData();
     data.append('labels', JSON.stringify(ALL_LABELS));
     data.append('sheet', files.files[0]);
-    data.append(
-        'filter',
-        document.querySelector('input[name="which"]:checked').value,
-    );
+    data.append('filter', 'Typewritten');
 
     req.open('POST', `${window.location.href}ocr-labels`, true);
     req.onreadystatechange = labelsOcred;
@@ -257,23 +254,15 @@ const setState = () => {
     const has_labels = ALL_LABELS.length != 0;
     const has_text = ALL_LABELS.some(lb => !!lb.text);
 
-    const toggleImageType = ({image_selected, type, has_labels}) => {
-        const sheet_ready = image_selected && type == 'sheet';
-        const labels_ready = sheet_ready && has_labels;
-        const can_ocr = image_selected && (type == 'label' || (type == 'sheet' && has_labels));
-        document.getElementById('find-labels').disabled = !image_selected || type != 'sheet';
-        document.getElementById('ocr-labels').disabled = !can_ocr;
-        document.getElementById('conf').disabled = !sheet_ready;
-        document.querySelectorAll('input[name="which"]').forEach(r => r.disabled = !sheet_ready);
-        document.getElementById('fix').disabled = !labels_ready;
-    }
-
-    const toggleText = ({has_text}) => {
-    }
-
     if (!image_selected) { ALL_LABELS = []; }
 
-    toggleImageType({image_selected, type, has_labels});
+    const sheet_ready = image_selected && type == 'sheet';
+    const labels_ready = sheet_ready && has_labels;
+    const can_ocr = image_selected && (type == 'label' || (type == 'sheet' && has_labels));
+    document.getElementById('find-labels').disabled = !image_selected || type != 'sheet';
+    document.getElementById('ocr-labels').disabled = !can_ocr;
+    document.getElementById('conf').disabled = !sheet_ready;
+    document.getElementById('fix').disabled = !labels_ready;
 
     const index = document.getElementById('index');
     index.disabled = !has_text;
