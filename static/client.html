@@ -8,59 +8,72 @@
 </head>
 
 <body>
-<div class="grid">
-    <h1>Digi-Leap</h1>
-    <div class="form">
-        <div class="cell">
-            <input id="image-file" name="files" type="file" accept="image/*"/>
-        </div>
-        <div class="cell params">
-            <label>Image type</label>
-            <label>
-                <input type="radio" name="image-type" value="sheet" checked/>
-                Sheet
-            </label>
-            <label>
-                <input type="radio" name="image-type" value="label"/>
-                Label
-            </label>
-            <div class="cell main">
-                <button id="find-labels">Find labels</button>
-                <button id="ocr-labels">OCR labels</button>
+    <div class="grid">
+        <h1>Digi-Leap</h1>
+        <div class="form">
+            <div class="cell">
+                <input id="image-file" name="files" type="file" accept="image/*"
+                    title="Select an image of either a herbarium sheet or a label." />
+            </div>
+            <div class="cell params">
+                <label>Image type</label>
+                <label>
+                    <input type="radio" name="image-type" value="sheet" checked
+                        title="The image is a herbarium sheet. Find labels before OCRing them." />
+                    Sheet
+                </label>
+                <label>
+                    <input type="radio" name="image-type" value="label"
+                        title="The image is a label. No label finder needed." />
+                    Label
+                </label>
+                <div class="cell main">
+                    <button id="find-labels" title="Send a request to the server to find labels.">
+                        <span>Find labels</span>
+                    </button>
+                    <button id="ocr-labels" title="Send a request to the server to OCR labels.">
+                        <span>OCR labels</span>
+                    </button>
+                </div>
+            </div>
+            <hr />
+            <div class="cell params">
+                <label for="conf">Confidence</label>
+                <input id="conf" type="range" value="0.5" step="0.05" min="0.05" max="1.0"
+                    title="Have the label finder only return labels with a confidence score >= this. [0.05, 1.0]" />
+                <output id="show-conf"></output>
+            </div>
+            <div class="cell params">
+                <label for="fix">Fix labels</label>
+                <select id="fix" title="Adjust the output of the label finder.">
+                    <option value="">-- Fix --</option>
+                    <option value="Typewritten">Convert to typewritten</option>
+                    <option value="Other">Convert to other label</option>
+                    <option value="Remove">Delete label</option>
+                    <option value="Draw">Add a label</option>
+                </select>
             </div>
         </div>
-        <hr/>
-        <div class="cell params">
-            <label for="conf">Confidence</label>
-            <input id="conf" type="range" value="0.5" step="0.05" min="0.05" max="1.0"/>
-            <output id="show-conf"></output>
+        <div class="text">
+            <div class="cell params">
+                <label for="index">Label index</label>
+                <button type="button" id="prev-label">-</button>
+                <input type="number" id="index" value="0" step="1" min="0" max="0"
+                    title="Get a particular label on the herbarium sheet." />
+                <button type="button" id="next-label">+</button>
+            </div>
+            <div class="cell">
+                <input type="text" id="info" disabled="disabled" value="" />
+            </div>
+            <textarea id="text" rows="12" cols="72"></textarea>
         </div>
-        <div class="cell params">
-            <label for="fix">Fix labels</label>
-            <select id="fix">
-                <option value="">-- Fix --</option>
-                <option value="Typewritten">Convert to typewritten</option>
-                <option value="Other">Convert to other label</option>
-                <option value="Remove">Delete label</option>
-                <option value="Draw">Add a label</option>
-            </select>
+        <div class="sheet">
+            <canvas id="sheet-canvas"></canvas>
+        </div>
+        <div class="label">
+            <canvas id="label-canvas"></canvas>
         </div>
     </div>
-    <div class="text">
-        <div class="cell params">
-            <label for="index">Label index</label>
-            <input type="number" id="index" value="0" step="1" min="0" max="0"/>
-            <input type="text" id="info" disabled="disabled" value=""/>
-        </div>
-        <textarea id="text" rows="12" cols="72"></textarea>
-    </div>
-    <div class="sheet">
-        <canvas id="sheet-canvas"></canvas>
-    </div>
-    <div class="label">
-        <canvas id="label-canvas"></canvas>
-    </div>
-</div>
 </body>
 
 <script src="/static/client.js"></script>

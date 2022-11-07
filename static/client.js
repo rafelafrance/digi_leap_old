@@ -1,6 +1,6 @@
 'use strict';
 
-class Canvas {
+class CanvasPlus {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
@@ -46,8 +46,8 @@ class Canvas {
     }
 }
 
-const SHEET = new Canvas(document.getElementById('sheet-canvas'));
-const LABEL = new Canvas(document.getElementById('label-canvas'));
+const SHEET = new CanvasPlus(document.getElementById('sheet-canvas'));
+const LABEL = new CanvasPlus(document.getElementById('label-canvas'));
 
 const IMAGE = new Image();  // Upload images here before putting them into a canvas
 
@@ -89,7 +89,7 @@ const displaySheet = async () => {
 
     const img_w = IMAGE.width;
     const img_h = IMAGE.height;
-    ORIGINAL = new Canvas(new OffscreenCanvas(img_w, img_h));
+    ORIGINAL = new CanvasPlus(new OffscreenCanvas(img_w, img_h));
     ORIGINAL.ctx.drawImage(IMAGE, 0, 0, img_w, img_h, 0, 0, img_w, img_h);
 
     const [ctx_w, ctx_h, new_w, new_h] = SHEET.getScale(img_w, img_h);
@@ -219,6 +219,9 @@ const mouseUpListener = (evt) => {
 
 const findLabels = () => {
     let req = new XMLHttpRequest();
+    const button = document.getElementById('find-labels');
+    button.classList.add('loading');
+
     const labelsFound = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
@@ -227,9 +230,11 @@ const findLabels = () => {
                 drawBoxes();
                 setState();
             } else {
-                alert('Find labels error');
+                let err = JSON.parse(req.responseText);
+                alert(`Find labels error: ${err.detail[0].msg}`);
             }
         }
+        button.classList.remove('loading');
     }
     const data = new FormData();
     const image_file = document.getElementById('image-file');
@@ -246,6 +251,9 @@ const findLabels = () => {
 
 const ocrLabels = () => {
     let req = new XMLHttpRequest();
+    const button = document.getElementById('ocr-labels');
+    button.classList.add('loading');
+
     const labelsOcred = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
@@ -253,9 +261,11 @@ const ocrLabels = () => {
                 ALL_LABELS = JSON.parse(labels);  // WTF?!
                 setState();
             } else {
-                alert('OCR labels error');
+                let err = JSON.parse(req.responseText);
+                alert(`OCR labels error: ${err.detail[0].msg}`);
             }
         }
+        button.classList.remove('loading');
     }
     const data = new FormData();
     const image_file = document.getElementById('image-file');
@@ -283,7 +293,7 @@ const setState = () => {
     document.getElementById('find-labels').disabled = !image_selected || type != 'sheet';
     document.getElementById('ocr-labels').disabled = !can_ocr;
     document.getElementById('conf').disabled = !sheet_ready;
-    document.getElementById('fix').disabled = !sheet_ready;
+    document.getElementById('fix').disabled = !sheet_ready || !has_labels;
 
     const index = document.getElementById('index');
     index.disabled = !has_labels;
@@ -324,6 +334,18 @@ const reset = () => {
     SHEET.ctx.drawImage(CLEAN_SHEET, 0, 0);
 }
 
+const nextLabel = () => {
+    const index = document.getElementById('index');
+    index.stepUp();
+    displayLabel();
+}
+
+const prevLabel = () => {
+    const index = document.getElementById('index');
+    index.stepDown();
+    displayLabel();
+}
+
 (() => {
     displaySheet();
 
@@ -338,6 +360,12 @@ const reset = () => {
 
     document.getElementById('index')
         .addEventListener('change', displayLabel);
+
+    document.getElementById('prev-label')
+        .addEventListener('click', prevLabel);
+
+    document.getElementById('next-label')
+        .addEventListener('click', nextLabel);
 
     document.getElementById('text')
         .addEventListener('change', () => {
