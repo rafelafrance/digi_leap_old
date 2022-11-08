@@ -1,7 +1,6 @@
 @font-face {
     font-family: "SourceSansPro";
-    src: url("/static/Source_Sans_Pro/SourceSansPro-Regular.ttf") format('truetype'),
-        url("/static/Source_Sans_Pro/SourceSansPro-Bold.ttf") format('truetype');
+    src: url("/static/Source_Sans_Pro/SourceSansPro-Regular.ttf") format('truetype');
 }
 
 body {
@@ -55,6 +54,13 @@ textarea {
     font-size: 1.1rem;
 }
 
+#prev-label-index,
+#next-label-index {
+    font-family: "SourceSansPro", sans-serif;
+    font-size: 1.2rem;
+    width: 32px;
+}
+
 .form {
     grid-area: form;
 }
@@ -86,11 +92,6 @@ hr {
     color: rgb(250, 250, 255);
 }
 
-#info {
-    border: 0;
-    width: 100%;
-}
-
 input[type=number] {
     text-align: center;
     appearance: textfield;
@@ -116,8 +117,8 @@ input::-webkit-inner-spin-button {
     cursor: pointer;
 }
 
-.main button:active {
-    background: #007163;
+.main button:disabled {
+    background: #ccc;
 }
 
 .main button.loading::after {
@@ -148,7 +149,6 @@ input::-webkit-inner-spin-button {
 
 .main button span {
     color: rgb(0, 0, 0);
-    font-size: 1.4rem;
     transition: all 0.2s;
 }
 
@@ -156,10 +156,21 @@ input::-webkit-inner-spin-button {
     visibility: hidden;
 }
 
-#find-labels {
+#find-labels,
+#save-labels {
     float: left;
 }
 
-#ocr-labels {
+#ocr-labels,
+#save-text {
     float: right;
+}
+
+#label-index {
+    width: 4rem;
+}
+
+#label-info {
+    border: 0;
+    width: 100%;
 }

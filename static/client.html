@@ -17,14 +17,12 @@
             </div>
             <div class="cell params">
                 <label>Image type</label>
-                <label>
-                    <input type="radio" name="image-type" value="sheet" checked
-                        title="The image is a herbarium sheet. Find labels before OCRing them." />
+                <label title="The image is a herbarium sheet. Find labels before OCRing them.">
+                    <input type="radio" name="image-type" value="sheet" checked />
                     Sheet
                 </label>
-                <label>
-                    <input type="radio" name="image-type" value="label"
-                        title="The image is a label. No label finder needed." />
+                <label title="The image is a label. No label finder needed.">
+                    <input type="radio" name="image-type" value="label" />
                     Label
                 </label>
                 <div class="cell main">
@@ -38,14 +36,14 @@
             </div>
             <hr />
             <div class="cell params">
-                <label for="conf">Confidence</label>
-                <input id="conf" type="range" value="0.5" step="0.05" min="0.05" max="1.0"
+                <label for="finder-conf">Confidence</label>
+                <input id="finder-conf" type="range" value="0.5" step="0.05" min="0.05" max="1.0"
                     title="Have the label finder only return labels with a confidence score >= this. [0.05, 1.0]" />
-                <output id="show-conf"></output>
+                <output id="show-finder-conf"></output>
             </div>
             <div class="cell params">
-                <label for="fix">Fix labels</label>
-                <select id="fix" title="Adjust the output of the label finder.">
+                <label for="label-fix-op">Fix labels</label>
+                <select id="label-fix-op" title="Adjust the output of the label finder.">
                     <option value="">-- Fix --</option>
                     <option value="Typewritten">Convert to typewritten</option>
                     <option value="Other">Convert to other label</option>
@@ -53,17 +51,28 @@
                     <option value="Draw">Add a label</option>
                 </select>
             </div>
+            <hr />
+            <div class="cell">
+                <button id="save-labels"
+                    title="Save label images to your computer.">
+                    <span>Save labels</span>
+                </button>
+                <button id="save-text"
+                    title="Save label text and other information to your computer in JSON format.">
+                    <span>Save text</span>
+                </button>
+            </div>
         </div>
         <div class="text">
             <div class="cell params">
-                <label for="index">Label index</label>
-                <button type="button" id="prev-label">-</button>
-                <input type="number" id="index" value="0" step="1" min="0" max="0"
+                <label for="label-index">Label index</label>
+                <button type="button" id="prev-label-index">&mdash;</button>
+                <input type="number" id="label-index" value="0" step="1" min="0" max="0"
                     title="Get a particular label on the herbarium sheet." />
-                <button type="button" id="next-label">+</button>
+                <button type="button" id="next-label-index">+</button>
             </div>
             <div class="cell">
-                <input type="text" id="info" disabled="disabled" value="" />
+                <input type="text" id="label-info" disabled="disabled" value="" />
             </div>
             <textarea id="text" rows="12" cols="72"></textarea>
         </div>
