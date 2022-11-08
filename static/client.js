@@ -84,7 +84,12 @@ class Draw {
     }
 
     strokeRect() {
-        return [this.start.x, this.start.y, this.end.x - this.start.x, this.end.y - this.start.y];
+        return [
+            this.start.x,
+            this.start.y,
+            this.end.x - this.start.x,
+            this.end.y - this.start.y,
+        ];
     }
 }
 
@@ -337,9 +342,11 @@ const setState = () => {
     }
 
     const sheet_ready = image_selected && type == 'sheet';
-    const can_ocr = image_selected && (type == 'label' || (type == 'sheet' && has_labels));
+    const can_ocr = image_selected
+        && (type == 'label' || (type == 'sheet' && has_labels));
 
-    document.getElementById('find-labels').disabled = !image_selected || type != 'sheet';
+    document.getElementById('find-labels').disabled = (
+        !image_selected || type != 'sheet');
     document.getElementById('ocr-labels').disabled = !can_ocr;
     document.getElementById('finder-conf').disabled = !sheet_ready;
     document.getElementById('label-fix-op').disabled = !sheet_ready || !DRAW.can_draw;
@@ -375,7 +382,8 @@ const showLabelInfo = (label) => {
     const type = document.querySelector('input[name="image-type"]:checked').value;
     if (type == 'sheet') {
         const conf = label.conf ? `conf ${label.conf}, ` : ''
-        label_info.value = `type: ${label.type}, ${conf} x: ${label.left}, y: ${label.top}`;
+        label_info.value = `type: ${label.type}, ${conf} `
+            + `x: ${label.left}, y: ${label.top}`;
     } else {
         label_info.value = '';
     }
@@ -473,7 +481,8 @@ const saveLabels = () => {
     document.getElementById('text')
         .addEventListener('change', () => {
             const label_index = document.getElementById('label-index').value;
-            ALL_LABELS[label_index.value - 1].text = document.getElementById('text').value;
+            const text = document.getElementById('text').value;
+            ALL_LABELS[label_index.value - 1].text = text;
         });
 
     document.getElementById('finder-conf')
