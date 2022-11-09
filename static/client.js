@@ -57,7 +57,8 @@ class CanvasPlus {
     }
     insideImage(event) {
         const pos = this.canvasOffset(event);
-        return pos.x < this.image_width && pos.y < this.image_height;
+        return pos.x >= 0 && pos.x < this.image_width
+            && pos.y >= 0 && pos.y < this.image_height;
     }
 }
 
@@ -80,6 +81,9 @@ class Draw {
         this.right = 0;
         this.bottom = 0;
     }
+    size() {
+        return [this.end.x - this.start.x, this.end.y - this.start.y];
+    }
     scale(scaleBy) {
         this.left = Math.min(this.start.x, this.end.x) / scaleBy.x;
         this.top = Math.min(this.start.y, this.end.y) / scaleBy.y;
@@ -87,15 +91,11 @@ class Draw {
         this.bottom = Math.max(this.start.y, this.end.y) / scaleBy.y;
     }
     tooSmall() {
-        return (this.right - this.left) < 100 || (this.bottom - this.top) < 100;
+        return Math.abs(this.right - this.left) < 100 || Math.abs(this.bottom - this.top) < 100;
     }
     strokeRect() {
-        return [
-            this.start.x,
-            this.start.y,
-            this.end.x - this.start.x,
-            this.end.y - this.start.y,
-        ];
+        const [w, h] = this.size();
+        return [this.start.x, this.start.y, w, h];
     }
 }
 
@@ -192,13 +192,6 @@ const drawBoxes = () => {
     });
 }
 
-// const canvasOffset = (evt) => {
-//     const { pageX, pageY } = evt.touches ? evt.touches[0] : evt;
-//     const x = pageX - SHEET.canvas.offsetLeft;
-//     const y = pageY - SHEET.canvas.offsetTop;
-//     return { x, y };
-// }
-
 const insideLabel = (evt, lb) => {
     const pos = SHEET.canvasOffset(evt);
     pos.x /= SHEET.scale.x;
@@ -219,7 +212,7 @@ const mouseDown = (evt) => {
 }
 
 const mouseMove = (evt) => {
-    if (!DRAW.drawing) { return };
+    if (!DRAW.drawing || !SHEET.insideImage(evt)) { return };
     DRAW.end = SHEET.canvasOffset(evt);
     SHEET.ctx.drawImage(CANVAS_BEFORE_BOX, 0, 0);
     SHEET.ctx.strokeStyle = '#d95f02';
@@ -248,7 +241,8 @@ const mouseUp = (evt) => {
             displayLabel();
         } else {
             SHEET.ctx.drawImage(CANVAS_BEFORE_BOX, 0, 0);
-            alert('The new label is too small.');
+            const [w, h] = DRAW.size();
+            alert(`The new label is too small. width: ${w} < 100 or height: ${h} < 100`);
         }
         DRAW.drawing = false;
     } else if (['Typewritten', 'Other'].includes(labelFixOp)) {
@@ -496,7 +490,9 @@ const saveLabels = () => {
 
     SHEET.canvas.addEventListener('mousedown', mouseDown);
     SHEET.canvas.addEventListener('mousemove', mouseMove);
-    SHEET.canvas.addEventListener('mouseup', mouseUp);
+
+    document.querySelector('body')
+        .addEventListener('mouseup', mouseUp);
 
     let width = document.querySelector('.sheet').clientWidth;
     SHEET.setCanvasSize(width);
