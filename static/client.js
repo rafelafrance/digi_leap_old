@@ -51,11 +51,6 @@ class CanvasPlus {
     }
 }
 
-const SHEET = new CanvasPlus(document.getElementById('sheet-canvas'));
-const LABEL = new CanvasPlus(document.getElementById('label-canvas'));
-
-const IMAGE = new Image();  // Upload images here before putting them into a canvas
-
 class Draw {
     constructor() {
         this.reset();
@@ -63,7 +58,7 @@ class Draw {
 
     reset() {
         this.active = false;
-        this.can_draw = false;
+        this.canDraw = false;
         this.start = { x: 0, y: 0 };
         this.end = { x: 0, y: 0 };
         this.left = 0;
@@ -79,7 +74,7 @@ class Draw {
         this.bottom = Math.max(this.start.y, this.end.y) / scale_by.y;
     }
 
-    too_small() {
+    tooSmall() {
         return (this.right - this.left) < 100 || (this.bottom - this.top) < 100;
     }
 
@@ -93,12 +88,29 @@ class Draw {
     }
 }
 
+class LabelList extends Array {
+    isEmpty() {
+        return this.length == 0;
+    }
+    notEmpty() {
+        return this.length != 0;
+    }
+    baseOne(index) {
+        return this[index - 1];
+    }
+}
+
+const SHEET = new CanvasPlus(document.getElementById('sheet-canvas'));
+const LABEL = new CanvasPlus(document.getElementById('label-canvas'));
+
+const IMAGE = new Image();  // Upload images here before putting them into a canvas
+
 const DRAW = new Draw();
 
-let BEFORE_DRAW = null;  // Save a sheet image before drawing a new box
-let CLEAN_SHEET = null;  // Save a sheet image before adding any boxes
+let BEFORE_CANVAS = null;  // Save a sheet image before drawing a new box
+let CLEAN_CANVAS = null;  // Save a sheet image before adding any boxes
 let FULL_SIZE = null;  // An offscreen canvas that holds the original image
-let ALL_LABELS = [];
+let ALL_LABELS = new LabelList();
 
 const readFileAsDataURL = (file) => {
     return new Promise((resolve, reject) => {
@@ -136,14 +148,14 @@ const imageFileSelected = async () => {
     SHEET.clear();
     SHEET.ctx.drawImage(FULL_SIZE.canvas, 0, 0, img_w, img_h, 0, 0, new_w, new_h);
 
-    CLEAN_SHEET = SHEET.cloneCanvas();
+    CLEAN_CANVAS = SHEET.cloneCanvas();
 
-    ALL_LABELS = [];
+    ALL_LABELS = new LabelList();
     setState();
 }
 
 const displayLabel = () => {
-    const enabled = ALL_LABELS.length != 0;
+    const enabled = ALL_LABELS.notEmpty();
     if (!enabled) {
         LABEL.clear();
         return;
@@ -155,10 +167,10 @@ const displayLabel = () => {
         idx = 1;
         label_index.value = `1`;
     }
-    const label = ALL_LABELS[idx - 1];
+    const label = ALL_LABELS.baseOne(idx);
     const label_info = document.getElementById('label-info');
 
-    document.getElementById('text').value = enabled ? label.text : '';
+    document.getElementById('label-text').value = enabled ? label.text : '';
     showLabelInfo(label);
 
     const img_w = label.right - label.left;
@@ -203,12 +215,12 @@ const insideLabel = (evt, lb) => {
 }
 
 const mouseDown = (evt) => {
-    if (!DRAW.can_draw) { return false; }
+    if (!DRAW.canDraw) { return false; }
     const label_fix_op = document.getElementById('label-fix-op').value;
     if (label_fix_op == 'Draw') {
         DRAW.start = canvasOffset(evt);
         DRAW.active = true;
-        BEFORE_DRAW = SHEET.cloneCanvas();
+        BEFORE_CANVAS = SHEET.cloneCanvas();
     }
 }
 
@@ -217,7 +229,7 @@ const mouseMove = (evt) => {
 
     DRAW.end = canvasOffset(evt);
 
-    SHEET.ctx.drawImage(BEFORE_DRAW, 0, 0);
+    SHEET.ctx.drawImage(BEFORE_CANVAS, 0, 0);
 
     SHEET.ctx.strokeStyle = '#d95f02';
     SHEET.ctx.lineWidth = 3;
@@ -226,11 +238,11 @@ const mouseMove = (evt) => {
 }
 
 const mouseUp = (evt) => {
-    if (!DRAW.can_draw) { return false; }
+    if (!DRAW.canDraw) { return false; }
     const label_fix_op = document.getElementById('label-fix-op').value;
     if (label_fix_op == 'Draw') {
         DRAW.scale(SHEET.scale);
-        if (!DRAW.too_small()) {
+        if (!DRAW.tooSmall()) {
             ALL_LABELS.push({
                 type: 'Typewritten',
                 left: DRAW.left,
@@ -244,7 +256,7 @@ const mouseUp = (evt) => {
             document.getElementById('label-index').value = ALL_LABELS.length;
             displayLabel();
         } else {
-            SHEET.ctx.drawImage(BEFORE_DRAW, 0, 0);
+            SHEET.ctx.drawImage(BEFORE_CANVAS, 0, 0);
             alert('The new label is too small.');
         }
     } else if (['Typewritten', 'Other'].includes(label_fix_op)) {
@@ -258,7 +270,7 @@ const mouseUp = (evt) => {
             }
         });
     } else if (label_fix_op == 'Remove') {
-        SHEET.ctx.drawImage(CLEAN_SHEET, 0, 0);
+        SHEET.ctx.drawImage(CLEAN_CANVAS, 0, 0);
         ALL_LABELS = ALL_LABELS.filter(lb => !insideLabel(evt, lb));
         drawBoxes();
         setState();
@@ -274,9 +286,9 @@ const findLabels = () => {
     const labelsFound = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
-                ALL_LABELS = JSON.parse(req.responseText);
-                ALL_LABELS = JSON.parse(ALL_LABELS);  // WTF?!
-                DRAW.can_draw = true;
+                const text = JSON.parse(req.responseText);
+                ALL_LABELS = new LabelList(JSON.parse(text));
+                DRAW.canDraw = true;
                 drawBoxes();
                 setState();
             } else {
@@ -307,8 +319,8 @@ const ocrLabels = () => {
     const labelsOcred = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
-                let labels = JSON.parse(req.responseText);
-                ALL_LABELS = JSON.parse(labels);  // WTF?!
+                let text = JSON.parse(req.responseText);
+                ALL_LABELS = new LabelList(JSON.parse(text));
                 setState();
             } else {
                 let err = JSON.parse(req.responseText);
@@ -331,47 +343,47 @@ const ocrLabels = () => {
 }
 
 const setState = () => {
-    const image_file = document.getElementById('image-file');
-    const image_selected = !!image_file.value;
+    const imageFile = document.getElementById('image-file');
+    const imageSelected = !!imageFile.value;
     const type = document.querySelector('input[name="image-type"]:checked').value;
-    const has_labels = ALL_LABELS.length != 0;
+    const hasLabels = ALL_LABELS.notEmpty();
 
-    if (!image_selected) {
-        ALL_LABELS = [];
-        DRAW.can_draw = false;
+    if (!imageSelected) {
+        ALL_LABELS = new LabelList();
+        DRAW.canDraw = false;
     }
 
-    const sheet_ready = image_selected && type == 'sheet';
-    const can_ocr = image_selected
-        && (type == 'label' || (type == 'sheet' && has_labels));
+    const sheetReady = imageSelected && type == 'sheet';
+    const canOcr = imageSelected
+        && (type == 'label' || (type == 'sheet' && hasLabels));
 
     document.getElementById('find-labels').disabled = (
-        !image_selected || type != 'sheet');
-    document.getElementById('ocr-labels').disabled = !can_ocr;
-    document.getElementById('finder-conf').disabled = !sheet_ready;
-    document.getElementById('label-fix-op').disabled = !sheet_ready || !DRAW.can_draw;
-    document.getElementById('save-labels').disabled = !sheet_ready || !has_labels;
+        !imageSelected || type != 'sheet');
+    document.getElementById('ocr-labels').disabled = !canOcr;
+    document.getElementById('finder-conf').disabled = !sheetReady;
+    document.getElementById('label-fix-op').disabled = !sheetReady || !DRAW.canDraw;
+    document.getElementById('save-labels').disabled = !sheetReady || !hasLabels;
     document.getElementById('save-text').disabled = !ALL_LABELS.some(lb => !!lb.text);
 
     const label_index = document.getElementById('label-index');
 
-    label_index.disabled = !has_labels;
-    label_index.min = has_labels ? '1' : '0';
-    label_index.max = has_labels ? `${ALL_LABELS.length}` : '0';
+    label_index.disabled = !hasLabels;
+    label_index.min = hasLabels ? '1' : '0';
+    label_index.max = hasLabels ? `${ALL_LABELS.length}` : '0';
 
     const max = parseInt(label_index.max);
     const val = isNaN(parseInt(label_index.value)) ? 1 : parseInt(label_index.value);
 
-    label_index.value = has_labels ? `${Math.min(max, val)}` : '';
+    label_index.value = hasLabels ? `${Math.min(max, val)}` : '';
 
-    const textarea = document.getElementById('text');
+    const textarea = document.getElementById('label-text');
 
-    textarea.disabled = !has_labels;
-    textarea.value = has_labels ? ALL_LABELS[0].text : '';
+    textarea.disabled = !hasLabels;
+    textarea.value = hasLabels ? ALL_LABELS[0].text : '';
 
     const label_info = document.getElementById('label-info');
 
-    label_info.value = has_labels ? showLabelInfo(ALL_LABELS[0]) : '';
+    label_info.value = hasLabels ? showLabelInfo(ALL_LABELS[0]) : '';
 
     displayLabel();
     showFinderConf();
@@ -407,9 +419,9 @@ const prevLabelIndex = () => {
 }
 
 const reset = () => {
-    ALL_LABELS = [];
+    ALL_LABELS = new LabelList();
     setState();
-    SHEET.ctx.drawImage(CLEAN_SHEET, 0, 0);
+    SHEET.ctx.drawImage(CLEAN_CANVAS, 0, 0);
     DRAW.reset();
 }
 
@@ -478,11 +490,11 @@ const saveLabels = () => {
     document.getElementById('save-labels')
         .addEventListener('click', saveLabels);
 
-    document.getElementById('text')
+    document.getElementById('label-text')
         .addEventListener('change', () => {
             const label_index = document.getElementById('label-index').value;
-            const text = document.getElementById('text').value;
-            ALL_LABELS[label_index.value - 1].text = text;
+            const text = document.getElementById('label-text').value;
+            ALL_LABELS.baseOne(label_index.value).text = text;
         });
 
     document.getElementById('finder-conf')
