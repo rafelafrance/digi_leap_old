@@ -62,11 +62,6 @@ class CanvasPlus {
     }
 }
 
-const SHEET = new CanvasPlus(document.getElementById('sheet-canvas'));
-const LABEL = new CanvasPlus(document.getElementById('label-canvas'));
-
-const IMAGE = new Image();  // Upload images here before putting them into a canvas
-
 class Draw {
     constructor() {
         this.reset();
@@ -82,7 +77,7 @@ class Draw {
         this.bottom = 0;
     }
     size() {
-        return [this.end.x - this.start.x, this.end.y - this.start.y];
+        return [Math.abs(this.end.x - this.start.x), Math.abs(this.end.y - this.start.y)];
     }
     scale(scaleBy) {
         this.left = Math.min(this.start.x, this.end.x) / scaleBy.x;
@@ -91,7 +86,10 @@ class Draw {
         this.bottom = Math.max(this.start.y, this.end.y) / scaleBy.y;
     }
     tooSmall() {
-        return Math.abs(this.right - this.left) < 100 || Math.abs(this.bottom - this.top) < 100;
+        const limit = 20;
+        const [w, h] = this.size();
+        const msg = `The new label is too small. width = ${w} < ${limit} or height = ${h} < ${limit}`;
+        return w < limit || h < limit ? msg : false;
     }
     strokeRect() {
         const [w, h] = this.size();
@@ -99,10 +97,55 @@ class Draw {
     }
 }
 
+class Label {
+    constructor(label) {
+        this.type = label.type;
+        this.left = label.left;
+        this.top = label.top;
+        this.right = label.right;
+        this.bottom = label.bottom;
+        this.conf = label.conf;
+        this.text = label.text;
+    }
+    info() {
+        const conf = this.conf ? `conf ${this.conf}, ` : ''
+        return `type: ${this.type}, ${conf} x: ${this.left}, y: ${this.top}`;
+    }
+    orange() {
+        return '#d95f02';
+    }
+    green() {
+        return '#1b9e77';
+    }
+    color() {
+        return this.type == 'Typewritten' ? this.orange() : this.green();
+    }
+    drawBox(canvasPlus) {
+        canvasPlus.ctx.strokeStyle = this.color();
+        canvasPlus.ctx.lineWidth = 3;
+        canvasPlus.ctx.strokeRect(
+            this.left * canvasPlus.scale.x,
+            this.top * canvasPlus.scale.y,
+            (this.right - this.left) * canvasPlus.scale.x,
+            (this.bottom - this.top) * canvasPlus.scale.y,
+        );
+    }
+    insideLabel(canvasPlus, event) {
+        const pos = canvasPlus.canvasOffset(event);
+        pos.x /= canvasPlus.scale.x;
+        pos.y /= canvasPlus.scale.y;
+        return this.left <= pos.x && this.right >= pos.x
+            && this.top <= pos.y && this.bottom >= pos.y;
+    }
+}
+
 const DRAW = new Draw();
+const SHEET = new CanvasPlus(document.getElementById('sheet-canvas'));
+const LABEL = new CanvasPlus(document.getElementById('label-canvas'));
+const IMAGE = new Image();  // Upload images here before putting them into a canvas
 
 let CANVAS_BEFORE_BOX = null;  // Save a sheet image before drawing a new box
-let CANVAS_BEFORE_ALL_BOXES = null;  // Save a sheet image before adding any boxes
+let CANVAS_BEFORE_ANY_BOX = null;  // Save a sheet image before adding any boxes
 let FULL_SIZE = null;  // An offscreen canvas that holds the original image
 let ALL_LABELS = [];
 
@@ -142,7 +185,7 @@ const imageFileSelected = async () => {
     SHEET.clear();
     SHEET.ctx.drawImage(FULL_SIZE.canvas, 0, 0, img_w, img_h, 0, 0, new_w, new_h);
 
-    CANVAS_BEFORE_ALL_BOXES = SHEET.cloneCanvas();
+    CANVAS_BEFORE_ANY_BOX = SHEET.cloneCanvas();
 
     ALL_LABELS = [];
     setState();
@@ -180,16 +223,7 @@ const displayLabel = () => {
 }
 
 const drawBoxes = () => {
-    ALL_LABELS.forEach(lb => {
-        SHEET.ctx.strokeStyle = lb.type == 'Typewritten' ? '#d95f02' : '#1b9e77';
-        SHEET.ctx.lineWidth = 3;
-        SHEET.ctx.strokeRect(
-            lb.left * SHEET.scale.x,
-            lb.top * SHEET.scale.y,
-            (lb.right - lb.left) * SHEET.scale.x,
-            (lb.bottom - lb.top) * SHEET.scale.y,
-        );
-    });
+    ALL_LABELS.forEach(lb => lb.drawBox(SHEET));
 }
 
 const insideLabel = (evt, lb) => {
@@ -226,8 +260,9 @@ const mouseUp = (evt) => {
     const labelFixOp = document.getElementById('label-fix-op').value;
     if (labelFixOp == 'Draw' && DRAW.drawing) {
         DRAW.scale(SHEET.scale);
-        if (!DRAW.tooSmall()) {
-            ALL_LABELS.push({
+        const tooSmall = DRAW.tooSmall();
+        if (!tooSmall) {
+            ALL_LABELS.push(new Label({
                 type: 'Typewritten',
                 left: DRAW.left,
                 top: DRAW.top,
@@ -235,19 +270,18 @@ const mouseUp = (evt) => {
                 bottom: DRAW.bottom,
                 conf: 1.0,
                 text: '',
-            });
+            }));
             setState();
             document.getElementById('label-index').value = ALL_LABELS.length;
             displayLabel();
         } else {
             SHEET.ctx.drawImage(CANVAS_BEFORE_BOX, 0, 0);
-            const [w, h] = DRAW.size();
-            alert(`The new label is too small. width: ${w} < 100 or height: ${h} < 100`);
+            alert(tooSmall);
         }
         DRAW.drawing = false;
     } else if (['Typewritten', 'Other'].includes(labelFixOp)) {
         ALL_LABELS.forEach((lb, i) => {
-            if (insideLabel(evt, lb)) {
+            if (lb.insideLabel(SHEET, evt)) {
                 lb.type = labelFixOp;
                 drawBoxes();
                 setState();
@@ -256,8 +290,8 @@ const mouseUp = (evt) => {
             }
         });
     } else if (labelFixOp == 'Remove') {
-        SHEET.ctx.drawImage(CANVAS_BEFORE_ALL_BOXES, 0, 0);
-        ALL_LABELS = ALL_LABELS.filter(lb => !insideLabel(evt, lb));
+        SHEET.ctx.drawImage(CANVAS_BEFORE_ANY_BOX, 0, 0);
+        ALL_LABELS = ALL_LABELS.filter(lb => !lb.insideLabel(SHEET, evt));
         drawBoxes();
         setState();
     }
@@ -272,8 +306,8 @@ const findLabels = () => {
     const labelsFound = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
-                ALL_LABELS = JSON.parse(req.responseText);
-                ALL_LABELS = JSON.parse(ALL_LABELS);  // WTF?!
+                const text = JSON.parse(req.responseText);
+                ALL_LABELS = JSON.parse(text).map(lb => new Label(lb));
                 DRAW.canDraw = true;
                 drawBoxes();
                 setState();
@@ -305,8 +339,8 @@ const ocrLabels = () => {
     const labelsOcred = () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
-                let labels = JSON.parse(req.responseText);
-                ALL_LABELS = JSON.parse(labels);  // WTF?!
+                const text = JSON.parse(req.responseText);
+                ALL_LABELS = JSON.parse(text).map(lb => new Label(lb));
                 setState();
             } else {
                 let err = JSON.parse(req.responseText);
@@ -377,13 +411,7 @@ const setState = () => {
 const showLabelInfo = (label) => {
     const labelInfo = document.getElementById('label-info');
     const type = document.querySelector('input[name="image-type"]:checked').value;
-    if (type == 'sheet') {
-        const conf = label.conf ? `conf ${label.conf}, ` : ''
-        labelInfo.value = `type: ${label.type}, ${conf} `
-            + `x: ${label.left}, y: ${label.top}`;
-    } else {
-        labelInfo.value = '';
-    }
+    labelInfo.value = type == 'sheet' ? label.info() : '';
 }
 
 const showFinderConf = () => {
@@ -406,7 +434,7 @@ const prevLabelIndex = () => {
 const reset = () => {
     ALL_LABELS = [];
     setState();
-    SHEET.ctx.drawImage(CANVAS_BEFORE_ALL_BOXES, 0, 0);
+    SHEET.ctx.drawImage(CANVAS_BEFORE_ANY_BOX, 0, 0);
     DRAW.reset();
 }
 
