@@ -25,7 +25,6 @@ scikit-image
 scikit-learn
 scipy
 spacy==3.3.0
-ttkthemes
 tqdm
 uvicorn[standard]
 
