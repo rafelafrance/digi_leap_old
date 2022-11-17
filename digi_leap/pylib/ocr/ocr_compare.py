@@ -19,7 +19,7 @@ from ..builder.line_align import line_align_py  # noqa
 from ..builder.spell_well import SpellWell
 from ..db import db
 
-IMAGE_TRANSFORMS = ["", "deskew", "binarize", "denoise"]
+IMAGE_TRANSFORMS = ["", "deskew_full", "binarize_full", "denoise_full"]
 
 
 def ocr(gold_std):

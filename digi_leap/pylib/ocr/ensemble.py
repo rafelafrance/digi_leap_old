@@ -30,16 +30,18 @@ class Ensemble:
         self.spell_well = SpellWell()
 
     @property
+    def needs_deskew(self):
+        deskew = any(1 for p in self.pipes if p.startswith("deskew"))
+        return deskew or self.needs_binarize or self.needs_denoise
+
+    @property
     def needs_denoise(self):
         return any(1 for p in self.pipes if p.startswith("denoise"))
 
     @property
-    def needs_deskew(self):
-        return any(1 for p in self.pipes if p.startswith("deskew"))
-
-    @property
     def needs_binarize(self):
-        return any(1 for p in self.pipes if p.startswith("binarize"))
+        binarize = any(1 for p in self.pipes if p.startswith("binarize"))
+        return binarize or self.needs_denoise
 
     @property
     def pipeline(self):
@@ -57,8 +59,12 @@ class Ensemble:
 
     async def ocr(self, image):
         deskew = lt.transform_label("deskew", image) if self.needs_deskew else None
-        binary = lt.transform_label("binarize", image) if self.needs_binarize else None
-        denoise = lt.transform_label("denoise", image) if self.needs_denoise else None
+        binary = lt.transform_label("binarize", deskew) if self.needs_binarize else None
+        denoise = lt.transform_label("denoise", binary) if self.needs_denoise else None
+
+        deskew = lt.array_to_image(deskew) if deskew else None
+        binary = lt.array_to_image(binary) if binary else None
+        denoise = lt.array_to_image(denoise) if denoise else None
 
         pre_process = "preprocess" in self.pipes
 

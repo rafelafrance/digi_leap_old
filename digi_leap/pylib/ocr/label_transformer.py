@@ -2,9 +2,7 @@
 # type: ignore
 import functools
 import re
-from typing import Callable
-from typing import Literal
-from typing import Union
+from typing import Optional
 
 import numpy as np
 import pytesseract
@@ -14,26 +12,18 @@ from PIL.Image import Image as ImageType
 from pytesseract.pytesseract import TesseractError
 from scipy import ndimage
 from scipy.ndimage import interpolation as interp
-from skimage import exposure as ex
 from skimage import filters
 from skimage import morphology as morph
 
-ImageOrNumpy = Union[ImageType, npt.ArrayLike]
-Transformation = Callable[[ImageOrNumpy], ImageOrNumpy]
 
-
-def compose(*functions: Transformation) -> Transformation:
-    return functools.reduce(lambda f, g: lambda x: g(f(x)), functions)
-
-
-def image_to_array(image: ImageType) -> npt.ArrayLike:
+def image_to_array(image):
     image = image.convert("L")
-    return np.asarray(image)  # noqa
+    return np.asarray(image)
 
 
-def array_to_image(image: npt.ArrayLike) -> ImageType:
+def array_to_image(image: npt.NDArray) -> ImageType:
     if hasattr(image, "dtype") and image.dtype == "float64":
-        mode: Union[None, Literal] = "L" if len(image.shape) < 3 else "RGB"
+        mode: Optional[str] = "L" if len(image.shape) < 3 else "RGB"
         return Image.fromarray(image * 255.0, mode)
     if hasattr(image, "dtype") and image.dtype == "bool":
         image = (image * 255).astype("uint8")
@@ -43,26 +33,26 @@ def array_to_image(image: npt.ArrayLike) -> ImageType:
 
 
 def scale(
-    image: npt.ArrayLike,
+    image: npt.NDArray,
     factor: float = 2.0,
     min_dim: int = 512,
     mode: str = "constant",
-) -> npt.ArrayLike:
+) -> npt.NDArray:
     if image.shape[0] < min_dim or image.shape[1] < min_dim:
         image = ndimage.zoom(image, factor, mode=mode)
     return image
 
 
-def blur(image: npt.ArrayLike, sigma: float = 1.0) -> npt.ArrayLike:
+def blur(image: npt.NDArray, sigma: float = 1.0) -> npt.NDArray:
     image = ndimage.gaussian_filter(image, sigma)
     return image
 
 
 def orient(
-    image: npt.ArrayLike,
+    image: npt.NDArray,
     conf_low: float = 15.0,
     conf_high: float = 100.0,
-) -> npt.ArrayLike:
+) -> npt.NDArray:
     try:
         osd = pytesseract.image_to_osd(image)
     except TesseractError:
@@ -82,7 +72,9 @@ def orient(
     return image
 
 
-def deskew(image: npt.ArrayLike, horiz_angles: npt.ArrayLike = None) -> npt.ArrayLike:
+def deskew(
+    image: npt.NDArray, horiz_angles: Optional[npt.NDArray] = None
+) -> npt.NDArray:
     """Find the skew of the label.
 
     This method is looking for sharp breaks between the characters and spaces.
@@ -107,55 +99,43 @@ def deskew(image: npt.ArrayLike, horiz_angles: npt.ArrayLike = None) -> npt.Arra
     return image
 
 
-def rank_mean(image: npt.ArrayLike, footprint=None) -> npt.ArrayLike:
+def rank_mean(image: npt.NDArray, footprint=None) -> npt.NDArray:
     image = filters.rank.mean(image, footprint)
     return image
 
 
-def rank_median(image: npt.ArrayLike) -> npt.ArrayLike:
+def rank_median(image: npt.NDArray) -> npt.NDArray:
     image = filters.rank.median(image)
     return image
 
 
-def rank_modal(image: npt.ArrayLike) -> npt.ArrayLike:
+def rank_modal(image: npt.NDArray) -> npt.NDArray:
     image = filters.rank.median(image)
-    return image
-
-
-def equalize_hist(image: npt.ArrayLike) -> npt.ArrayLike:
-    image = ex.equalize_hist(image)
-    image = (image * 255).astype(np.int8)
-    return image
-
-
-def exposure(image: npt.ArrayLike, gamma: float = 2.0) -> npt.ArrayLike:
-    image = ex.adjust_gamma(image, gamma=gamma)
-    image = ex.rescale_intensity(image)
     return image
 
 
 def binarize_sauvola(
-    image: npt.ArrayLike,
+    image: npt.NDArray,
     window_size: int = 11,
     k: float = 0.032,
-) -> npt.ArrayLike:
+) -> npt.NDArray:
     threshold = filters.threshold_sauvola(image, window_size=window_size, k=k)
     image = image > threshold
     return image
 
 
 def remove_small_holes(
-    image: npt.ArrayLike,
+    image: npt.NDArray,
     area_threshold: int = 64,
     connectivity: int = 1,
-) -> npt.ArrayLike:
+) -> npt.NDArray:
     image = morph.remove_small_holes(
         image, area_threshold=area_threshold, connectivity=connectivity
     )
     return image
 
 
-def binary_opening(image: npt.ArrayLike) -> npt.ArrayLike:
+def binary_opening(image: npt.NDArray) -> npt.NDArray:
     image = morph.binary_opening(image)
     return image
 
@@ -168,9 +148,14 @@ def binary_opening(image: npt.ArrayLike) -> npt.ArrayLike:
 # Else wise, it becomes almost impossible to align bounding boxes of each
 # ensemble member. For instance, in the PIPELINES below you must use the same:
 # Scale(), Orient(), Deskew() in every ensemble member because they change the
-# geometry but you could exclude Blur() because it does not.
+# geometry, but you could exclude Blur() because it does not.
 
-TRANSFORM_START: Transformation = compose(
+
+def compose(*functions):
+    return functools.reduce(lambda f, g: lambda x: g(f(x)), functions)
+
+
+TRANSFORM_START = compose(
     image_to_array,
     functools.partial(blur, sigma=0.5),
     functools.partial(scale, mode="nearest"),
@@ -178,10 +163,13 @@ TRANSFORM_START: Transformation = compose(
     deskew,
 )
 
-TRANSFORM_PIPELINES: dict[str, Transformation] = {
-    "deskew": compose(TRANSFORM_START, array_to_image),
-    "binarize": compose(TRANSFORM_START, binarize_sauvola, array_to_image),
-    "denoise": compose(
+TRANSFORM_PIPELINES = {
+    "deskew": compose(TRANSFORM_START),
+    "binarize": compose(binarize_sauvola),
+    "denoise": compose(remove_small_holes, binary_opening),
+    "deskew_full": compose(TRANSFORM_START, array_to_image),
+    "binarize_full": compose(TRANSFORM_START, binarize_sauvola, array_to_image),
+    "denoise_full": compose(
         TRANSFORM_START,
         binarize_sauvola,
         remove_small_holes,
@@ -191,6 +179,6 @@ TRANSFORM_PIPELINES: dict[str, Transformation] = {
 }
 
 
-def transform_label(pipeline: str, image: ImageType) -> ImageType:
+def transform_label(pipeline: str, image):
     """Transform the label to improve OCR results."""
     return TRANSFORM_PIPELINES[pipeline](image)
