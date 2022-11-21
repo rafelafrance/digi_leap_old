@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import asyncio
 import textwrap
 from pathlib import Path
 
@@ -8,10 +9,10 @@ from pylib.ocr import ocr_labels
 from traiter import log
 
 
-def main():
+async def main():
     log.started()
     args = parse_args()
-    ocr_labels.ocr_labels(args)
+    await ocr_labels.ocr_labels(args)
     log.finished()
 
 
@@ -165,4 +166,4 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

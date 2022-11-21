@@ -11,7 +11,7 @@ from ..db import db
 from .ensemble import Ensemble
 
 
-def ocr_labels(args: argparse.Namespace) -> None:
+async def ocr_labels(args: argparse.Namespace) -> None:
     ensemble = Ensemble(**vars(args))
 
     with db.connect(args.database) as cxn:

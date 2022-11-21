@@ -19,9 +19,8 @@ def validate_trait_set(database, trait_set):
 
 def validate_ocr_set(database, ocr_set):
     with db.connect(database) as cxn:
-        all_ocr_sets = db.select(
-            cxn, "select distinct ocr_set from ocr_texts", one_column=True
-        )
+        rows = db.select(cxn, "select distinct ocr_set from ocr_texts", one_column=True)
+        all_ocr_sets = [r["ocr_set"] for r in rows]
 
     if ocr_set in all_ocr_sets:
         return

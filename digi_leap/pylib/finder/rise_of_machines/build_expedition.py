@@ -101,12 +101,12 @@ def create_sheet_image(path, labels, reduce_by=1):
 
         for lb in labels:
             color = "#d95f02" if lb["class"] == "Typewritten" else "#7570b3"
-            box = [
+            box = (
                 lb["label_left"],
                 lb["label_top"],
                 lb["label_right"],
                 lb["label_bottom"],
-            ]
+            )
             draw.rectangle(box, outline=color, width=12)
 
         if reduce_by > 1:

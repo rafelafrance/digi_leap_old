@@ -23,7 +23,7 @@ def ingest(args: Namespace) -> None:
 
 
 def filter_labels(results, threshold=3.0):
-    for i, (coreid, labels) in enumerate(results.items()):
+    for coreid, labels in results.items():
         labels = [lb for lb in labels if lb["wide"] < 0.5 and lb["high"] < 0.5]
         # labels = [lb for lb in labels if lb["wide"] / lb["high"] < threshold]
         labels = [lb for lb in labels if (lb["high"] / lb["wide"]) < threshold]

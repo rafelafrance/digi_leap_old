@@ -82,8 +82,8 @@ class SpellWell:
         return {d2 for d1 in self.deletes1(word) for d2 in self.deletes1(d1)}
 
     @staticmethod
-    def is_letters(text: str) -> list[str]:
-        return re.match(r"^\p{L}+$", text)
+    def is_letters(text: str) -> bool:
+        return bool(re.match(r"^\p{L}+$", text))
 
     @staticmethod
     def tokenize(text: str) -> list[str]:

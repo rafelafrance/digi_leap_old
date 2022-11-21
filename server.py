@@ -68,7 +68,7 @@ async def ocr_labels(
     filter: str = Form("all"),
     sheet: UploadFile = File(),
 ):
-    labels = json.loads(labels) if labels else []
+    label_list = json.loads(labels) if labels else []
 
     results = []
 
@@ -88,7 +88,7 @@ async def ocr_labels(
     image = await sheet.read()
     image = await common.get_image(image)
 
-    if not labels:
+    if not label_list:
         text = await ensemble.run(image)
         results.append(
             {
@@ -103,7 +103,7 @@ async def ocr_labels(
         )
 
     else:
-        for lb in labels:
+        for lb in label_list:
             label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
             if filter == "all" or lb["type"].lower() == filter.lower():
                 text = await ensemble.run(label)

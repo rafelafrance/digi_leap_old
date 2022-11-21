@@ -47,7 +47,7 @@ def write_labels(text_path, labels, image_size):
             [lb["train_left"], lb["train_top"], lb["train_right"], lb["train_bottom"]]
             for lb in labels
         ],
-        dtype=np.float,
+        dtype=np.float64,
     )
     boxes = to_yolo_format(boxes, width, height, image_size)
     with open(text_path, "w") as txt_file:

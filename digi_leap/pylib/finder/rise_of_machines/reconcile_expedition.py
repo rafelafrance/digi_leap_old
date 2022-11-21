@@ -188,10 +188,10 @@ class Sheet:
 @dataclass()
 class Label:
     class_: str = "Typewritten"
-    label_left: str = 0
-    label_top: str = 0
-    label_right: str = 0
-    label_bottom: str = 0
+    label_left: int = 0
+    label_top: int = 0
+    label_right: int = 0
+    label_bottom: int = 0
     votes: int = 0
 
     def reclassify(self):

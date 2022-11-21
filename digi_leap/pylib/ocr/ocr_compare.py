@@ -22,21 +22,21 @@ from ..db import db
 IMAGE_TRANSFORMS = ["", "deskew_full", "binarize_full", "denoise_full"]
 
 
-def ocr(gold_std):
+async def ocr(gold_std):
     golden = []
     for gold in tqdm(gold_std, desc="ocr"):
 
         gold["gold_text"] = " ".join(gold["gold_text"].split())
-        gold["pipe_text"]: dict[tuple[str, str], str] = {}
+        gold["pipe_text"] = {}
 
         original = get_label(gold)
         for transform in IMAGE_TRANSFORMS:
             image = transform_image(original, transform)
 
-            text = ocr_runner.easy_text(image)
+            text = await ocr_runner.easy_text(image)
             gold["pipe_text"][f"[{transform}, easyocr]"] = " ".join(text.split())
 
-            text = ocr_runner.tess_text(image)
+            text = await ocr_runner.tess_text(image)
             gold["pipe_text"][f"[{transform}, tesseract]"] = " ".join(text.split())
 
         golden.append(gold)
