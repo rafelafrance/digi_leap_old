@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import mimetypes
 import textwrap
 import warnings
 from pathlib import Path
@@ -12,18 +13,24 @@ def main():
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    for sheet_path in sorted(args.input_dir.glob(args.image_suffix)):
-        print(sheet_path)
-        shrink_sheet(sheet_path, args.output_dir, args.shrink_by)
+    # mimetypes.init()
+
+    sheets = sorted(args.input_dir.glob("*.*"))
+
+    for sheet_path in sheets:
+        mime = mimetypes.guess_type(sheet_path)
+        if mime[0] and mime[0].startswith("image"):
+            print(sheet_path)
+            shrink_sheet(sheet_path, args.output_dir, args.shrink_by)
 
 
 def shrink_sheet(sheet_path, output_dir, shrink_by):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-
-        image = Image.open(sheet_path).convert("RGB")
-        image = image.reduce(shrink_by)
-        image.save(output_dir / sheet_path.name)
+        with Image.open(sheet_path).convert("RGB") as image:
+            dims = round(image.width / shrink_by), round(image.height / shrink_by)
+            image = image.resize(dims)
+            image.save(output_dir / sheet_path.name)
 
 
 def parse_args():
@@ -54,18 +61,10 @@ def parse_args():
     arg_parser.add_argument(
         "--shrink-by",
         "-s",
-        type=int,
-        metavar="INT",
-        default=2,
+        type=float,
+        metavar="FLOAT",
+        default=2.0,
         help="""Shrink images by this factor. (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
-        "--image-suffix",
-        "-S",
-        metavar="SUFFIX",
-        default="*.jpg",
-        help="""Images have this suffix. (default: %(default)s)""",
     )
 
     args = arg_parser.parse_args()
