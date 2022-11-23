@@ -34,7 +34,7 @@ python -m spacy download en_core_web_md
 # ##############################################################################
 # Use the 2nd line if you don't have traits installed locally
 
-python -m pip install -e ../traiter/traiter
+python -m pip install -e ../traiter
 # python -m pip install git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
 
 

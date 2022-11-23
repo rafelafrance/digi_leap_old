@@ -4,10 +4,11 @@ import json
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Union
 
 from . import canned_sql
 
-DbPath = Path | str
+DbPath = Union[Path, str]
 
 
 @contextmanager
