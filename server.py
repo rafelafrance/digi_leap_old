@@ -2,6 +2,7 @@
 import json
 import tempfile
 
+import uvicorn
 from fastapi import Depends
 from fastapi import File
 from fastapi import Form
@@ -122,3 +123,7 @@ async def ocr_labels(
             )
 
     return json.dumps(results)
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="172.31.85.235", port=8000)

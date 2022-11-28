@@ -29,5 +29,5 @@ tqdm
 uvicorn[standard]
 
 # Use the GPU version
-torch
-torchvision
+# torch
+# torchvision
