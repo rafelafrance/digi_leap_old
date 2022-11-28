@@ -141,7 +141,13 @@ const mouseUp = (event) => {
         });
     } else if (labelFixOp == 'Remove') {
         SHEET.ctx.drawImage(CANVAS_BEFORE_ANY_BOX, 0, 0);
-        LABEL_LIST = new LabelList(LABEL_LIST.filter(lb => !lb.insideLabel(event, SHEET)));
+        const filtered = [];
+        LABEL_LIST.forEach(lb => {
+            if (!lb.insideLabel(event, SHEET)) {
+                filtered.push(lb);
+            }
+        });
+        LABEL_LIST = new LabelList(filtered);
         LABEL_LIST.drawBoxes(SHEET);
         setState();
     }
