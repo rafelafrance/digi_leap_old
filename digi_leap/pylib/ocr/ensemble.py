@@ -62,9 +62,9 @@ class Ensemble:
         binary = lt.transform_label("binarize", deskew) if self.needs_binarize else None
         denoise = lt.transform_label("denoise", binary) if self.needs_denoise else None
 
-        deskew = lt.array_to_image(deskew) if deskew else None
-        binary = lt.array_to_image(binary) if binary else None
-        denoise = lt.array_to_image(denoise) if denoise else None
+        deskew = lt.array_to_image(deskew) if deskew is not None else None
+        binary = lt.array_to_image(binary) if binary is not None else None
+        denoise = lt.array_to_image(denoise) if denoise is not None else None
 
         pre_process = "preprocess" in self.pipes
 

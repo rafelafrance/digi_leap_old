@@ -126,4 +126,4 @@ async def ocr_labels(
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="172.31.85.235", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
