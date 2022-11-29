@@ -39,6 +39,11 @@ async def index(request: Request):
     return TEMPLATES.TemplateResponse("client.html", {"request": request})
 
 
+@app.get("/client-instructions", response_class=HTMLResponse)
+async def instructions(request: Request):
+    return TEMPLATES.TemplateResponse("client-instructions.html", {"request": request})
+
+
 @app.post("/find-labels")
 async def find_labels(
     _: str = Depends(common.auth),

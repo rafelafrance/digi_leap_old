@@ -9,16 +9,26 @@
 
 <body>
     <div class="grid">
-        <h1>Digi-Leap</h1>
+        <div class="title">
+            <h1>Digi-Leap</h1>
+            <div>
+                <a href="client-instructions">Instructions</a>
+            </div>
+        </div>
         <div class="form">
             <div class="cell">
                 <input id="image-file" name="files" type="file" accept="image/*"
                     title="Select an image of either a herbarium sheet or a label." />
-            </div>
+                </div>
+                <div class="cell">
+                    <button id="random-sheet" title="Choose a random herbarium sheet for testing">
+                        Random sheet
+                    </button>
+                </div>
             <div class="cell params">
                 <label>Image type</label>
                 <label title="The image is a herbarium sheet. Find labels before OCRing them.">
-                    <input type="radio" name="image-type" value="sheet" checked />
+                    <input type="radio" id="sheet-type" name="image-type" value="sheet" checked />
                     Sheet
                 </label>
                 <label title="The image is a label. No label finder needed.">
@@ -83,6 +93,11 @@
             <canvas id="label-canvas"></canvas>
         </div>
     </div>
+    <img class="example" src="/static/sheets/0655c40e-7ecc-4316-a444-08a50e00ae34.jpg" />
+    <img class="example" src="/static/sheets/0a00b20e-f1f9-418c-b026-606ba53340ba.jpg" />
+    <img class="example" src="/static/sheets/86b6d226-5498-40aa-a165-7b2f902090a3.jpg" />
+    <img class="example" src="/static/sheets/af7915a2-8742-46a0-a755-532bad692223.jpg" />
+    <img class="example" src="/static/sheets/fffc582c-2373-43f7-8040-916533060801.jpg" />
 </body>
 
 <script src="/static/client.js" type="module"></script>

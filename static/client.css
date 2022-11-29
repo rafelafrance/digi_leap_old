@@ -13,7 +13,7 @@ body {
 .grid {
     display: grid;
     grid-template-columns: 50% 50%;
-    grid-template-rows: 100px 400px 1fr;
+    grid-template-rows: 120px 400px 1fr;
     margin: 2em;
     gap: 20px;
     grid-template-areas:
@@ -36,10 +36,17 @@ body {
     }
 }
 
-h1 {
+.title {
     grid-area: header;
     text-align: center;
+}
+
+.title h1 {
     font-size: 3.2rem;
+}
+
+.title div {
+    font-size: 1.6rem;
 }
 
 input,
@@ -173,4 +180,28 @@ input::-webkit-inner-spin-button {
 #label-info {
     border: 0;
     width: 100%;
+}
+
+.example {
+    display: none;
+}
+
+.instructions {
+    margin: 2rem;
+}
+
+.instructions h2 {
+    margin-top: 2rem;
+}
+
+.instructions li {
+    margin: 0.5rem;
+}
+
+.typewritten {
+    color: #d95f02;
+}
+
+.other {
+    color: #1b9e77;
 }

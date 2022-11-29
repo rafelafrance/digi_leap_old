@@ -1,6 +1,6 @@
 import { CanvasPlus } from "./canvas_plus.js";
 import { Draw } from "./draw.js";
-import { ORANGE, GREEN, Label } from "./label.js";
+import { ORANGE, Label } from "./label.js";
 import { LabelList  } from "./label_list.js";
 
 const DRAW = new Draw();
@@ -12,6 +12,22 @@ let CANVAS_BEFORE_BOX = null;  // Save a sheet image before drawing a new box
 let CANVAS_BEFORE_ANY_BOX = null;  // Save a sheet image before adding any boxes
 let FULL_SIZE = null;  // An offscreen canvas that holds the original image
 let LABEL_LIST = new LabelList();
+
+const displayImage = () => {
+    FULL_SIZE = new CanvasPlus(new OffscreenCanvas(IMAGE.width, IMAGE.height));
+    FULL_SIZE.ctx.drawImage(
+        IMAGE, 0, 0, IMAGE.width, IMAGE.height, 0, 0, IMAGE.width, IMAGE.height
+    );
+
+    SHEET.clear();
+    const [ctx_w, ctx_h, new_w, new_h] = SHEET.getScale(IMAGE.width, IMAGE.height);
+    SHEET.ctx.drawImage(FULL_SIZE.canvas, 0, 0, IMAGE.width, IMAGE.height, 0, 0, new_w, new_h);
+
+    CANVAS_BEFORE_ANY_BOX = SHEET.cloneCanvas();
+
+    LABEL_LIST = new LabelList();
+    setState();
+}
 
 const imageFileSelected = async () => {
     const readFileAsDataURL = (file) => {
@@ -39,19 +55,20 @@ const imageFileSelected = async () => {
     const url = await readFileAsDataURL(imageFile.files[0]);
     await loadImage(url);
 
-    FULL_SIZE = new CanvasPlus(new OffscreenCanvas(IMAGE.width, IMAGE.height));
-    FULL_SIZE.ctx.drawImage(
-        IMAGE, 0, 0, IMAGE.width, IMAGE.height, 0, 0, IMAGE.width, IMAGE.height
-    );
+    displayImage();
+}
 
-    SHEET.clear();
-    const [ctx_w, ctx_h, new_w, new_h] = SHEET.getScale(IMAGE.width, IMAGE.height);
-    SHEET.ctx.drawImage(FULL_SIZE.canvas, 0, 0, IMAGE.width, IMAGE.height, 0, 0, new_w, new_h);
+const randomSheet = async () => {
+    const images = document.getElementsByClassName('example');
+    const idx = Math.floor(Math.random() * images.length);
+    const imageFile = document.getElementById('image-file');
 
-    CANVAS_BEFORE_ANY_BOX = SHEET.cloneCanvas();
+    DRAW.reset();
+    imageFile.value = null;
+    document.getElementById('sheet-type').checked = true;
 
-    LABEL_LIST = new LabelList();
-    setState();
+    IMAGE.src = images[idx].src;
+    displayImage();
 }
 
 const displayLabel = () => {
@@ -141,6 +158,7 @@ const mouseUp = (event) => {
         });
     } else if (labelFixOp == 'Remove') {
         SHEET.ctx.drawImage(CANVAS_BEFORE_ANY_BOX, 0, 0);
+        // const filtered = LABEL_LIST.filter(lb => !lb.insideLabel(event, SHEET));
         const filtered = [];
         LABEL_LIST.forEach(lb => {
             if (!lb.insideLabel(event, SHEET)) {
@@ -154,7 +172,16 @@ const mouseUp = (event) => {
     DRAW.drawing = false;
 }
 
-const findLabels = () => {
+const appendSheetData = async (data) => {
+    const imageFile = document.getElementById('image-file');
+    if (imageFile.value) {
+        data.append('sheet', imageFile.files[0]);
+    }
+    let sheet = await FULL_SIZE.canvas.convertToBlob();
+    data.append('sheet', sheet, 'dummy.jpg');
+}
+
+const findLabels = async () => {
     let req = new XMLHttpRequest();
     const button = document.getElementById('find-labels');
     button.classList.add('loading');
@@ -168,15 +195,19 @@ const findLabels = () => {
                 LABEL_LIST.drawBoxes(SHEET);
                 setState();
             } else {
-                let err = JSON.parse(req.responseText);
-                alert(`Find labels error: ${err.detail[0].msg}`);
+                try {
+                    let err = JSON.parse(req.responseText);
+                    alert(`Find labels error: ${err.detail[0].msg}`);
+                } catch {
+                    alert(`Find labels error: ${req.responseText}`);
+                }
             }
         }
         button.classList.remove('loading');
     }
     const data = new FormData();
     const imageFile = document.getElementById('image-file');
-    data.append('sheet', imageFile.files[0]);
+    await appendSheetData(data);
     data.append('conf', document.getElementById('finder-conf').value);
 
     req.open('POST', `${window.location.href}find-labels`, true);
@@ -187,7 +218,7 @@ const findLabels = () => {
 }
 
 
-const ocrLabels = () => {
+const ocrLabels = async () => {
     let req = new XMLHttpRequest();
     const button = document.getElementById('ocr-labels');
     button.classList.add('loading');
@@ -199,8 +230,12 @@ const ocrLabels = () => {
                 LABEL_LIST = new LabelList(JSON.parse(text));
                 setState();
             } else {
-                let err = JSON.parse(req.responseText);
-                alert(`OCR labels error: ${err.detail[0].msg}`);
+                try {
+                    let err = JSON.parse(req.responseText);
+                    alert(`Find labels error: ${err.detail[0].msg}`);
+                } catch {
+                    alert(`Find labels error: ${req.responseText}`);
+                }
             }
         }
         button.classList.remove('loading');
@@ -208,7 +243,7 @@ const ocrLabels = () => {
     const data = new FormData();
     const imageFile = document.getElementById('image-file');
     data.append('labels', JSON.stringify(LABEL_LIST));
-    data.append('sheet', imageFile.files[0]);
+    await appendSheetData(data);
     data.append('filter', 'typewritten');
 
     req.open('POST', `${window.location.href}ocr-labels`, true);
@@ -220,7 +255,7 @@ const ocrLabels = () => {
 
 const setState = () => {
     const imageFile = document.getElementById('image-file');
-    const imageSelected = !!imageFile.value;
+    const imageSelected = !!IMAGE.src;
     const type = document.querySelector('input[name="image-type"]:checked').value;
     const hasLabels = LABEL_LIST.hasLabels();
 
@@ -230,11 +265,9 @@ const setState = () => {
     }
 
     const sheetReady = imageSelected && type == 'sheet';
-    const canOcr = imageSelected
-        && (type == 'label' || (type == 'sheet' && hasLabels));
+    const canOcr = imageSelected && (type == 'label' || (type == 'sheet' && hasLabels));
 
-    document.getElementById('find-labels').disabled = (
-        !imageSelected || type != 'sheet');
+    document.getElementById('find-labels').disabled = !imageSelected || type != 'sheet';
     document.getElementById('ocr-labels').disabled = !canOcr;
     document.getElementById('finder-conf').disabled = !sheetReady;
     document.getElementById('label-fix-op').disabled = !sheetReady || !DRAW.canDraw;
@@ -318,6 +351,9 @@ const saveLabels = () => {
 
     document.getElementById('image-file')
         .addEventListener('change', async (event) => { imageFileSelected(); }, false);
+
+    document.getElementById('random-sheet')
+        .addEventListener('click', randomSheet);
 
     document.getElementById('find-labels')
         .addEventListener('click', findLabels);
