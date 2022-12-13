@@ -13,6 +13,7 @@ jupyter
 matplotlib
 nltk
 numpy
+openai
 pandas
 pybind11
 pycocotools
