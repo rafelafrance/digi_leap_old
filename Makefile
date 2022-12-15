@@ -1,23 +1,26 @@
+.PHONY: test install dev venv clean
 .ONESHELL:
 
-PYTHON=python3.10
-PRE_COMMIT=pre-commit
+VENV=.venv
+PYTHON=./$(VENV)/bin/python3.10
 
 test:
 	$(PYTHON) -m unittest discover
 
-install:
-	$(PYTHON) -m venv .venv
-	source ./.venv/bin/activate
+install: venv
+	source $(VENV)/bin/activate
 	$(PYTHON) -m pip install -U pip setuptools wheel
 	$(PYTHON) -m pip install .
 
-dev:
-	$(PYTHON) -m venv .venv
-	source ./.venv/bin/activate
+dev: venv
+	source $(VENV)/bin/activate
 	$(PYTHON) -m pip install -U pip setuptools wheel
-	$(PYTHON) -m pip install -e .
-	$(PRE_COMMIT) install
+	$(PYTHON) -m pip install -e .[dev]
+	pre-commit install
+
+venv:
+	test -d $(VENV) || python3.10 -m venv $(VENV)
 
 clean:
-	rm -r .venv
+	rm -r $(VENV)
+	find -iname "*.pyc" -delete
