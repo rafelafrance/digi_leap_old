@@ -7,7 +7,7 @@ name = "digi_leap"
 version = "0.1.0"
 description = ""
 license = {file = "LICENSE"}
-authors = [{name="Raphael LaFrance", email="rafelafrance@gmail.com"}]
+authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
 requires-python = ">=3.10"
 dependencies = [
     "Pillow",
