@@ -53,7 +53,7 @@ optional-dependencies.dev = [
     "neovim",
     "pre-commit",
     "pre-commit-hooks",
-    "prospector",
+    # "prospector",
     "pydocstyle",
     "pylint",
     "python-lsp-server[all]",
