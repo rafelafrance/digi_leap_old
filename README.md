@@ -1,5 +1,9 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg)
 
+[![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
+
+
+
 Extract information from images of herbarium specimen label sheets. This is the automated portion of a full solution that includes humans-in-the-loop.
 
 Given images like:
