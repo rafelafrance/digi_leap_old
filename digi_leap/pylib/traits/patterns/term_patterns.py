@@ -1,4 +1,4 @@
-from traiter.terms.db import Db
+from traiter.pylib.terms.db import Db
 
 from ... import consts
 

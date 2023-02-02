@@ -17,7 +17,7 @@ import textwrap
 from pathlib import Path
 
 from pylib.finder.label_babel import reconcile_expedition
-from traiter import log
+from traiter.pylib.pylib import log
 
 
 def main():

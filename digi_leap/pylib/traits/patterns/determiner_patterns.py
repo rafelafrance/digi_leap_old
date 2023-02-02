@@ -1,7 +1,7 @@
 import re
 
 from spacy.util import registry
-from traiter.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
 
 DETERMINER_NO = r"^\w*\d+\w*$"
 

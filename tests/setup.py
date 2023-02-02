@@ -2,7 +2,7 @@ import warnings
 from typing import Dict
 from typing import List
 
-from traiter.util import shorten
+from traiter.pylib.util import shorten
 
 from digi_leap.pylib.traits import pipeline
 

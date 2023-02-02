@@ -1,9 +1,9 @@
 import spacy
-from traiter.patterns import matcher_patterns
-from traiter.pipes.add_traits_pipe import ADD_TRAITS
-from traiter.pipes.delete_traits_pipe import DELETE_TRAITS
-from traiter.pipes.simple_traits_pipe import SIMPLE_TRAITS
-from traiter.pipes.term_pipe import TERM_PIPE
+from traiter.pylib.patterns import matcher_patterns
+from traiter.pylib.pipes.add_traits_pipe import ADD_TRAITS
+from traiter.pylib.pipes.delete_traits_pipe import DELETE_TRAITS
+from traiter.pylib.pipes.simple_traits_pipe import SIMPLE_TRAITS
+from traiter.pylib.pipes.term_pipe import TERM_PIPE
 
 from . import tokenizer
 from .patterns import admin_unit_patterns
@@ -16,7 +16,7 @@ from .patterns import name_patterns
 from .patterns import taxon_patterns
 from .patterns import term_patterns
 
-# from traiter.pipes import debug_pipes
+# from traiter.pylib.pipes import debug_pipes
 
 
 def build_pipeline():

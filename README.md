@@ -1,6 +1,4 @@
-# Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg)
-
-[![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
+# Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
 
 
@@ -20,7 +18,7 @@ We want to:
 
 [<img src="assets/show_labels.png" width="500" />](assets/show_labels.png)
 
-This is using a custom trained YOLOv7 model (https://github.com/WongKinYiu/yolov7).
+We find labels with a custom trained YOLOv7 model (https://github.com/WongKinYiu/yolov7).
 
 - Labels that the model classified as typewritten are outlined in orange
 - All other identified labels are outlined in teal.
@@ -29,7 +27,7 @@ This is using a custom trained YOLOv7 model (https://github.com/WongKinYiu/yolov
 
 [<img src="assets/show_ocr_text.png" width="500" />](assets/show_ocr_text.png)
 
-This is using an ensemble of image processing techniques combined with different OCR engines to get the raw data used to build the final text output. Currently, we are using 4 image processing techniques and 2 OCR engines.
+We use an ensemble of image processing techniques combined with different OCR engines to get the raw data used to build the final text output. Currently, we are using 4 image processing techniques and 2 OCR engines.
 
 Image processing techniques:
 
@@ -61,5 +59,6 @@ We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parse
 # Run Tests
 
 ```bash
+cd /to/digi_leap/directory
 python -m unittest discover
 ```

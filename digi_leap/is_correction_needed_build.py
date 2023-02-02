@@ -5,7 +5,7 @@ import textwrap
 from pathlib import Path
 
 from pylib.ocr.is_correction_needed import build_expedition
-from traiter import log
+from traiter.pylib.pylib import log
 
 
 def main():
