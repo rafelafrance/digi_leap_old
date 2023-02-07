@@ -4,7 +4,7 @@ import textwrap
 from pathlib import Path
 
 from pylib.finder.rise_of_machines import reconcile_expedition
-from traiter import log
+from traiter.pylib import log
 
 
 def main():

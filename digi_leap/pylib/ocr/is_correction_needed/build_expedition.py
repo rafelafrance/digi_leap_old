@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 import warnings
 from argparse import Namespace
@@ -10,6 +11,59 @@ from PIL import Image
 from tqdm import tqdm
 
 from ...db import db
+
+
+def build_3_files(args: Namespace) -> None:
+    os.makedirs(args.expedition_dir, exist_ok=True)
+
+    csv_path = args.expedition_dir / "manifest.csv"
+    with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
+        run_id = db.insert_run(cxn, args)
+
+        writer = csv.writer(csv_file)
+        writer.writerow(
+            "ocr_id image_file text_file json_file ocr_set database".split()
+        )
+
+        recs = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
+        recs = recs[: args.limit] if args.limit else recs
+
+        for rec in tqdm(recs):
+            image = get_label(rec)
+
+            image_path = Path(args.expedition_dir) / f"ocr_id_{rec['ocr_id']:04d}.jpg"
+            image.save(str(image_path))
+
+            text_path = image_path.with_suffix(".txt")
+            with open(text_path, "w") as out_file:
+                out_file.write(rec["ocr_text"])
+
+            json_path = image_path.with_suffix(".json")
+            with open(json_path, "w") as out_file:
+                out_file.write(
+                    json.dumps(
+                        {
+                            "ocr_id": rec["ocr_id"],
+                            "image_file": image_path.name,
+                            "ocr_set": rec["ocr_set"],
+                            "database": str(args.database),
+                            "text": rec["ocr_text"],
+                        }
+                    )
+                )
+
+            writer.writerow(
+                [
+                    rec["ocr_id"],
+                    image_path.name,
+                    text_path.name,
+                    json_path.name,
+                    rec["ocr_set"],
+                    str(args.database).replace(".", "_").replace("/", "_"),
+                ]
+            )
+
+        db.update_run_finished(cxn, run_id)
 
 
 def build_2_files(args: Namespace) -> None:

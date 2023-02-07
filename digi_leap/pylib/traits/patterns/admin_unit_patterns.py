@@ -1,6 +1,6 @@
 from spacy.util import registry
+from traiter.pylib.actions import RejectMatch
 from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
-from traiter.pylib.pylib.actions import RejectMatch
 
 from . import common_patterns
 from . import term_patterns

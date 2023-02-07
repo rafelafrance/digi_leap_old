@@ -1,4 +1,4 @@
-from traiter.pylib.pylib import const as t_const
+from traiter.pylib import const as t_const
 
 
 PATTERNS = {

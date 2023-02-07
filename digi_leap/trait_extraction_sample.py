@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Build an expedition to determine the quality of OCR output."""
 import argparse
 import textwrap
 from pathlib import Path
@@ -11,15 +10,12 @@ from traiter.pylib import log
 def main():
     log.started()
     args = parse_args()
-    if args.side_by_side:
-        build_expedition.build_side_by_side(args)
-    else:
-        build_expedition.build_2_files(args)
+    build_expedition.build_3_files(args)  # This will change
     log.finished()
 
 
 def parse_args() -> argparse.Namespace:
-    description = """Build the 'Is Correction Needed?' expedition"""
+    description = """Get sample data for extracting traits from text expedition."""
 
     arg_parser = argparse.ArgumentParser(
         description=textwrap.dedent(description), fromfile_prefix_chars="@"
@@ -49,17 +45,17 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--side-by-side",
-        action="store_true",
-        help="Change the output to save the output as one file with image and text.",
-    )
-
-    arg_parser.add_argument(
         "--min-words",
         default=10,
         type=int,
         metavar="COUNT",
         help="""A label must have this many words to make it into the expedition.""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Sample this many labels.""",
     )
 
     arg_parser.add_argument(

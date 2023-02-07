@@ -5,8 +5,8 @@ from datetime import date
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from spacy.util import registry
+from traiter.pylib import actions
 from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
-from traiter.pylib.pylib import actions
 
 
 SEPARATOR = r"[./_'-]"

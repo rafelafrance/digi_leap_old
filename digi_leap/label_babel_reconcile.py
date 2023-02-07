@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reconcile data from a "Label Babel" expedition.
 
-We need training data for the label finder model. We use use volunteers to build the
+We need training data for the label finder model. We use volunteers to build the
 initial batch of training data. That is, we use a Zooniverse "Notes from Nature"
 expedition to have volunteers (often 3 or more) draw the label bounding boxes. Every
 bounding will be slightly different, so we use this script to reconcile the differences
@@ -17,7 +17,7 @@ import textwrap
 from pathlib import Path
 
 from pylib.finder.label_babel import reconcile_expedition
-from traiter.pylib.pylib import log
+from traiter.pylib import log
 
 
 def main():

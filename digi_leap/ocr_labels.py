@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pylib import consts
 from pylib.ocr import ocr_labels
-from traiter.pylib.pylib import log
+from traiter.pylib import log
 
 
 async def main():
