@@ -5,7 +5,7 @@ import textwrap
 from pathlib import Path
 
 from pylib.finder.yolo import import_yolo
-from traiter import log
+from traiter.pylib import log
 
 
 def main():

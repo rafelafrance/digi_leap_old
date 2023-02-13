@@ -4,7 +4,7 @@ import textwrap
 from pathlib import Path
 
 from pylib.traits import ner
-from traiter import log
+from traiter.pylib import log
 
 from digi_leap.pylib import validate_args
 

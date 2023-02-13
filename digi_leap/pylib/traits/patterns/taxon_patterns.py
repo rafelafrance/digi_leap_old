@@ -29,7 +29,6 @@ TAXON = MatcherPatterns(
 
 @registry.misc(TAXON.on_match)
 def on_taxon_match(ent):
-    """Enrich a taxon match."""
     auth = []
     used_levels = []
     is_level = ""

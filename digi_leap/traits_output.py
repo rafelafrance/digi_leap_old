@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pylib import validate_args
 from pylib.traits.writers import html_writer
-from traiter import log
+from traiter.pylib import log
 
 
 def main():
