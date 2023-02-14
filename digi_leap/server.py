@@ -81,7 +81,7 @@ async def find_labels(
 async def ocr_labels(
     _: str = Depends(common.auth),
     labels: str = Form(""),
-    extract: str = Form("all"),
+    extract: str = Form("typewritten"),
     sheet: UploadFile = File(),
 ):
     label_list = json.loads(labels) if labels else []
