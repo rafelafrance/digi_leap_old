@@ -4,7 +4,7 @@ from subprocess import check_call
 from subprocess import DEVNULL
 
 from . import common
-from ...pylib import consts
+from .. import consts
 
 YOLO_SIZE = 640
 

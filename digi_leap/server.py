@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import json
 import tempfile
+from datetime import datetime
+from pathlib import Path
 
 import uvicorn
 from fastapi import Depends
@@ -63,21 +65,29 @@ async def find_labels(
         for path in label_dir.glob("*.txt"):
             results += await finder.get_all_bboxes(path, scale)
 
-    return json.dumps(results)
+    output = {
+        "post": "/find-labels",
+        "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
+        "sheet": sheet.filename,
+        "conf": conf,
+        "results": results,
+    }
+
+    return json.dumps(output)
 
 
 @app.post("/ocr-labels")
 async def ocr_labels(
     _: str = Depends(common.auth),
     labels: str = Form(""),
-    filter: str = Form("all"),
+    extract: str = Form("all"),
     sheet: UploadFile = File(),
 ):
     label_list = json.loads(labels) if labels else []
 
     results = []
 
-    ensemble = Ensemble(
+    ocr_options = dict(
         none_easyocr=True,
         none_tesseract=True,
         deskew_easyocr=True,
@@ -89,6 +99,8 @@ async def ocr_labels(
         pre_process=True,
         post_process=True,
     )
+
+    ensemble = Ensemble(**ocr_options)
 
     image = await sheet.read()
     image = await common.get_image(image)
@@ -110,7 +122,7 @@ async def ocr_labels(
     else:
         for lb in label_list:
             label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
-            if filter == "all" or lb["type"].lower() == filter.lower():
+            if extract == "all" or lb["type"].lower() == extract.lower():
                 text = await ensemble.run(label)
             else:
                 text = ""
@@ -126,8 +138,19 @@ async def ocr_labels(
                 }
             )
 
-    return json.dumps(results)
+    output = {
+        "post": "/ocr-labels",
+        "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
+        "labels": labels,
+        "extract": extract,
+        "sheet": sheet.filename,
+        "ocr_options": ocr_options,
+        "results": results,
+    }
+
+    return json.dumps(output)
 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
+    # uvicorn.run(f"{Path(__file__).stem}:app", host="127.0.0.1", port=8000, reload=True)

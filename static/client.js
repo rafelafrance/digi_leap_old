@@ -1,7 +1,7 @@
-import { CanvasPlus } from "./canvas_plus.js";
-import { Draw } from "./draw.js";
-import { ORANGE, Label } from "./label.js";
-import { LabelList  } from "./label_list.js";
+import { CanvasPlus } from './canvas_plus.js';
+import { Draw } from './draw.js';
+import { ORANGE, Label } from './label.js';
+import { LabelList  } from './label_list.js';
 
 const DRAW = new Draw();
 const SHEET = new CanvasPlus(document.getElementById('sheet-canvas'));
@@ -12,6 +12,7 @@ let CANVAS_BEFORE_BOX = null;  // Save a sheet image before drawing a new box
 let CANVAS_BEFORE_ANY_BOX = null;  // Save a sheet image before adding any boxes
 let FULL_SIZE = null;  // An offscreen canvas that holds the original image
 let LABEL_LIST = new LabelList();
+let RANDOM_IMAGE = '';  // Save something for a random image name
 
 const displayImage = () => {
     FULL_SIZE = new CanvasPlus(new OffscreenCanvas(IMAGE.width, IMAGE.height));
@@ -69,6 +70,8 @@ const randomSheet = async () => {
 
     IMAGE.src = images[idx].src;
     displayImage();
+
+    RANDOM_IMAGE = `random_sheet_${idx}.jpg`;
 }
 
 const displayLabel = () => {
@@ -190,7 +193,7 @@ const findLabels = async () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
                 const text = JSON.parse(req.responseText);
-                LABEL_LIST = new LabelList(JSON.parse(text));
+                LABEL_LIST = new LabelList(JSON.parse(text).results);
                 DRAW.canDraw = true;
                 LABEL_LIST.drawBoxes(SHEET);
                 setState();
@@ -227,7 +230,7 @@ const ocrLabels = async () => {
         if (req.readyState === XMLHttpRequest.DONE) {
             if (req.status === 200) {
                 const text = JSON.parse(req.responseText);
-                LABEL_LIST = new LabelList(JSON.parse(text));
+                LABEL_LIST = new LabelList(JSON.parse(text).results);
                 setState();
             } else {
                 try {
@@ -316,7 +319,11 @@ const saveText = async () => {
     const imageFile = document.getElementById('image-file');
     const blob = new Blob([JSON.stringify(LABEL_LIST)], {type: 'text/json'});
     const a = document.createElement('a');
-    a.download = `${removeExtension(imageFile.files[0].name)}.json`;
+    let fileName = RANDOM_IMAGE;
+    if (imageFile.value) {
+        fileName = imageFile.files[0].name;
+    }
+    a.download = `${removeExtension(fileName)}.json`;
     a.href = URL.createObjectURL(blob);
     a.click();
     a.remove();
@@ -324,7 +331,10 @@ const saveText = async () => {
 
 const saveLabels = () => {
     const imageFile = document.getElementById('image-file');
-    const baseName = `${removeExtension(imageFile.files[0].name)}`;
+    let baseName = `${removeExtension(RANDOM_IMAGE)}`;
+    if (imageFile.value) {
+        baseName = `${removeExtension(imageFile.files[0].name)}`;
+    }
 
     LABEL_LIST.forEach((lb, i) => {
         const img_w = lb.right - lb.left;
