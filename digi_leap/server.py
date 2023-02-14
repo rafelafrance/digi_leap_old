@@ -2,7 +2,6 @@
 import json
 import tempfile
 from datetime import datetime
-from pathlib import Path
 
 import uvicorn
 from fastapi import Depends
@@ -17,6 +16,8 @@ from pydantic import BaseModel
 from pylib.ocr.ensemble import Ensemble
 from pylib.server import common
 from pylib.server import label_finder as finder
+
+# from pathlib import Path
 
 
 app = common.setup()
