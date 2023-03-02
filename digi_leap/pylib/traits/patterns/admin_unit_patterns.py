@@ -1,6 +1,6 @@
 from spacy.util import registry
 from traiter.pylib.actions import RejectMatch
-from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
 from . import term_patterns
@@ -25,7 +25,7 @@ DECODER = common_patterns.PATTERNS | {
 
 
 # ####################################################################################
-COUNTY_STATE = MatcherPatterns(
+COUNTY_STATE = MatcherCompiler(
     "admin_unit.county_state",
     on_match="digi_leap.county_state.v1",
     decoder=DECODER,
@@ -43,7 +43,7 @@ def on_county_state_match(ent):
 
 
 # ####################################################################################
-COUNTY_STATE_IFFY = MatcherPatterns(
+COUNTY_STATE_IFFY = MatcherCompiler(
     "admin_unit.county_state_iffy",
     on_match="digi_leap.county_state_iffy.v1",
     decoder=DECODER,
@@ -78,7 +78,7 @@ def is_county_not_colorado(state_ent, county_ent):
 
 
 # ####################################################################################
-COUNTY_ONLY = MatcherPatterns(
+COUNTY_ONLY = MatcherCompiler(
     "admin_unit.county_only",
     on_match="digi_leap.county_only.v1",
     decoder=DECODER,
@@ -96,7 +96,7 @@ def on_county_only_match(ent):
 
 
 # ####################################################################################
-STATE_COUNTY = MatcherPatterns(
+STATE_COUNTY = MatcherCompiler(
     "admin_unit.state_county",
     on_match="digi_leap.state_county.v1",
     decoder=DECODER,
@@ -115,7 +115,7 @@ def on_state_county_match(ent):
 
 
 # ####################################################################################
-STATE_ONLY = MatcherPatterns(
+STATE_ONLY = MatcherCompiler(
     "admin_unit.state_only",
     on_match="digi_leap.state_only.v1",
     decoder=DECODER,

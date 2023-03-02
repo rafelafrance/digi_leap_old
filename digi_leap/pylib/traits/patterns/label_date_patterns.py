@@ -6,7 +6,7 @@ from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from spacy.util import registry
 from traiter.pylib import actions
-from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 
 SEPARATOR = r"[./_'-]"
@@ -29,7 +29,7 @@ DECODER = {
 
 
 # ####################################################################################
-LABEL_DATE = MatcherPatterns(
+LABEL_DATE = MatcherCompiler(
     "label_date",
     on_match="digi_leap.label_date.v1",
     decoder=DECODER,
@@ -74,7 +74,7 @@ def on_label_date_match(ent):
 
 
 # ####################################################################################
-MISSING_DAY = MatcherPatterns(
+MISSING_DAY = MatcherCompiler(
     "short_date",
     on_match="digi_leap.missing_day.v1",
     decoder=DECODER,

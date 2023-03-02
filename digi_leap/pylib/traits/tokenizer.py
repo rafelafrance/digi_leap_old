@@ -1,7 +1,7 @@
 import string
 
 from spacy.util import registry
-from traiter import tokenizer_util
+from traiter.pylib import tokenizer_util
 
 from .patterns.term_patterns import EXTRACTOR_TERMS
 from .patterns.term_patterns import VOCAB_TERMS

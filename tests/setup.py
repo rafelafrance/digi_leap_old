@@ -1,4 +1,3 @@
-import warnings
 from typing import Dict
 from typing import List
 
@@ -12,11 +11,7 @@ NLP = pipeline.build_pipeline()  # Singleton for testing
 def test(text: str) -> List[Dict]:
     text = shorten(text)
 
-    # A known spacy/catalogue issue with python 3.10+
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore")
-
-        doc = NLP(text)
+    doc = NLP(text)
 
     traits = [e._.data for e in doc.ents]
 

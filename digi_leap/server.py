@@ -115,8 +115,8 @@ async def ocr_labels(
                 "top": 0,
                 "right": image.size[0] - 1,
                 "bottom": image.size[1] - 1,
-                "text": text,
                 "conf": 1.0,
+                "text": text,
             }
         )
 
@@ -134,8 +134,8 @@ async def ocr_labels(
                     "top": lb["top"],
                     "right": lb["right"],
                     "bottom": lb["bottom"],
-                    "text": text,
                     "conf": lb["conf"],
+                    "text": text,
                 }
             )
 

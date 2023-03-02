@@ -1,11 +1,11 @@
 import re
 
 from spacy.util import registry
-from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 DETERMINER_NO = r"^\w*\d+\w*$"
 
-DETERMINER = MatcherPatterns(
+DETERMINER = MatcherCompiler(
     "determiner",
     on_match="digi_leap.determiner.v1",
     decoder={

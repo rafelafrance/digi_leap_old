@@ -18,8 +18,7 @@ EXTRACTOR_TERMS += Db.select_term_set(LOCAL_DB, "not_names")
 
 # ##########################################################################
 VOCAB_TERMS = Db()
-VOCAB_TERMS += Db.shared("us_locations taxon_levels")
-VOCAB_TERMS += Db.select_term_set(TERM_DB, "plant_taxa")
+VOCAB_TERMS += Db.shared("us_locations")
 
 REPLACE = VOCAB_TERMS.pattern_dict("replace")
 

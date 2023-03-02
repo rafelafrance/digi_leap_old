@@ -1,4 +1,3 @@
-"""Define literals used in the system."""
 import os
 from pathlib import Path
 

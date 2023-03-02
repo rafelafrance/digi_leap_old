@@ -1,10 +1,10 @@
 from spacy.util import registry
-from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
 
 
-LAT_LONG = MatcherPatterns(
+LAT_LONG = MatcherCompiler(
     "lat_long",
     on_match="digi_leap.lat_long.v1",
     decoder=common_patterns.PATTERNS

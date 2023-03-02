@@ -1,12 +1,12 @@
 from spacy.util import registry
-from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
 
 PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
 SUFFIXES = " ii iii jr jr. sr sr. phd. phd ".split()
 
-NAME = MatcherPatterns(
+NAME = MatcherCompiler(
     "name",
     on_match="digi_leap.name.v1",
     decoder=common_patterns.PATTERNS

@@ -3,7 +3,7 @@ import re
 from spacy.util import registry
 from traiter.pylib.actions import REJECT_MATCH
 from traiter.pylib.actions import RejectMatch
-from traiter.pylib.patterns.matcher_patterns import MatcherPatterns
+from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
 
@@ -26,7 +26,7 @@ DECODER = common_patterns.PATTERNS | {
 
 
 # ####################################################################################
-COLLECTOR = MatcherPatterns(
+COLLECTOR = MatcherCompiler(
     "collector",
     on_match="digi_leap.collector.v1",
     decoder=DECODER,
@@ -98,7 +98,7 @@ def on_collector_match(ent):
 
 
 # ####################################################################################
-NOT_COLLECTOR = MatcherPatterns(
+NOT_COLLECTOR = MatcherCompiler(
     "not_collector",
     on_match=REJECT_MATCH,
     decoder=DECODER,
