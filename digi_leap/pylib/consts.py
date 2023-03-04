@@ -1,9 +1,14 @@
 import os
 from pathlib import Path
 
+from .traits import vocabulary as vocab
+
+
 CURR_DIR = Path(os.getcwd())
 IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments", "junk")
 ROOT_DIR = Path(".." if IS_SUBDIR else ".")
+VOCAB_DIR = Path(vocab.__file__).parent
+
 DATA_DIR = ROOT_DIR / "data"
 MOCK_DIR = ROOT_DIR / "tests" / "mock_data"
 VOCAB_DB = ROOT_DIR / "data" / "vocab.sqlite"

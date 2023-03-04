@@ -92,6 +92,7 @@ class TestLabelDate(unittest.TestCase):
         self.assertEqual(
             test("Collected by D, M, MOORE — Date AUG-_11,1968"),
             [
+                {"collector": "D M MOORE", "trait": "collector", "start": 0, "end": 24},
                 {
                     "label_date": "1968-08-11",
                     "trait": "label_date",

@@ -1,29 +1,18 @@
-from traiter.pylib.terms.db import Db
-
-from ... import consts
-
-
-# ##########################################################################
-TERM_DB = consts.DATA_DIR / "terms.sqlite"
-if not TERM_DB.exists():
-    TERM_DB = consts.MOCK_DIR / "terms.sqlite"
-
-LOCAL_DB = consts.ROOT_DIR / "digi_leap" / "pylib" / "traits" / "terms.sqlite"
+from plants.pylib.const import TAXA_CSV
+from plants.pylib.const import VOCAB_DIR as PLANT_VOCAB
+from traiter.pylib import term_reader
+from traiter.pylib.const import VOCAB_DIR as TRAITER_VOCAB
 
 # ##########################################################################
-EXTRACTOR_TERMS = Db()
-EXTRACTOR_TERMS += Db.shared("time labels")
-EXTRACTOR_TERMS += Db.select_term_set(TERM_DB, "jobs")
-EXTRACTOR_TERMS += Db.select_term_set(LOCAL_DB, "not_names")
+TERMS = term_reader.shared("time")
+TERMS += term_reader.shared("labels")
+TERMS += term_reader.read(PLANT_VOCAB / "jobs.csv")
 
 # ##########################################################################
-VOCAB_TERMS = Db()
-VOCAB_TERMS += Db.shared("us_locations")
+TERMS += term_reader.read(TAXA_CSV)
+TERMS += term_reader.read(PLANT_VOCAB / "ranks.csv")
+TERMS += term_reader.read(TRAITER_VOCAB / "us_locations.csv")
 
-REPLACE = VOCAB_TERMS.pattern_dict("replace")
-
-COUNTY_IN = VOCAB_TERMS.pattern_dict("inside")
-POSTAL = VOCAB_TERMS.pattern_dict("postal")
-
-LEVEL = VOCAB_TERMS.pattern_dict("level")
-LEVEL = {k: v.split() for k, v in LEVEL.items()}
+REPLACE = term_reader.pattern_dict(TERMS, "replace")
+COUNTY_IN = term_reader.pattern_dict(TERMS, "inside")
+POSTAL = term_reader.pattern_dict(TERMS, "postal")

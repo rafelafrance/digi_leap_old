@@ -1,6 +1,3 @@
-from typing import Dict
-from typing import List
-
 from traiter.pylib.util import shorten
 
 from digi_leap.pylib.traits import pipeline
@@ -8,9 +5,8 @@ from digi_leap.pylib.traits import pipeline
 NLP = pipeline.build_pipeline()  # Singleton for testing
 
 
-def test(text: str) -> List[Dict]:
+def test(text: str) -> list[dict]:
     text = shorten(text)
-
     doc = NLP(text)
 
     traits = [e._.data for e in doc.ents]

@@ -18,7 +18,7 @@ DETERMINER = MatcherCompiler(
         "no_label": {"ENT_TYPE": "no_label"},
     },
     patterns=[
-        "det_label by? :* name+",
+        "det_label by? :* maybe? name+",
         "det_label by? :* name+ no_label? :* det_no",
     ],
 )
