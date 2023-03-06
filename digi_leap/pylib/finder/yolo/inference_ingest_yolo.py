@@ -9,7 +9,7 @@ def ingest(args: Namespace) -> None:
         # run_id = db.insert_run(cxn, args)
 
         sheets = db.canned_select(cxn, "sheets", sheet_set=args.sheet_set)
-        sheets = {s["coreid"]: s for s in sheets}
+        sheets = {s["core_id"]: s for s in sheets}
 
         labels = read_yolo_labels(args.yolo_dir)
         filter_labels(labels)
@@ -23,18 +23,18 @@ def ingest(args: Namespace) -> None:
 
 
 def filter_labels(results, threshold=3.0):
-    for coreid, labels in results.items():
+    for core_id, labels in results.items():
         labels = [lb for lb in labels if lb["wide"] < 0.5 and lb["high"] < 0.5]
         # labels = [lb for lb in labels if lb["wide"] / lb["high"] < threshold]
         labels = [lb for lb in labels if (lb["high"] / lb["wide"]) < threshold]
-        results[coreid] = labels
+        results[core_id] = labels
 
 
 def resize_labels(results, sheets, label_set):
     batch = []
 
-    for coreid, labels in results.items():
-        sheet = sheets[coreid]
+    for core_id, labels in results.items():
+        sheet = sheets[core_id]
 
         for lb in labels:
             rad_x = lb["wide"] / 2.0
@@ -60,13 +60,13 @@ def read_yolo_labels(yolo_dir):
     results = {}
     paths = yolo_dir.glob("*.txt")
     for path in paths:
-        coreid = path.stem
-        results[coreid] = []
+        core_id = path.stem
+        results[core_id] = []
         with open(path) as in_file:
             lines = in_file.readlines()
             for ln in lines:
                 cls, left, top, wide, high, conf = ln.split()
-                results[coreid].append(
+                results[core_id].append(
                     {
                         "class": int(cls),
                         "conf": float(conf),

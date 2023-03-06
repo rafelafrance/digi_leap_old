@@ -30,7 +30,7 @@ def setup():
     with open("./digi_leap/pylib/server/description.md") as in_file:
         description = in_file.read()
 
-    app = FastAPI(
+    return FastAPI(
         title="Digi-Leap",
         description=description,
         url="http://localhost:8000",  # TODO??
@@ -42,11 +42,9 @@ def setup():
             "url": "https://github.com/rafelafrance/digi_leap/blob/main/LICENSE",
         },
     )
-    return app
 
 
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
-    # curr_username = credentials.username.encode("utf8")
     curr_password = credentials.password.encode("utf8")
     correct_password = secrets.compare_digest(curr_password, KEY)
     if not correct_password:
@@ -61,5 +59,4 @@ def auth(credentials: HTTPBasicCredentials = Depends(security)):
 async def get_image(contents):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
-    return image
+        return Image.open(io.BytesIO(contents)).convert("RGB")

@@ -58,6 +58,7 @@ optional-dependencies.dev = [
     "pydocstyle",
     "pylint",
     "python-lsp-server[all]",
+    "ruff",
     "tensorboard",
     "yapf",
 ]
@@ -127,3 +128,31 @@ disable = [
     "too-few-public-methods",           # "R0903"
     "too-many-arguments",               # "R0913"
 ]
+
+[tool.ruff]
+extend-select = [
+    "BLE",
+    "C4",
+    "D",
+    "E",
+    "ERA",
+    "I",
+    "ISC",
+    "N",
+    "NPY",
+    "PD",
+    "PGH",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "T20",
+    "TCH",
+    "TID",
+    "UP",
+    "YTT",
+]
+show-fixes = true
+ignore = ["D10"]

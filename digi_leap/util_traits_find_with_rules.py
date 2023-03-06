@@ -3,10 +3,9 @@ import argparse
 import textwrap
 from pathlib import Path
 
+from pylib import validate_args
 from pylib.traits import ner
 from traiter.pylib import log
-
-from digi_leap.pylib import validate_args
 
 
 def main():
@@ -49,7 +48,14 @@ def parse_args() -> argparse.Namespace:
         "--word-threshold",
         metavar="INT",
         default=20,
-        help="""A label must have at least this many words for parsing.""",
+        help="""A label must have at least this many words for parsing.
+            (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--limit",
+        type=int,
+        help="""Sample this many labels.""",
     )
 
     arg_parser.add_argument(

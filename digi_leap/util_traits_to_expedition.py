@@ -38,18 +38,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--ocr-set",
+        "--trait-set",
         required=True,
         metavar="NAME",
-        help="""Use this OCR output.""",
-    )
-
-    arg_parser.add_argument(
-        "--min-words",
-        default=10,
-        type=int,
-        metavar="COUNT",
-        help="""A label must have this many words to make it into the expedition.""",
+        help="""Output this trait set to the expedition.""",
     )
 
     arg_parser.add_argument(

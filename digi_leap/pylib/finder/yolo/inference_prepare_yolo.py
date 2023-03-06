@@ -13,8 +13,8 @@ def build(args: Namespace) -> None:
 
     sheet_sql = """
         select * from sheets
-        where  coreid not in (
-            select coreid from sheets
+        where  core_id not in (
+            select core_id from sheets
             where  sheet_set in (
                 select distinct sheet_set from sheets where sheet_set <> 'original'
             )
@@ -36,11 +36,11 @@ def build(args: Namespace) -> None:
                     "path": sheet["path"],
                     "width": sheet["width"],
                     "height": sheet["height"],
-                    "coreid": sheet["coreid"],
+                    "core_id": sheet["core_id"],
                     "split": "",
                 }
             )
-            yolo_image(sheet["path"], sheet["coreid"], args.yolo_dir, args.image_size)
+            yolo_image(sheet["path"], sheet["core_id"], args.yolo_dir, args.image_size)
 
         db.canned_delete(cxn, "sheets", sheet_set=args.sheet_set)
         db.canned_insert(cxn, "sheets", batch)
@@ -48,10 +48,10 @@ def build(args: Namespace) -> None:
         db.update_run_finished(cxn, run_id)
 
 
-def yolo_image(sheet_path, coreid, yolo_dir, image_size):
+def yolo_image(sheet_path, core_id, yolo_dir, image_size):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-        image_path = yolo_dir / f"{coreid}.jpg"
+        image_path = yolo_dir / f"{core_id}.jpg"
 
         image = Image.open(sheet_path).convert("RGB")
         image = image.resize((image_size, image_size))

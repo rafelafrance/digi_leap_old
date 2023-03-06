@@ -21,7 +21,7 @@ class Ensemble:
     }
 
     def __init__(self, **kwargs):
-        self.pipes = {k for k in self.all_pipes.keys() if kwargs.get(k, False)}
+        self.pipes = {k for k in self.all_pipes if kwargs.get(k, False)}
         if not self.pipes:
             raise ValueError("No pipes given")
 
@@ -49,7 +49,7 @@ class Ensemble:
         return ",".join(pipes)
 
     async def run(self, image):
-        lines = [ln for ln in await self.ocr(image)]
+        lines = list(await self.ocr(image))
         lines = label_builder.filter_lines(lines, self.line_align)
         text = self.line_align.align(lines)
         text = label_builder.consensus(text)

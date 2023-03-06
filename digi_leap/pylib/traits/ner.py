@@ -10,19 +10,23 @@ def ner(args):
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
 
-        cxn.canned_delete(cxn, "traits", trait_set=args.trait_set)
+        db.canned_delete(cxn, "traits", trait_set=args.trait_set)
 
         nlp = pipeline.build_pipeline()
 
-        records = db.canned_select(cxn, "ocr_text", ocr_set=args.ocr_set)
+    with db.connect(args.database) as cxn:
+        records = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
+        if args.limit:
+            records = records[: args.limit]
 
-        for cons in tqdm(records):
+    with db.connect(args.database) as cxn:
+        for ocr_text in tqdm(records):
             batch = []
 
-            if len(cons["ocr_text"].split()) < args.word_threshold:
+            if len(ocr_text["ocr_text"].split()) < args.word_threshold:
                 continue
 
-            doc = nlp(cons["cons_text"])  # .replace("\n", " "))
+            doc = nlp(ocr_text["ocr_text"])
 
             traits = [e._.data for e in doc.ents]
 
@@ -30,7 +34,7 @@ def ner(args):
                 batch.append(
                     {
                         "trait_set": args.trait_set,
-                        "ocr_id": cons["ocr_id"],
+                        "ocr_id": ocr_text["ocr_id"],
                         "trait": trait["trait"],
                         "data": json.dumps(trait),
                     }

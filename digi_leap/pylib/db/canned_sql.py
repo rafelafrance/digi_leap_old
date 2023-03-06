@@ -34,13 +34,13 @@ CANNED_INSERTS = {
         """,
     "ocr_texts": """
         insert into ocr_texts
-               ( label_id,  ocr_set,  pipeline,  ocr_text)
-        values (:label_id, :ocr_set, :pipeline, :ocr_text);
+               ( label_id,  ocr_set,  ocr_text)
+        values (:label_id, :ocr_set, :ocr_text);
         """,
     "sheets": """
         insert into sheets
-               ( sheet_set,  path,  width,  height,  coreid,  split)
-        values (:sheet_set, :path, :width, :height, :coreid, :split);
+               ( sheet_set,  path,  width,  height,  core_id,  split)
+        values (:sheet_set, :path, :width, :height, :core_id, :split);
         """,
     "traits": """
         insert into traits ( trait_set,  ocr_id,  trait,  data)

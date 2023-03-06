@@ -92,7 +92,7 @@ class Sheet:
         self.path: str = label_rec["path"]
         self.width: int = label_rec["width"]
         self.height: int = label_rec["height"]
-        self.coreid: str = label_rec["coreid"]
+        self.core_id: str = label_rec["core_id"]
         self.old_labels: list[Label] = []
         self.new_labels: list[Label] = []
 
@@ -163,8 +163,8 @@ class Sheet:
     def insert(self, cxn, sheet_set, train_set):
         sql = """
             insert into sheets
-                   ( sheet_set,  path,  width,  height,  coreid,  split)
-            values (:sheet_set, :path, :width, :height, :coreid, :split)
+                   ( sheet_set,  path,  width,  height,  core_id,  split)
+            values (:sheet_set, :path, :width, :height, :core_id, :split)
             returning sheet_id
             """
         sheet_id = cxn.execute(
@@ -174,7 +174,7 @@ class Sheet:
                 "path": self.path,
                 "width": self.width,
                 "height": self.height,
-                "coreid": self.coreid,
+                "core_id": self.core_id,
                 "split": "",
             },
         ).fetchone()[0]

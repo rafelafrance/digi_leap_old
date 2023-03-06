@@ -4,7 +4,8 @@ import textwrap
 from pathlib import Path
 
 from pylib import validate_args
-from pylib.traits.writers import html_writer
+from pylib.traits.label_reader import LabelReader
+from pylib.traits.writers.html_writer import HtmlWriter
 from traiter.pylib import log
 
 
@@ -12,8 +13,11 @@ def main():
     log.started()
     args = parse_args()
 
-    if args.format == "html":
-        html_writer.write(args)
+    reader = LabelReader(args)
+
+    if args.out_html:
+        writer = HtmlWriter(args.out_html)
+        writer.write(reader.labels, args.trait_set)
 
     log.finished()
 
@@ -37,22 +41,14 @@ def parse_args() -> argparse.Namespace:
         "--trait-set",
         required=True,
         metavar="NAME",
-        help="""Name this trait set.""",
+        help="""Name of the trait set.""",
     )
 
     arg_parser.add_argument(
-        "--out-file",
+        "--out-html",
         type=Path,
-        required=True,
         metavar="PATH",
-        help="""Output the results to this file.""",
-    )
-
-    arg_parser.add_argument(
-        "--format",
-        choices=["html"],
-        default="html",
-        help="""Output the traits in this format.""",
+        help="""Output the results to this HTML file.""",
     )
 
     args = arg_parser.parse_args()

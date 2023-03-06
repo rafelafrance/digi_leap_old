@@ -17,7 +17,7 @@ DECODER = common_patterns.PATTERNS | {
     "by": {"LOWER": {"IN": ["by"]}},
     "col_label": {"ENT_TYPE": "col_label"},
     "col_no": {"LOWER": {"REGEX": COLLECTOR_NO}},
-    "no_label": {"ENT_TYPE": "no_label"},
+    "num_label": {"ENT_TYPE": "no_label"},
     "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
     "name": {"ENT_TYPE": "name"},
     "maybe": {"POS": "PROPN"},
@@ -32,24 +32,24 @@ COLLECTOR = MatcherCompiler(
     on_match="digi_leap.collector.v1",
     decoder=DECODER,
     patterns=[
-        "                  maybe  .?  maybe             no_label? :* col_no",
-        "                  maybe  .?  name+             no_label? :* col_no",
-        "                  maybe  .?  maybe  .?  maybe  no_label? :* col_no",
-        "                  maybe+ and maybe+            no_label? :* col_no",
-        "                  maybe+ and maybe+            no_label? :* col_no",
-        "                  maybe+ and maybe+ and maybe+ no_label? :* col_no",
-        "col_label  by? :* maybe  .? maybe              no_label? :* col_no",
+        "                  maybe  .?  maybe             num_label? :* col_no",
+        "                  maybe  .?  name+             num_label? :* col_no",
+        "                  maybe  .?  maybe  .?  maybe  num_label? :* col_no",
+        "                  maybe+ and maybe+            num_label? :* col_no",
+        "                  maybe+ and maybe+            num_label? :* col_no",
+        "                  maybe+ and maybe+ and maybe+ num_label? :* col_no",
+        "col_label  by? :* maybe  .? maybe              num_label? :* col_no",
         "col_label  by? :* maybe  .? maybe",
-        "col_label  by? :* maybe? name+                 no_label? :* col_no",
-        "col_label  by? :* maybe+                       no_label? :* col_no",
-        "col_label  by? :* name+ maybe?                 no_label? :* col_no",
+        "col_label  by? :* maybe? name+                 num_label? :* col_no",
+        "col_label  by? :* maybe+                       num_label? :* col_no",
+        "col_label  by? :* name+ maybe?                 num_label? :* col_no",
         "col_label  by? :* name+",
         "col_label  by? :* maybe+",
         "col_label  by? :* maybe .? maybe",
         "col_label  by? :* maybe .? maybe .? maybe",
-        "col_label  by? :* maybe+ and maybe+            no_label? :* col_no",
+        "col_label  by? :* maybe+ and maybe+            num_label? :* col_no",
         "col_label  by? :* maybe+ and maybe+",
-        "col_label  by? :* maybe+ and maybe+ and maybe+ no_label? :* col_no",
+        "col_label  by? :* maybe+ and maybe+ and maybe+ num_label? :* col_no",
         "col_label  by? :* maybe+ and maybe+ and maybe+",
     ],
 )
@@ -80,7 +80,9 @@ def on_collector_match(ent):
         people.append(" ".join(name))
 
     people = [p for p in people if p]
-    ent._.data["collector"] = people if len(people) > 1 else people[0]
+
+    if people:
+        ent._.data["collector"] = people if len(people) > 1 else people[0]
 
 
 # ####################################################################################

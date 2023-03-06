@@ -1,8 +1,6 @@
 """Image transforms performed on labels before OCR."""
-# type: ignore
 import functools
 import re
-from typing import Optional
 
 import numpy as np
 import pytesseract
@@ -23,7 +21,7 @@ def image_to_array(image):
 
 def array_to_image(image: npt.NDArray) -> ImageType:
     if hasattr(image, "dtype") and image.dtype == "float64":
-        mode: Optional[str] = "L" if len(image.shape) < 3 else "RGB"
+        mode: str | None = "L" if len(image.shape) < 3 else "RGB"
         return Image.fromarray(image * 255.0, mode)
     if hasattr(image, "dtype") and image.dtype == "bool":
         image = (image * 255).astype("uint8")
@@ -44,8 +42,7 @@ def scale(
 
 
 def blur(image: npt.NDArray, sigma: float = 1.0) -> npt.NDArray:
-    image = ndimage.gaussian_filter(image, sigma)
-    return image
+    return ndimage.gaussian_filter(image, sigma)
 
 
 def orient(
@@ -72,9 +69,7 @@ def orient(
     return image
 
 
-def deskew(
-    image: npt.NDArray, horiz_angles: Optional[npt.NDArray] = None
-) -> npt.NDArray:
+def deskew(image: npt.NDArray, horiz_angles: npt.NDArray | None = None) -> npt.NDArray:
     """Find the skew of the label.
 
     This method is looking for sharp breaks between the characters and spaces.
@@ -100,18 +95,15 @@ def deskew(
 
 
 def rank_mean(image: npt.NDArray, footprint=None) -> npt.NDArray:
-    image = filters.rank.mean(image, footprint)
-    return image
+    return filters.rank.mean(image, footprint)
 
 
 def rank_median(image: npt.NDArray) -> npt.NDArray:
-    image = filters.rank.median(image)
-    return image
+    return filters.rank.median(image)
 
 
 def rank_modal(image: npt.NDArray) -> npt.NDArray:
-    image = filters.rank.median(image)
-    return image
+    return filters.rank.median(image)
 
 
 def binarize_sauvola(
@@ -120,8 +112,7 @@ def binarize_sauvola(
     k: float = 0.032,
 ) -> npt.NDArray:
     threshold = filters.threshold_sauvola(image, window_size=window_size, k=k)
-    image = image > threshold
-    return image
+    return image > threshold
 
 
 def remove_small_holes(
@@ -136,8 +127,7 @@ def remove_small_holes(
 
 
 def binary_opening(image: npt.NDArray) -> npt.NDArray:
-    image = morph.binary_opening(image)
-    return image
+    return morph.binary_opening(image)
 
 
 # =============================================================================

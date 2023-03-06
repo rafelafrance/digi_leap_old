@@ -67,7 +67,7 @@ def build_pipeline():
     )
 
     pipe.add_taxa_patterns()
-    pipe.add_taxon_plus_patterns()
+    pipe.add_taxon_plus_patterns(n=2)
 
     pipe.nlp.add_pipe(
         DELETE_TRAITS,

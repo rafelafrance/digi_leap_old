@@ -43,4 +43,4 @@ CHARS = r"""
     { } ~ ° é — ‘ ’ “ ” ™
     ¼ ½ ¾ ⅓ ⅔ ×
     """
-CHARS = "".join(["\n", " "] + CHARS.split())
+CHARS = "".join(["\n", " ", *CHARS.split()])

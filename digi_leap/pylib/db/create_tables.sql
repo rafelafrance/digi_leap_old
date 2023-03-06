@@ -66,7 +66,6 @@ create table if not exists ocr_texts (
     ocr_id     integer primary key autoincrement,
     label_id   integer,
     ocr_set    text,
-    pipeline   text,
     ocr_text   text
 );
 create index if not exists ocr_label_id on ocr_texts (label_id);
@@ -78,7 +77,7 @@ create table if not exists sheets (
     path      text,
     width     integer,
     height    integer,
-    coreid    text,
+    core_id   text,
     split     text
 );
 
@@ -92,16 +91,15 @@ create table if not exists sheet_errors (
 create table if not exists subjects_to_sheets (
     subject_id integer primary key,
     path       text,
-    coreid     text
+    core_id    text
 );
-create index if not exists subs_to_sheets_idx on subjects_to_sheets (coreid);
+create index if not exists subs_to_sheets_idx on subjects_to_sheets (core_id);
 
 
 create table if not exists traits (
     trait_id  integer primary key autoincrement,
     trait_set text,
     ocr_id    integer,
-    method    text,
     trait     text,
     data      text
 );
