@@ -22,30 +22,23 @@ def build_pipeline():
 
     # Only keep the PERSON entities
     # We need to delete these entities because we merge entity tokens later in pipeline
+    pipe.remove_spacy_ents(keep="PERSON")
+
     pipe.nlp.add_pipe(
-        DELETE_TRAITS,
-        name="delete_spacy",
-        config={
-            "delete": """ CARDINAL DATE EVENT FAC GPE LANGUAGE LAW LOC MONEY NORP
-                ORDINAL ORG PERCENT PRODUCT QUANTITY TIME WORK_OF_ART """.split()
-        },
+        ADD_TRAITS,
+        name="lat_long_traits",
+        config={"patterns": matcher_compiler.as_dicts([lat_long_patterns.LAT_LONG])},
     )
+    pipe.nlp.add_pipe("merge_entities", name="merge_lat_long")
+    # pipe.add_debug_tokens_pipe()  # ###############################################
 
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="name_traits",
-        config={
-            "patterns": matcher_compiler.as_dicts(
-                [
-                    name_patterns.NAME,
-                    lat_long_patterns.LAT_LONG,
-                ]
-            )
-        },
+        config={"patterns": matcher_compiler.as_dicts([name_patterns.NAME])},
     )
-    pipe.nlp.add_pipe("merge_entities", name="merge_lat_long")
+    pipe.nlp.add_pipe("merge_entities", name="merge_names")
 
-    # pipe.add_debug_tokens_pipe()  # ###############################################
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         config={
@@ -104,7 +97,9 @@ def build_pipeline():
         name="delete_terms2",
         config={
             "delete": """ us_county us_state us_state-us_county time_units bad_taxon
-            month name col_label det_label job_label not_name no_label """.split()
+            month name col_label det_label job_label not_name no_label
+            higher_taxon lower_taxon
+            """.split()
         },
     )
 

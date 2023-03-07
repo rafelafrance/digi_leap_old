@@ -21,12 +21,14 @@ def ner(args):
 
     with db.connect(args.database) as cxn:
         for ocr_text in tqdm(records):
+            words = ocr_text["ocr_text"].split()
             batch = []
 
-            if len(ocr_text["ocr_text"].split()) < args.word_threshold:
+            if len(words) < args.word_threshold:
                 continue
 
-            doc = nlp(ocr_text["ocr_text"])
+            text = " ".join(words)
+            doc = nlp(text)
 
             traits = [e._.data for e in doc.ents]
 

@@ -9,16 +9,7 @@ class TestLabels(unittest.TestCase):
     # def test_label_00(self):
     #     test(
     #         """
-    #         Fraijanes, Alaeloa Costa Rica
-    #         Myricaceae
-    #         Myrica pubescens Willd.
-    #         In Fraijanes Recreation Park, at 1475 m in
-    #         tropical cloud forest, volcanic area with
-    #         acid soil, 2-3 m tall.
-    #         William M. Houghton 531 14 Jan. 1987
-    #         collected by Merle Dortmond
-    #         The University of Georgia Athens, GA, U.S.A.
-    #      """
+    #         """
     #     )
 
     def test_label_01(self):
@@ -35,9 +26,10 @@ class TestLabels(unittest.TestCase):
                 {
                     "taxon": "Cornus obliqua",
                     "rank": "species",
+                    "authority": "Beth",
                     "trait": "taxon",
                     "start": 42,
-                    "end": 56,
+                    "end": 64,
                 },
                 {
                     "us_state": "Texas",
@@ -48,7 +40,7 @@ class TestLabels(unittest.TestCase):
                 },
                 {"us_county": "Mason", "trait": "admin_unit", "start": 78, "end": 91},
                 {
-                    "lat_long": """GPS 30° 49’ 27’ N, 99" 15' 22 W""",
+                    "lat_long": """30° 49’ 27’ N, 99" 15' 22 W""",
                     "trait": "lat_long",
                     "start": 181,
                     "end": 212,

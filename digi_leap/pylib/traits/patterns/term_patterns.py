@@ -6,6 +6,7 @@ from traiter.pylib.const import VOCAB_DIR as TRAITER_VOCAB
 # ##########################################################################
 TERMS1 = term_reader.shared("time")
 TERMS1 += term_reader.shared("labels")
+TERMS1 += term_reader.shared("lat_long")
 TERMS1 += term_reader.read(PLANT_VOCAB / "jobs.csv")
 TERMS1 = term_reader.drop(TERMS1, "time_units")
 

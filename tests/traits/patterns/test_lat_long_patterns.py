@@ -13,7 +13,7 @@ class TestLatLongPatterns(unittest.TestCase):
             test("""Grassland, GPS 30° 49’ 27’ N, 99" 15' 22 W May"""),
             [
                 {
-                    "lat_long": """GPS 30° 49’ 27’ N, 99" 15' 22 W""",
+                    "lat_long": """30° 49’ 27’ N, 99" 15' 22 W""",
                     "trait": "lat_long",
                     "start": 11,
                     "end": 42,
@@ -21,5 +21,29 @@ class TestLatLongPatterns(unittest.TestCase):
             ],
         )
 
+    def test_lat_long_02(self):
+        self.assertEqual(
+            test("""floodplain wetland. 40.104905N, 79.324561W NAD83"""),
+            [
+                {
+                    "lat_long": """40.104905 N, 79.324561 W""",
+                    "trait": "lat_long",
+                    "datum": "NAD83",
+                    "start": 20,
+                    "end": 48,
+                }
+            ],
+        )
 
-#
+    def test_lat_long_03(self):
+        self.assertEqual(
+            test("""32° 19.517' N 110° 40.242' W Elev: 1217m"""),
+            [
+                {
+                    "lat_long": """32° 19.517' N 110° 40.242' W""",
+                    "trait": "lat_long",
+                    "start": 0,
+                    "end": 28,
+                }
+            ],
+        )
