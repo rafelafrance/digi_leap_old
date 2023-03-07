@@ -25,46 +25,46 @@ class TestLabels(unittest.TestCase):
         self.assertEqual(
             test(
                 """
-                    PLANTS OF FLORIDA
-                    Cyperus
-                    aculeatus
-                    CHARLOTTE CO.: Prairie / Shell Creek(SFM
-                    property); 0.05 km W of US 17, 1.3 km S of Sam
-                    Way:
-                    26° 59’21" N, 81° 57' 35" W.
-                    Ruderal depression:
-                    Alan R. Franck 2523
-                    4 December 2010
-                    UNIVERSITY OF SOUTH FLORIDA HERBARIUM
+                Tarleton State University Herbarium (TAC) Cornus obliqua (Beth.)
+                Texas, Mason County: Mason: 5 miles North of Mason off Hwy 386.
+                Mason Mountain Wildlife Management Area. Grassland,
+                GPS 30° 49’ 27’ N, 99" 15' 22 W May 19, 1998 HR1998-01 H. Richey
                 """
             ),
             [
-                {"us_state": "Florida", "trait": "admin_unit", "start": 0, "end": 17},
                 {
-                    "genus": "Cyperus",
-                    "species": "aculeatus",
+                    "taxon": "Cornus obliqua",
+                    "rank": "species",
                     "trait": "taxon",
-                    "start": 18,
-                    "end": 35,
+                    "start": 42,
+                    "end": 56,
                 },
                 {
-                    "us_county": "Charlotte",
+                    "us_state": "Texas",
+                    "us_county": "Mason",
                     "trait": "admin_unit",
-                    "start": 36,
-                    "end": 48,
+                    "start": 65,
+                    "end": 77,
+                },
+                {"us_county": "Mason", "trait": "admin_unit", "start": 78, "end": 91},
+                {
+                    "lat_long": """GPS 30° 49’ 27’ N, 99" 15' 22 W""",
+                    "trait": "lat_long",
+                    "start": 181,
+                    "end": 212,
                 },
                 {
-                    "collector_no": "2523",
-                    "collector": "Alan R. Franck",
-                    "trait": "collector",
-                    "start": 178,
-                    "end": 197,
-                },
-                {
-                    "label_date": "2010-12-04",
+                    "label_date": "1998-05-19",
                     "trait": "label_date",
-                    "start": 198,
-                    "end": 213,
+                    "start": 213,
+                    "end": 225,
+                },
+                {
+                    "collector_no": "HR1998-01",
+                    "collector": "H. Richey",
+                    "trait": "collector",
+                    "start": 226,
+                    "end": 245,
                 },
             ],
         )
@@ -74,8 +74,8 @@ class TestLabels(unittest.TestCase):
             test(
                 """
                 Fraijanes, Alaeloa Costa Rica
-                Myricaceae
-                Myrica pubescens Willd.
+                Cornaceae
+                Cornus obliqua Willd.
                 In Fraijanes Recreation Park, at 1475 m in
                 tropical cloud forest, volcanic area with
                 acid soil, 2-3 m tall.
@@ -86,32 +86,38 @@ class TestLabels(unittest.TestCase):
             ),
             [
                 {
-                    "family": "Myricaceae",
-                    "genus": "Myrica",
-                    "species": "pubescens",
-                    "authority": "Willd",
+                    "taxon": "Cornaceae",
                     "trait": "taxon",
+                    "rank": "family",
                     "start": 30,
-                    "end": 63,
+                    "end": 39,
+                },
+                {
+                    "taxon": "Cornus obliqua",
+                    "trait": "taxon",
+                    "authority": "Willd",
+                    "rank": "species",
+                    "start": 40,
+                    "end": 60,
                 },
                 {
                     "collector_no": "531",
                     "collector": "William M. Houghton",
                     "trait": "collector",
-                    "start": 173,
-                    "end": 196,
+                    "start": 170,
+                    "end": 193,
                 },
                 {
                     "label_date": "1987-01-14",
                     "trait": "label_date",
-                    "start": 197,
-                    "end": 209,
+                    "start": 194,
+                    "end": 206,
                 },
                 {
                     "collector": "Merle Dortmond",
                     "trait": "collector",
-                    "start": 210,
-                    "end": 237,
+                    "start": 207,
+                    "end": 234,
                 },
             ],
         )

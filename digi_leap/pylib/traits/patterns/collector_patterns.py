@@ -1,27 +1,26 @@
 import re
 
 from spacy.util import registry
-from traiter.pylib.actions import REJECT_MATCH
-from traiter.pylib.actions import RejectMatch
 from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
 
 CONJ = ["CCONJ", "ADP"]
-COLLECTOR_NO = r"^\w*\d+\w*$"
+COLLECTOR_NO = r"^[A-Za-z]*\d+[A-Za-z]*$"
 NUMBER_LABEL = """ number no no. num num. # """.split()
+DASH_LIKE = r"^[._-]+$"
+PUNCT = r"^[.:;,_-]+$"
 
 DECODER = common_patterns.PATTERNS | {
-    ":": {"TEXT": {"REGEX": r"^[:._;]+$"}},
+    ":": {"TEXT": {"REGEX": PUNCT}},
+    "-": {"TEXT": {"REGEX": DASH_LIKE}},
     "and": {"POS": {"IN": CONJ}},
     "by": {"LOWER": {"IN": ["by"]}},
     "col_label": {"ENT_TYPE": "col_label"},
     "col_no": {"LOWER": {"REGEX": COLLECTOR_NO}},
-    "num_label": {"ENT_TYPE": "no_label"},
-    "noise": {"TEXT": {"REGEX": r"^[._]+$"}},
-    "name": {"ENT_TYPE": "name"},
     "maybe": {"POS": "PROPN"},
-    "nope": {"LOWER": {"IN": ["of"]}},
+    "num_label": {"ENT_TYPE": "no_label"},
+    "name": {"ENT_TYPE": "name"},
     ".": {"TEXT": {"REGEX": r"^[._,]+$"}},
 }
 
@@ -32,25 +31,29 @@ COLLECTOR = MatcherCompiler(
     on_match="digi_leap.collector.v1",
     decoder=DECODER,
     patterns=[
-        "                  maybe  .?  maybe             num_label? :* col_no",
-        "                  maybe  .?  name+             num_label? :* col_no",
-        "                  maybe  .?  maybe  .?  maybe  num_label? :* col_no",
-        "                  maybe+ and maybe+            num_label? :* col_no",
-        "                  maybe+ and maybe+            num_label? :* col_no",
-        "                  maybe+ and maybe+ and maybe+ num_label? :* col_no",
-        "col_label  by? :* maybe  .? maybe              num_label? :* col_no",
-        "col_label  by? :* maybe  .? maybe",
-        "col_label  by? :* maybe? name+                 num_label? :* col_no",
-        "col_label  by? :* maybe+                       num_label? :* col_no",
-        "col_label  by? :* name+ maybe?                 num_label? :* col_no",
+        "                  name+                     num_label? :* col_no",
+        "                  name+ and name+           num_label? :* col_no",
+        "                  name+ and name+ and name+ num_label? :* col_no",
+        "col_label  by? :* name+                     num_label? :* col_no",
+        "col_label  by? :* name+ and name+           num_label? :* col_no",
         "col_label  by? :* name+",
-        "col_label  by? :* maybe+",
+        "col_label  by? :* name+ and name+",
+        "col_label  by? :* name+ and name+ and name+ num_label? :* col_no",
+        "col_label  by? :* name+ and name+ and name+",
+        "col_no -? col_no? name",
+        "col_no -? col_no? name  .?  name",
+        "col_no -? col_no? name  .?  name+",
+        "col_no -? col_no? name  .?  name  .?  name",
+        "col_no -? col_no? name+ and name+",
+        "col_no -? col_no? name+ and name+",
+        "col_no -? col_no? name+ and name+ and name+",
+        "col_label  by? :* maybe",
         "col_label  by? :* maybe .? maybe",
         "col_label  by? :* maybe .? maybe .? maybe",
-        "col_label  by? :* maybe+ and maybe+            num_label? :* col_no",
-        "col_label  by? :* maybe+ and maybe+",
-        "col_label  by? :* maybe+ and maybe+ and maybe+ num_label? :* col_no",
-        "col_label  by? :* maybe+ and maybe+ and maybe+",
+        "col_label  by? :* maybe",
+        "col_label  by? :* maybe                   num_label? :* col_no",
+        "col_label  by? :* maybe .? maybe          num_label? :* col_no",
+        "col_label  by? :* maybe .? maybe .? maybe num_label? :* col_no",
     ],
 )
 
@@ -59,38 +62,30 @@ COLLECTOR = MatcherCompiler(
 def on_collector_match(ent):
     people = []
 
+    col_no = []
     name = []
     for token in ent:
         if token.ent_type_ == "col_label" or token.ent_type_ == "no_label":
             continue
-        if token.ent_type_ == "not_name":
-            raise RejectMatch()
-        if token.pos_ == "PROPN":
+        elif token.ent_type_ == "name" and not re.match(DASH_LIKE, token.text):
             name.append(token.text)
-        elif token.ent_type_ == "name" and token.text not in ",:":
+        elif match := re.match(COLLECTOR_NO, token.text):
+            col_no.append(match.group(0))
+        elif token.pos_ == "PROPN":
             name.append(token.text)
         elif token.pos_ in CONJ:
             people.append(" ".join(name))
             name = []
-        elif match := re.search(COLLECTOR_NO, token.text):
-            col_no = match.group(0)
-            ent._.data["collector_no"] = col_no
+        elif (match := re.match(DASH_LIKE, token.text)) and col_no:
+            col_no.append(match.group(0))
 
     if name:
         people.append(" ".join(name))
 
-    people = [p for p in people if p]
+    if col_no:
+        ent._.data["collector_no"] = "".join(col_no)
+
+    people = [re.sub(r"\.\.|_", "", p) for p in people if p]
 
     if people:
         ent._.data["collector"] = people if len(people) > 1 else people[0]
-
-
-# ####################################################################################
-NOT_COLLECTOR = MatcherCompiler(
-    "not_collector",
-    on_match=REJECT_MATCH,
-    decoder=DECODER,
-    patterns=[
-        " nope name+ ",
-    ],
-)

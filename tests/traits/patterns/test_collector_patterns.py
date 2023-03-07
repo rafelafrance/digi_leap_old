@@ -84,7 +84,7 @@ class TestCollector(unittest.TestCase):
             [
                 {
                     "collector_no": "6061",
-                    "collector": "E. E. Dale Jr.",
+                    "collector": "E. E. Dale, Jr.",
                     "trait": "collector",
                     "start": 0,
                     "end": 30,
@@ -120,7 +120,7 @@ class TestCollector(unittest.TestCase):
             [
                 {
                     "collector_no": "2018",
-                    "collector": ["Christopher Reid", "Sarah Nunn"],
+                    "collector": "Christopher Reid & Sarah Nunn",
                     "trait": "collector",
                     "start": 0,
                     "end": 45,
@@ -169,4 +169,10 @@ class TestCollector(unittest.TestCase):
                     "end": 27,
                 }
             ],
+        )
+
+    def test_collector_11(self):
+        self.assertEqual(
+            test(""" Grassland, GPS 30°"""),
+            [],
         )

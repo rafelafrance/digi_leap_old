@@ -95,7 +95,7 @@ class TestAdminUnit(unittest.TestCase):
         )
 
     def test_admin_unit_08(self):
-        """It gets a multi word state notation."""
+        """It gets a multi-word state notation."""
         self.assertEqual(
             test("""PLANTS OF NORTH CAROLINA"""),
             [

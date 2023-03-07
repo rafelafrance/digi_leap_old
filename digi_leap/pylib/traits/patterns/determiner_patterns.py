@@ -15,11 +15,11 @@ DETERMINER = MatcherCompiler(
         "name": {"ENT_TYPE": "name"},
         "maybe": {"POS": "PROPN"},
         "det_no": {"LOWER": {"REGEX": DETERMINER_NO}},
-        "no_label": {"ENT_TYPE": "no_label"},
+        "num_label": {"ENT_TYPE": "no_label"},
     },
     patterns=[
         "det_label by? :* maybe? name+",
-        "det_label by? :* name+ no_label? :* det_no",
+        "det_label by? :* name+ num_label? :* det_no",
     ],
 )
 

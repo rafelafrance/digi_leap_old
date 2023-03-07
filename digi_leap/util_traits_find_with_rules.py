@@ -5,6 +5,8 @@ from pathlib import Path
 
 from pylib import validate_args
 from pylib.traits import ner
+from pylib.traits.label_reader import LabelReader
+from pylib.traits.writers.html_writer import HtmlWriter
 from traiter.pylib import log
 
 
@@ -12,6 +14,12 @@ def main():
     log.started()
     args = parse_args()
     ner.ner(args)
+
+    if args.out_html:
+        reader = LabelReader(args)
+        writer = HtmlWriter(args.out_html)
+        writer.write(reader.labels, args.trait_set)
+
     log.finished()
 
 
@@ -50,6 +58,13 @@ def parse_args() -> argparse.Namespace:
         default=20,
         help="""A label must have at least this many words for parsing.
             (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--out-html",
+        type=Path,
+        metavar="PATH",
+        help="""Output the results to this HTML file.""",
     )
 
     arg_parser.add_argument(

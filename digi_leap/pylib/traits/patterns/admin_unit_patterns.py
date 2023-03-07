@@ -101,7 +101,7 @@ STATE_COUNTY = MatcherCompiler(
     on_match="digi_leap.state_county.v1",
     decoder=DECODER,
     patterns=[
-        "us_state co_label ,? us_county",
+        "us_state co_label? ,? us_county",
         "st_label of? us_state co_label ,? us_county",
     ],
 )
