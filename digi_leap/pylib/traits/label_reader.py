@@ -1,18 +1,13 @@
 import json
 from collections import namedtuple
 
+from traiter.pylib.util import shorten
+
 from ..db import db
 
+START = -1
 
 TraitsInText = namedtuple("TraitsInText", "label_id text traits")
-
-
-class TraitsInTextList:
-    def __init__(self, text_traits):
-        self.traits = [TraitsInText(t[0], t[1], t[2]) for t in text_traits]
-
-    def __iter__(self):
-        yield from self.traits
 
 
 class LabelReader:
@@ -22,27 +17,27 @@ class LabelReader:
     @staticmethod
     def read_traits(database, trait_set):
         labels = []
-        text = ""
-        prev_label_id = -1
-        label_id = -1
-        traits = []
+        prev_label_id = START
+        record = TraitsInText(label_id=START, text="", traits=[])
 
         with db.connect(database) as cxn:
             all_traits = db.canned_select(cxn, "traits", trait_set=trait_set)
 
         for trait in all_traits:
             if trait["label_id"] != prev_label_id:
-                if label_id > -1:
-                    labels.append((label_id, text, traits))
+                if record.label_id != START:
+                    labels.append(record)
 
-                text = trait["ocr_text"]
-                label_id = trait["label_id"]
-                traits = []
-                prev_label_id = trait["label_id"]
+                record = TraitsInText(
+                    label_id=trait["label_id"],
+                    text=shorten(trait["ocr_text"]),
+                    traits=[],
+                )
+                prev_label_id = record.label_id
 
-            traits.append(json.loads(trait["data"]))
+            record.traits.append(json.loads(trait["data"]))
 
-        if label_id > -1:
-            labels.append((label_id, text, traits))
+        if record.label_id != START:
+            labels.append(record)
 
-        return TraitsInTextList(labels)
+        return labels

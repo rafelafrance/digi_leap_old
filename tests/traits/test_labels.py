@@ -39,6 +39,7 @@ class TestLabels(unittest.TestCase):
                     "end": 77,
                 },
                 {"us_county": "Mason", "trait": "admin_unit", "start": 78, "end": 91},
+                {"habitat": "grassland", "trait": "habitat", "start": 170, "end": 179},
                 {
                     "lat_long": """30° 49’ 27’ N, 99" 15' 22 W""",
                     "trait": "lat_long",
@@ -91,6 +92,12 @@ class TestLabels(unittest.TestCase):
                     "rank": "species",
                     "start": 40,
                     "end": 60,
+                },
+                {
+                    "habitat": "tropical cloud forest",
+                    "trait": "habitat",
+                    "start": 105,
+                    "end": 126,
                 },
                 {
                     "collector_no": "531",

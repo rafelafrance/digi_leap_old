@@ -18,23 +18,32 @@ def build_pipeline():
     pipe = PipelineBuilder(trained_pipeline="en_core_web_md")
 
     tokenizer.setup_tokenizer(pipe.nlp)
-    pipe.add_term_patterns(terms.TERMS1, terms.REPLACE, merge=False)
 
-    # Only keep the PERSON entities
-    # We need to delete these entities because we merge entity tokens later in pipeline
-    pipe.remove_spacy_ents(keep="PERSON")
+    pipe.add_taxon_terms(before="ner")
+    pipe.add_taxa_patterns(before="ner")
+    pipe.add_taxon_plus_patterns(n=2, before="ner")
+
+    # pipe.add_debug_tokens_pipe()  # ###############################################
+    pipe.add_basic_terms(terms.TERMS1, before="ner")
 
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="lat_long_traits",
+        before="ner",
         config={"patterns": matcher_compiler.as_dicts([lat_long_patterns.LAT_LONG])},
     )
-    pipe.nlp.add_pipe("merge_entities", name="merge_lat_long")
-    # pipe.add_debug_tokens_pipe()  # ###############################################
+    pipe.nlp.add_pipe("merge_entities", name="merge_lat_long", before="ner")
+
+    pipe.add_habitat_patterns(before="ner")
+
+    # Only keep the PERSON entities
+    # We need to delete these entities because we merge entity tokens later in pipeline
+    pipe.remove_spacy_ents(keep="PERSON", after="ner")
 
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="name_traits",
+        after="delete_spacy",
         config={"patterns": matcher_compiler.as_dicts([name_patterns.NAME])},
     )
     pipe.nlp.add_pipe("merge_entities", name="merge_names")
@@ -59,7 +68,7 @@ def build_pipeline():
         name="delete_terms1",
         config={
             "delete": """ time_units month name col_label det_label job_label not_name
-            no_label """.split()
+            no_label habitat_prefix habitat_suffix PERSON """.split()
         },
     )
 
@@ -68,7 +77,7 @@ def build_pipeline():
         name="terms2",
         config={
             "terms": terms.TERMS2,
-            "replace": terms.REPLACE,
+            "replace": terms.REPLACE2,
         },
     )
     pipe.nlp.add_pipe("merge_entities", name="merge_terms2")
@@ -89,9 +98,6 @@ def build_pipeline():
         },
     )
 
-    pipe.add_taxa_patterns()
-    pipe.add_taxon_plus_patterns(n=2)
-
     pipe.nlp.add_pipe(
         DELETE_TRAITS,
         name="delete_terms2",
@@ -102,5 +108,8 @@ def build_pipeline():
             """.split()
         },
     )
+
+    for name in pipe.nlp.pipe_names:
+        print(name)
 
     return pipe

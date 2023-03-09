@@ -1,6 +1,7 @@
 import json
 
 from tqdm import tqdm
+from traiter.pylib.util import shorten
 
 from . import pipeline
 from ..db import db
@@ -21,13 +22,12 @@ def ner(args):
 
     with db.connect(args.database) as cxn:
         for ocr_text in tqdm(records):
-            words = ocr_text["ocr_text"].split()
+            text = shorten(ocr_text["ocr_text"])
             batch = []
 
-            if len(words) < args.word_threshold:
+            if len(text.split()) < args.word_threshold:
                 continue
 
-            text = " ".join(words)
             doc = nlp(text)
 
             traits = [e._.data for e in doc.ents]

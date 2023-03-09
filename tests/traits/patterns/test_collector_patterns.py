@@ -174,5 +174,5 @@ class TestCollector(unittest.TestCase):
     def test_collector_11(self):
         self.assertEqual(
             test(""" Grassland, GPS 30°"""),
-            [],
+            [{"habitat": "grassland", "trait": "habitat", "start": 0, "end": 9}],
         )

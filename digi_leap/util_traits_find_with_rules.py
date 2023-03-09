@@ -13,6 +13,7 @@ from traiter.pylib import log
 def main():
     log.started()
     args = parse_args()
+
     ner.ner(args)
 
     if args.out_html:

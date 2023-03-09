@@ -136,7 +136,7 @@ def format_state(ent, *, ent_index: int):
     sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
     state = sub_ents[ent_index].text
     st_key = get_state_key(state)
-    return term_patterns.REPLACE.get(st_key, state)
+    return term_patterns.REPLACE2.get(st_key, state)
 
 
 def get_state_key(state):

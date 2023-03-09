@@ -4,7 +4,7 @@ from spacy.util import registry
 from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
-from .term_patterns import REPLACE
+from .term_patterns import REPLACE1
 
 _SYMBOLS = r"""°"”“'`‘´’"""
 SYMBOLS = f"""[{_SYMBOLS}]"""
@@ -44,7 +44,7 @@ def on_lat_long_match(ent):
         if token.lower_ in LABELS:
             continue
         if token.ent_type_ == "datum":
-            ent._.data["datum"] = REPLACE.get(token.lower_, token.text)
+            ent._.data["datum"] = REPLACE1.get(token.lower_, token.text)
         else:
             parts.append(token.text.upper())
 
