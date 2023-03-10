@@ -4,10 +4,6 @@ from tests.setup import test
 
 
 class TestCollector(unittest.TestCase):
-
-    # def test_collector_00(self):
-    #     test("""Collector(s): J. Shaw, Z. Irick, K. Vance & J. Harris."""),
-
     def test_collector_01(self):
         """It gets a multiple name notations."""
         self.assertEqual(

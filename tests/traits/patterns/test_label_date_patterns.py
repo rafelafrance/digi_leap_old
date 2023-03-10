@@ -7,11 +7,6 @@ from tests.setup import test
 
 
 class TestLabelDate(unittest.TestCase):
-
-    # def test_label_date_00(self):
-    #     # ......01234567890123456789012345
-    #     test("""Aades0 Oct 2007 Herbarium""")
-
     def test_label_date_01(self):
         """It gets a county notation."""
         self.assertEqual(

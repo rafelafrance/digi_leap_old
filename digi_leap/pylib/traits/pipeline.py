@@ -6,6 +6,7 @@ from traiter.pylib.pipes.term_pipe import TERM_PIPE
 
 from . import tokenizer
 from .patterns import admin_unit_patterns
+from .patterns import associated_taxa_patterns
 from .patterns import collector_patterns
 from .patterns import determiner_patterns
 from .patterns import label_date_patterns
@@ -20,19 +21,17 @@ def build_pipeline():
     tokenizer.setup_tokenizer(pipe.nlp)
 
     pipe.add_taxon_terms(before="ner")
-    pipe.add_taxa_patterns(before="ner")
-    pipe.add_taxon_plus_patterns(n=2, before="ner")
+
+    pipe.add_basic_terms(terms.BASIC_TERMS, before="ner")
 
     # pipe.add_debug_tokens_pipe()  # ###############################################
-    pipe.add_basic_terms(terms.TERMS1, before="ner")
-
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="lat_long_traits",
         before="ner",
         config={"patterns": matcher_compiler.as_dicts([lat_long_patterns.LAT_LONG])},
     )
-    pipe.nlp.add_pipe("merge_entities", name="merge_lat_long", before="ner")
+    pipe.nlp.add_pipe("merge_entities", name="lat_long_merge_traits", before="ner")
 
     pipe.add_habitat_patterns(before="ner")
 
@@ -46,10 +45,11 @@ def build_pipeline():
         after="delete_spacy",
         config={"patterns": matcher_compiler.as_dicts([name_patterns.NAME])},
     )
-    pipe.nlp.add_pipe("merge_entities", name="merge_names")
+    pipe.nlp.add_pipe("merge_entities", name="name_traits_merge")
 
     pipe.nlp.add_pipe(
         ADD_TRAITS,
+        name="label_terms",
         config={
             "patterns": matcher_compiler.as_dicts(
                 [
@@ -57,15 +57,15 @@ def build_pipeline():
                     determiner_patterns.DETERMINER,
                     label_date_patterns.LABEL_DATE,
                     label_date_patterns.MISSING_DAY,
+                    associated_taxa_patterns.ASSOC_TAXA,
                 ]
             ),
-            "keep": ["lat_long"],
         },
     )
 
     pipe.nlp.add_pipe(
         DELETE_TRAITS,
-        name="delete_terms1",
+        name="delete_partial_terms",
         config={
             "delete": """ time_units month name col_label det_label job_label not_name
             no_label habitat_prefix habitat_suffix PERSON """.split()
@@ -74,13 +74,13 @@ def build_pipeline():
 
     pipe.nlp.add_pipe(
         TERM_PIPE,
-        name="terms2",
+        name="location_terms",
         config={
-            "terms": terms.TERMS2,
-            "replace": terms.REPLACE2,
+            "terms": terms.LOCATION_TERMS,
+            "replace": terms.REPLACE_LOCATION_TERMS,
         },
     )
-    pipe.nlp.add_pipe("merge_entities", name="merge_terms2")
+    pipe.nlp.add_pipe("merge_entities", name="location_terms_merge")
 
     pipe.nlp.add_pipe(
         ADD_TRAITS,
@@ -98,18 +98,17 @@ def build_pipeline():
         },
     )
 
+    pipe.add_taxa_patterns()
+    pipe.add_taxon_plus_patterns(n=2)
+
     pipe.nlp.add_pipe(
         DELETE_TRAITS,
-        name="delete_terms2",
+        name="delete_unused_terms",
         config={
             "delete": """ us_county us_state us_state-us_county time_units bad_taxon
             month name col_label det_label job_label not_name no_label
-            higher_taxon lower_taxon
             """.split()
         },
     )
-
-    for name in pipe.nlp.pipe_names:
-        print(name)
 
     return pipe

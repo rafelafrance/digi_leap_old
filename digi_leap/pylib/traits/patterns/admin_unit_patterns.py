@@ -101,8 +101,8 @@ STATE_COUNTY = MatcherCompiler(
     on_match="digi_leap.state_county.v1",
     decoder=DECODER,
     patterns=[
-        "us_state co_label? ,? us_county",
-        "st_label of? us_state co_label ,? us_county",
+        "us_state co_label? ,? us_county co_label?",
+        "st_label of? us_state co_label ,? us_county co_label?",
     ],
 )
 
@@ -136,7 +136,7 @@ def format_state(ent, *, ent_index: int):
     sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
     state = sub_ents[ent_index].text
     st_key = get_state_key(state)
-    return term_patterns.REPLACE2.get(st_key, state)
+    return term_patterns.REPLACE_LOCATION_TERMS.get(st_key, state)
 
 
 def get_state_key(state):

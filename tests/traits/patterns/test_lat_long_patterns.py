@@ -54,3 +54,16 @@ class TestLatLongPatterns(unittest.TestCase):
                 }
             ],
         )
+
+    def test_lat_long_04(self):
+        self.assertEqual(
+            test("""(Ord Mountain 7.5’ Q.: 34°41'32"N, 116°49'25"W, +1000m)"""),
+            [
+                {
+                    "lat_long": """34° 41' 32" N, 116° 49' 25" W""",
+                    "trait": "lat_long",
+                    "start": 23,
+                    "end": 46,
+                }
+            ],
+        )

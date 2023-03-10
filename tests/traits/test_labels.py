@@ -4,14 +4,6 @@ from tests.setup import test
 
 
 class TestLabels(unittest.TestCase):
-    """Test trait extraction on labels."""
-
-    # def test_label_00(self):
-    #     test(
-    #         """
-    #         """
-    #     )
-
     def test_label_01(self):
         self.assertEqual(
             test(
