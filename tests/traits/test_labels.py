@@ -28,9 +28,8 @@ class TestLabels(unittest.TestCase):
                     "us_county": "Mason",
                     "trait": "admin_unit",
                     "start": 65,
-                    "end": 77,
+                    "end": 84,
                 },
-                {"us_county": "Mason", "trait": "admin_unit", "start": 78, "end": 91},
                 {"habitat": "grassland", "trait": "habitat", "start": 170, "end": 179},
                 {
                     "lat_long": """30° 49’ 27’ N, 99" 15' 22 W""",

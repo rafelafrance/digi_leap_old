@@ -24,7 +24,6 @@ def build_pipeline():
 
     pipe.add_basic_terms(terms.BASIC_TERMS, before="ner")
 
-    # pipe.add_debug_tokens_pipe()  # ###############################################
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="lat_long_traits",
@@ -82,6 +81,7 @@ def build_pipeline():
     )
     pipe.nlp.add_pipe("merge_entities", name="location_terms_merge")
 
+    # pipe.add_debug_tokens_pipe()  # ###############################################
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="admin_unit_pipe",

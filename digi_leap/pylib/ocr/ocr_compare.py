@@ -9,6 +9,7 @@ import cppimport.import_hook  # noqa pylint: disable=unused-import
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
+from traiter.pylib.spell_well import SpellWell
 
 from . import label_transformer
 from . import ocr_runner
@@ -16,7 +17,6 @@ from .. import consts
 from ..builder import label_builder
 from ..builder.line_align import char_sub_matrix as subs
 from ..builder.line_align import line_align_py  # noqa
-from ..builder.spell_well import SpellWell
 from ..db import db
 
 IMAGE_TRANSFORMS = ["", "deskew_full", "binarize_full", "denoise_full"]
