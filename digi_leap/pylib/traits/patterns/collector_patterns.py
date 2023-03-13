@@ -1,15 +1,18 @@
-import re
-
+import regex as re
 from spacy.util import registry
+from traiter.pylib import actions
 from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
 
 from . import common_patterns
 
 CONJ = ["CCONJ", "ADP"]
 COLLECTOR_NO = r"^[A-Za-z]*\d+[A-Za-z]*$"
-NUMBER_LABEL = """ number no no. num num. # """.split()
+NUMBER_LABEL = """ number no no. num num. #  """.split()
 DASH_LIKE = r"^[._-]+$"
 PUNCT = r"^[.:;,_-]+$"
+
+NOPE = """ of gps ° elev m """.split()
+BAD_ENT = """ month """.split()
 
 DECODER = common_patterns.PATTERNS | {
     ":": {"TEXT": {"REGEX": PUNCT}},
@@ -22,6 +25,8 @@ DECODER = common_patterns.PATTERNS | {
     "num_label": {"ENT_TYPE": "no_label"},
     "name": {"ENT_TYPE": "name"},
     ".": {"TEXT": {"REGEX": r"^[._,]+$"}},
+    "nope": {"LOWER": {"IN": NOPE}},
+    "bad": {"ENT_TYPE": {"IN": BAD_ENT}},
 }
 
 
@@ -40,13 +45,13 @@ COLLECTOR = MatcherCompiler(
         "col_label  by? :* name+ and name+",
         "col_label  by? :* name+ and name+ and name+ num_label? :* col_no",
         "col_label  by? :* name+ and name+ and name+",
-        "col_no -? col_no? name",
-        "col_no -? col_no? name  .?  name",
-        "col_no -? col_no? name  .?  name+",
-        "col_no -? col_no? name  .?  name  .?  name",
-        "col_no -? col_no? name+ and name+",
-        "col_no -? col_no? name+ and name+",
-        "col_no -? col_no? name+ and name+ and name+",
+        "col_no            name",
+        "col_no            name  .?  name",
+        "col_no            name  .?  name+",
+        "col_no            name  .?  name  .?  name",
+        "col_no            name+ and name+",
+        "col_no            name+ and name+",
+        "col_no            name+ and name+ and name+",
         "col_label  by? :* maybe",
         "col_label  by? :* maybe .? maybe",
         "col_label  by? :* maybe .? maybe .? maybe",
@@ -67,6 +72,8 @@ def on_collector_match(ent):
     for token in ent:
         if token.ent_type_ == "col_label" or token.ent_type_ == "no_label":
             continue
+        if token.ent_type_ in BAD_ENT:
+            raise actions.RejectMatch()
         elif token.ent_type_ == "name" and not re.match(DASH_LIKE, token.text):
             name.append(token.text)
         elif match := re.match(COLLECTOR_NO, token.text):
@@ -89,3 +96,17 @@ def on_collector_match(ent):
 
     if people:
         ent._.data["collector"] = people if len(people) > 1 else people[0]
+
+
+# ####################################################################################
+NOT_A_COLLECTOR = MatcherCompiler(
+    "not_a_collector",
+    on_match=actions.REJECT_MATCH,
+    decoder=DECODER,
+    patterns=[
+        " maybe num_label? :* col_no nope ",
+        " nope  num_label? :* col_no ",
+        " maybe num_label? :* col_no bad ",
+        " bad   num_label? :* col_no ",
+    ],
+)

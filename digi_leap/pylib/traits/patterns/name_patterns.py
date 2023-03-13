@@ -7,7 +7,7 @@ from . import common_patterns
 PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
 SUFFIXES = " ii iii jr jr. sr sr. phd. phd ".split()
 
-NOPE = """ of gps """.split()
+NOPE = """ of gps ° elev """.split()
 
 DECODER = common_patterns.PATTERNS | {
     "jr": {"LOWER": {"IN": SUFFIXES}},
@@ -49,13 +49,14 @@ NOT_name = MatcherCompiler(
     on_match=REJECT_MATCH,
     decoder=DECODER,
     patterns=[
-        "         nope person+ ",
-        "         nope maybe+ ",
-        " person+ nope ",
-        " maybe+  nope ",
-        " person+ nope person+",
-        " maybe+  nope person+",
-        " person+ nope maybe+",
-        " maybe+  nope maybe+",
+        "         nope+ ",
+        "         nope  person+ ",
+        "         nope  maybe+ ",
+        " person+ nope+ ",
+        " maybe+  nope+ ",
+        " person+ nope  person+",
+        " maybe+  nope  person+",
+        " person+ nope  maybe+",
+        " maybe+  nope  maybe+",
     ],
 )

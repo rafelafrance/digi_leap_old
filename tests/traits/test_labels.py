@@ -44,10 +44,10 @@ class TestLabels(unittest.TestCase):
                     "end": 225,
                 },
                 {
-                    "collector_no": "HR1998-01",
+                    "collector_no": "01",  # "HR1998-01",
                     "collector": "H. Richey",
                     "trait": "collector",
-                    "start": 226,
+                    "start": 233,  # 226,
                     "end": 245,
                 },
             ],

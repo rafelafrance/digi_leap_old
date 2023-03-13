@@ -1,3 +1,4 @@
+from plants.pylib.patterns.delete_patterns import PARTIAL_TRAITS
 from plants.pylib.pipeline_builder import PipelineBuilder
 from traiter.pylib.pattern_compilers import matcher_compiler
 from traiter.pylib.pipes.add_traits_pipe import ADD_TRAITS
@@ -38,6 +39,8 @@ def build_pipeline():
     # We need to delete these entities because we merge entity tokens later in pipeline
     pipe.remove_spacy_ents(keep="PERSON", after="ner")
 
+    # pipe.add_debug_tokens_pipe()  # ###############################################
+
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="name_traits",
@@ -46,6 +49,21 @@ def build_pipeline():
     )
     pipe.nlp.add_pipe("merge_entities", name="name_traits_merge")
 
+    # pipe.add_debug_tokens_pipe()  # ###############################################
+
+    pipe.nlp.add_pipe(
+        ADD_TRAITS,
+        name="date_terms",
+        config={
+            "patterns": matcher_compiler.as_dicts(
+                [
+                    label_date_patterns.LABEL_DATE,
+                    label_date_patterns.MISSING_DAY,
+                ]
+            ),
+        },
+    )
+
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="label_terms",
@@ -53,9 +71,8 @@ def build_pipeline():
             "patterns": matcher_compiler.as_dicts(
                 [
                     collector_patterns.COLLECTOR,
+                    collector_patterns.NOT_A_COLLECTOR,
                     determiner_patterns.DETERMINER,
-                    label_date_patterns.LABEL_DATE,
-                    label_date_patterns.MISSING_DAY,
                     associated_taxa_patterns.ASSOC_TAXA,
                 ]
             ),
@@ -81,7 +98,6 @@ def build_pipeline():
     )
     pipe.nlp.add_pipe("merge_entities", name="location_terms_merge")
 
-    # pipe.add_debug_tokens_pipe()  # ###############################################
     pipe.nlp.add_pipe(
         ADD_TRAITS,
         name="admin_unit_pipe",
@@ -105,9 +121,10 @@ def build_pipeline():
         DELETE_TRAITS,
         name="delete_unused_terms",
         config={
-            "delete": """ us_county us_state us_state-us_county time_units bad_taxon
-            month name col_label det_label job_label not_name no_label
-            """.split()
+            "delete": PARTIAL_TRAITS
+            + """ us_county us_state us_state-us_county
+                time_units bad_taxon month name col_label det_label job_label
+                not_name no_label """.split()
         },
     )
 
