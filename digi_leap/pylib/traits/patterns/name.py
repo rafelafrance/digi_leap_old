@@ -1,15 +1,16 @@
 from spacy.util import registry
-from traiter.pylib.actions import REJECT_MATCH
-from traiter.pylib.pattern_compilers.matcher_compiler import MatcherCompiler
+from traiter.pylib import actions
+from traiter.pylib.pattern_compilers.matcher import Compiler
+from traiter.pylib.patterns.common import PATTERNS
 
-from . import common_patterns
+from .terms import KEEP
 
 PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
 SUFFIXES = " ii iii jr jr. sr sr. phd. phd ".split()
 
 NOPE = """ of gps ° elev """.split()
 
-DECODER = common_patterns.PATTERNS | {
+DECODER = PATTERNS | {
     "jr": {"LOWER": {"IN": SUFFIXES}},
     "dr": {"LOWER": {"IN": PREFIXES}},
     "person": {"ENT_TYPE": "PERSON"},
@@ -18,9 +19,10 @@ DECODER = common_patterns.PATTERNS | {
     "nope": {"LOWER": {"IN": NOPE}},
     "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
     "_": {"TEXT": {"REGEX": r"^[._,]+$"}},
+    "occupied": {"ENT_TYPE": {"IN": KEEP}},
 }
 
-NAME = MatcherCompiler(
+NAME = Compiler(
     "name",
     on_match="digi_leap.name.v1",
     decoder=DECODER,
@@ -39,24 +41,28 @@ NAME = MatcherCompiler(
 
 @registry.misc(NAME.on_match)
 def on_name_match(ent):
+    if any(e.label_ != "PERSON" for e in ent.ents):
+        raise actions.RejectMatch()
+
     if ent._.data.get("PERSON"):
         del ent._.data["PERSON"]
 
 
 # ####################################################################################
-NOT_name = MatcherCompiler(
+NOT_NAME = Compiler(
     "not_name",
-    on_match=REJECT_MATCH,
+    on_match=actions.REJECT_MATCH,
     decoder=DECODER,
     patterns=[
-        "         nope+ ",
-        "         nope  person+ ",
-        "         nope  maybe+ ",
-        " person+ nope+ ",
-        " maybe+  nope+ ",
-        " person+ nope  person+",
-        " maybe+  nope  person+",
-        " person+ nope  maybe+",
-        " maybe+  nope  maybe+",
+        "        nope+ ",
+        "        nope  person+ ",
+        "        nope  maybe+ ",
+        "person+ nope+ ",
+        "maybe+  nope+ ",
+        "person+ nope  person+",
+        "maybe+  nope  person+",
+        "person+ nope  maybe+",
+        "maybe+  nope  maybe+",
+        "occupied+",
     ],
 )

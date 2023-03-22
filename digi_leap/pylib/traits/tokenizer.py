@@ -1,7 +1,6 @@
-from traiter.pylib import tokenizer
 from traiter.pylib import tokenizer_util
 
-from .patterns import term_patterns as terms
+from .patterns import terms as terms
 
 
 INFIX = [
@@ -12,7 +11,7 @@ INFIX = [
 
 
 def setup_tokenizer(nlp):
-    tokenizer_util.remove_special_case(nlp, terms.BASIC_TERMS)
+    tokenizer_util.remove_special_case(nlp, terms.TREATMENT_TERMS)
     tokenizer_util.remove_special_case(nlp, terms.LOCATION_TERMS)
     tokenizer_util.append_prefix_regex(nlp)
     tokenizer_util.append_infix_regex(nlp, INFIX)

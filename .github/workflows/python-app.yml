@@ -26,4 +26,4 @@ jobs:
         python -m spacy download en_core_web_md
     - name: Test with unittest
       run: |
-        python -m unittest discover
+        export MOCK_TAXA=1; python -m unittest discover

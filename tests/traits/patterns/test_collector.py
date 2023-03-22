@@ -101,8 +101,8 @@ class TestCollector(unittest.TestCase):
                     "end": 33,
                 },
                 {
-                    "label_date": "2002-10-20",
-                    "trait": "label_date",
+                    "date": "2002-10-20",
+                    "trait": "date",
                     "start": 34,
                     "end": 49,
                 },
@@ -171,4 +171,10 @@ class TestCollector(unittest.TestCase):
         self.assertEqual(
             test(""" Grassland, GPS 30°"""),
             [{"habitat": "grassland", "trait": "habitat", "start": 0, "end": 9}],
+        )
+
+    def test_collector_12(self):
+        self.assertEqual(
+            test("""3807708N Elev: 1689m."""),
+            [{"elevation": 1689.0, "trait": "elevation", "start": 9, "end": 21}],
         )

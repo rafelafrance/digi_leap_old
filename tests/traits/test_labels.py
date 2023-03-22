@@ -22,6 +22,7 @@ class TestLabels(unittest.TestCase):
                     "trait": "taxon",
                     "start": 42,
                     "end": 64,
+                    "primary": "primary",
                 },
                 {
                     "us_state": "Texas",
@@ -38,8 +39,8 @@ class TestLabels(unittest.TestCase):
                     "end": 212,
                 },
                 {
-                    "label_date": "1998-05-19",
-                    "trait": "label_date",
+                    "date": "1998-05-19",
+                    "trait": "date",
                     "start": 213,
                     "end": 225,
                 },
@@ -75,6 +76,7 @@ class TestLabels(unittest.TestCase):
                     "rank": "family",
                     "start": 30,
                     "end": 39,
+                    "primary": "associated",
                 },
                 {
                     "taxon": "Cornus obliqua",
@@ -83,6 +85,7 @@ class TestLabels(unittest.TestCase):
                     "rank": "species",
                     "start": 40,
                     "end": 60,
+                    "primary": "primary",
                 },
                 {
                     "habitat": "tropical cloud forest",
@@ -98,8 +101,8 @@ class TestLabels(unittest.TestCase):
                     "end": 193,
                 },
                 {
-                    "label_date": "1987-01-14",
-                    "trait": "label_date",
+                    "date": "1987-01-14",
+                    "trait": "date",
                     "start": 194,
                     "end": 206,
                 },
