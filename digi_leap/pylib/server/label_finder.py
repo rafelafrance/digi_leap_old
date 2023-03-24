@@ -4,7 +4,7 @@ from subprocess import check_call
 from subprocess import DEVNULL
 
 from . import common
-from .. import consts
+from .. import const
 
 YOLO_SIZE = 640
 
@@ -60,7 +60,7 @@ def get_bbox(line, scale_x, scale_y):
         return None
 
     bbox = {
-        "type": consts.CLASS2NAME[int(cls)],
+        "type": const.CLASS2NAME[int(cls)],
         "left": int((x - (wide / 2.0)) * scale_x),
         "top": int((y - (high / 2.0)) * scale_y),
         "right": int((x + (wide / 2.0)) * scale_x),

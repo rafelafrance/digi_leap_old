@@ -1,8 +1,10 @@
 import regex as re
 from spacy.util import registry
 from traiter.pylib import actions
-from traiter.pylib.pattern_compilers.matcher import Compiler
+from traiter.pylib.matcher_patterns import MatcherPatterns
 from traiter.pylib.patterns import common
+
+from ... import const
 
 _CONJ = ["CCONJ", "ADP"]
 _COLLECTOR_NO = r"^[A-Za-z]*\d+[A-Za-z]*$"
@@ -12,6 +14,7 @@ _NOPE = """ of gps ° elev m """.split()
 _BAD_ENT = """ month """.split()
 _PUNCT = "[.:;,_-]"
 
+# ####################################################################################
 _DECODER = common.PATTERNS | {
     ":": {"LOWER": {"REGEX": rf"^(by|{_PUNCT}+)$"}},
     "-": {"TEXT": {"REGEX": _DASH_LIKE}},
@@ -29,35 +32,37 @@ _DECODER = common.PATTERNS | {
 
 
 # ####################################################################################
-COLLECTOR = Compiler(
+COLLECTOR = MatcherPatterns(
     "collector",
     on_match="plants.collector.v1",
     decoder=_DECODER,
     patterns=[
-        "             name+                     num_label? :* col_no",
-        "             name+ and name+           num_label? :* col_no",
-        "             name+ and name+ and name+ num_label? :* col_no",
-        "col_label :* name+                     num_label? :* col_no",
-        "col_label :* name+ and name+           num_label? :* col_no",
         "col_label :* name+",
         "col_label :* name+ and name+",
         "col_label :* name+ and name+ and name+ num_label? :* col_no",
         "col_label :* name+ and name+ and name+",
-        "col_no       name+",
-        "col_no       name+ .?  name+",
-        "col_no       name+ .?  name+",
-        "col_no       name+ .?  name+ .?  name+",
-        "col_no       name+ and name+",
-        "col_no       name+ and name+",
-        "col_no       name+ and name+ and name+",
         "col_label :* maybe",
         "col_label :* maybe .? maybe",
         "col_label :* maybe .? maybe .? maybe",
         "col_label :* maybe",
-        "col_label :* maybe                   num_label? :* col_no",
-        "col_label :* maybe .? maybe          num_label? :* col_no",
-        "col_label :* maybe .? maybe .? maybe num_label? :* col_no",
+        "             name+                     num_label? :* col_no? -? col_no",
+        "             name+ and name+           num_label? :* col_no? -? col_no",
+        "             name+ and name+ and name+ num_label? :* col_no? -? col_no",
+        "col_label :* name+                     num_label? :* col_no? -? col_no",
+        "col_label :* name+ and name+           num_label? :* col_no? -? col_no",
+        "col_label :* maybe                     num_label? :* col_no? -? col_no",
+        "col_label :* maybe .? maybe            num_label? :* col_no? -? col_no",
+        "col_label :* maybe .? maybe .? maybe   num_label? :* col_no? -? col_no",
+        "col_no? -? col_no       name+",
+        "col_no? -? col_no       name+ .?  name+",
+        "col_no? -? col_no       name+ .?  name+",
+        "col_no? -? col_no       name+ .?  name+ .?  name+",
+        "col_no? -? col_no       name+ and name+",
+        "col_no? -? col_no       name+ and name+",
+        "col_no? -? col_no       name+ and name+ and name+",
     ],
+    terms=const.LABEL_TERMS,
+    output=["collector"],
 )
 
 
@@ -98,7 +103,7 @@ def on_collector_match(ent):
 
 
 # ####################################################################################
-NOT_COLLECTOR = Compiler(
+NOT_COLLECTOR = MatcherPatterns(
     "not_a_collector",
     on_match=actions.REJECT_MATCH,
     decoder=_DECODER,
@@ -108,4 +113,6 @@ NOT_COLLECTOR = Compiler(
         " maybe num_label? :* col_no bad ",
         " bad   num_label? :* col_no ",
     ],
+    terms=const.LABEL_TERMS,
+    output=None,
 )

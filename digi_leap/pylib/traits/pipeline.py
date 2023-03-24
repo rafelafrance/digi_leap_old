@@ -1,6 +1,7 @@
-from plants.pylib.patterns import delete
+from plants.pylib import const as p_const
+from plants.pylib.patterns import deletes
+from traiter.pylib.term_list import TermList
 
-from .patterns import terms
 from .pipeline_builder import PipelineBuilder
 
 
@@ -14,7 +15,7 @@ def pipeline():
     pipes.taxa(n=2, before="ner")
     pipes.taxa_like()
 
-    pipes.treatment_terms(before="ner")
+    pipes.plant_terms(before="ner")
 
     pipes.parts(before="ner")
     pipes.sex(before="ner")
@@ -22,15 +23,16 @@ def pipeline():
     pipes.shapes(before="ner")
     pipes.margins(before="ner")
     pipes.colors(before="ner")
-    pipes.part_locations(before="ner")
+    pipes.part_location(before="ner")
 
-    pipes.dates(before="ner")
+    pipes.dates(merge=True, before="ner")
     pipes.elevations(before="ner")
     pipes.habitats(before="ner")
     pipes.lat_longs(before="ner")
 
-    keep = terms.KEEP + ["col_label", "det_label", "no_label"]
-    pipes.delete_traits("delete_partials", keep=keep, before="ner")
+    labels = TermList().read(p_const.VOCAB_DIR / "job_labels.csv").labels()
+    labels += ["no_label"]
+    pipes.delete_traits("delete_partials", keep_outputs=labels, before="ner")
 
     pipes.link_parts(before="ner")
     pipes.link_parts_once(before="ner")
@@ -40,21 +42,24 @@ def pipeline():
     pipes.link_locations(before="ner")
     pipes.link_taxa_like(before="ner")
 
-    pipes.delete_traits("delete_unlinked", delete_when=delete.DELETE_WHEN, before="ner")
+    pipes.delete_traits(
+        "delete_unlinked", delete_when=deletes.DELETE_WHEN, before="ner"
+    )
 
     # Happens after the spacy NER (Name Entity Recognition) pipe
-    # Leveraging spacy's PERSON entities to parse names
+    # Leveraging spacy's PERSON entities built in the NER pipe to parse names
     pipes.names()
     pipes.jobs()
     pipes.delete_traits("delete_names", delete=["name", "PERSON"])
 
-    # pipes.debug_tokens()  # #####################################################
     pipes.admin_unit_terms()
-    pipes.admin_units()
+    pipes.admin_unit()
 
-    # Happens after the spacy NER (Name Entity Recognition) pipe
-    pipes.associated_taxa()
+    pipes.associated_taxon()
 
-    pipes.delete_traits("final_delete", keep=terms.KEEP)
+    pipes.delete_traits("final_delete", keep_outputs=True)
 
-    return pipes
+    # pipes.debug_tokens()  # ##############################################
+    # pipes.debug_ents()  # ##############################@@################
+
+    return pipes.build()

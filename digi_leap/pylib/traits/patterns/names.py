@@ -1,16 +1,16 @@
 from spacy.util import registry
 from traiter.pylib import actions
-from traiter.pylib.pattern_compilers.matcher import Compiler
-from traiter.pylib.patterns.common import PATTERNS
+from traiter.pylib.matcher_patterns import MatcherPatterns
+from traiter.pylib.patterns import common
 
-from .terms import KEEP
+from ... import const
 
 PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
 SUFFIXES = " ii iii jr jr. sr sr. phd. phd ".split()
 
 NOPE = """ of gps ° elev """.split()
 
-DECODER = PATTERNS | {
+DECODER = common.PATTERNS | {
     "jr": {"LOWER": {"IN": SUFFIXES}},
     "dr": {"LOWER": {"IN": PREFIXES}},
     "person": {"ENT_TYPE": "PERSON"},
@@ -19,10 +19,10 @@ DECODER = PATTERNS | {
     "nope": {"LOWER": {"IN": NOPE}},
     "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
     "_": {"TEXT": {"REGEX": r"^[._,]+$"}},
-    "occupied": {"ENT_TYPE": {"IN": KEEP}},
+    # "occupied": {"ENT_TYPE": {"IN": KEEP}},
 }
 
-NAME = Compiler(
+NAME = MatcherPatterns(
     "name",
     on_match="digi_leap.name.v1",
     decoder=DECODER,
@@ -36,6 +36,8 @@ NAME = Compiler(
         "dr? A A? maybe",
         "dr? A A? maybe _? jr",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=None,
 )
 
 
@@ -49,7 +51,7 @@ def on_name_match(ent):
 
 
 # ####################################################################################
-NOT_NAME = Compiler(
+NOT_NAME = MatcherPatterns(
     "not_name",
     on_match=actions.REJECT_MATCH,
     decoder=DECODER,
@@ -63,6 +65,8 @@ NOT_NAME = Compiler(
         "maybe+  nope  person+",
         "person+ nope  maybe+",
         "maybe+  nope  maybe+",
-        "occupied+",
+        # "occupied+",
     ],
+    terms=None,
+    output=None,
 )

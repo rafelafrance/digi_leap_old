@@ -18,7 +18,8 @@
         <button class="toggle closed" title="Show or hide all extractions">
         </button>
       </th>
-      <th colspan="2">label Text</th>
+      <th>Label ID</th>
+      <th>Label Text</th>
     </tr>
   </thead>
   <tbody>
@@ -29,7 +30,8 @@
             data-text-id="{{ row.label_id }}">
         </button>
       </td>
-      <td class="text" colspan="2">{{ row.formatted_text | safe }}</td>
+      <td>{{ row.label_id }}</td>
+      <td class="text">{{ row.formatted_text | safe }}</td>
     </tr>
     <tr class="term closed" data-text-id="{{ row.label_id }}">
       <td></td>

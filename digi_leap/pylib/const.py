@@ -1,13 +1,12 @@
 import os
 from pathlib import Path
 
-from .traits import vocabulary as vocab
+from plants.pylib import const as p_terms
 
-
+# #########################################################################
 CURR_DIR = Path(os.getcwd())
 IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments", "junk")
 ROOT_DIR = Path(".." if IS_SUBDIR else ".")
-VOCAB_DIR = Path(vocab.__file__).parent
 
 DATA_DIR = ROOT_DIR / "data"
 
@@ -22,10 +21,11 @@ CHAR_DB = (
     / "char_sub_matrix.sqlite"
 )
 
+# #########################################################################
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD_DEV = (0.229, 0.224, 0.225)
 
-
+# #########################################################################
 CLASSES = "Other Typewritten ".split()
 # CLASSES = "Other Barcode Both Handwritten Typewritten".split()
 # CLASSES = "Typewritten Handwritten Barcode Both Other".split()  # For Label Babel 2
@@ -34,6 +34,7 @@ CLASSES = "Other Typewritten ".split()
 CLASS2INT = {c: i for i, c in enumerate(CLASSES)}
 CLASS2NAME = {v: k for k, v in CLASS2INT.items()}
 
+# #########################################################################
 CHARS = r"""
     ! " # % & ' ( ) * + , - . /
     0 1 2 3 4 5 6 7 8 9
@@ -45,3 +46,10 @@ CHARS = r"""
     ¼ ½ ¾ ⅓ ⅔ ×
     """
 CHARS = "".join(["\n", " ", *CHARS.split()])
+
+# #########################################################################
+LABEL_TERMS = p_terms.PLANT_TERMS.shared("habitat")
+ADMIN_UNIT_TERMS = p_terms.ADMIN_UNIT_TERMS
+REPLACE_ADMIN_UNITS = ADMIN_UNIT_TERMS.pattern_dict("replace")
+COUNTY_IN = ADMIN_UNIT_TERMS.pattern_dict("inside")
+POSTAL = ADMIN_UNIT_TERMS.pattern_dict("postal")

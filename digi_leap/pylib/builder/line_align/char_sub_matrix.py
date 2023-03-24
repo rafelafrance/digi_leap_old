@@ -1,11 +1,17 @@
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
+from PIL import ImageFont
 from tqdm import tqdm
 
-from ... import consts
-from ... import fonts
+from ... import const
 from ...db import db
+
+FONT = const.ROOT_DIR / "fonts" / "NotoSerif-Regular.ttf"
+BASE_FONT_SIZE = 36
+FONT_POINT = 24  # Size the char inside the image
+IMAGE_SIZE = 40  # Size of the image that contains a char
+CHAR_FONT = ImageFont.truetype(str(FONT), FONT_POINT)
 
 
 class Char:
@@ -45,7 +51,7 @@ class Char:
 # #####################################################################################
 def add_chars(args):
     """Add characters to the character substitution matrix."""
-    with db.connect(consts.CHAR_DB) as cxn:
+    with db.connect(const.CHAR_DB) as cxn:
         matrix = select_matrix(cxn, args.char_set)
 
         old_chars = {k[0] for k in matrix.keys()}
@@ -53,7 +59,7 @@ def add_chars(args):
 
         new_chars = set(args.chars)
 
-        calc_scores(old_chars, new_chars, matrix, fonts.IMAGE_SIZE, fonts.CHAR_FONT)
+        calc_scores(old_chars, new_chars, matrix, IMAGE_SIZE, CHAR_FONT)
         insert_matrix(cxn, matrix, args.char_set)
 
 
@@ -140,7 +146,7 @@ def get_max_iou(pix1, pix2):
 
 # #####################################################################################
 def select_char_sub_matrix(char_set="default"):
-    with db.connect(consts.CHAR_DB) as cxn:
+    with db.connect(const.CHAR_DB) as cxn:
         rows = db.canned_select(cxn, "char_sub_matrix", char_set=char_set)
         matrix = {f'{r["char1"]}{r["char2"]}': r["sub"] for r in rows}
         return matrix

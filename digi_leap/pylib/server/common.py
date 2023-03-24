@@ -11,11 +11,11 @@ from fastapi.security import HTTPBasic
 from fastapi.security import HTTPBasicCredentials
 from PIL import Image
 
-from .. import consts
+from .. import const
 
 
 def api_key():
-    keys = consts.DATA_DIR / "secrets" / "api_keys.json"
+    keys = const.DATA_DIR / "secrets" / "api_keys.json"
     with open(keys) as key_file:
         key = json.load(key_file)
     return key["key"]

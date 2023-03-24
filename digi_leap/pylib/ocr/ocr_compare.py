@@ -13,7 +13,7 @@ from traiter.pylib.spell_well import SpellWell
 
 from . import label_transformer
 from . import ocr_runner
-from .. import consts
+from .. import const
 from ..builder import label_builder
 from ..builder.line_align import char_sub_matrix as subs
 from ..builder.line_align import line_align_py  # noqa
@@ -132,7 +132,7 @@ def get_pipelines(gold) -> list[list[str]]:
 def get_label(gold: dict):
     with warnings.catch_warnings():  # Turn off EXIF warnings
         warnings.filterwarnings("ignore", category=UserWarning)
-        path = consts.ROOT_DIR / gold["path"]
+        path = const.ROOT_DIR / gold["path"]
         sheet = Image.open(path)
         label = sheet.crop(
             (

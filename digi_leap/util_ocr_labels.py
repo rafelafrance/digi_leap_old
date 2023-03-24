@@ -4,7 +4,7 @@ import asyncio
 import textwrap
 from pathlib import Path
 
-from pylib import consts
+from pylib import const
 from pylib.ocr import ocr_labels
 from traiter.pylib import log
 
@@ -50,7 +50,7 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--classes",
-        choices=consts.CLASSES[1:],
+        choices=const.CLASSES[1:],
         default=["Typewritten"],
         type=str,
         nargs="*",

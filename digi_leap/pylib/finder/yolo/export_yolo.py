@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-from ... import consts
+from ... import const
 from ...db import db
 
 
@@ -52,7 +52,7 @@ def write_labels(text_path, labels, image_size):
     boxes = to_yolo_format(boxes, width, height, image_size)
     with open(text_path, "w") as txt_file:
         for label_class, box in zip(classes, boxes):
-            label_class = consts.CLASS2INT[label_class]
+            label_class = const.CLASS2INT[label_class]
             bbox = np.array2string(box, formatter={"float_kind": lambda x: "%.6f" % x})
             line = f"{label_class} {bbox[1:-1]}\n"
             txt_file.write(line)

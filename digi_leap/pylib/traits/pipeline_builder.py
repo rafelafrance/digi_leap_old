@@ -1,68 +1,61 @@
 from plants.pylib import pipeline_builder as p_builder
+from traiter.pylib import pipeline_builder as t_builder
 
-from .patterns import admin_unit
-from .patterns import associated_taxon
-from .patterns import collector
-from .patterns import determiner
-from .patterns import name
-from .patterns import terms
+from .. import const
+from .patterns import admin_units
+from .patterns import associated_taxa
+from .patterns import collectors
+from .patterns import determiners
+from .patterns import names
 
 
 class PipelineBuilder(p_builder.PipelineBuilder):
-    def treatment_terms(self, **kwargs):
-        return self.add_terms(
-            terms.TREATMENT_TERMS,
-            name="treatment_terms",
-            replace=terms.TREATMENT_TERMS.pattern_dict("replace"),
-            merge=True,
-            **kwargs,
-        )
+    def _primary_taxa(self, *, name, **kwargs):
+        self.nlp.add_pipe(associated_taxa.PRIMARY_TAXON, name=name, **kwargs)
 
     def names(self, **kwargs) -> str:
         labels = [lb for lb in self.spacy_ent_labels if lb != "PERSON"]
         self.delete_traits(name="delete_spacy", delete=labels, **kwargs)
         return self.add_traits(
-            [name.NAME, name.NOT_NAME], name="names", after="delete_spacy"
+            [names.NAME, names.NOT_NAME], name="names", after="delete_spacy"
         )
 
     def jobs(self, **kwargs) -> str:
         return self.add_traits(
-            [collector.COLLECTOR, collector.NOT_COLLECTOR, determiner.DETERMINER],
+            [collectors.COLLECTOR, collectors.NOT_COLLECTOR, determiners.DETERMINER],
             name="jobs",
             **kwargs,
         )
 
-    def associated_taxa(self, **kwargs) -> str:
+    def associated_taxon(self, **kwargs) -> str:
         prev = self.add_traits(
-            [associated_taxon.ASSOC_TAXA], name="associated_taxa", **kwargs
+            [associated_taxa.ASSOC_TAXA], name="associated_taxa", **kwargs
         )
 
-        name_ = "primary_taxa"
-        self.nlp.add_pipe(
-            associated_taxon.PRIMARY_TAXON, name=name_, after=prev, **kwargs
-        )
-        return name_
+        name = "primary_taxa"
+        kwargs = {"name": name, "after": prev}
+        self.pipeline.append(t_builder.Pipe(self._primary_taxa, kwargs))
+        return name
 
     def admin_unit_terms(self, **kwargs) -> str:
         return self.add_terms(
-            terms.ADMIN_UNIT_TERMS, name="admin_terms", merge=True, **kwargs
+            const.ADMIN_UNIT_TERMS, name="admin_terms", merge=True, **kwargs
         )
 
-    def admin_units(self, **kwargs) -> str:
+    def admin_unit(self, **kwargs) -> str:
         prev = self.add_traits(
-            [admin_unit.NOT_COUNTY],
+            [admin_units.NOT_COUNTY],
             name="not_admin_units",
             **kwargs,
         )
         return self.add_traits(
             [
-                admin_unit.COUNTY_STATE,
-                admin_unit.COUNTY_STATE_IFFY,
-                admin_unit.COUNTY_ONLY,
-                admin_unit.STATE_COUNTY,
-                admin_unit.STATE_ONLY,
+                admin_units.COUNTY_STATE,
+                admin_units.COUNTY_STATE_IFFY,
+                admin_units.COUNTY_ONLY,
+                admin_units.STATE_COUNTY,
+                admin_units.STATE_ONLY,
             ],
             name="admin_units",
             after=prev,
-            **kwargs,
         )

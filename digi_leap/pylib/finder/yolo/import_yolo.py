@@ -1,7 +1,7 @@
 """Read a JSON file of YOLO results into the database."""
 import json
 
-from ... import consts
+from ... import const
 from ...db import db
 
 
@@ -36,7 +36,7 @@ def load(args):
                 "sheet_id": row["image_id"],
                 "test_set": args.test_set,
                 "train_set": args.train_set,
-                "test_class": consts.CLASS2NAME[row["category_id"]],
+                "test_class": const.CLASS2NAME[row["category_id"]],
                 "test_conf": row["score"],
                 "test_left": int(left * scale_x),
                 "test_right": int((left + width) * scale_x),

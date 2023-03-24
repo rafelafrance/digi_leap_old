@@ -1,9 +1,12 @@
+from plants.pylib import const as p_const
 from spacy.language import Language
 from spacy.tokens import Doc
-from traiter.pylib.pattern_compilers.matcher import Compiler
+from traiter.pylib.matcher_patterns import MatcherPatterns
 
-ASSOC_TAXA = Compiler(
+# #################################################################################
+ASSOC_TAXA = MatcherPatterns(
     "associated_taxa",
+    on_match=None,
     decoder={
         "assoc": {"LOWER": {"IN": ["associated", "assoc"]}},
         "label": {"LOWER": {"IN": ["species", "taxa", "taxon"]}},
@@ -11,6 +14,8 @@ ASSOC_TAXA = Compiler(
     patterns=[
         "assoc label",
     ],
+    terms=None,
+    output=None,
 )
 
 # #################################################################################

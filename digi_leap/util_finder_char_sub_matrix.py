@@ -3,8 +3,7 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib import consts
-from pylib import fonts
+from pylib import const
 from pylib.builder.line_align import char_sub_matrix as matrix
 
 
@@ -32,7 +31,7 @@ def parse_args() -> argparse.Namespace:
 
     arg_parser.add_argument(
         "--chars",
-        default=consts.CHARS,
+        default=const.CHARS,
         metavar="CHARS",
         help="""A string containing the characters to add to the matrix. Characters
             here will replace those in the char-set. Default includes a space and
@@ -43,7 +42,7 @@ def parse_args() -> argparse.Namespace:
         "--font",
         type=Path,
         metavar="PATH",
-        default=fonts.FONT2,
+        default=matrix.FONT,
         help="""A true type font file to use for calculations.
             (default: %(default)s)""",
     )
@@ -52,7 +51,7 @@ def parse_args() -> argparse.Namespace:
         "--font-size",
         type=int,
         metavar="SIZE",
-        default=fonts.BASE_FONT_SIZE,
+        default=matrix.BASE_FONT_SIZE,
         help="""The font size to use for calculations. (default: %(default)s)""",
     )
 

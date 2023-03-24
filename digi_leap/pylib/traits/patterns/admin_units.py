@@ -1,12 +1,12 @@
 from spacy.util import registry
 from traiter.pylib import actions
-from traiter.pylib.pattern_compilers.matcher import Compiler
+from traiter.pylib.matcher_patterns import MatcherPatterns
 from traiter.pylib.patterns import common
 
-from .terms import ADMIN_UNIT_TERMS
+from ... import const
 
-_COUNTY_IN = ADMIN_UNIT_TERMS.pattern_dict("inside")
-_POSTAL = ADMIN_UNIT_TERMS.pattern_dict("postal")
+_COUNTY_IN = const.ADMIN_UNIT_TERMS.pattern_dict("inside")
+_POSTAL = const.ADMIN_UNIT_TERMS.pattern_dict("postal")
 
 _STATE_ENTS = ["us_state", "us_state-us_county", "us_territory"]
 _COUNTY_ENTS = ["us_county", "us_state-us_county"]
@@ -33,13 +33,15 @@ _DECODER = common.PATTERNS | {
 
 
 # ####################################################################################
-COUNTY_STATE = Compiler(
+COUNTY_STATE = MatcherPatterns(
     "admin_unit.county_state",
     on_match="digi_leap.county_state.v1",
     decoder=_DECODER,
     patterns=[
         "us_county co_label ,? us_state",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=["admin_unit"],
 )
 
 
@@ -51,13 +53,15 @@ def on_county_state_match(ent):
 
 
 # ####################################################################################
-COUNTY_STATE_IFFY = Compiler(
+COUNTY_STATE_IFFY = MatcherPatterns(
     "admin_unit.county_state_iffy",
     on_match="digi_leap.county_state_iffy.v1",
     decoder=_DECODER,
     patterns=[
         "us_county ,? us_state",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=["admin_unit"],
 )
 
 
@@ -86,7 +90,7 @@ def is_county_not_colorado(state_ent, county_ent):
 
 
 # ####################################################################################
-COUNTY_ONLY = Compiler(
+COUNTY_ONLY = MatcherPatterns(
     "admin_unit.county_only",
     on_match="digi_leap.county_only.v1",
     decoder=_DECODER,
@@ -94,6 +98,8 @@ COUNTY_ONLY = Compiler(
         "us_county co_label",
         "co_word :? us_county",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=["admin_unit"],
 )
 
 
@@ -104,7 +110,7 @@ def on_county_only_match(ent):
 
 
 # ####################################################################################
-STATE_COUNTY = Compiler(
+STATE_COUNTY = MatcherPatterns(
     "admin_unit.state_county",
     on_match="digi_leap.state_county.v1",
     decoder=_DECODER,
@@ -112,6 +118,8 @@ STATE_COUNTY = Compiler(
         "us_state co_label? ,? us_county co_label?",
         "st_label of? us_state co_label ,? us_county co_label?",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=["admin_unit"],
 )
 
 
@@ -123,13 +131,15 @@ def on_state_county_match(ent):
 
 
 # ####################################################################################
-STATE_ONLY = Compiler(
+STATE_ONLY = MatcherPatterns(
     "admin_unit.state_only",
     on_match="digi_leap.state_only.v1",
     decoder=_DECODER,
     patterns=[
         "st_label of? ,? us_state",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=["admin_unit"],
 )
 
 
@@ -140,7 +150,7 @@ def on_state_only_match(ent):
 
 
 # ####################################################################################
-NOT_COUNTY = Compiler(
+NOT_COUNTY = MatcherPatterns(
     "not_county",
     on_match=actions.REJECT_MATCH,
     decoder=_DECODER,
@@ -149,6 +159,8 @@ NOT_COUNTY = Compiler(
         "           us_county bad_suffix",
         "bad_prefix us_county bad_suffix",
     ],
+    terms=const.ADMIN_UNIT_TERMS,
+    output=["admin_unit"],
 )
 
 
@@ -157,7 +169,7 @@ def format_state(ent, *, ent_index: int):
     sub_ents = [e for e in ent.ents if e.label_ in _ADMIN_ENTS]
     state = sub_ents[ent_index].text
     st_key = get_state_key(state)
-    return ADMIN_UNIT_TERMS.replace.get(st_key, state)
+    return const.ADMIN_UNIT_TERMS.replace.get(st_key, state)
 
 
 def get_state_key(state):

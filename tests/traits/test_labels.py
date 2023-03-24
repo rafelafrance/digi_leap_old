@@ -8,9 +8,9 @@ class TestLabels(unittest.TestCase):
         self.assertEqual(
             test(
                 """
-                Tarleton State University Herbarium (TAC) Cornus obliqua (Beth.)
-                Texas, Mason County: Mason: 5 miles North of Mason off Hwy 386.
-                Mason Mountain Wildlife Management Area. Grassland,
+                Tarleton State University Herbarium (TAC) Cornus obliqua (Benth)
+                Texas, Mason County: Mason: 5 miles North of Mason off Hwy 386. Mason
+                Mountains Wildlife Management Area. Grassland,
                 GPS 30° 49’ 27’ N, 99" 15' 22 W May 19, 1998 HR1998-01 H. Richey
                 """
             ),
@@ -18,7 +18,7 @@ class TestLabels(unittest.TestCase):
                 {
                     "taxon": "Cornus obliqua",
                     "rank": "species",
-                    "authority": "Beth",
+                    "authority": "Benth",
                     "trait": "taxon",
                     "start": 42,
                     "end": 64,
@@ -31,25 +31,20 @@ class TestLabels(unittest.TestCase):
                     "start": 65,
                     "end": 84,
                 },
-                {"habitat": "grassland", "trait": "habitat", "start": 170, "end": 179},
+                {"habitat": "grassland", "trait": "habitat", "start": 171, "end": 180},
                 {
-                    "lat_long": """30° 49’ 27’ N, 99" 15' 22 W""",
+                    "lat_long": "30° 49’ 27’ N, 99\" 15' 22 W",
                     "trait": "lat_long",
-                    "start": 181,
-                    "end": 212,
+                    "start": 182,
+                    "end": 213,
                 },
+                {"date": "1998-05-19", "trait": "date", "start": 214, "end": 226},
                 {
-                    "date": "1998-05-19",
-                    "trait": "date",
-                    "start": 213,
-                    "end": 225,
-                },
-                {
-                    "collector_no": "01",  # "HR1998-01",
+                    "collector_no": "HR1998-01",
                     "collector": "H. Richey",
                     "trait": "collector",
-                    "start": 233,  # 226,
-                    "end": 245,
+                    "start": 227,
+                    "end": 246,
                 },
             ],
         )

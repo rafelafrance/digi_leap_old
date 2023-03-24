@@ -69,7 +69,7 @@ SUBSTITUTIONS = [
     # Double single quotes ’’ should be a double quote "
     (r"['’]['’]", r"\""),
     # Replace @ and 0
-    (r"(\d)@(\d)", r"\10\2"),
+    (r"(?<=\d)@(?=\d)", "0"),
 ]
 
 

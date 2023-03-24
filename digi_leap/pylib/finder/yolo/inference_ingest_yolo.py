@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from ... import consts
+from ... import const
 from ...db import db
 
 
@@ -44,7 +44,7 @@ def resize_labels(results, sheets, label_set):
                 {
                     "sheet_id": sheet["sheet_id"],
                     "label_set": label_set,
-                    "class": consts.CLASS2NAME[lb["class"]],
+                    "class": const.CLASS2NAME[lb["class"]],
                     "label_conf": lb["conf"],
                     "label_left": int((lb["center_x"] - rad_x) * sheet["width"]),
                     "label_top": int((lb["center_y"] - rad_y) * sheet["height"]),

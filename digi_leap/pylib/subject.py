@@ -1,4 +1,4 @@
-"""A utility class to calculate average subject boxes."""
+"""A utility class to calculate average subject bomatrixxes."""
 import json
 from dataclasses import dataclass
 from dataclasses import field
