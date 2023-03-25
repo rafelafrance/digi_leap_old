@@ -1,5 +1,5 @@
 from plants.pylib import pipeline_builder as p_builder
-from traiter.pylib import pipeline_builder as t_builder
+from traiter.pylib.pipeline_builders import builder as t_builder
 
 from .. import const
 from .patterns import admin_units

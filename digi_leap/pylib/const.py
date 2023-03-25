@@ -48,7 +48,7 @@ CHARS = r"""
 CHARS = "".join(["\n", " ", *CHARS.split()])
 
 # #########################################################################
-LABEL_TERMS = p_terms.PLANT_TERMS.shared("habitat")
+LABEL_TERMS = p_terms.PLANT_TERMS.shared("habitats")
 ADMIN_UNIT_TERMS = p_terms.ADMIN_UNIT_TERMS
 REPLACE_ADMIN_UNITS = ADMIN_UNIT_TERMS.pattern_dict("replace")
 COUNTY_IN = ADMIN_UNIT_TERMS.pattern_dict("inside")
