@@ -40,7 +40,6 @@ COUNTY_STATE = MatcherPatterns(
     patterns=[
         "us_county co_label ,? us_state",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=["admin_unit"],
 )
 
@@ -60,7 +59,6 @@ COUNTY_STATE_IFFY = MatcherPatterns(
     patterns=[
         "us_county ,? us_state",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=["admin_unit"],
 )
 
@@ -98,7 +96,6 @@ COUNTY_ONLY = MatcherPatterns(
         "us_county co_label",
         "co_word :? us_county",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=["admin_unit"],
 )
 
@@ -118,7 +115,6 @@ STATE_COUNTY = MatcherPatterns(
         "us_state co_label? ,? us_county co_label?",
         "st_label of? us_state co_label ,? us_county co_label?",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=["admin_unit"],
 )
 
@@ -138,7 +134,6 @@ STATE_ONLY = MatcherPatterns(
     patterns=[
         "st_label of? ,? us_state",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=["admin_unit"],
 )
 
@@ -159,7 +154,6 @@ NOT_COUNTY = MatcherPatterns(
         "           us_county bad_suffix",
         "bad_prefix us_county bad_suffix",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=["admin_unit"],
 )
 

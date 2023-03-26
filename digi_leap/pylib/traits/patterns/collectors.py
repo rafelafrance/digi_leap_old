@@ -4,8 +4,6 @@ from traiter.pylib import actions
 from traiter.pylib.matcher_patterns import MatcherPatterns
 from traiter.pylib.patterns import common
 
-from ... import const
-
 _CONJ = ["CCONJ", "ADP"]
 _COLLECTOR_NO = r"^[A-Za-z]*\d+[A-Za-z]*$"
 _DASH_LIKE = r"^[._-]+$"
@@ -61,7 +59,6 @@ COLLECTOR = MatcherPatterns(
         "col_no? -? col_no       name+ and name+",
         "col_no? -? col_no       name+ and name+ and name+",
     ],
-    terms=const.LABEL_TERMS,
     output=["collector"],
 )
 
@@ -113,6 +110,5 @@ NOT_COLLECTOR = MatcherPatterns(
         " maybe num_label? :* col_no bad ",
         " bad   num_label? :* col_no ",
     ],
-    terms=const.LABEL_TERMS,
     output=None,
 )

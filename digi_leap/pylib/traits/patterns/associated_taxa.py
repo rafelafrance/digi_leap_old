@@ -1,4 +1,3 @@
-from plants.pylib import const as p_const
 from spacy.language import Language
 from spacy.tokens import Doc
 from traiter.pylib.matcher_patterns import MatcherPatterns
@@ -14,7 +13,6 @@ ASSOC_TAXA = MatcherPatterns(
     patterns=[
         "assoc label",
     ],
-    terms=None,
     output=None,
 )
 

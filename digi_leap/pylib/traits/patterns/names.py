@@ -3,20 +3,20 @@ from traiter.pylib import actions
 from traiter.pylib.matcher_patterns import MatcherPatterns
 from traiter.pylib.patterns import common
 
-from ... import const
+_PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
+_SUFFIXES = " ii iii jr jr. sr sr. phd. phd ".split()
 
-PREFIXES = " dr dr. mr mr. mrs mrs. miss doctor ".split()
-SUFFIXES = " ii iii jr jr. sr sr. phd. phd ".split()
+_NOPE = """ of gps ° elev """.split()
+_CONFLICT = ["us_county", "color"]
+_ALLOW = _CONFLICT + ["PERSON"]
 
-NOPE = """ of gps ° elev """.split()
-
-DECODER = common.PATTERNS | {
-    "jr": {"LOWER": {"IN": SUFFIXES}},
-    "dr": {"LOWER": {"IN": PREFIXES}},
+_DECODER = common.PATTERNS | {
+    "jr": {"LOWER": {"IN": _SUFFIXES}},
+    "dr": {"LOWER": {"IN": _PREFIXES}},
     "person": {"ENT_TYPE": "PERSON"},
     "maybe": {"POS": "PROPN"},
-    "conflict": {"ENT_TYPE": "us_county"},
-    "nope": {"LOWER": {"IN": NOPE}},
+    "conflict": {"ENT_TYPE": {"IN": _CONFLICT}},
+    "nope": {"LOWER": {"IN": _NOPE}},
     "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
     "_": {"TEXT": {"REGEX": r"^[._,]+$"}},
     # "occupied": {"ENT_TYPE": {"IN": KEEP}},
@@ -25,7 +25,7 @@ DECODER = common.PATTERNS | {
 NAME = MatcherPatterns(
     "name",
     on_match="digi_leap.name.v1",
-    decoder=DECODER,
+    decoder=_DECODER,
     patterns=[
         "dr? person+              _? jr",
         "dr? person+  _? person   _? jr",
@@ -33,17 +33,17 @@ NAME = MatcherPatterns(
         "dr? conflict _? person   _? jr",
         "dr? person+                   ",
         "dr? person+  _? person        ",
+        "dr? person+  _? conflict      ",
         "dr? A A? maybe",
         "dr? A A? maybe _? jr",
     ],
-    terms=const.ADMIN_UNIT_TERMS,
     output=None,
 )
 
 
 @registry.misc(NAME.on_match)
 def on_name_match(ent):
-    if any(e.label_ != "PERSON" for e in ent.ents):
+    if any(e.label_ not in _ALLOW for e in ent.ents):
         raise actions.RejectMatch()
 
     if ent._.data.get("PERSON"):
@@ -54,7 +54,7 @@ def on_name_match(ent):
 NOT_NAME = MatcherPatterns(
     "not_name",
     on_match=actions.REJECT_MATCH,
-    decoder=DECODER,
+    decoder=_DECODER,
     patterns=[
         "        nope+ ",
         "        nope  person+ ",
@@ -67,6 +67,5 @@ NOT_NAME = MatcherPatterns(
         "maybe+  nope  maybe+",
         # "occupied+",
     ],
-    terms=None,
     output=None,
 )

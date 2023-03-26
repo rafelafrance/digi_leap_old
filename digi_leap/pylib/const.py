@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from plants.pylib import const as p_terms
+from plants.pylib.vocabulary import terms as p_terms
 
 # #########################################################################
 CURR_DIR = Path(os.getcwd())

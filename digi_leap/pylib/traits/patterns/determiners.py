@@ -3,8 +3,6 @@ import re
 from spacy.util import registry
 from traiter.pylib.matcher_patterns import MatcherPatterns
 
-from ... import const
-
 _DETERMINER_NO = r"^\w*\d+\w*$"
 
 DETERMINER = MatcherPatterns(
@@ -23,7 +21,6 @@ DETERMINER = MatcherPatterns(
         "det_label by? :* maybe? name+",
         "det_label by? :* name+ num_label? :* det_no",
     ],
-    terms=const.LABEL_TERMS,
     output=["determiner"],
 )
 

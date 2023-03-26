@@ -1,14 +1,15 @@
-from plants.pylib import const as p_const
 from plants.pylib.patterns import deletes
+from plants.pylib.vocabulary import terms as p_terms
 from traiter.pylib.term_list import TermList
 
 from .pipeline_builder import PipelineBuilder
 
 
 def pipeline():
+    # Because we are using spacy's NER pipe we need the bigger spacy model
     pipes = PipelineBuilder(base_model="en_core_web_md")
 
-    pipes.traits_without_matcher = p_const.TRAITS_WITHOUT_MATCHER
+    pipes.traits_without_matcher = p_terms.TRAITS_WITHOUT_MATCHER
 
     pipes.tokenizer()
 
@@ -17,7 +18,8 @@ def pipeline():
     pipes.taxa(n=2, before="ner")
     pipes.taxa_like()
 
-    pipes.plant_terms(before="ner")
+    terms = p_terms.PLANT_TERMS.shared("colors habitats lat_long")
+    pipes.add_terms(terms, name="plant_terms", before="ner")
 
     pipes.dates(merge=True, before="ner")
     pipes.elevations(before="ner")
@@ -32,7 +34,7 @@ def pipeline():
     pipes.colors(before="ner")
     pipes.part_location(before="ner")
 
-    labels = TermList().read(p_const.VOCAB_DIR / "job_labels.csv").labels()
+    labels = TermList().read(p_terms.VOCAB_DIR / "job_labels.csv").labels()
     labels += ["no_label"]
     pipes.delete_traits("delete_partials", keep=labels, keep_outputs=True, before="ner")
 
