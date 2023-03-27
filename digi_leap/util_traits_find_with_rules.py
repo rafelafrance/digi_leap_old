@@ -75,6 +75,13 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
+        "--label-id",
+        type=int,
+        metavar="ID",
+        help="""Select only this label ID. Used for testing.""",
+    )
+
+    arg_parser.add_argument(
         "--notes",
         default="",
         metavar="TEXT",

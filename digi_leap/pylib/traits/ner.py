@@ -19,6 +19,8 @@ def ner(args):
         records = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
         if args.limit:
             records = records[: args.limit]
+        if args.label_id:
+            records = [r for r in records if r["label_id"] == args.label_id]
 
     with db.connect(args.database) as cxn:
         for ocr_text in tqdm(records):

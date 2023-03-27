@@ -46,14 +46,7 @@ def pipeline():
     pipes.link_locations(before="ner")
     pipes.link_taxa_like(before="ner")
 
-    delete_when = {
-        "count": [deletes.DELETE_MISSING_PARTS, deletes.DELETE_PAGE_NO],
-        "count_group": deletes.DELETE_MISSING_PARTS,
-        "count_suffix": deletes.DELETE_MISSING_COUNT,
-        "part": deletes.DELETE_OTHERS,
-        "size": [deletes.DELETE_MISSING_PARTS, deletes.DELETE_KM],
-    }
-    pipes.delete_traits("delete_numerics", delete_when=delete_when, before="ner")
+    pipes.delete_traits("delete_rules", delete_when=deletes.DELETE_WHEN, before="ner")
 
     # After the spacy NER (Name Entity Recognition) pipe
     # Leveraging spacy's PERSON entities from the built-in NER pipe to parse names

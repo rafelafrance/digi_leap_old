@@ -178,3 +178,9 @@ class TestCollector(unittest.TestCase):
             test("""3807708N Elev: 1689m."""),
             [{"elevation": 1689.0, "trait": "elevation", "start": 9, "end": 21}],
         )
+
+    def test_collector_13(self):
+        self.assertEqual(
+            test("""TIMON, R16W,"""),
+            [],
+        )

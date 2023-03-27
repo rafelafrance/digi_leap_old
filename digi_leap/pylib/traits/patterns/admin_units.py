@@ -15,7 +15,7 @@ _ST_LABEL = ["plants", "flora"]
 _CO_LABEL = ["co", "co.", "county", "parish", "par", "par.", "ph.", "ph"]
 
 _BAD_PREFIX = """ of """.split()
-_BAD_SUFFIX = """ road mountain lake """.split()
+_BAD_SUFFIX = """ road mountain lake university """.split()
 
 
 # ####################################################################################
