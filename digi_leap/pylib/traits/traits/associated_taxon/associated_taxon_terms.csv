@@ -1,0 +1,7 @@
+label,pattern,replace
+assoc,assoc,
+assoc,assoc.,
+assoc,associated,
+assoc_label,species,
+assoc_label,taxa,
+assoc_label,taxon,

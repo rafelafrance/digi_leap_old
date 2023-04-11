@@ -5,8 +5,8 @@ import spacy
 from spacy.tokens import DocBin
 from tqdm import tqdm
 
-from . import tokenizer
 from ..db import db
+from old.traits import tokenizer
 
 
 def prepare(args):

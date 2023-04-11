@@ -4,6 +4,10 @@ from digi_leap.pylib.traits import pipeline
 
 PIPELINE = pipeline.pipeline()
 
+# from traiter.pylib.const import MODEL_PATH
+# PIPELINE = pipeline.build(MODEL_PATH)
+# PIPELINE = pipeline.load(MODEL_PATH)
+
 
 def test(text: str) -> list[dict]:
     text = shorten(text)
