@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from spacy import registry
+from spacy import Language
 
-ASSOC_TAXON_MATCH = "assoc_taxon_match"
+LABEL_ASSOC_TAXON = "label_assoc_taxon"
 
 ASSOC_CSV = Path(__file__).parent / "associated_taxon_terms.csv"
 
@@ -10,15 +10,18 @@ ASSOC_CSV = Path(__file__).parent / "associated_taxon_terms.csv"
 PRIMARY_RANKS = set(""" species subspecies variety subvariety form subform """.split())
 
 
-@registry.misc(ASSOC_TAXON_MATCH)
-def assoc_taxon_match(ent):
+@Language.component(LABEL_ASSOC_TAXON)
+def label_assoc_taxon(doc):
     """Mark taxa in the document as either primary or associated."""
 
     primary_ok = True
 
-    for ent in ent.doc.ents:
+    for ent in doc.ents:
 
-        if ent.label_ == "taxon":
+        if ent.label_ == "assoc_taxon":
+            primary_ok = False
+
+        elif ent.label_ == "taxon":
 
             if primary_ok and ent._.data["rank"] in PRIMARY_RANKS:
                 ent._.data["primary"] = "primary"
@@ -27,5 +30,4 @@ def assoc_taxon_match(ent):
             else:
                 ent._.data["primary"] = "associated"
 
-        elif ent.label_ == "assoc_taxon":
-            primary_ok = False
+    return doc

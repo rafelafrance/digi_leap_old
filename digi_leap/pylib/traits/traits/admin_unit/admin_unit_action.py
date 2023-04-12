@@ -14,7 +14,7 @@ STATE_ONLY_MATCH = "state_only_match"
 
 ADMIN_UNIT_CSV = Path(__file__).parent / "admin_unit_terms.csv"
 US_LOCATIONS_CSV = Path(terms.__file__).parent / "us_location_terms.csv"
-ALL_CSVS = [ADMIN_UNIT_CSV, US_LOCATIONS_CSV]
+ALL_CSVS = [US_LOCATIONS_CSV, ADMIN_UNIT_CSV]
 
 
 REPLACE = trait_util.term_data(ALL_CSVS, "replace")
@@ -25,8 +25,6 @@ STATE_ENTS = ["us_state", "us_state-us_county", "us_territory"]
 COUNTY_ENTS = ["us_county", "us_state-us_county"]
 ADMIN_ENTS = ["us_state", "us_county", "us_state-us_county", "us_territory"]
 
-CO_TRIM = COUNTY_ENTS + ["co_label"]
-
 
 @registry.misc(COUNTY_STATE_MATCH)
 def county_state_match(ent):
@@ -36,14 +34,12 @@ def county_state_match(ent):
 
 @registry.misc(COUNTY_STATE_IFFY_MATCH)
 def county_state_iffy_match(ent):
-    sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS]
-
+    sub_ents = [e for e in ent.ents if e.label_ in ADMIN_ENTS + ["county_label_iffy"]]
     county_ent = sub_ents[0]
     state_ent = sub_ents[1]
 
     if is_county_not_colorado(state_ent, county_ent):
         ent._.data["us_county"] = format_county(ent, ent_index=0)
-        trim_entity(ent, CO_TRIM)
     elif not county_in_state(state_ent, county_ent):
         raise reject_match.RejectMatch()
     else:
@@ -74,6 +70,11 @@ def format_state(ent, *, ent_index: int):
     return REPLACE.get(st_key, state)
 
 
+def format_county(ent, *, ent_index: int):
+    sub_ents = [e.text for e in ent.ents if e.label_ in ADMIN_ENTS]
+    return sub_ents[ent_index].title()
+
+
 def is_county_not_colorado(state_ent, county_ent):
     """Flag if Co = county label or CO = Colorado."""
     return state_ent.text == "CO" and county_ent.text.isupper()
@@ -83,27 +84,7 @@ def get_state_key(state):
     return state.upper() if len(state) <= 2 else state.lower()
 
 
-def format_county(ent, *, ent_index: int):
-    sub_ents = [e.text for e in ent.ents if e.label_ in ADMIN_ENTS]
-    return sub_ents[ent_index].title()
-
-
 def county_in_state(state_ent, county_ent):
     st_key = get_state_key(state_ent.text)
     co_key = county_ent.text.lower()
     return POSTAL[st_key] in COUNTY_IN[co_key]
-
-
-def trim_entity(ent, ent_list):
-    """Trim the entity to only the state or the county.
-
-    I'm assuming that the label and state/county are contiguous.
-    Like: st_label state, co_label county
-    """
-    start, end = 999_999_999, -1
-    for token in ent:
-        if token.ent_type_ in ent_list:
-            start = min(start, token.i)
-            end = max(end, token.i + 1)
-    ent.start = start
-    ent.end = end

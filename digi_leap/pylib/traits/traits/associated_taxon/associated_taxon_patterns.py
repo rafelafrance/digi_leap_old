@@ -1,7 +1,5 @@
 from traiter.pylib.traits.pattern_compiler import Compiler
 
-from . import associated_taxon_action as act
-
 
 def associated_taxon_patterns():
     decoder = {
@@ -11,7 +9,6 @@ def associated_taxon_patterns():
     return [
         Compiler(
             label="assoc_taxon",
-            on_match=act.ASSOC_TAXON_MATCH,
             decoder=decoder,
             patterns=[
                 "assoc label",

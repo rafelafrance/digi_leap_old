@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-from plants.pylib.vocabulary import terms as p_terms
-
 # #########################################################################
 CURR_DIR = Path(os.getcwd())
 IS_SUBDIR = CURR_DIR.name in ("notebooks", "experiments", "junk")
@@ -46,10 +44,3 @@ CHARS = r"""
     ¼ ½ ¾ ⅓ ⅔ ×
     """
 CHARS = "".join(["\n", " ", *CHARS.split()])
-
-# #########################################################################
-LABEL_TERMS = p_terms.PLANT_TERMS.shared("habitats")
-ADMIN_UNIT_TERMS = p_terms.ADMIN_UNIT_TERMS
-REPLACE_ADMIN_UNITS = ADMIN_UNIT_TERMS.pattern_dict("replace")
-COUNTY_IN = ADMIN_UNIT_TERMS.pattern_dict("inside")
-POSTAL = ADMIN_UNIT_TERMS.pattern_dict("postal")

@@ -2,7 +2,7 @@ from traiter.pylib.util import shorten
 
 from digi_leap.pylib.traits import pipeline
 
-PIPELINE = pipeline.pipeline()
+PIPELINE = pipeline.build()
 
 # from traiter.pylib.const import MODEL_PATH
 # PIPELINE = pipeline.build(MODEL_PATH)

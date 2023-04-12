@@ -37,14 +37,14 @@ class TestAssociatedTaxon(unittest.TestCase):
     def test_associated_taxon_02(self):
         """It does not label the first taxon after the label."""
         self.assertEqual(
-            test(""""Associated species: Cornus obliqua"""),
+            test("""Associated species: Cornus obliqua"""),
             [
                 {
                     "taxon": "Cornus obliqua",
                     "rank": "species",
                     "trait": "taxon",
-                    "start": 21,
-                    "end": 35,
+                    "start": 20,
+                    "end": 34,
                     "primary": "associated",
                 }
             ],
@@ -84,6 +84,30 @@ class TestAssociatedTaxon(unittest.TestCase):
                     "trait": "taxon",
                     "start": 68,
                     "end": 82,
+                    "primary": "associated",
+                },
+            ],
+        )
+
+    def test_associated_taxon_04(self):
+        """It does not label the first taxon after the label."""
+        self.assertEqual(
+            test(""" Cornus obliqua near Cephalanthus occidentalis """),
+            [
+                {
+                    "taxon": "Cornus obliqua",
+                    "rank": "species",
+                    "trait": "taxon",
+                    "start": 0,
+                    "end": 14,
+                    "primary": "primary",
+                },
+                {
+                    "taxon": "Cephalanthus occidentalis",
+                    "rank": "species",
+                    "trait": "taxon",
+                    "start": 20,
+                    "end": 45,
                     "primary": "associated",
                 },
             ],

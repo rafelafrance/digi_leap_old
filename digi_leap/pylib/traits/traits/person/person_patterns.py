@@ -6,52 +6,52 @@ from . import person_action as act
 
 def person_name_patterns():
     decoder = {
-        "jr": {"ENT_TYPE": "name_suffix"},
-        "dr": {"ENT_TYPE": "name_prefix"},
-        "person": {"ENT_TYPE": "PERSON"},
-        "maybe": {"POS": "PROPN"},
-        "conflict": {"ENT_TYPE": {"IN": act.CONFLICT}},
-        "nope": {"ENT_TYPE": "not_name"},
         "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
-        "_": {"TEXT": {"REGEX": r"^[._,]+$"}},
+        "_": {"IS_PUNCT": True},
+        "conflict": {"ENT_TYPE": {"IN": act.CONFLICT}},
+        "dr": {"ENT_TYPE": "name_prefix"},
+        "jr": {"ENT_TYPE": "name_suffix"},
+        "maybe": {"POS": "PROPN"},
+        "nope": {"ENT_TYPE": "not_name"},
+        "name": {"SHAPE": {"IN": act.NAME_SHAPES}},
+        "name3": {"SHAPE": {"IN": act.NAME_SHAPES3}},
     }
 
-    return (
-        [
-            Compiler(
-                label="person_name",
-                on_match=act.PERSON_NAME_MATCH,
-                decoder=decoder,
-                patterns=[
-                    "dr? person+              _? jr",
-                    "dr? person+  _? person   _? jr",
-                    "dr? person+  _? conflict _? jr",
-                    "dr? conflict _? person   _? jr",
-                    "dr? person+                   ",
-                    "dr? person+  _? person        ",
-                    "dr? person+  _? conflict      ",
-                    "dr? A A? maybe",
-                    "dr? A A? maybe _? jr",
-                ],
-            ),
-            Compiler(
-                label="not_name",
-                on_match=REJECT_MATCH,
-                decoder=decoder,
-                patterns=[
-                    "        nope+",
-                    "        nope  person+",
-                    "        nope  maybe+",
-                    "person+ nope+",
-                    "maybe+  nope+",
-                    "person+ nope  person+",
-                    "maybe+  nope  person+",
-                    "person+ nope  maybe+",
-                    "maybe+  nope  maybe+",
-                ],
-            ),
-        ],
-    )
+    return [
+        Compiler(
+            label="name",
+            on_match=act.PERSON_NAME_MATCH,
+            decoder=decoder,
+            patterns=[
+                "dr? name _? name? _? name3",
+                "dr? name _? name? _? name3                      _? jr",
+                "dr? name _? name? _? name3                      _? jr",
+                "dr? name _? name? _? name3  _? name _? name? _? name3 _? jr",
+                "dr? name _? name? _? name3  _? conflict         _? jr",
+                "dr? conflict _?          _? name _? name? _? name3 _? jr",
+                "dr? name    name? name3  _? name name? name3",
+                "dr? name    name? name3  _? conflict",
+                "dr? A A? maybe",
+                "dr? A A? maybe _? jr",
+            ],
+        ),
+        Compiler(
+            label="not_name",
+            on_match=REJECT_MATCH,
+            decoder=decoder,
+            patterns=[
+                "       nope+",
+                "       nope  name+",
+                "       nope  maybe+",
+                "name+  nope+",
+                "maybe+ nope+",
+                "name+  nope  name+",
+                "maybe+ nope  name+",
+                "name+  nope  maybe+",
+                "maybe+ nope  maybe+",
+            ],
+        ),
+    ]
 
 
 def job_patterns():

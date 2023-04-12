@@ -11,16 +11,11 @@ def build(nlp: Language, **kwargs):
     with nlp.select_pipes(enable="tokenizer"):
         prev = add.term_pipe(nlp, name="person_terms", path=act.ALL_CSVS, **kwargs)
 
-    # prev = add.debug_tokens(nlp, after=prev)  # ################################
-
-    # We only want the PERSON label from spacy's NER pipe
-    labels = [lb for lb in nlp.meta["labels"].get("ner", []) if lb != "PERSON"]
-    prev = add.cleanup_pipe(nlp, name="spacy_cleanup", remove=labels, after=prev)
-
     prev = add.trait_pipe(
         nlp,
         name="person_name_patterns",
         compiler=pat.person_name_patterns(),
+        overwrite=["name_prefix", "name_suffix", "color"],
         after=prev,
     )
 
@@ -28,11 +23,15 @@ def build(nlp: Language, **kwargs):
         nlp,
         name="person_job_patterns",
         compiler=pat.job_patterns(),
+        overwrite=["name", "col_label", "det_label", "no_label"],
         after=prev,
     )
 
     keep = ["collector", "determiner"]
-    remove = trait_util.labels_to_remove(act.ALL_CSVS, keep=keep) + ["PERSON", "name"]
+    remove = trait_util.labels_to_remove(act.ALL_CSVS, keep=keep)
+    remove += ["name", "not_name", "not_collector"]
     prev = add.cleanup_pipe(nlp, name="person_cleanup", remove=remove, after=prev)
+
+    # prev = add.debug_tokens(nlp, after=prev)  # ################################
 
     return prev
