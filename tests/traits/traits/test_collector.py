@@ -192,3 +192,22 @@ class TestCollector(unittest.TestCase):
             test("""TIMON, R16W,"""),
             [],
         )
+
+    def test_collector_14(self):
+        self.assertEqual(
+            test(
+                """
+                Distribuido List: CRUZ, EBC, MINE
+                Collector(s): Timothy J. S. Whitfield
+                Collector Number: 1388 Date: 11 Aug 2016"""
+            ),
+            [
+                {
+                    "collector": "Timothy J. S. Whitfield",
+                    "trait": "collector",
+                    "start": 34,
+                    "end": 71,
+                },
+                {"date": "2016-08-11", "trait": "date", "start": 95, "end": 112},
+            ],
+        )

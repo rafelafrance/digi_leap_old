@@ -13,15 +13,15 @@ def build(nlp: Language, **kwargs):
 
     prev = add.trait_pipe(
         nlp,
-        name="person_name_patterns",
-        compiler=pat.person_name_patterns(),
+        name="name_patterns",
+        compiler=pat.name_patterns(),
         overwrite=["name_prefix", "name_suffix", "color"],
         after=prev,
     )
 
     prev = add.trait_pipe(
         nlp,
-        name="person_job_patterns",
+        name="job_patterns",
         compiler=pat.job_patterns(),
         overwrite=["name", "col_label", "det_label", "no_label"],
         after=prev,

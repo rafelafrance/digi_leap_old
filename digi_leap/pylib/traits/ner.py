@@ -13,7 +13,7 @@ def ner(args):
 
         db.canned_delete(cxn, "traits", trait_set=args.trait_set)
 
-        nlp = pipeline.pipeline()
+        nlp = pipeline.build()
 
     with db.connect(args.database) as cxn:
         records = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)

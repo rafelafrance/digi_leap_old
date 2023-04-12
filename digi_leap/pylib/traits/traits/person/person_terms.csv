@@ -1,13 +1,18 @@
 label,pattern
-not_name,of
-not_name,gps
-not_name,°
-not_name,elev
-not_name,the
-no_label,number
+no_label,#
+no_label,collector number
+no_label,collector number:
 no_label,no
+no_label,no.
 no_label,no.
 no_label,num
 no_label,num.
-no_label,#
-no_label,no.
+no_label,number
+no_label,number:
+not_name,ebc
+not_name,elev
+not_name,gps
+not_name,list
+not_name,of
+not_name,the
+not_name,°

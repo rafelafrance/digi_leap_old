@@ -4,7 +4,7 @@ from traiter.pylib.traits.pattern_compiler import Compiler
 from . import person_action as act
 
 
-def person_name_patterns():
+def name_patterns():
     decoder = {
         "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
         "_": {"IS_PUNCT": True},
@@ -24,15 +24,16 @@ def person_name_patterns():
             decoder=decoder,
             patterns=[
                 "dr? name _? name? _? name3",
-                "dr? name _? name? _? name3                      _? jr",
-                "dr? name _? name? _? name3                      _? jr",
+                "dr? name _? name? _? name3                            _? jr",
+                "dr? name _? name? _? name3                            _? jr",
                 "dr? name _? name? _? name3  _? name _? name? _? name3 _? jr",
-                "dr? name _? name? _? name3  _? conflict         _? jr",
-                "dr? conflict _?          _? name _? name? _? name3 _? jr",
+                "dr? name _? name? _? name3  _? conflict               _? jr",
+                "dr? conflict _?          _? name _? name? _? name3    _? jr",
                 "dr? name    name? name3  _? name name? name3",
                 "dr? name    name? name3  _? conflict",
                 "dr? A A? maybe",
                 "dr? A A? maybe _? jr",
+                "dr? name A A name3 jr?",
             ],
         ),
         Compiler(
@@ -79,14 +80,13 @@ def job_patterns():
             patterns=[
                 "col_label+ :* name+",
                 "col_label+ :* name+ and name+",
-                "col_label+ :* name+ and name+ and name+ num_label* :* id_no",
+                "col_label+ :* name+ and name+ and name+ num_label* :* id_no? -? id_no",
                 "col_label+ :* name+ and name+ and name+",
                 "col_label+ :* maybe",
                 "col_label+ :* maybe .? maybe",
                 "col_label+ :* maybe .? maybe .? maybe",
                 "col_label+ :* maybe",
                 "              name+                     num_label* :* id_no? -? id_no",
-                "              name+                     num_label*    id_no? -? id_no",
                 "              name+ and name+           num_label* :* id_no? -? id_no",
                 "              name+ and name+ and name+ num_label* :* id_no? -? id_no",
                 "col_label+ :* name+                     num_label* :* id_no? -? id_no",

@@ -23,7 +23,7 @@ def admin_unit_patterns():
             on_match=act.COUNTY_STATE_MATCH,
             decoder=decoder,
             patterns=[
-                "us_county+ co_label* ,? us_state+",
+                "us_county+ co_label+ ,? us_state+",
             ],
         ),
         Compiler(
@@ -32,7 +32,7 @@ def admin_unit_patterns():
             on_match=act.COUNTY_STATE_IFFY_MATCH,
             decoder=decoder,
             patterns=[
-                "us_county+ ,? us_state",
+                "us_county+ ,? us_state+",
             ],
         ),
         Compiler(
@@ -69,9 +69,10 @@ def admin_unit_patterns():
 
 def not_admin_unit():
     decoder = {
-        "us_county": {"ENT_TYPE": {"IN": act.COUNTY_ENTS}},
         "bad_prefix": {"ENT_TYPE": "bad_prefix"},
         "bad_suffix": {"ENT_TYPE": "bad_suffix"},
+        "us_county": {"ENT_TYPE": {"IN": act.COUNTY_ENTS}},
+        "us_state": {"ENT_TYPE": {"IN": act.STATE_ENTS}},
     }
     return [
         Compiler(
@@ -82,6 +83,9 @@ def not_admin_unit():
                 "bad_prefix+ us_county+",
                 "            us_county+ bad_suffix+",
                 "bad_prefix+ us_county+ bad_suffix+",
+                "bad_prefix+ us_state+",
+                "            us_state+  bad_suffix+",
+                "bad_prefix+ us_state+  bad_suffix+",
             ],
         ),
     ]

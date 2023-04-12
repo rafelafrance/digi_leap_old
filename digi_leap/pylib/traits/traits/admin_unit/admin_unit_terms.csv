@@ -1,9 +1,12 @@
-label,pattern,replace
-bad_prefix,of,
-bad_suffix,lake,
-bad_suffix,mountain,
-bad_suffix,road,
-bad_suffix,state park,
-bad_suffix,university,
-state_label,flora,
-state_label,plants,
+label,pattern
+bad_prefix,of
+bad_prefix,the
+bad_suffix,botanical
+bad_suffix,herbarium
+bad_suffix,lake
+bad_suffix,mountain
+bad_suffix,road
+bad_suffix,state park
+bad_suffix,university
+state_label,flora
+state_label,plants

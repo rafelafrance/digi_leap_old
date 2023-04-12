@@ -3,6 +3,7 @@ from pathlib import Path
 
 from plants.pylib.traits import misc
 from spacy import registry
+from traiter.pylib.pipes.reject_match import RejectMatch
 from traiter.pylib.traits import terms
 
 PERSON_NAME_MATCH = "person_name_match"
@@ -14,7 +15,7 @@ ALLOW = CONFLICT + ["PERSON"]
 
 PERSON_CSV = Path(__file__).parent / "person_terms.csv"
 NAME_CSV = Path(terms.__file__).parent / "name_terms.csv"
-JOB_CSV = Path(misc.__file__).parent / "job_label_terms.csv"
+JOB_CSV = Path(misc.__file__).parent / "job_terms.csv"
 ALL_CSVS = [PERSON_CSV, NAME_CSV, JOB_CSV]
 
 BAD_ENT = """ month """.split()
@@ -42,6 +43,9 @@ def person_name_match(ent):
     name = re.sub(rf" ({PUNCT})", r"\1", name)
     name = re.sub(r"\.\.|_", "", name)
 
+    if len(name.split()[-1]) < 3 or not re.match(r"^[\sa-z.,'&-]+$", name.lower()):
+        raise RejectMatch()
+
     ent._.data["name"] = name
     ent[0]._.data = ent._.data
     ent[0]._.flag = "name_data"
@@ -68,6 +72,9 @@ def collector_match(ent):
 
         elif match := re.match(ID_NUMBER, token.text):
             col_no.append(match.group(0))
+
+    if not people:
+        raise RejectMatch()
 
     if col_no:
         ent._.data["collector_no"] = "-".join(col_no)

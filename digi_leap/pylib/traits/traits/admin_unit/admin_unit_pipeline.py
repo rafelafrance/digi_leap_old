@@ -18,8 +18,6 @@ def build(nlp: Language, **kwargs):
         after=prev,
     )
 
-    # prev = add.debug_tokens(nlp, after=prev)  # ################################
-
     prev = add.trait_pipe(
         nlp,
         name="admin_unit_patterns",
