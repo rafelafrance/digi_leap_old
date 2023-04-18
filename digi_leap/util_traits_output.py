@@ -6,8 +6,8 @@ from pathlib import Path
 from pylib import validate_args
 from traiter.pylib import log
 
-from digi_leap.traits import HtmlWriter
-from digi_leap.traits import LabelReader
+from digi_leap.traits.label_reader import LabelReader
+from digi_leap.traits.writers.html_writer import HtmlWriter
 
 
 def main():

@@ -1,9 +1,7 @@
-"""Build lines of text from the OCR output."""
 import collections
 import unicodedata
 
 import regex as re
-
 
 # When there is no clear "winner" for a character in the multiple alignment of
 # a set of strings I sort the characters by unicode category as a tiebreaker
@@ -66,8 +64,8 @@ SUBSTITUTIONS = [
     (r"\.\.+", r"\."),
     # Confusion between dots . and colons :
     (r"::", r"\.:"),
-    # Double single quotes ’’ should be a double quote "
-    (r"['’]['’]", r"\""),
+    # Double single quotes '' should be a double quote "
+    (r"['`]['`]", r"\""),
     # Replace @ and 0
     (r"(?<=\d)@(?=\d)", "0"),
 ]
@@ -90,7 +88,7 @@ def filter_lines(lines: list[str], line_align, threshold=128) -> list[str]:
         order[i] = 1
         order[j] = 1
 
-    ordered = [lines[k] for k in order.keys()]
+    ordered = [lines[k] for k in order]
     return ordered
 
 

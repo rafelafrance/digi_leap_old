@@ -19,7 +19,6 @@ def build(nlp: Language, **kwargs):
         compiler=pat.associated_taxon_patterns(),
         after=prev,
     )
-    # prev = add.debug_tokens(nlp, after=prev)  # ################################
 
     prev = add.cleanup_pipe(
         nlp,

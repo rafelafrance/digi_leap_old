@@ -13,14 +13,11 @@ def main():
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    # mimetypes.init()
-
     sheets = sorted(args.input_dir.glob("*.*"))
 
     for sheet_path in sheets:
         mime = mimetypes.guess_type(sheet_path)
         if mime[0] and mime[0].startswith("image"):
-            print(sheet_path)
             shrink_sheet(sheet_path, args.output_dir, args.shrink_by)
 
 

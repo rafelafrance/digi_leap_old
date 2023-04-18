@@ -13,7 +13,6 @@ PRIMARY_RANKS = set(""" species subspecies variety subvariety form subform """.s
 @Language.component(LABEL_ASSOC_TAXON)
 def label_assoc_taxon(doc):
     """Mark taxa in the document as either primary or associated."""
-
     primary_ok = True
 
     for ent in doc.ents:

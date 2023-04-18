@@ -1,9 +1,9 @@
 """Test the distance function in the line_align module."""
 import unittest
 
-import cppimport.import_hook  # noqa pylint: disable=unused-import
+import cppimport.import_hook  # noqa: F401
 
-from digi_leap.builder.line_align import line_align_py  # noqa
+from digi_leap.builder.line_align import line_align_py
 
 
 class TestDistanceAll(unittest.TestCase):

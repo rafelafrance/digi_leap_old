@@ -129,6 +129,7 @@ def get_lines(ocr_boxes, vert_overlap=0.3):
 
 def find_overlap(line: Line, ocr_box, eps=1):
     """Find the vertical overlap between a line and an OCR bounding box.
+
     This is expressed as a fraction of the smallest height of the line
     & OCR bounding box.
     """

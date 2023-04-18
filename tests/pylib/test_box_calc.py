@@ -9,14 +9,6 @@ import digi_leap.pylib.box_calc as calc
 
 
 class TestBoxCalc(unittest.TestCase):
-    """Test box calculations."""
-
-    # def test_iou_00(self):
-    #     """It handles disjoint boxes."""
-    #     box1 = [0, 0, 1, 1]
-    #     box2 = [1, 1, 1, 1]
-    #     print(util.iou(box1, box2))
-
     def test_iou_01(self):
         """It handles disjoint boxes."""
         box1 = [10, 10, 20, 20]

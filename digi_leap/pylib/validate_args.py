@@ -2,7 +2,7 @@ import logging
 import sqlite3
 import sys
 
-from ..db import db
+from digi_leap.db import db
 
 
 def validate_trait_set(database, trait_set):

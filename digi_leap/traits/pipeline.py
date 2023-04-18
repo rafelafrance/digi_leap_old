@@ -15,7 +15,7 @@ from plants.traits.surface import surface_pipeline
 from plants.traits.taxon import taxon_pipeline
 from plants.traits.taxon_like import taxon_like_pipeline
 from traiter.pipes import extensions
-from traiter.pylib import tokenizer
+from traiter.pipes import tokenizer
 from traiter.traits.color import color_pipeline
 from traiter.traits.date import date_pipeline
 from traiter.traits.elevation import elevation_pipeline
@@ -71,6 +71,5 @@ def build(model_path=None):
         nlp.to_disk(model_path)
 
     # for name in nlp.pipe_names:
-    #     print(name)
 
     return nlp

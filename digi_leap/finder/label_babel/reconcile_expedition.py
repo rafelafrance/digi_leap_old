@@ -16,7 +16,7 @@ def reconcile(args: Namespace) -> None:
 
         with open(args.unreconciled_csv) as csv_file:
             reader = csv.DictReader(csv_file)
-            classifications = [r for r in reader]
+            classifications = list(reader)
 
         subjects = get_subjects(classifications)
 

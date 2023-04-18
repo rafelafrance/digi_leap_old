@@ -54,8 +54,8 @@ def add_chars(args):
     with db.connect(const.CHAR_DB) as cxn:
         matrix = select_matrix(cxn, args.char_set)
 
-        old_chars = {k[0] for k in matrix.keys()}
-        old_chars |= {k[1] for k in matrix.keys()}
+        old_chars = {k[0] for k in matrix}
+        old_chars |= {k[1] for k in matrix}
 
         new_chars = set(args.chars)
 

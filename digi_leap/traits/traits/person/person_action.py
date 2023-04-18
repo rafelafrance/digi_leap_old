@@ -11,7 +11,7 @@ COLLECTOR_MATCH = "collector_match"
 DETERMINER_MATCH = "determiner_match"
 
 CONFLICT = ["us_county", "color"]
-ALLOW = CONFLICT + ["PERSON"]
+ALLOW = [*CONFLICT, "PERSON"]
 
 PERSON_CSV = Path(__file__).parent / "person_terms.csv"
 NAME_CSV = Path(terms.__file__).parent / "name_terms.csv"
@@ -44,7 +44,7 @@ def person_name_match(ent):
     name = re.sub(r"\.\.|_", "", name)
 
     if len(name.split()[-1]) < 3 or not re.match(r"^[\sa-z.,'&-]+$", name.lower()):
-        raise RejectMatch()
+        raise RejectMatch
 
     ent._.data["name"] = name
     ent[0]._.data = ent._.data
@@ -70,11 +70,11 @@ def collector_match(ent):
         if token.ent_type_ in ("col_label", "no_label"):
             continue
 
-        elif match := re.match(ID_NUMBER, token.text):
+        if match := re.match(ID_NUMBER, token.text):
             col_no.append(match.group(0))
 
     if not people:
-        raise RejectMatch()
+        raise RejectMatch
 
     if col_no:
         ent._.data["collector_no"] = "-".join(col_no)

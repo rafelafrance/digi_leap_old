@@ -6,7 +6,6 @@ from digi_leap.pylib import const
 
 def ingest(args: Namespace) -> None:
     with db.connect(args.database) as cxn:
-        # run_id = db.insert_run(cxn, args)
 
         sheets = db.canned_select(cxn, "sheets", sheet_set=args.sheet_set)
         sheets = {s["core_id"]: s for s in sheets}
@@ -19,13 +18,10 @@ def ingest(args: Namespace) -> None:
         db.canned_delete(cxn, "labels", label_set=args.label_set)
         db.canned_insert(cxn, "labels", batch)
 
-        # db.update_run_finished(cxn, run_id)
-
 
 def filter_labels(results, threshold=3.0):
     for core_id, labels in results.items():
         labels = [lb for lb in labels if lb["wide"] < 0.5 and lb["high"] < 0.5]
-        # labels = [lb for lb in labels if lb["wide"] / lb["high"] < threshold]
         labels = [lb for lb in labels if (lb["high"] / lb["wide"]) < threshold]
         results[core_id] = labels
 

@@ -11,7 +11,7 @@ import numpy.typing as npt
 from . import box_calc as calc
 
 RECONCILE_TYPES = {
-    tuple(): "None",
+    (): "None",
     ("Barcode",): "Barcode",
     ("Barcode", "Both"): "Barcode",
     ("Barcode", "Both", "Handwritten"): "Barcode",
@@ -137,7 +137,6 @@ class Subject:
             np.ndarray[Any, Any],
             [np.hstack((mn[:2], mx[2:])).tolist() for mn, mx in zip(min_, max_)],
         )
-        # self.merged_boxes = [np.mean(g, axis=0).round() for g in box_groups]
 
         # Select box type for the merged box
         type_groups = np.split(self.types, wheres)

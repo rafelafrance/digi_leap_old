@@ -1,10 +1,9 @@
-"""Test the align function in the line_align module."""
 import unittest
 
-import cppimport.import_hook  # noqa pylint: disable=unused-import
+import cppimport.import_hook  # noqa: F401
 
 from digi_leap.builder.line_align import char_sub_matrix as subs
-from digi_leap.builder.line_align import line_align_py  # noqa
+from digi_leap.builder.line_align import line_align_py
 
 
 class TestAlign(unittest.TestCase):
@@ -60,9 +59,6 @@ class TestAlign(unittest.TestCase):
                 "Be ‘MOJAVE DESERT, PROVIDENCE canyon “above",
             ],
         )
-        # print()
-        # for r in results:
-        #     print(r)
         self.assertEqual(
             results,
             [

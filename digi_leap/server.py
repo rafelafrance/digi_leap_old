@@ -18,9 +18,6 @@ from digi_leap.ocr import Ensemble
 from digi_leap.server import common
 from digi_leap.server import label_finder as finder
 
-# from pathlib import Path
-
-
 app = common.setup()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -89,18 +86,18 @@ async def ocr_labels(
 
     results = []
 
-    ocr_options = dict(
-        none_easyocr=True,
-        none_tesseract=True,
-        deskew_easyocr=True,
-        deskew_tesseract=True,
-        binarize_easyocr=False,
-        binarize_tesseract=True,
-        denoise_easyocr=False,
-        denoise_tesseract=True,
-        pre_process=True,
-        post_process=True,
-    )
+    ocr_options = {
+        "none_easyocr": True,
+        "none_tesseract": True,
+        "deskew_easyocr": True,
+        "deskew_tesseract": True,
+        "binarize_easyocr": False,
+        "binarize_tesseract": True,
+        "denoise_easyocr": False,
+        "denoise_tesseract": True,
+        "pre_process": True,
+        "post_process": True,
+    }
 
     ensemble = Ensemble(**ocr_options)
 
@@ -155,4 +152,3 @@ async def ocr_labels(
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
-    # uvicorn.run(f"{Path(__file__).stem}:app", host="127.0.0.1", port=8000, reload=True)

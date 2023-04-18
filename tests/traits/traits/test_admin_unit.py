@@ -4,10 +4,6 @@ from tests.setup import test
 
 
 class TestAdminUnit(unittest.TestCase):
-
-    # def test_admin_unit_00(self):
-    #     test("ark.")
-
     def test_admin_unit_01(self):
         """It gets a county notation."""
         self.assertEqual(

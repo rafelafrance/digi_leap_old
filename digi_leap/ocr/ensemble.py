@@ -3,7 +3,7 @@ from traiter.pylib.spell_well import SpellWell
 from . import label_transformer as lt
 from . import ocr_runner
 from digi_leap.builder import label_builder
-from digi_leap.builder import line_align_py  # noqa
+from digi_leap.builder import line_align_py
 from digi_leap.builder.line_align import char_sub_matrix as subs
 
 

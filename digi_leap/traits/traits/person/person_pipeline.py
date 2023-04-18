@@ -32,6 +32,4 @@ def build(nlp: Language, **kwargs):
     remove += ["name", "not_name", "not_collector"]
     prev = add.cleanup_pipe(nlp, name="person_cleanup", remove=remove, after=prev)
 
-    # prev = add.debug_tokens(nlp, after=prev)  # ################################
-
     return prev

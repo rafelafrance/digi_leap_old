@@ -16,7 +16,7 @@ class Classifications(defaultdict):
         super().__init__(list)
         with open(unreconciled_csv) as csv_file:
             reader = csv.DictReader(csv_file)
-            rows = [r for r in reader]
+            rows = list(reader)
         for row in rows:
             self[row["Filename"]].append(dict(row))
 

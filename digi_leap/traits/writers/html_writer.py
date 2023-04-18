@@ -20,7 +20,6 @@ class HtmlWriter(BaseWriter):
 
     def write(self, labels, in_file_name=""):
         for lb in sorted(labels, key=lambda label: label.label_id):
-            print(lb.label_id)
             text = self.format_text(lb)
             traits = self.format_traits(lb)
             self.formatted.append(

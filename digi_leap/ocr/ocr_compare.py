@@ -5,16 +5,16 @@ from itertools import chain
 from itertools import combinations
 from multiprocessing import Pool
 
-import cppimport.import_hook  # noqa pylint: disable=unused-import
+import cppimport.import_hook  # noqa: F401
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
-from traiter.spell_well import SpellWell
+from traiter.pylib.spell_well import SpellWell
 
 from . import label_transformer
 from . import ocr_runner
 from digi_leap.builder import label_builder
-from digi_leap.builder import line_align_py  # noqa
+from digi_leap.builder import line_align_py
 from digi_leap.builder.line_align import char_sub_matrix as subs
 from digi_leap.db import db
 from digi_leap.pylib import const
