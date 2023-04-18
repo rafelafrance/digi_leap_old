@@ -4,9 +4,10 @@ import textwrap
 from pathlib import Path
 
 from pylib import validate_args
-from pylib.traits.label_reader import LabelReader
-from pylib.traits.writers.html_writer import HtmlWriter
 from traiter.pylib import log
+
+from digi_leap.traits import HtmlWriter
+from digi_leap.traits import LabelReader
 
 
 def main():

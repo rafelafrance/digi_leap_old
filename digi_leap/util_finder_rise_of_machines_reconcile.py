@@ -3,8 +3,9 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.finder.rise_of_machines import reconcile_expedition
 from traiter.pylib import log
+
+from digi_leap.finder.rise_of_machines import reconcile_expedition
 
 
 def main():

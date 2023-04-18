@@ -3,7 +3,7 @@ import unittest
 
 import cppimport.import_hook  # noqa pylint: disable=unused-import
 
-from digi_leap.pylib.builder.line_align import line_align_py  # noqa
+from digi_leap.builder.line_align import line_align_py  # noqa
 
 
 class TestDistance(unittest.TestCase):

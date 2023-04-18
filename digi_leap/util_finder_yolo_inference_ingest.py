@@ -4,8 +4,9 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from pylib.finder.yolo import inference_ingest_yolo
 from traiter.pylib import log
+
+from digi_leap.finder.yolo import inference_ingest_yolo
 
 
 def main():

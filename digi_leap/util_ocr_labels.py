@@ -5,8 +5,9 @@ import textwrap
 from pathlib import Path
 
 from pylib import const
-from pylib.ocr import ocr_labels
 from traiter.pylib import log
+
+from digi_leap.ocr import ocr_labels
 
 
 async def main():
