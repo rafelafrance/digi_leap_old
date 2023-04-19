@@ -1,4 +1,4 @@
-from spacy import Language
+from spacy.language import Language
 from traiter.pylib.traits import add_pipe as add
 from traiter.pylib.traits import trait_util
 
@@ -19,15 +19,19 @@ def build(nlp: Language, **kwargs):
         after=prev,
     )
 
+    # prev = add.debug_tokens(nlp, after=prev)  # #############################
+
     prev = add.trait_pipe(
         nlp,
         name="job_patterns",
         compiler=pat.job_patterns(),
-        overwrite=["name", "col_label", "det_label", "no_label"],
+        overwrite=["name", "col_label", "det_label", "no_label", "other_label"],
         after=prev,
     )
 
-    keep = ["collector", "determiner"]
+    # prev = add.debug_tokens(nlp, after=prev)  # #############################
+
+    keep = ["collector", "determiner", "other_collector"]
     remove = trait_util.labels_to_remove(act.ALL_CSVS, keep=keep)
     remove += ["name", "not_name", "not_collector"]
     prev = add.cleanup_pipe(nlp, name="person_cleanup", remove=remove, after=prev)

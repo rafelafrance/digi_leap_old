@@ -7,13 +7,14 @@ from . import person_action as act
 def name_patterns():
     decoder = {
         "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
-        "_": {"IS_PUNCT": True},
+        "_": {"TEXT": {"REGEX": r"^[._,]+$"}},
+        "..": {"TEXT": {"REGEX": r"^[.]+$"}},
         "conflict": {"ENT_TYPE": {"IN": act.CONFLICT}},
         "dr": {"ENT_TYPE": "name_prefix"},
         "jr": {"ENT_TYPE": "name_suffix"},
-        "maybe": {"POS": "PROPN"},
+        "name": {"POS": "PROPN"},
         "nope": {"ENT_TYPE": "not_name"},
-        "name": {"SHAPE": {"IN": act.NAME_SHAPES}},
+        # "name": {"SHAPE": {"IN": act.NAME_SHAPES}},
         "name3": {"SHAPE": {"IN": act.NAME_SHAPES3}},
     }
 
@@ -23,17 +24,18 @@ def name_patterns():
             on_match=act.PERSON_NAME_MATCH,
             decoder=decoder,
             patterns=[
-                "dr? name _? name? _? name3",
-                "dr? name _? name? _? name3                            _? jr",
-                "dr? name _? name? _? name3                            _? jr",
-                "dr? name _? name? _? name3  _? name _? name? _? name3 _? jr",
-                "dr? name _? name? _? name3  _? conflict               _? jr",
-                "dr? conflict _?          _? name _? name? _? name3    _? jr",
-                "dr? name    name? name3  _? name name? name3",
-                "dr? name    name? name3  _? conflict",
-                "dr? A A? maybe",
-                "dr? A A? maybe _? jr",
-                "dr? name A A name3 jr?",
+                "dr? name name? name3",
+                "dr? name name? name3             _? jr",
+                "dr? name name? name3 conflict",
+                "dr? name name? name? conflict    _? jr",
+                "dr? conflict   name? name? name3",
+                "dr? conflict   name? name? name3 _? jr",
+                "dr? A A? name",
+                "dr? A A? name      _? jr",
+                "dr? name A A name3",
+                "dr? name A A name3 _? jr",
+                "dr? name ..  name3",
+                "dr? name ..  name3 _? jr",
             ],
         ),
         Compiler(
@@ -41,15 +43,10 @@ def name_patterns():
             on_match=REJECT_MATCH,
             decoder=decoder,
             patterns=[
-                "       nope+",
-                "       nope  name+",
-                "       nope  maybe+",
-                "name+  nope+",
-                "maybe+ nope+",
-                "name+  nope  name+",
-                "maybe+ nope  name+",
-                "name+  nope  maybe+",
-                "maybe+ nope  maybe+",
+                "      nope+",
+                "      nope+ name+",
+                "name+ nope+",
+                "name+ nope+ name+",
             ],
         ),
     ]
@@ -69,7 +66,9 @@ def job_patterns():
         "maybe": {"POS": "PROPN"},
         "name": {"ENT_TYPE": "name"},
         "nope": {"ENT_TYPE": "not_name"},
+        "other_label": {"ENT_TYPE": "other_label"},
         "num_label": {"ENT_TYPE": "no_label"},
+        "sep": {"LOWER": {"IN": act.CONJ + list("._,;")}},
     }
 
     return [
@@ -94,13 +93,28 @@ def job_patterns():
                 "col_label+ :* maybe                     num_label* :* id_no? -? id_no",
                 "col_label+ :* maybe .? maybe            num_label* :* id_no? -? id_no",
                 "col_label+ :* maybe .? maybe .? maybe   num_label* :* id_no? -? id_no",
-                "id_no? -? id_no       name+",
-                "id_no? -? id_no       name+ .?  name+",
-                "id_no? -? id_no       name+ .?  name+",
-                "id_no? -? id_no       name+ .?  name+ .?  name+",
-                "id_no? -? id_no       name+ and name+",
-                "id_no? -? id_no       name+ and name+",
-                "id_no? -? id_no       name+ and name+ and name+",
+                "id_no? -? id_no        name+",
+                "id_no? -? id_no        name+ .?  name+",
+                "id_no? -? id_no        name+ .?  name+",
+                "id_no? -? id_no        name+ .?  name+ .?  name+",
+                "id_no? -? id_no        name+ and name+",
+                "id_no? -? id_no        name+ and name+",
+                "id_no? -? id_no        name+ and name+ and name+",
+            ],
+        ),
+        Compiler(
+            label="other_collector",
+            on_match=act.OTHER_COLLECTOR_MATCH,
+            decoder=decoder,
+            patterns=[
+                "other_label+ name+ ",
+                "other_label+ name+ sep* name+ ",
+                "other_label+ name+ sep* name+ sep* name+ ",
+                "other_label+ name+ sep* name+ sep* name+ sep* name+ ",
+                (
+                    "other_label+ name+ sep* name+ sep* name+ sep* name+ sep* name+ "
+                    "sep* name+"
+                ),
             ],
         ),
         Compiler(

@@ -2,12 +2,13 @@ import re
 from pathlib import Path
 
 from plants.pylib.traits import misc
-from spacy import registry
+from spacy.util import registry
 from traiter.pylib.pipes.reject_match import RejectMatch
 from traiter.pylib.traits import terms
 
 PERSON_NAME_MATCH = "person_name_match"
 COLLECTOR_MATCH = "collector_match"
+OTHER_COLLECTOR_MATCH = "other_collector_match"
 DETERMINER_MATCH = "determiner_match"
 
 CONFLICT = ["us_county", "color"]
@@ -80,6 +81,18 @@ def collector_match(ent):
         ent._.data["collector_no"] = "-".join(col_no)
 
     ent._.data["collector"] = people if len(people) > 1 else people[0]
+
+
+@registry.misc(OTHER_COLLECTOR_MATCH)
+def other_collector_match(ent):
+    people = []
+
+    for token in ent:
+
+        if token._.flag == "name_data":
+            people.append(token._.data["name"])
+
+    ent._.data["other_collector"] = people
 
 
 @registry.misc(DETERMINER_MATCH)

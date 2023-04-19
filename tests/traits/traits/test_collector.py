@@ -116,7 +116,7 @@ class TestCollector(unittest.TestCase):
             [
                 {
                     "collector_no": "2018",
-                    "collector": "Christopher Reid & Sarah Nunn",
+                    "collector": ["Christopher Reid", "Sarah Nunn"],
                     "trait": "collector",
                     "start": 0,
                     "end": 45,
@@ -209,5 +209,29 @@ class TestCollector(unittest.TestCase):
                     "end": 71,
                 },
                 {"date": "2016-08-11", "trait": "date", "start": 95, "end": 112},
+            ],
+        )
+
+    def test_collector_15(self):
+        self.assertEqual(
+            test(
+                """
+                With: Dawn Goldman, Army Prince, Steven Emrick, Janet Smith,
+                Diane Hicks, Beechnut
+                """
+            ),
+            [
+                {
+                    "other_collector": [
+                        "Dawn Goldman",
+                        "Army Prince",
+                        "Steven Emrick",
+                        "Janet Smith",
+                        "Diane Hicks",
+                    ],
+                    "trait": "other_collector",
+                    "start": 0,
+                    "end": 72,
+                },
             ],
         )

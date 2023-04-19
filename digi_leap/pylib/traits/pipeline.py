@@ -26,6 +26,8 @@ from .traits.admin_unit import admin_unit_pipeline
 from .traits.associated_taxon import associated_taxon_pipeline
 from .traits.person import person_pipeline
 
+# from traiter.pylib.pipes import debug
+
 
 def build(model_path=None):
     extensions.add_extensions()
@@ -70,7 +72,5 @@ def build(model_path=None):
 
     if model_path:
         nlp.to_disk(model_path)
-
-    # for name in nlp.pipe_names:
 
     return nlp
