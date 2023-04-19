@@ -4,8 +4,7 @@ import textwrap
 from pathlib import Path
 
 from pylib import const
-
-from digi_leap.builder.line_align import char_sub_matrix as matrix
+from pylib.builder.line_align import char_sub_matrix as matrix
 
 
 def main():

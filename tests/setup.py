@@ -1,6 +1,6 @@
 from traiter.pylib.util import shorten
 
-from digi_leap.traits import pipeline
+from digi_leap.pylib.traits import pipeline
 
 PIPELINE = pipeline.build()
 

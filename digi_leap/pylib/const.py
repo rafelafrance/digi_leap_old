@@ -10,7 +10,14 @@ DATA_DIR = ROOT_DIR / "data"
 
 MOCK_DIR = ROOT_DIR / "tests" / "mock_data"
 VOCAB_DB = ROOT_DIR / "data" / "vocab.sqlite"
-CHAR_DB = ROOT_DIR / "digi_leap" / "builder" / "line_align" / "char_sub_matrix.sqlite"
+CHAR_DB = (
+    ROOT_DIR
+    / "digi_leap"
+    / "pylib"
+    / "builder"
+    / "line_align"
+    / "char_sub_matrix.sqlite"
+)
 
 # #########################################################################
 IMAGENET_MEAN = (0.485, 0.456, 0.406)

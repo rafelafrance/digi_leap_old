@@ -13,10 +13,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-
-from digi_leap.ocr import Ensemble
-from digi_leap.server import common
-from digi_leap.server import label_finder as finder
+from pylib.ocr.ensemble import Ensemble
+from pylib.server import common
+from pylib.server import label_finder as finder
 
 app = common.setup()
 app.mount("/static", StaticFiles(directory="static"), name="static")

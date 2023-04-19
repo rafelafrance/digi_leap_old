@@ -2,8 +2,8 @@ import unittest
 
 import cppimport.import_hook  # noqa: F401
 
-from digi_leap.builder.line_align import char_sub_matrix as subs
-from digi_leap.builder.line_align import line_align_py
+from digi_leap.pylib.builder.line_align import char_sub_matrix as subs
+from digi_leap.pylib.builder.line_align import line_align_py
 
 
 class TestAlign(unittest.TestCase):

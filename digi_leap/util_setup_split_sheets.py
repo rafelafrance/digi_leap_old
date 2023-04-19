@@ -4,7 +4,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-from digi_leap.db import db
+from pylib.db import db
 
 
 def main():

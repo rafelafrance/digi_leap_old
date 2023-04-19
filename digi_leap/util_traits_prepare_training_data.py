@@ -4,9 +4,8 @@ import textwrap
 from pathlib import Path
 
 from pylib import validate_args
+from pylib.traits import prepare_data
 from traiter.pylib import log
-
-from digi_leap.traits import prepare_data
 
 
 def main():
