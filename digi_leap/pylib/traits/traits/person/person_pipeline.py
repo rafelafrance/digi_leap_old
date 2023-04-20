@@ -19,13 +19,12 @@ def build(nlp: Language, **kwargs):
         after=prev,
     )
 
-    # prev = add.debug_tokens(nlp, after=prev)  # #############################
-
+    overwrite = """name col_label det_label no_label other_label subpart""".split()
     prev = add.trait_pipe(
         nlp,
         name="job_patterns",
         compiler=pat.job_patterns(),
-        overwrite=["name", "col_label", "det_label", "no_label", "other_label"],
+        overwrite=overwrite,
         after=prev,
     )
 

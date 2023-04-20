@@ -27,6 +27,7 @@ from .traits.associated_taxon import associated_taxon_pipeline
 from .traits.person import person_pipeline
 
 # from traiter.pylib.pipes import debug
+# debug.tokens(nlp)
 
 
 def build(model_path=None):

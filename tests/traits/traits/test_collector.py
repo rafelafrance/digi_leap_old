@@ -203,10 +203,11 @@ class TestCollector(unittest.TestCase):
             ),
             [
                 {
+                    "collector_no": "1388",
                     "collector": "Timothy J. S. Whitfield",
                     "trait": "collector",
                     "start": 34,
-                    "end": 71,
+                    "end": 94,
                 },
                 {"date": "2016-08-11", "trait": "date", "start": 95, "end": 112},
             ],
@@ -232,6 +233,20 @@ class TestCollector(unittest.TestCase):
                     "trait": "other_collector",
                     "start": 0,
                     "end": 72,
+                },
+            ],
+        )
+
+    def test_collector_16(self):
+        self.assertEqual(
+            test("""Williams (Rocky) Gleason #F15GLEN55-B"""),
+            [
+                {
+                    "collector_no": "F15GLEN55-B",
+                    "collector": "Williams (Rocky) Gleason",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 37,
                 },
             ],
         )

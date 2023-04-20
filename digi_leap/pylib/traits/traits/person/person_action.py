@@ -3,6 +3,7 @@ from pathlib import Path
 
 from plants.pylib.traits import misc
 from spacy.util import registry
+from traiter.pylib import const as t_const
 from traiter.pylib.pipes.reject_match import RejectMatch
 from traiter.pylib.traits import terms
 
@@ -22,8 +23,15 @@ ALL_CSVS = [PERSON_CSV, NAME_CSV, JOB_CSV]
 BAD_ENT = """ month """.split()
 PUNCT = "[.:;,_-]"
 CONJ = ["CCONJ", "ADP"]
-ID_NUMBER = r"^\w*\d+\w*$"
+ID1 = r"^(\w*\d+\w*)$"
+ID2 = r"^(\w*\d+\w*|[A-Za-z])$"
 DASH_LIKE = r"^[._-]+$"
+
+NICK_OPEN = t_const.OPEN + t_const.QUOTE
+NICK_CLOSE = t_const.CLOSE + t_const.QUOTE
+
+NAME_RE = "".join(t_const.OPEN + t_const.CLOSE + t_const.QUOTE + list(".,'&"))
+NAME_RE = re.compile(rf"^[\sa-z{re.escape(NAME_RE)}-]+$")
 
 TITLE_SHAPES = """ Xxxxx Xxxx Xxx Xx X. Xx. X """.split()
 UPPER_SHAPES = """ XXXXX XXXX XXX XX X. XX. X """.split()
@@ -37,22 +45,19 @@ NAME_SHAPES3 = TITLE_SHAPES3 + UPPER_SHAPES3
 @registry.misc(PERSON_NAME_MATCH)
 def person_name_match(ent):
 
-    for token in ent:
-        token._.flag = "name"
-
     name = ent.text
     name = re.sub(rf" ({PUNCT})", r"\1", name)
     name = re.sub(r"\.\.|_", "", name)
 
-    if len(name.split()[-1]) < 3 or not re.match(r"^[\sa-z.,'&-]+$", name.lower()):
+    if len(name.split()[-1]) < 3 or not NAME_RE.match(name.lower()):
         raise RejectMatch
+
+    for token in ent:
+        token._.flag = "name"
 
     ent._.data["name"] = name
     ent[0]._.data = ent._.data
     ent[0]._.flag = "name_data"
-
-    if ent._.data.get("PERSON"):
-        del ent._.data["PERSON"]
 
 
 @registry.misc(COLLECTOR_MATCH)
@@ -71,7 +76,7 @@ def collector_match(ent):
         if token.ent_type_ in ("col_label", "no_label"):
             continue
 
-        if match := re.match(ID_NUMBER, token.text):
+        if match := re.match(ID2, token.text):
             col_no.append(match.group(0))
 
     if not people:
@@ -104,7 +109,7 @@ def determiner_match(ent):
         if token.ent_type_ == "det_label" or token.ent_type_ == "no_label":
             continue
 
-        if match := re.search(ID_NUMBER, token.text):
+        if match := re.search(ID1, token.text):
             if name:
                 people.append(" ".join(name))
                 name = []
