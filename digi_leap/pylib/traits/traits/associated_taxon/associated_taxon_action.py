@@ -22,11 +22,23 @@ def label_assoc_taxon(doc):
 
         elif ent.label_ == "taxon":
 
-            if primary_ok and ent._.data["rank"] in PRIMARY_RANKS:
-                ent._.data["primary"] = "primary"
+            taxon = ent._.data["taxon"]
+            rank = ent._.data["rank"]
+
+            if primary_ok and rank in PRIMARY_RANKS and len(taxon.split()) > 1:
                 primary_ok = False
 
             else:
-                ent._.data["primary"] = "associated"
+                relabel_entity(ent, "associated_taxon")
+                ent._.data["trait"] = "associated_taxon"
+                ent._.data["associated_taxon"] = taxon
+                del ent._.data["taxon"]
 
     return doc
+
+
+def relabel_entity(ent, label):
+    strings = ent.doc.vocab.strings
+    if label not in strings:
+        strings.add(label)
+    ent.label = strings[label]

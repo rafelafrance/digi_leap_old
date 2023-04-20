@@ -229,10 +229,11 @@ class TestCollector(unittest.TestCase):
                         "Steven Emrick",
                         "Janet Smith",
                         "Diane Hicks",
+                        "Beechnut",
                     ],
                     "trait": "other_collector",
                     "start": 0,
-                    "end": 72,
+                    "end": 82,
                 },
             ],
         )
@@ -247,6 +248,55 @@ class TestCollector(unittest.TestCase):
                     "trait": "collector",
                     "start": 0,
                     "end": 37,
+                },
+            ],
+        )
+
+    def test_collector_17(self):
+        self.assertEqual(
+            test(
+                """
+                With: Dixie Damrel, Sarah Hunkins, Steven and Johan LaMoure
+                """
+            ),
+            [
+                {
+                    "other_collector": [
+                        "Dixie Damrel",
+                        "Sarah Hunkins",
+                        "Steven and Johan LaMoure",
+                    ],
+                    "trait": "other_collector",
+                    "start": 0,
+                    "end": 59,
+                },
+            ],
+        )
+
+    def test_collector_18(self):
+        self.assertEqual(
+            test("""Frederick H. Utech 91-1178"""),
+            [
+                {
+                    "collector_no": "91-1178",
+                    "collector": "Frederick H. Utech",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 26,
+                },
+            ],
+        )
+
+    def test_collector_19(self):
+        self.assertEqual(
+            test("""A A.C. Saunders 39141"""),
+            [
+                {
+                    "collector_no": "39141",
+                    "collector": "A A.C. Saunders",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 21,
                 },
             ],
         )

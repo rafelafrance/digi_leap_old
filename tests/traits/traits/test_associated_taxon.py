@@ -21,15 +21,13 @@ class TestAssociatedTaxon(unittest.TestCase):
                     "trait": "taxon",
                     "start": 0,
                     "end": 38,
-                    "primary": "primary",
                 },
                 {
-                    "taxon": "Cornus obliqua",
+                    "associated_taxon": "Cornus obliqua",
                     "rank": "species",
-                    "trait": "taxon",
+                    "trait": "associated_taxon",
                     "start": 59,
                     "end": 73,
-                    "primary": "associated",
                 },
             ],
         )
@@ -40,12 +38,11 @@ class TestAssociatedTaxon(unittest.TestCase):
             test("""Associated species: Cornus obliqua"""),
             [
                 {
-                    "taxon": "Cornus obliqua",
+                    "associated_taxon": "Cornus obliqua",
                     "rank": "species",
-                    "trait": "taxon",
+                    "trait": "associated_taxon",
                     "start": 20,
                     "end": 34,
-                    "primary": "associated",
                 }
             ],
         )
@@ -62,12 +59,11 @@ class TestAssociatedTaxon(unittest.TestCase):
             ),
             [
                 {
-                    "taxon": "Fabaceae",
+                    "associated_taxon": "Fabaceae",
                     "rank": "family",
-                    "trait": "taxon",
+                    "trait": "associated_taxon",
                     "start": 0,
                     "end": 8,
-                    "primary": "associated",
                 },
                 {
                     "taxon": "Cephalanthus occidentalis",
@@ -76,15 +72,13 @@ class TestAssociatedTaxon(unittest.TestCase):
                     "trait": "taxon",
                     "start": 9,
                     "end": 47,
-                    "primary": "primary",
                 },
                 {
-                    "taxon": "Cornus obliqua",
+                    "associated_taxon": "Cornus obliqua",
                     "rank": "species",
-                    "trait": "taxon",
+                    "trait": "associated_taxon",
                     "start": 68,
                     "end": 82,
-                    "primary": "associated",
                 },
             ],
         )
@@ -100,15 +94,13 @@ class TestAssociatedTaxon(unittest.TestCase):
                     "trait": "taxon",
                     "start": 0,
                     "end": 14,
-                    "primary": "primary",
                 },
                 {
-                    "taxon": "Cephalanthus occidentalis",
+                    "associated_taxon": "Cephalanthus occidentalis",
                     "rank": "species",
-                    "trait": "taxon",
+                    "trait": "associated_taxon",
                     "start": 20,
                     "end": 45,
-                    "primary": "associated",
                 },
             ],
         )

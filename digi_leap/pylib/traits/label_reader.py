@@ -7,7 +7,7 @@ from ..db import db
 
 START = -1
 
-TraitsInText = namedtuple("TraitsInText", "label_id text traits")
+TraitsInText = namedtuple("TraitsInText", "label_id text traits data")
 
 
 class LabelReader:
@@ -18,7 +18,7 @@ class LabelReader:
     def read_traits(database, trait_set):
         labels = []
         prev_label_id = START
-        record = TraitsInText(label_id=START, text="", traits=[])
+        record = TraitsInText(label_id=START, text="", traits=[], data={})
 
         with db.connect(database) as cxn:
             all_traits = db.canned_select(cxn, "traits", trait_set=trait_set)
@@ -32,6 +32,7 @@ class LabelReader:
                     label_id=trait["label_id"],
                     text=shorten(trait["ocr_text"]),
                     traits=[],
+                    data=trait,
                 )
                 prev_label_id = record.label_id
 

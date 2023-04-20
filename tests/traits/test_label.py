@@ -22,7 +22,6 @@ class TestLabels(unittest.TestCase):
                     "trait": "taxon",
                     "start": 42,
                     "end": 64,
-                    "primary": "primary",
                 },
                 {
                     "us_state": "Texas",
@@ -66,12 +65,11 @@ class TestLabels(unittest.TestCase):
             ),
             [
                 {
-                    "taxon": "Cornaceae",
-                    "trait": "taxon",
+                    "associated_taxon": "Cornaceae",
+                    "trait": "associated_taxon",
                     "rank": "family",
                     "start": 30,
                     "end": 39,
-                    "primary": "associated",
                 },
                 {
                     "taxon": "Cornus obliqua",
@@ -80,7 +78,6 @@ class TestLabels(unittest.TestCase):
                     "rank": "species",
                     "start": 40,
                     "end": 60,
-                    "primary": "primary",
                 },
                 {
                     "habitat": "tropical cloud forest",

@@ -68,6 +68,8 @@ SUBSTITUTIONS = [
     (r"['`]['`]", r"\""),
     # Replace @ and 0
     (r"(?<=\d)@(?=\d)", "0"),
+    # October spelled with a zero
+    ("0ct", "Oct"),
 ]
 
 

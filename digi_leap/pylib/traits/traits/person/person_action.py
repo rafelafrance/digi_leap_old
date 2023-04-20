@@ -10,6 +10,7 @@ from traiter.pylib.traits import terms
 PERSON_NAME_MATCH = "person_name_match"
 COLLECTOR_MATCH = "collector_match"
 OTHER_COLLECTOR_MATCH = "other_collector_match"
+OTHER_COLLECTOR2_MATCH = "other_collector2_match"
 DETERMINER_MATCH = "determiner_match"
 
 CONFLICT = ["us_county", "color"]
@@ -73,10 +74,10 @@ def collector_match(ent):
         elif token._.flag == "name":
             continue
 
-        if token.ent_type_ in ("col_label", "no_label"):
+        elif token.ent_type_ in ("col_label", "no_label"):
             continue
 
-        if match := re.match(ID2, token.text):
+        elif match := re.match(ID2, token.text):
             col_no.append(match.group(0))
 
     if not people:
@@ -86,18 +87,6 @@ def collector_match(ent):
         ent._.data["collector_no"] = "-".join(col_no)
 
     ent._.data["collector"] = people if len(people) > 1 else people[0]
-
-
-@registry.misc(OTHER_COLLECTOR_MATCH)
-def other_collector_match(ent):
-    people = []
-
-    for token in ent:
-
-        if token._.flag == "name_data":
-            people.append(token._.data["name"])
-
-    ent._.data["other_collector"] = people
 
 
 @registry.misc(DETERMINER_MATCH)
@@ -123,3 +112,38 @@ def determiner_match(ent):
         people.append(" ".join(name))
 
     ent._.data["determiner"] = " ".join(people)
+
+
+@registry.misc(OTHER_COLLECTOR_MATCH)
+def other_collector_match(ent):
+    people = []
+
+    for token in ent:
+
+        if token._.flag == "name_data":
+            people.append(token._.data["name"])
+
+        token._.flag = "other_col"
+
+    ent._.data["other_collector"] = people
+    ent[0]._.data = ent._.data
+    ent[0]._.flag = "other_col_data"
+
+
+@registry.misc(OTHER_COLLECTOR2_MATCH)
+def other_collector2_match(ent):
+    people = []
+    person = []
+
+    for token in ent:
+
+        if token._.flag == "other_col_data":
+            people += token._.data["other_collector"]
+
+        elif token._.flag == "other_col" or token.text in PUNCT:
+            continue
+
+        else:
+            person.append(token.text)
+
+    ent._.data["other_collector"] = people + [" ".join(person)]

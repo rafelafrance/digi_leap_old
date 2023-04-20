@@ -11,6 +11,7 @@ def build(nlp: Language, **kwargs):
     with nlp.select_pipes(enable="tokenizer"):
         prev = add.term_pipe(nlp, name="person_terms", path=act.ALL_CSVS, **kwargs)
 
+    # prev = add.debug_tokens(nlp, after=prev)  # #############################
     prev = add.trait_pipe(
         nlp,
         name="name_patterns",
@@ -18,6 +19,7 @@ def build(nlp: Language, **kwargs):
         overwrite=["name_prefix", "name_suffix", "color"],
         after=prev,
     )
+    # prev = add.debug_tokens(nlp, after=prev)  # #############################
 
     overwrite = """name col_label det_label no_label other_label subpart""".split()
     prev = add.trait_pipe(
@@ -25,6 +27,16 @@ def build(nlp: Language, **kwargs):
         name="job_patterns",
         compiler=pat.job_patterns(),
         overwrite=overwrite,
+        after=prev,
+    )
+
+    # prev = add.debug_tokens(nlp, after=prev)  # #############################
+
+    prev = add.trait_pipe(
+        nlp,
+        name="other_collector_patterns",
+        compiler=pat.other_collector_patterns(),
+        overwrite=["other_collector"],
         after=prev,
     )
 

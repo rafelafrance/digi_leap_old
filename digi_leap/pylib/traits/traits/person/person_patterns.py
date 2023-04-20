@@ -31,12 +31,12 @@ def name_patterns():
                 "dr? name name? name? conflict    _? jr",
                 "dr? conflict   name? name? name3",
                 "dr? conflict   name? name? name3 _? jr",
-                "dr? A A? name",
-                "dr? A A? name      _? jr",
-                "dr? name A A name3",
-                "dr? name A A name3 _? jr",
-                "dr? name ..  name3",
-                "dr? name ..  name3 _? jr",
+                "dr?      A A? A?  name3",
+                "dr?      A A? A?  name3   _? jr",
+                "dr? name A A? A?  name3",
+                "dr? name A A? A?  name3 _? jr",
+                "dr? name ..       name3",
+                "dr? name ..       name3 _? jr",
                 "dr? name ( name ) name3",
                 "dr? name ( name ) name3 _? jr",
                 "dr? name ( name ) name3",
@@ -71,6 +71,7 @@ def job_patterns():
         "name": {"ENT_TYPE": "name"},
         "nope": {"ENT_TYPE": "not_name"},
         "other_label": {"ENT_TYPE": "other_label"},
+        "other_col": {"ENT_TYPE": "other_collector"},
         "num_label": {"ENT_TYPE": "no_label"},
         "sep": {"LOWER": {"IN": act.CONJ + list("._,;")}},
     }
@@ -139,6 +140,31 @@ def job_patterns():
             patterns=[
                 "det_label+ by? :* maybe? name+",
                 "det_label+ by? :* name+ num_label* :* id1",
+            ],
+        ),
+    ]
+
+
+def other_collector_patterns():
+    decoder = {
+        "and": {"POS": {"IN": act.CONJ}},
+        "maybe": {"POS": "PROPN"},
+        "name": {"ENT_TYPE": "name"},
+        "other_col": {"ENT_TYPE": "other_collector"},
+        "sep": {"LOWER": {"IN": act.CONJ + list("._,;")}},
+    }
+
+    return [
+        Compiler(
+            label="other_collector2",
+            id="other_collector",
+            on_match=act.OTHER_COLLECTOR2_MATCH,
+            decoder=decoder,
+            patterns=[
+                " other_col+ sep* name+ ",
+                " other_col+ sep* maybe ",
+                " other_col+ sep* name  and name+ ",
+                " other_col+ sep* maybe and maybe maybe ",
             ],
         ),
     ]

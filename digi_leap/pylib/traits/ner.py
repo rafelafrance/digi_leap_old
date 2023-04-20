@@ -8,22 +8,24 @@ from ..db import db
 
 
 def ner(args):
+
     with db.connect(args.database) as cxn:
         run_id = db.insert_run(cxn, args)
-
         db.canned_delete(cxn, "traits", trait_set=args.trait_set)
 
-        nlp = pipeline.build()
+    nlp = pipeline.build()
 
     with db.connect(args.database) as cxn:
         records = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
-        if args.limit:
-            records = records[: args.limit]
-        if args.label_id:
-            records = [r for r in records if r["label_id"] == args.label_id]
+
+    if args.limit:
+        records = records[: args.limit]
+
+    if args.label_id:
+        records = [r for r in records if r["label_id"] == args.label_id]
 
     with db.connect(args.database) as cxn:
-        for ocr_text in tqdm(records):
+        for ocr_text in tqdm(records, desc="parse"):
             text = shorten(ocr_text["ocr_text"])
             batch = []
 
