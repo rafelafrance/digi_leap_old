@@ -38,7 +38,8 @@ def build(model_path=None):
 
     tokenizer.setup_tokenizer(nlp)
 
-    nlp.add_pipe(sentence.SENTENCES, before="parser")
+    config = {"base_model": "en_core_web_md"}
+    nlp.add_pipe(sentence.SENTENCES, config=config, before="parser")
 
     admin_unit_pipeline.build(nlp)
 
