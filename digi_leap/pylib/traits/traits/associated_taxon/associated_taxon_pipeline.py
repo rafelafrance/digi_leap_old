@@ -1,4 +1,4 @@
-from spacy import Language
+from spacy.language import Language
 from traiter.pylib.traits import add_pipe as add
 from traiter.pylib.traits import trait_util
 

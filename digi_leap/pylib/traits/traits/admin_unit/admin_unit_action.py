@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from spacy import registry
+from spacy.util import registry
 from traiter.pylib.pipes import reject_match
 from traiter.pylib.traits import terms
 from traiter.pylib.traits import trait_util

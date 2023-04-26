@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from spacy import Language
+from spacy.language import Language
 
 LABEL_ASSOC_TAXON = "label_assoc_taxon"
 

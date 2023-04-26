@@ -1,6 +1,6 @@
-import re
 from pathlib import Path
 
+import regex as re
 from plants.pylib.traits import misc
 from spacy.util import registry
 from traiter.pylib import const as t_const
@@ -12,6 +12,7 @@ COLLECTOR_MATCH = "collector_match"
 OTHER_COLLECTOR_MATCH = "other_collector_match"
 OTHER_COLLECTOR2_MATCH = "other_collector2_match"
 DETERMINER_MATCH = "determiner_match"
+ID_NO_MATCH = "id_no_match"
 
 CONFLICT = ["us_county", "color"]
 ALLOW = [*CONFLICT, "PERSON"]
@@ -56,6 +57,10 @@ def person_name_match(ent):
     for token in ent:
         token._.flag = "name"
 
+        # If there's a digit in the name reject it
+        if re.search(r"\d", token.text):
+            raise RejectMatch
+
     ent._.data["name"] = name
     ent[0]._.data = ent._.data
     ent[0]._.flag = "name_data"
@@ -64,27 +69,20 @@ def person_name_match(ent):
 @registry.misc(COLLECTOR_MATCH)
 def collector_match(ent):
     people = []
-    col_no = []
 
     for token in ent:
 
         if token._.flag == "name_data":
             people.append(token._.data["name"])
 
-        elif token._.flag == "name":
+        elif token._.flag == "name" or token.ent_type_ in ("col_label", "no_label"):
             continue
 
-        elif token.ent_type_ in ("col_label", "no_label"):
-            continue
-
-        elif match := re.match(ID2, token.text):
-            col_no.append(match.group(0))
+        elif token._.flag == "id_no":
+            ent._.data["collector_no"] = token._.data["id_no"]
 
     if not people:
         raise RejectMatch
-
-    if col_no:
-        ent._.data["collector_no"] = "-".join(col_no)
 
     ent._.data["collector"] = people if len(people) > 1 else people[0]
 
@@ -92,24 +90,17 @@ def collector_match(ent):
 @registry.misc(DETERMINER_MATCH)
 def determiner_match(ent):
     people = []
-    name = []
 
     for token in ent:
+
         if token.ent_type_ == "det_label" or token.ent_type_ == "no_label":
             continue
 
-        if match := re.search(ID1, token.text):
-            if name:
-                people.append(" ".join(name))
-                name = []
-            det_no = match.group(0)
-            ent._.data["determiner_no"] = det_no
+        if token._.flag == "name_data":
+            people.append(token._.data["name"])
 
-        elif token.pos_ == "PROPN" or token.ent_type_ == "name":
-            name.append(token.text)
-
-    if name:
-        people.append(" ".join(name))
+        elif token._.flag == "id_no":
+            ent._.data["determiner_no"] = token._.data["id_no"]
 
     ent._.data["determiner"] = " ".join(people)
 
@@ -146,4 +137,12 @@ def other_collector2_match(ent):
         else:
             person.append(token.text)
 
-    ent._.data["other_collector"] = people + [" ".join(person)]
+    ent._.data["other_collector"] = [*people, " ".join(person)]
+
+
+@registry.misc(ID_NO_MATCH)
+def id_no_match(ent):
+    frags = [t.text for t in ent if t.ent_type_ != "no_label"]
+    ent._.data["id_no"] = "".join(frags)
+    ent[0]._.data = ent._.data
+    ent[0]._.flag = "id_no"
