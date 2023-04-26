@@ -54,16 +54,15 @@ def build(model_path=None):
     color_pipeline.build(nlp)
     habitat_pipeline.build(nlp)
 
-    person_pipeline.build(nlp)
-
-    taxon_pipeline.build(nlp, extend=2)
-
     numeric_pipeline.build(nlp)
 
     habit_pipeline.build(nlp)
     margin_pipeline.build(nlp)
     shape_pipeline.build(nlp)
     surface_pipeline.build(nlp)
+
+    taxon_pipeline.build(nlp, extend=2)
+    person_pipeline.build(nlp)
 
     part_location_pipeline.build(nlp)
     taxon_like_pipeline.build(nlp)
@@ -80,4 +79,10 @@ def build(model_path=None):
     if model_path:
         nlp.to_disk(model_path)
 
+    return nlp
+
+
+def load(model_path):
+    extensions.add_extensions()
+    nlp = spacy.load(model_path)
     return nlp

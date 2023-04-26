@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "digi_leap"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 license = {file = "LICENSE"}
 authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
@@ -130,6 +130,7 @@ disable = [
 ]
 
 [tool.ruff]
+line-length = 88
 extend-select = [
     "BLE",
     "C4",
@@ -156,3 +157,7 @@ extend-select = [
 ]
 show-fixes = true
 ignore = ["D10", "D203", "D213", "PD901", "RET504", "RUF001"]
+
+[tool.pyright]
+reportGeneralTypeIssues = "none"
+extraPaths = ["../../traiter/traiter", "../../traiter/plants"]

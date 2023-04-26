@@ -110,6 +110,7 @@ def job_patterns():
         Compiler(
             label="collector",
             on_match=act.COLLECTOR_MATCH,
+            keep="collector",
             decoder=decoder,
             patterns=[
                 "col_label+ :* name+",
@@ -129,6 +130,7 @@ def job_patterns():
         Compiler(
             label="other_collector",
             on_match=act.OTHER_COLLECTOR_MATCH,
+            keep="other_collector",
             decoder=decoder,
             patterns=[
                 "other_label+ name+ ",
@@ -142,19 +144,9 @@ def job_patterns():
             ],
         ),
         Compiler(
-            label="not_collector",
-            on_match=REJECT_MATCH,
-            decoder=decoder,
-            patterns=[
-                # " maybe no_label* :* id1 nope ",
-                # " nope  no_label* :* id1 ",
-                # " maybe no_label* :* id1 bad ",
-                # " bad   no_label* :* id1 ",
-            ],
-        ),
-        Compiler(
             label="determiner",
             on_match=act.DETERMINER_MATCH,
+            keep="determiner",
             decoder=decoder,
             patterns=[
                 "det_label+ by? :* maybe? name+",
@@ -178,6 +170,7 @@ def other_collector_patterns():
             label="other_collector2",
             id="other_collector",
             on_match=act.OTHER_COLLECTOR2_MATCH,
+            keep="other_collector",
             decoder=decoder,
             patterns=[
                 " other_col+ sep* name+ ",

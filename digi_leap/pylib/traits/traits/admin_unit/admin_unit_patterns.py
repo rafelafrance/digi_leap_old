@@ -21,6 +21,7 @@ def admin_unit_patterns():
             label="county_state",
             id="admin_unit",
             on_match=act.COUNTY_STATE_MATCH,
+            keep="admin_unit",
             decoder=decoder,
             patterns=[
                 "us_county+ co_label+ ,? us_state+",
@@ -30,6 +31,7 @@ def admin_unit_patterns():
             label="county_state_iffy",
             id="admin_unit",
             on_match=act.COUNTY_STATE_IFFY_MATCH,
+            keep="admin_unit",
             decoder=decoder,
             patterns=[
                 "us_county+ ,? us_state+",
@@ -39,6 +41,7 @@ def admin_unit_patterns():
             label="county_only",
             id="admin_unit",
             on_match=act.COUNTY_ONLY_MATCH,
+            keep="admin_unit",
             decoder=decoder,
             patterns=[
                 "us_county+ co_label+",
@@ -49,6 +52,7 @@ def admin_unit_patterns():
             label="state_county",
             id="admin_unit",
             on_match=act.STATE_COUNTY_MATCH,
+            keep="admin_unit",
             decoder=decoder,
             patterns=[
                 "              us_state+ co_label* ,? us_county+ co_label*",
@@ -59,6 +63,7 @@ def admin_unit_patterns():
             label="state_only",
             id="admin_unit",
             on_match=act.STATE_ONLY_MATCH,
+            keep="admin_unit",
             decoder=decoder,
             patterns=[
                 "st_label+ of? ,? us_state+",

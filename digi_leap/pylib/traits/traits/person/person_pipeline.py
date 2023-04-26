@@ -1,6 +1,5 @@
 from spacy.language import Language
 from traiter.pylib.traits import add_pipe as add
-from traiter.pylib.traits import trait_util
 
 from . import person_action as act
 from . import person_patterns as pat
@@ -15,14 +14,14 @@ def build(nlp: Language, **kwargs):
         nlp,
         name="name_patterns",
         compiler=pat.name_patterns(),
-        keep=["date"],
-        overwrite=["name_prefix", "name_suffix", "color", "no_label"],
+        overwrite=["name_prefix", "name_suffix", "color", "no_label", "count"],
         after=prev,
     )
 
     overwrite = """
         name col_label det_label no_label other_label subpart id_no
         """.split()
+
     prev = add.trait_pipe(
         nlp,
         name="job_patterns",
@@ -40,9 +39,6 @@ def build(nlp: Language, **kwargs):
     )
     # prev = add.debug_tokens(nlp, after=prev)  # #############################
 
-    keep = ["collector", "determiner", "other_collector"]
-    remove = trait_util.labels_to_remove(act.ALL_CSVS, keep=keep)
-    remove += ["name", "not_name", "not_collector", "id_no"]
-    prev = add.cleanup_pipe(nlp, name="person_cleanup", remove=remove, after=prev)
+    prev = add.cleanup_pipe(nlp, name="person_cleanup", after=prev)
 
     return prev

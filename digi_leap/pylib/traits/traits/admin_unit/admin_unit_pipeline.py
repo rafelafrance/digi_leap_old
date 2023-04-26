@@ -1,6 +1,5 @@
 from spacy.language import Language
 from traiter.pylib.traits import add_pipe as add
-from traiter.pylib.traits import trait_util
 
 from . import admin_unit_action as act
 from . import admin_unit_patterns as pat
@@ -19,17 +18,9 @@ def build(nlp: Language, **kwargs):
     )
 
     prev = add.trait_pipe(
-        nlp,
-        name="admin_unit_patterns",
-        compiler=pat.admin_unit_patterns(),
-        after=prev,
+        nlp, name="admin_unit_patterns", compiler=pat.admin_unit_patterns(), after=prev
     )
 
-    prev = add.cleanup_pipe(
-        nlp,
-        name="admin_unit_cleanup",
-        remove=trait_util.labels_to_remove(act.ALL_CSVS, keep=["admin_unit"]),
-        after=prev,
-    )
+    prev = add.cleanup_pipe(nlp, name="admin_unit_cleanup", after=prev)
 
     return prev
