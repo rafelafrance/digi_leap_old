@@ -61,8 +61,8 @@ def build(model_path=None):
     shape_pipeline.build(nlp)
     surface_pipeline.build(nlp)
 
-    taxon_pipeline.build(nlp, extend=2)
     person_pipeline.build(nlp)
+    taxon_pipeline.build(nlp, extend=2)
 
     part_location_pipeline.build(nlp)
     taxon_like_pipeline.build(nlp)
