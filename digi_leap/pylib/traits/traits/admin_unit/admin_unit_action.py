@@ -30,8 +30,10 @@ def county_state_match(ent):
     if len(ent.ents) < 2:
         raise reject_match.RejectMatch
 
-    ent._.data["us_state"] = format_state(ent, ent_index=1)
-    ent._.data["us_county"] = format_county(ent, ent_index=0)
+    ent._.data = {
+        "us_state": format_state(ent, ent_index=1),
+        "us_county": format_county(ent, ent_index=0),
+    }
 
 
 @registry.misc(COUNTY_STATE_IFFY_MATCH)
@@ -45,30 +47,36 @@ def county_state_iffy_match(ent):
     state_ent = sub_ents[1]
 
     if is_county_not_colorado(state_ent, county_ent):
-        ent._.data["us_county"] = format_county(ent, ent_index=0)
+        ent._.data = {
+            "us_county": format_county(ent, ent_index=0),
+        }
 
     elif not county_in_state(state_ent, county_ent):
         raise reject_match.RejectMatch
 
     else:
-        ent._.data["us_state"] = format_state(ent, ent_index=1)
-        ent._.data["us_county"] = format_county(ent, ent_index=0)
+        ent._.data = {
+            "us_state": format_state(ent, ent_index=1),
+            "us_county": format_county(ent, ent_index=0),
+        }
 
 
 @registry.misc(COUNTY_ONLY_MATCH)
 def county_only_match(ent):
-    ent._.data["us_county"] = format_county(ent, ent_index=0)
+    ent._.data = {"us_county": format_county(ent, ent_index=0)}
 
 
 @registry.misc(STATE_COUNTY_MATCH)
 def state_county_match(ent):
-    ent._.data["us_state"] = format_state(ent, ent_index=0)
-    ent._.data["us_county"] = format_county(ent, ent_index=1)
+    ent._.data = {
+        "us_state": format_state(ent, ent_index=0),
+        "us_county": format_county(ent, ent_index=1),
+    }
 
 
 @registry.misc(STATE_ONLY_MATCH)
 def state_only_match(ent):
-    ent._.data["us_state"] = format_state(ent, ent_index=0)
+    ent._.data = {"us_state": format_state(ent, ent_index=0)}
 
 
 def format_state(ent, *, ent_index: int):

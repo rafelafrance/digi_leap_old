@@ -1,10 +1,11 @@
 import json
 
 from tqdm import tqdm
-from traiter.pylib.util import shorten
 
 from . import pipeline
 from ..db import db
+
+# from traiter.pylib.util import shorten
 
 
 def ner(args):
@@ -26,7 +27,8 @@ def ner(args):
 
     with db.connect(args.database) as cxn:
         for ocr_text in tqdm(records, desc="parse"):
-            text = shorten(ocr_text["ocr_text"])
+            # text = shorten(ocr_text["ocr_text"])
+            text = ocr_text["ocr_text"]
             batch = []
 
             if len(text.split()) < args.word_threshold:

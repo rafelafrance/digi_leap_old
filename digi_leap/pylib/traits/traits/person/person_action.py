@@ -61,7 +61,11 @@ def person_name_match(ent):
         if re.search(r"\d", token.text):
             raise RejectMatch
 
-    ent._.data["name"] = name
+        # If the is all lower case reject it
+        if token.text.islower():
+            raise RejectMatch
+
+    ent._.data = {"name": name}
     ent[0]._.data = ent._.data
     ent[0]._.flag = "name_data"
 
@@ -69,6 +73,7 @@ def person_name_match(ent):
 @registry.misc(COLLECTOR_MATCH)
 def collector_match(ent):
     people = []
+    col_no = ""
 
     for token in ent:
 
@@ -79,12 +84,14 @@ def collector_match(ent):
             continue
 
         elif token._.flag == "id_no":
-            ent._.data["collector_no"] = token._.data["id_no"]
+            col_no = token._.data["id_no"]
 
     if not people:
         raise RejectMatch
 
-    ent._.data["collector"] = people if len(people) > 1 else people[0]
+    ent._.data = {"collector": people if len(people) > 1 else people[0]}
+    if col_no:
+        ent._.data["collector_no"] = col_no
 
 
 @registry.misc(DETERMINER_MATCH)

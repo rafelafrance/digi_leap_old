@@ -33,7 +33,7 @@ def name_patterns():
             patterns=[
                 "      name name? name3",
                 "      name name? name3             _? jr",
-                "      name name? name3 conflict",
+                "      name name? name? conflict",
                 "      name name? name? conflict    _? jr",
                 "      conflict   name? name? name3",
                 "      conflict   name? name? name3 _? jr",

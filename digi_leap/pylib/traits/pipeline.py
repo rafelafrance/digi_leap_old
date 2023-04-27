@@ -41,8 +41,6 @@ def build(model_path=None):
     config = {"base_model": "en_core_web_md"}
     nlp.add_pipe(sentence.SENTENCES, config=config, before="parser")
 
-    admin_unit_pipeline.build(nlp)
-
     date_pipeline.build(nlp)
 
     misc_pipeline.build(nlp)
@@ -54,6 +52,7 @@ def build(model_path=None):
     color_pipeline.build(nlp)
     habitat_pipeline.build(nlp)
 
+    person_pipeline.build(nlp)
     numeric_pipeline.build(nlp)
 
     habit_pipeline.build(nlp)
@@ -61,9 +60,10 @@ def build(model_path=None):
     shape_pipeline.build(nlp)
     surface_pipeline.build(nlp)
 
-    person_pipeline.build(nlp)
+    admin_unit_pipeline.build(nlp)
     taxon_pipeline.build(nlp, extend=2)
 
+    # debug.tokens(nlp)  # ###########################################
     part_location_pipeline.build(nlp)
     taxon_like_pipeline.build(nlp)
 
