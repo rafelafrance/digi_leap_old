@@ -5,7 +5,7 @@ from plants.pylib.traits import terms as p_terms
 from spacy.language import Language
 from spacy.util import registry
 from traiter.pylib import const as t_const
-from traiter.pylib import pattern_compiler as comp
+from traiter.pylib.pattern_compiler import ACCUMULATOR
 from traiter.pylib.pattern_compiler import Compiler
 from traiter.pylib.pipes import add
 from traiter.pylib.pipes import reject_match
@@ -32,35 +32,31 @@ NICK_CLOSE = t_const.CLOSE + t_const.QUOTE
 NAME_RE = "".join(t_const.OPEN + t_const.CLOSE + t_const.QUOTE + list(".,'&"))
 NAME_RE = re.compile(rf"^[\sa-z{re.escape(NAME_RE)}-]+$")
 
-TITLE_SHAPES = """ Xxxxx Xxxx Xxx Xx X. Xx. X """.split()
-UPPER_SHAPES = """ XXXXX XXXX XXX XX X. XX. X """.split()
-NAME_SHAPES = TITLE_SHAPES + UPPER_SHAPES
 
-TITLE_SHAPES3 = """ Xxxxx Xxxx Xxx """.split()
-UPPER_SHAPES3 = """ XXXXX XXXX XXX """.split()
-NAME_SHAPES3 = TITLE_SHAPES3 + UPPER_SHAPES3
-
-
-def build(nlp: Language):
+def build(nlp: Language, overwrite: list[str] = None):
     add.term_pipe(nlp, name="person_terms", path=ALL_CSVS)
 
-    keep = comp.ACCUMULATOR.keep
-    keep += "col_label det_label not_name other_label".split()
+    overwrite = overwrite if overwrite else []
+    name_overwrite = overwrite + "name_prefix name_suffix no_label".split()
+
     add.trait_pipe(
         nlp,
         name="name_patterns",
         compiler=name_patterns(),
-        keep=keep,
-        overwrite="name_prefix name_suffix color no_label count admin_unit".split(),
+        overwrite=name_overwrite,
+        keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label"],
     )
 
-    overwrite = """
-        name col_label det_label no_label other_label subpart id_no """.split()
+    job_overwrite = (
+        overwrite
+        + """
+        name col_label det_label no_label other_label id_no """.split()
+    )
     add.trait_pipe(
         nlp,
         name="job_patterns",
         compiler=job_patterns(),
-        overwrite=overwrite,
+        overwrite=job_overwrite,
     )
 
     add.trait_pipe(
@@ -88,7 +84,6 @@ def name_patterns():
         "id2": {"LOWER": {"REGEX": ID2}},
         "jr": {"ENT_TYPE": "name_suffix"},
         "name": {"POS": "PROPN"},
-        "name3": {"SHAPE": {"IN": NAME_SHAPES3}},
         "no_label": {"ENT_TYPE": "no_label"},
         "no_space": {"SPACY": False},
         "nope": {"ENT_TYPE": "not_name"},
@@ -100,36 +95,36 @@ def name_patterns():
             on_match="person_name_match",
             decoder=decoder,
             patterns=[
-                "      name name? name3",
-                "      name name? name3             _? jr",
+                "      name name? name",
+                "      name name? name             _? jr",
                 "      name name? name? conflict",
                 "      name name? name? conflict    _? jr",
-                "      conflict   name? name? name3",
-                "      conflict   name? name? name3 _? jr",
-                "           A A? A?  name3",
-                "           A A? A?  name3   _? jr",
-                "      name A A? A?  name3",
-                "      name A A? A?  name3 _? jr",
-                "      name ..       name3",
-                "      name ..       name3 _? jr",
-                "      name ( name ) name3",
-                "      name ( name ) name3 _? jr",
-                "      name ( name ) name3",
-                "dr _? name name? name3",
-                "dr _? name name? name3             _? jr",
-                "dr _? name name? name3 conflict",
-                "dr _? name name? name? conflict    _? jr",
-                "dr _? conflict   name? name? name3",
-                "dr _? conflict   name? name? name3 _? jr",
-                "dr _?      A A? A?  name3",
-                "dr _?      A A? A?  name3 _? jr",
-                "dr _? name A A? A?  name3",
-                "dr _? name A A? A?  name3 _? jr",
-                "dr _? name ..       name3",
-                "dr _? name ..       name3 _? jr",
-                "dr _? name ( name ) name3",
-                "dr _? name ( name ) name3 _? jr",
-                "dr _? name ( name ) name3",
+                "      conflict   name? name? name",
+                "      conflict   name? name? name _? jr",
+                "           A A? A?  name",
+                "           A A? A?  name   _? jr",
+                "      name A A? A?  name",
+                "      name A A? A?  name _? jr",
+                "      name ..       name",
+                "      name ..       name _? jr",
+                "      name ( name ) name",
+                "      name ( name ) name _? jr",
+                "      name ( name ) name",
+                "dr _? name   name?  name",
+                "dr _? name   name?  name             _? jr",
+                "dr _? name   name?  name  conflict",
+                "dr _? name   name?  name? conflict   _? jr",
+                "dr _? conflict      name? name? name",
+                "dr _? conflict      name? name? name _? jr",
+                "dr _?      A A? A?  name",
+                "dr _?      A A? A?  name _? jr",
+                "dr _? name A A? A?  name",
+                "dr _? name A A? A?  name _? jr",
+                "dr _? name ..       name",
+                "dr _? name ..       name _? jr",
+                "dr _? name ( name ) name",
+                "dr _? name ( name ) name _? jr",
+                "dr _? name ( name ) name",
             ],
         ),
         Compiler(
@@ -268,7 +263,7 @@ def person_name_match(ent):
         if re.search(r"\d", token.text):
             raise reject_match.RejectMatch
 
-        # If the is all lower case reject it
+        # If it is all lower case reject it
         if token.text.islower():
             raise reject_match.RejectMatch
 

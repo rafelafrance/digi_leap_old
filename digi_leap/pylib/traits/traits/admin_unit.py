@@ -22,12 +22,12 @@ COUNTY_ENTS = ["us_county", "us_state-us_county"]
 ADMIN_ENTS = ["us_state", "us_county", "us_state-us_county", "us_territory"]
 
 
-def build(nlp: Language):
+def build(nlp: Language, overwrite: list[str] = None):
     add.term_pipe(nlp, name="admin_unit_terms", path=ALL_CSVS)
     add.trait_pipe(nlp, name="not_admin_unit", compiler=not_admin_unit())
 
-    overwrite = """
-        color
+    overwrite = overwrite if overwrite else []
+    overwrite += """
         us_county us_state us_state-us_county us_territory
         county_label state_label
         """.split()

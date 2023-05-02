@@ -316,3 +316,17 @@ class TestCollector(unittest.TestCase):
                 {"date": "2011-04-14", "end": 41, "start": 30, "trait": "date"},
             ],
         )
+
+    def test_collector_21(self):
+        self.assertEqual(
+            test("""Wendy McClure 2018-2"""),
+            [
+                {
+                    "collector_no": "2018-2",
+                    "collector": "Wendy McClure",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 20,
+                },
+            ],
+        )

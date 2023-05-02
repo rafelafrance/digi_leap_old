@@ -53,7 +53,7 @@ def build(model_path=None):
     color.build(nlp)
     habitat.build(nlp)
 
-    person.build(nlp)
+    person.build(nlp, overwrite=["subpart", "color", "count", "admin_unit"])
     numeric.build(nlp)
 
     habit.build(nlp)
@@ -61,7 +61,7 @@ def build(model_path=None):
     shape.build(nlp)
     surface.build(nlp)
 
-    admin_unit.build(nlp)
+    admin_unit.build(nlp, overwrite=["color"])
     taxon.build(nlp, extend=2)
 
     part_location.build(nlp)
