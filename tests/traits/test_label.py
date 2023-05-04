@@ -104,5 +104,6 @@ class TestLabels(unittest.TestCase):
                     "start": 207,
                     "end": 234,
                 },
+                {"country": "USA", "trait": "admin_unit", "start": 273, "end": 279},
             ],
         )

@@ -172,7 +172,7 @@ def remove_spaces(line, spell_well):
     new = tokens[:2]
 
     for i in range(2, len(tokens)):
-        tokens[i - 2]
+        prev = tokens[i - 2]
         between = tokens[i - 1]
         curr = tokens[i]
 

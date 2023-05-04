@@ -29,7 +29,7 @@ def build(nlp: Language, overwrite: list[str] = None):
     overwrite = overwrite if overwrite else []
     overwrite += """
         us_county us_state us_state-us_county us_territory
-        county_label state_label
+        county_label state_label country
         """.split()
     add.trait_pipe(
         nlp,
@@ -47,12 +47,23 @@ def admin_unit_patterns():
         ":": {"TEXT": {"IN": t_const.COLON}},
         "co_label": {"ENT_TYPE": "county_label"},
         "co_word": {"LOWER": {"IN": ["county"]}},
+        "country": {"ENT_TYPE": "country"},
         "of": {"LOWER": {"IN": ["of"]}},
         "st_label": {"ENT_TYPE": "state_label"},
         "us_county": {"ENT_TYPE": {"IN": COUNTY_ENTS}},
         "us_state": {"ENT_TYPE": {"IN": STATE_ENTS}},
     }
     return [
+        Compiler(
+            label="country",
+            id="admin_unit",
+            on_match="country_match",
+            keep="country",
+            decoder=decoder,
+            patterns=[
+                "country+",
+            ],
+        ),
         Compiler(
             label="county_state",
             id="admin_unit",
@@ -130,6 +141,12 @@ def not_admin_unit():
             ],
         ),
     ]
+
+
+@registry.misc("country_match")
+def country_match(ent):
+    country = REPLACE.get(ent.text.lower(), ent.text)
+    ent._.data = {"country": country}
 
 
 @registry.misc("county_state_match")

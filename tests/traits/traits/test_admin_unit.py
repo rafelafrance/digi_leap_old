@@ -179,7 +179,7 @@ class TestAdminUnit(unittest.TestCase):
         """It does not pick up label headers and footers."""
         self.assertEqual(
             test("""The University of Georgia Athens, GA, U.S.A."""),
-            [],
+            [{"country": "USA", "end": 44, "start": 38, "trait": "admin_unit"}],
         )
 
     def test_admin_unit_14(self):

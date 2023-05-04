@@ -318,6 +318,7 @@ class TestCollector(unittest.TestCase):
         )
 
     def test_collector_21(self):
+        """It handles names with mixed case letters."""
         self.assertEqual(
             test("""Wendy McClure 2018-2"""),
             [
@@ -327,6 +328,42 @@ class TestCollector(unittest.TestCase):
                     "trait": "collector",
                     "start": 0,
                     "end": 20,
+                },
+            ],
+        )
+
+    def test_collector_22(self):
+        """It handles a taxon next to a name."""
+        self.assertEqual(
+            test("""Associated species: Neptunia gracilis G. Rink 7075"""),
+            [
+                {
+                    "trait": "associated_taxon",
+                    "associated_taxon": "Neptunia gracilis",
+                    "rank": "species",
+                    "start": 20,
+                    "end": 37,
+                },
+                {
+                    "collector_no": "7075",
+                    "collector": "G. Rink",
+                    "trait": "collector",
+                    "start": 38,
+                    "end": 50,
+                },
+            ],
+        )
+
+    def test_collector_23(self):
+        """It handles a taxon next to a name."""
+        self.assertEqual(
+            test("""collected by Merle Dortmond The University"""),
+            [
+                {
+                    "collector": "Merle Dortmond",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 27,
                 },
             ],
         )

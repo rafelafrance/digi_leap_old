@@ -1,7 +1,5 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
-
-
 Extract information from images of herbarium specimen label sheets. This is the automated portion of a full solution that includes humans-in-the-loop.
 
 Given images like:
@@ -33,15 +31,15 @@ Image processing techniques:
 
 1. Do nothing to the image. This works best with clean new herbarium sheets.
 2. We slightly blur the image, scale it to a size that works with many OCR images, orient the image to get it rightside up, and then deskew the image to finetune its orientation.
-3. We perform all of the steps in #2 and additionally perform a Sauvola (Sauvola & Pietikainen, 2000) binarization of the image, which often helps improve OCR results.
-4. We do all of the steps in #3, then remove “snow” (image speckles) and fill in any small “holes” in the binarized image.
+3. We perform all the steps in #2 and additionally perform a Sauvola (Sauvola & Pietikainen, 2000) binarization of the image, which often helps improve OCR results.
+4. We do all the steps in #3, then remove “snow” (image speckles) and fill in any small “holes” in the binarized image.
 
 OCR engines:
 
 1. Tesseract OCR (Smith 2007).
 2. EasyOCR (https://github.com/JaidedAI/EasyOCR).
 
- Therefore, there are 8 possible combinations of image processing and OCR engines. We found, by scoring against a gold standard, that using all 8 combinations does not always yield the best results. Currently, we use 6/8 combinations with binarize/EasyOCR and denoise/EasyOCR deemed unhelpful.
+Therefore, there are 8 possible combinations of image processing and OCR engines. We found, by scoring against a gold standard, that using all 8 combinations does not always yield the best results. Currently, we use 6/8 combinations with binarize/EasyOCR and denoise/EasyOCR deemed unhelpful.
 
 After the image processing & OCR combinations we then:
 

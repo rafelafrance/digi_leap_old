@@ -26,6 +26,8 @@ ID1 = r"^(\w*\d+\w*)$"
 ID2 = r"^(\w*\d+\w*|[A-Za-z])$"
 DASH_LIKE = r"^[._-]+$"
 
+NAME4 = [s for s in t_const.NAME_SHAPES if len(s) > 3 and s[-1] != "."]
+
 NICK_OPEN = t_const.OPEN + t_const.QUOTE
 NICK_CLOSE = t_const.CLOSE + t_const.QUOTE
 
@@ -47,10 +49,9 @@ def build(nlp: Language, overwrite: list[str] = None):
         keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label"],
     )
 
+    # add.debug_tokens(nlp)  # ##########################################
     job_overwrite = (
-        overwrite
-        + """
-        name col_label det_label no_label other_label id_no """.split()
+        overwrite + """ name col_label det_label no_label other_label id_no """.split()
     )
     add.trait_pipe(
         nlp,
@@ -58,6 +59,7 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=job_patterns(),
         overwrite=job_overwrite,
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     add.trait_pipe(
         nlp,
@@ -65,6 +67,7 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=other_collector_patterns(),
         overwrite=["other_collector"],
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     add.cleanup_pipe(nlp, name="person_cleanup")
 
@@ -83,7 +86,8 @@ def name_patterns():
         "id1": {"LOWER": {"REGEX": ID1}},
         "id2": {"LOWER": {"REGEX": ID2}},
         "jr": {"ENT_TYPE": "name_suffix"},
-        "name": {"POS": "PROPN"},
+        "name": {"POS": {"IN": ["PROPN", "NOUN"]}},
+        "name4": {"SHAPE": {"IN": NAME4}},
         "no_label": {"ENT_TYPE": "no_label"},
         "no_space": {"SPACY": False},
         "nope": {"ENT_TYPE": "not_name"},
@@ -95,36 +99,36 @@ def name_patterns():
             on_match="person_name_match",
             decoder=decoder,
             patterns=[
-                "      name name? name",
-                "      name name? name             _? jr",
-                "      name name? name? conflict",
-                "      name name? name? conflict    _? jr",
-                "      conflict   name? name? name",
-                "      conflict   name? name? name _? jr",
-                "           A A? A?  name",
-                "           A A? A?  name   _? jr",
-                "      name A A? A?  name",
-                "      name A A? A?  name _? jr",
-                "      name ..       name",
-                "      name ..       name _? jr",
-                "      name ( name ) name",
-                "      name ( name ) name _? jr",
-                "      name ( name ) name",
-                "dr _? name   name?  name",
-                "dr _? name   name?  name             _? jr",
-                "dr _? name   name?  name  conflict",
-                "dr _? name   name?  name? conflict   _? jr",
-                "dr _? conflict      name? name? name",
-                "dr _? conflict      name? name? name _? jr",
-                "dr _?      A A? A?  name",
-                "dr _?      A A? A?  name _? jr",
-                "dr _? name A A? A?  name",
-                "dr _? name A A? A?  name _? jr",
-                "dr _? name ..       name",
-                "dr _? name ..       name _? jr",
-                "dr _? name ( name ) name",
-                "dr _? name ( name ) name _? jr",
-                "dr _? name ( name ) name",
+                "       name name? name4",
+                "       name name? name4             _? jr+",
+                "       name name? name? conflict",
+                "       name name? name? conflict    _? jr+",
+                "       conflict   name? name? name ",
+                "       conflict   name? name? name  _? jr+",
+                "            A A? A?  name4",
+                "            A A? A?  name4 _? jr+",
+                "       name A A? A?  name4",
+                "       name A A? A?  name4 _? jr+",
+                "       name ..       name4",
+                "       name ..       name4 _? jr+",
+                "       name ( name ) name4",
+                "       name ( name ) name4 _? jr+",
+                "       name ( name ) name4",
+                "dr+ _? name   name?  name4",
+                "dr+ _? name   name?  name4             _? jr+",
+                "dr+ _? name   name?  name  conflict",
+                "dr+ _? name   name?  name? conflict    _? jr+",
+                "dr+ _? conflict      name? name? name4",
+                "dr+ _? conflict      name? name? name4 _? jr+",
+                "dr+ _?      A A? A?  name4",
+                "dr+ _?      A A? A?  name4 _? jr+",
+                "dr+ _? name A A? A?  name4",
+                "dr+ _? name A A? A?  name4 _? jr+",
+                "dr+ _? name ..       name4",
+                "dr+ _? name ..       name4 _? jr+",
+                "dr+ _? name ( name ) name4",
+                "dr+ _? name ( name ) name4 _? jr+",
+                "dr+ _? name ( name ) name4",
             ],
         ),
         Compiler(
@@ -248,16 +252,19 @@ def other_collector_patterns():
 
 @registry.misc("person_name_match")
 def person_name_match(ent):
-
     name = ent.text
     name = re.sub(rf" ({PUNCT})", r"\1", name)
     name = re.sub(r"\.\.|_", "", name)
 
-    if len(name.split()[-1]) < 3 or not NAME_RE.match(name.lower()):
+    if not NAME_RE.match(name.lower()):
         raise reject_match.RejectMatch
 
     for token in ent:
         token._.flag = "name"
+
+        # Only accept proper nouns or nouns
+        if len(token.text) > 1 and token.pos_ not in ("PROPN", "NOUN", "PUNCT"):
+            raise reject_match.RejectMatch
 
         # If there's a digit in the name reject it
         if re.search(r"\d", token.text):
