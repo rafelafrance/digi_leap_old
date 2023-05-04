@@ -367,3 +367,25 @@ class TestCollector(unittest.TestCase):
                 },
             ],
         )
+
+    def test_collector_24(self):
+        """It handles a person after a taxon."""
+        self.assertEqual(
+            test("""Associated Species: Cephalanthus occidentalis Cass Blodgett 829"""),
+            [
+                {
+                    "associated_taxon": "Cephalanthus occidentalis",
+                    "rank": "species",
+                    "trait": "associated_taxon",
+                    "start": 20,
+                    "end": 45,
+                },
+                {
+                    "collector_no": "829",
+                    "collector": "Cass Blodgett",
+                    "trait": "collector",
+                    "start": 46,
+                    "end": 63,
+                },
+            ],
+        )

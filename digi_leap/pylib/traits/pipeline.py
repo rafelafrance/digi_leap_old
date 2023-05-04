@@ -53,8 +53,8 @@ def build(model_path=None):
     color.build(nlp)
     habitat.build(nlp)
 
-    person.build(nlp, overwrite=["subpart", "color", "count", "admin_unit"])
     numeric.build(nlp)
+    person.build(nlp, overwrite=["subpart", "color", "count", "admin_unit"])
 
     habit.build(nlp)
     margin.build(nlp)

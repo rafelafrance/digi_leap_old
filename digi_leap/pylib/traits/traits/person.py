@@ -26,7 +26,7 @@ ID1 = r"^(\w*\d+\w*)$"
 ID2 = r"^(\w*\d+\w*|[A-Za-z])$"
 DASH_LIKE = r"^[._-]+$"
 
-NAME4 = [s for s in t_const.NAME_SHAPES if len(s) > 3 and s[-1] != "."]
+NAME4 = [s for s in t_const.NAME_SHAPES if len(s) > 3 and s[-1].isalpha()]
 
 NICK_OPEN = t_const.OPEN + t_const.QUOTE
 NICK_CLOSE = t_const.CLOSE + t_const.QUOTE
@@ -41,15 +41,16 @@ def build(nlp: Language, overwrite: list[str] = None):
     overwrite = overwrite if overwrite else []
     name_overwrite = overwrite + "name_prefix name_suffix no_label".split()
 
+    add.trait_pipe(nlp, name="not_name_patterns", compiler=not_name_patterns())
+
     add.trait_pipe(
         nlp,
         name="name_patterns",
         compiler=name_patterns(),
         overwrite=name_overwrite,
-        keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label"],
+        keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label", "not_name"],
     )
 
-    # add.debug_tokens(nlp)  # ##########################################
     job_overwrite = (
         overwrite + """ name col_label det_label no_label other_label id_no """.split()
     )
@@ -67,9 +68,29 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=other_collector_patterns(),
         overwrite=["other_collector"],
     )
-    # add.debug_tokens(nlp)  # ##########################################
 
     add.cleanup_pipe(nlp, name="person_cleanup")
+
+
+def not_name_patterns():
+    decoder = {
+        # "name": {"POS": {"IN": ["PROPN", "NOUN"]}},
+        "name": {"SHAPE": {"IN": t_const.NAME_SHAPES}},
+        "nope": {"ENT_TYPE": "not_name"},
+    }
+
+    return [
+        Compiler(
+            label="not_name",
+            on_match=reject_match.REJECT_MATCH,
+            decoder=decoder,
+            patterns=[
+                "      name+ nope+",
+                "nope+ name+",
+                "nope+ name+ nope+",
+            ],
+        ),
+    ]
 
 
 def name_patterns():
@@ -86,11 +107,11 @@ def name_patterns():
         "id1": {"LOWER": {"REGEX": ID1}},
         "id2": {"LOWER": {"REGEX": ID2}},
         "jr": {"ENT_TYPE": "name_suffix"},
-        "name": {"POS": {"IN": ["PROPN", "NOUN"]}},
+        # "name": {"POS": {"IN": ["PROPN", "NOUN"]}},
+        "name": {"SHAPE": {"IN": t_const.NAME_SHAPES}},
         "name4": {"SHAPE": {"IN": NAME4}},
         "no_label": {"ENT_TYPE": "no_label"},
         "no_space": {"SPACY": False},
-        "nope": {"ENT_TYPE": "not_name"},
     }
 
     return [
@@ -99,46 +120,36 @@ def name_patterns():
             on_match="person_name_match",
             decoder=decoder,
             patterns=[
-                "       name name? name4",
-                "       name name? name4             _? jr+",
-                "       name name? name? conflict",
-                "       name name? name? conflict    _? jr+",
-                "       conflict   name? name? name ",
-                "       conflict   name? name? name  _? jr+",
-                "            A A? A?  name4",
-                "            A A? A?  name4 _? jr+",
-                "       name A A? A?  name4",
-                "       name A A? A?  name4 _? jr+",
-                "       name ..       name4",
-                "       name ..       name4 _? jr+",
-                "       name ( name ) name4",
-                "       name ( name ) name4 _? jr+",
-                "       name ( name ) name4",
-                "dr+ _? name   name?  name4",
-                "dr+ _? name   name?  name4             _? jr+",
-                "dr+ _? name   name?  name  conflict",
-                "dr+ _? name   name?  name? conflict    _? jr+",
-                "dr+ _? conflict      name? name? name4",
-                "dr+ _? conflict      name? name? name4 _? jr+",
-                "dr+ _?      A A? A?  name4",
-                "dr+ _?      A A? A?  name4 _? jr+",
-                "dr+ _? name A A? A?  name4",
-                "dr+ _? name A A? A?  name4 _? jr+",
-                "dr+ _? name ..       name4",
-                "dr+ _? name ..       name4 _? jr+",
-                "dr+ _? name ( name ) name4",
-                "dr+ _? name ( name ) name4 _? jr+",
-                "dr+ _? name ( name ) name4",
-            ],
-        ),
-        Compiler(
-            label="not_name",
-            on_match=reject_match.REJECT_MATCH,
-            decoder=decoder,
-            patterns=[
-                "      name+ nope+",
-                "nope+ name+",
-                "nope+ name+ nope+",
+                "       name name?     name4",
+                "       name name?     name4      _? jr+",
+                "       name name?     conflict",
+                "       name name?     conflict  _? jr+",
+                "       conflict name? name4 ",
+                "       conflict name? name4     _? jr+",
+                "       A A? A?        name4",
+                "       A A? A?        name4     _? jr+",
+                "       name A A? A?   name4",
+                "       name A A? A?   name4     _? jr+",
+                "       name ..        name4",
+                "       name ..        name4     _? jr+",
+                "       name ( name )  name4",
+                "       name ( name )  name4     _? jr+",
+                "       name ( name )  name4",
+                "dr+ _? name   name?   name4",
+                "dr+ _? name   name?   name4     _? jr+",
+                "dr+ _? name   name?   conflict",
+                "dr+ _? name   name?   conflict  _? jr+",
+                "dr+ _? conflict name? name4",
+                "dr+ _? conflict name? name4     _? jr+",
+                "dr+ _? A A? A?        name4",
+                "dr+ _? A A? A?        name4     _? jr+",
+                "dr+ _? name A A? A?   name4",
+                "dr+ _? name A A? A?   name4     _? jr+",
+                "dr+ _? name ..        name4",
+                "dr+ _? name ..        name4     _? jr+",
+                "dr+ _? name ( name )  name4",
+                "dr+ _? name ( name )  name4     _? jr+",
+                "dr+ _? name ( name )  name4",
             ],
         ),
         Compiler(
@@ -146,7 +157,9 @@ def name_patterns():
             on_match="id_no_match",
             decoder=decoder,
             patterns=[
-                "             id1? no_space? id1? -? id2",
+                "             id1",
+                "             id1            id1? -? id2",
+                "             id1  no_space  id1? -? id2",
                 "no_label+ :* id1? no_space? id1? -? id2",
             ],
         ),
