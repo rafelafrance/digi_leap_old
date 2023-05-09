@@ -49,10 +49,17 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--ocr-set",
+        "--in-ocr-set",
         required=True,
         metavar="NAME",
         help="""Process this OCR set.""",
+    )
+
+    arg_parser.add_argument(
+        "--out-ocr-set",
+        required=True,
+        metavar="NAME",
+        help="""Output to this OCR set.""",
     )
 
     args = arg_parser.parse_args()

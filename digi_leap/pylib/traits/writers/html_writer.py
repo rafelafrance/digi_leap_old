@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from ... import const
 
-BASE_HEIGHT = 600.0  # pixels
+MAX_SIZE = 600.0  # pixels
 
 
 @dataclass(kw_only=True)
@@ -56,8 +56,12 @@ class HtmlWriter(BaseWriter):
             )
         )
 
-        width = round(BASE_HEIGHT / image.size[1] * image.size[0])
-        image = image.resize((width, int(BASE_HEIGHT)))
+        if image.size[1] > image.size[0]:
+            width = round(MAX_SIZE / image.size[1] * image.size[0])
+            image = image.resize((width, int(MAX_SIZE)))
+        else:
+            height = round(MAX_SIZE / image.size[0] * image.size[1])
+            image = image.resize((int(MAX_SIZE), height))
 
         memory = io.BytesIO()
         image.save(memory, format="JPEG")

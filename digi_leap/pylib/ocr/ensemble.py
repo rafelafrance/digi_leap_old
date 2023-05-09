@@ -3,8 +3,8 @@ from traiter.pylib.spell_well import SpellWell
 from . import label_transformer as lt
 from . import ocr_runner
 from ..builder import label_builder
-from ..builder import line_align_py
 from ..builder.line_align import char_sub_matrix as subs
+from ..builder.line_align import line_align_py
 
 
 class Ensemble:

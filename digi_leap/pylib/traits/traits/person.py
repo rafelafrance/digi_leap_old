@@ -9,6 +9,7 @@ from traiter.pylib.pattern_compiler import ACCUMULATOR
 from traiter.pylib.pattern_compiler import Compiler
 from traiter.pylib.pipes import add
 from traiter.pylib.pipes import reject_match
+from traiter.pylib.pipes import trait
 from traiter.pylib.traits import terms as t_terms
 
 CONFLICT = ["us_county", "color"]
@@ -25,6 +26,7 @@ CONJ = ["CCONJ", "ADP"]
 ID1 = r"^(\w*\d+\w*)$"
 ID2 = r"^(\w*\d+\w*|[A-Za-z])$"
 DASH_LIKE = r"^[._-]+$"
+SEP = ["and", "with", "et"] + list("&._,;")
 
 NAME4 = [s for s in t_const.NAME_SHAPES if len(s) > 3 and s[-1].isalpha()]
 
@@ -50,6 +52,7 @@ def build(nlp: Language, overwrite: list[str] = None):
         overwrite=name_overwrite,
         keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label", "not_name"],
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     job_overwrite = (
         overwrite + """ name col_label det_label no_label other_label id_no """.split()
@@ -60,6 +63,9 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=job_patterns(),
         overwrite=job_overwrite,
     )
+
+    add.custom_pipe(nlp, registered="separated_collector")
+
     # add.debug_tokens(nlp)  # ##########################################
 
     add.trait_pipe(
@@ -98,6 +104,7 @@ def name_patterns():
         "(": {"TEXT": {"IN": NICK_OPEN}},
         ")": {"TEXT": {"IN": NICK_CLOSE}},
         "-": {"TEXT": {"REGEX": DASH_LIKE}},
+        ",": {"TEXT": {"IN": t_const.COMMA}},
         "..": {"TEXT": {"REGEX": r"^[.]+$"}},
         ":": {"LOWER": {"REGEX": rf"^(by|{PUNCT}+)$"}},
         "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
@@ -107,7 +114,6 @@ def name_patterns():
         "id1": {"LOWER": {"REGEX": ID1}},
         "id2": {"LOWER": {"REGEX": ID2}},
         "jr": {"ENT_TYPE": "name_suffix"},
-        # "name": {"POS": {"IN": ["PROPN", "NOUN"]}},
         "name": {"SHAPE": {"IN": t_const.NAME_SHAPES}},
         "name4": {"SHAPE": {"IN": NAME4}},
         "no_label": {"ENT_TYPE": "no_label"},
@@ -150,6 +156,7 @@ def name_patterns():
                 "dr+ _? name ( name )  name4",
                 "dr+ _? name ( name )  name4     _? jr+",
                 "dr+ _? name ( name )  name4",
+                # "       name ,         name4",
             ],
         ),
         Compiler(
@@ -160,6 +167,14 @@ def name_patterns():
                 "             id1",
                 "             id1            id1? -? id2",
                 "             id1  no_space  id1? -? id2",
+                "                  no_space       -  id1",
+            ],
+        ),
+        Compiler(
+            label="labeled_id_no",
+            on_match="id_no_match",
+            decoder=decoder,
+            patterns=[
                 "no_label+ :* id1? no_space? id1? -? id2",
             ],
         ),
@@ -173,39 +188,39 @@ def job_patterns():
         "-": {"TEXT": {"REGEX": DASH_LIKE}},
         ".": {"TEXT": {"REGEX": r"^[._,]+$"}},
         ":": {"LOWER": {"REGEX": rf"^(by|{PUNCT}+)$"}},
-        "and": {"POS": {"IN": CONJ}},
         "bad": {"ENT_TYPE": {"IN": BAD_ENT}},
         "by": {"LOWER": {"IN": ["by"]}},
         "col_label": {"ENT_TYPE": "col_label"},
         "det_label": {"ENT_TYPE": "det_label"},
-        "id_no": {"ENT_TYPE": "id_no"},
+        "id_no": {"ENT_TYPE": {"IN": ["id_no", "labeled_id_no"]}},
         "maybe": {"POS": "PROPN"},
         "name": {"ENT_TYPE": "name"},
         "nope": {"ENT_TYPE": "not_name"},
         "other_label": {"ENT_TYPE": "other_label"},
         "other_col": {"ENT_TYPE": "other_collector"},
-        "sep": {"LOWER": {"IN": CONJ + list("._,;")}},
+        "sep": {"LOWER": {"IN": SEP}},
     }
 
     return [
         Compiler(
             label="collector",
             on_match="collector_match",
-            keep="collector",
+            keep=["collector", "collector_no"],
             decoder=decoder,
             patterns=[
                 "col_label+ :* name+",
-                "col_label+ :* name+ and name+",
-                "col_label+ :* name+ and name+ and name+",
+                "col_label+ :* name+ sep name+",
+                "col_label+ :* name+ sep name+ sep name+",
                 "col_label+ :* name+                     id_no+",
-                "col_label+ :* name+ and name+           id_no+",
-                "col_label+ :* name+ and name+ and name+ id_no+",
+                "col_label+ :* name+ sep name+           id_no+",
+                "col_label+ :* name+ sep name+ sep name+ id_no+",
                 "              name+                     id_no+",
-                "              name+ and name+           id_no+",
-                "              name+ and name+ and name+ id_no+",
+                "              name+ sep name+           id_no+",
+                "              name+ sep name+ sep name+ id_no+",
                 "id_no+        name+",
-                "id_no+        name+ and name+",
-                "id_no+        name+ and name+ and name+",
+                "id_no+        name+ sep name+",
+                "id_no+        name+ sep name+ sep name+",
+                "col_label+ :* name+ sep name+ sep name+ sep name+",
             ],
         ),
         Compiler(
@@ -243,7 +258,7 @@ def other_collector_patterns():
         "maybe": {"POS": "PROPN"},
         "name": {"ENT_TYPE": "name"},
         "other_col": {"ENT_TYPE": "other_collector"},
-        "sep": {"LOWER": {"IN": CONJ + list("._,;")}},
+        "sep": {"LOWER": {"IN": SEP}},
     }
 
     return [
@@ -276,7 +291,7 @@ def person_name_match(ent):
         token._.flag = "name"
 
         # Only accept proper nouns or nouns
-        if len(token.text) > 1 and token.pos_ not in ("PROPN", "NOUN", "PUNCT"):
+        if len(token.text) > 1 and token.pos_ not in ("PROPN", "NOUN", "PUNCT", "AUX"):
             raise reject_match.RejectMatch
 
         # If there's a digit in the name reject it
@@ -314,6 +329,36 @@ def collector_match(ent):
     ent._.data = {"collector": people if len(people) > 1 else people[0]}
     if col_no:
         ent._.data["collector_no"] = col_no
+
+
+@Language.component("separated_collector")
+def separated_collector(doc):
+    """Look for collectors separated from their ID numbers."""
+    name = None
+
+    for ent in doc.ents:
+
+        if ent.label_ == "name":
+            name = ent
+
+        elif name and ent.label_ == "labeled_id_no":
+            trait.relabel_entity(ent, "collector_no")
+            ent._.data["trait"] = "collector_no"
+            ent._.data["collector_no"] = ent._.data["id_no"]
+            del ent._.data["id_no"]
+            for token in ent:
+                token.ent_type_ = "collector_no"
+
+            trait.relabel_entity(name, "collector")
+            name._.data["trait"] = "collector"
+            name._.data["collector"] = name._.data["name"]
+            ent._.data["collector"] = name._.data["name"]
+            name._.data["collector_no"] = ent._.data["collector_no"]
+            del name._.data["name"]
+            for token in name:
+                token.ent_type_ = "collector"
+
+    return doc
 
 
 @registry.misc("determiner_match")
@@ -372,6 +417,8 @@ def other_collector2_match(ent):
 @registry.misc("id_no_match")
 def id_no_match(ent):
     frags = [t.text for t in ent if t.ent_type_ != "no_label"]
-    ent._.data["id_no"] = "".join(frags)
+    frags = "".join(frags)
+    frags = re.sub(r"^[,]", "", frags)
+    ent._.data["id_no"] = frags
     ent[0]._.data = ent._.data
     ent[0]._.flag = "id_no"

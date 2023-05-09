@@ -389,3 +389,61 @@ class TestCollector(unittest.TestCase):
                 },
             ],
         )
+
+    def test_collector_25(self):
+        """It handles a person after a taxon."""
+        self.assertEqual(
+            test("""NCI Code 0GDK0132-Z"""),
+            [],
+        )
+
+    def test_collector_26(self):
+        """It handles a person after a taxon."""
+        self.assertEqual(
+            test(
+                """NCI Code 0GDK0132-Z
+                Collected by W. Hess, K. Allen, K. Weise, S. Peterson
+                """
+            ),
+            [
+                {
+                    "collector": ["W. Hess", "K. Allen", "K. Weise", "S. Peterson"],
+                    "trait": "collector",
+                    "start": 20,
+                    "end": 73,
+                }
+            ],
+        )
+
+    def test_collector_27(self):
+        """It handles a collector separated from their collector number."""
+        self.assertEqual(
+            test(
+                """Little Belt Mountains J.B. Scammons Elevation: 5800 ft.
+                No, 105 July 6, 1956"""
+            ),
+            [
+                {
+                    "trait": "collector",
+                    "start": 22,
+                    "end": 35,
+                    "collector": "J.B. Scammons",
+                    "collector_no": "105",
+                },
+                {
+                    "elevation": 1767.84,
+                    "units": "m",
+                    "trait": "elevation",
+                    "start": 36,
+                    "end": 54,
+                },
+                {
+                    "collector": "J.B. Scammons",
+                    "trait": "collector_no",
+                    "start": 56,
+                    "end": 63,
+                    "collector_no": "105",
+                },
+                {"date": "1956-07-06", "trait": "date", "start": 64, "end": 76},
+            ],
+        )
