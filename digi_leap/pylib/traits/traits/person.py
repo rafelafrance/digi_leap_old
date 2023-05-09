@@ -26,7 +26,7 @@ CONJ = ["CCONJ", "ADP"]
 ID1 = r"^(\w*\d+\w*)$"
 ID2 = r"^(\w*\d+\w*|[A-Za-z])$"
 DASH_LIKE = r"^[._-]+$"
-SEP = ["and", "with", "et"] + list("&._,;")
+SEP = ["and", "with", "et", *list("&._,;")]
 
 NAME4 = [s for s in t_const.NAME_SHAPES if len(s) > 3 and s[-1].isalpha()]
 
@@ -335,13 +335,16 @@ def collector_match(ent):
 def separated_collector(doc):
     """Look for collectors separated from their ID numbers."""
     name = None
+    allow = False
 
     for ent in doc.ents:
 
         if ent.label_ == "name":
             name = ent
+            allow = True
 
-        elif name and ent.label_ == "labeled_id_no":
+        elif allow and ent.label_ == "labeled_id_no":
+            allow = False
             trait.relabel_entity(ent, "collector_no")
             ent._.data["trait"] = "collector_no"
             ent._.data["collector_no"] = ent._.data["id_no"]
