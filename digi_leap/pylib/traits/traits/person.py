@@ -5,11 +5,8 @@ from plants.pylib.traits import terms as p_terms
 from spacy.language import Language
 from spacy.util import registry
 from traiter.pylib import const as t_const
-from traiter.pylib.pattern_compiler import ACCUMULATOR
-from traiter.pylib.pattern_compiler import Compiler
-from traiter.pylib.pipes import add
-from traiter.pylib.pipes import reject_match
-from traiter.pylib.pipes import trait
+from traiter.pylib.pattern_compiler import ACCUMULATOR, Compiler
+from traiter.pylib.pipes import add, reject_match, trait
 from traiter.pylib.traits import terms as t_terms
 
 CONFLICT = ["us_county", "color"]
@@ -52,7 +49,6 @@ def build(nlp: Language, overwrite: list[str] = None):
         overwrite=name_overwrite,
         keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label", "not_name"],
     )
-    # add.debug_tokens(nlp)  # ##########################################
 
     job_overwrite = (
         overwrite + """ name col_label det_label no_label other_label id_no """.split()
@@ -66,7 +62,6 @@ def build(nlp: Language, overwrite: list[str] = None):
 
     add.custom_pipe(nlp, registered="separated_collector")
 
-    # add.debug_tokens(nlp)  # ##########################################
 
     add.trait_pipe(
         nlp,
@@ -74,6 +69,7 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=other_collector_patterns(),
         overwrite=["other_collector"],
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     add.cleanup_pipe(nlp, name="person_cleanup")
 
@@ -164,10 +160,11 @@ def name_patterns():
             on_match="id_no_match",
             decoder=decoder,
             patterns=[
-                "             id1",
-                "             id1            id1? -? id2",
-                "             id1  no_space  id1? -? id2",
-                "                  no_space       -  id1",
+                "no_space+ id1",
+                "id1",
+                # "             id1            id1? -? id2",
+                # "             id1  no_space+",
+                # "                  no_space       -  id1",
             ],
         ),
         Compiler(
@@ -414,7 +411,8 @@ def other_collector2_match(ent):
         else:
             person.append(token.text)
 
-    ent._.data["other_collector"] = [*people, " ".join(person)]
+    if person:
+        ent._.data["other_collector"] = [*people, " ".join(person)]
 
 
 @registry.misc("id_no_match")

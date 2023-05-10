@@ -52,6 +52,8 @@ not_name,common
 not_name,community
 not_name,comuna
 not_name,comunal
+not_name,co
+not_name,co.
 not_name,conservation
 not_name,conservatory
 not_name,cooperative
@@ -169,6 +171,7 @@ not_name,quadrangle
 not_name,quartermaster
 not_name,railroad
 not_name,railway
+not_name,region
 not_name,reservation
 not_name,reserve
 not_name,reservoir
@@ -224,4 +227,5 @@ not_name,wildlife
 not_name,zone
 not_name,°
 other_label,w/
+other_label,with
 other_label,with:

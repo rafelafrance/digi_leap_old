@@ -190,7 +190,7 @@ class TestCollector(unittest.TestCase):
     def test_collector_13(self):
         self.assertEqual(
             test("""TIMON, R16W,"""),
-            [],
+            [{"end": 12, "start": 7, "trait": "trs", "trs": "R16W"}],
         )
 
     def test_collector_14(self):
@@ -445,5 +445,44 @@ class TestCollector(unittest.TestCase):
                     "collector_no": "105",
                 },
                 {"date": "1956-07-06", "trait": "date", "start": 64, "end": 76},
+            ],
+        )
+
+    def test_collector_28(self):
+        """It handles a collector with number and a other collectors."""
+        self.assertEqual(
+            test(
+                """Joshua R. Campbell 327 w/ S. Dickman"""
+            ),
+            [
+                {
+                    "collector": "Joshua R. Campbell",
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 22,
+                    "collector_no": "327",
+                },
+                {
+                    "other_collector": ["S. Dickman"],
+                    "trait": "other_collector",
+                    "start": 23,
+                    "end": 36,
+                },
+            ],
+        )
+
+    def test_collector_29(self):
+        """It handles a collector with number and a other collectors."""
+        self.assertEqual(
+            test(
+                """with Bob Simmons, Dana Griffin & Tom Morris"""
+            ),
+            [
+                {
+                    "other_collector": ["Bob Simmons", "Dana Griffin", "Tom Morris"],
+                    "trait": "other_collector",
+                    "start": 0,
+                    "end": 43,
+                },
             ],
         )
