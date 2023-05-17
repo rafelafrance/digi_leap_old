@@ -486,3 +486,73 @@ class TestCollector(unittest.TestCase):
                 },
             ],
         )
+
+    def test_collector_30(self):
+        self.assertEqual(
+            test(
+                """With: Cindy Smith, Scott Rowan Sponsored by"""
+            ),
+            [
+                {
+                    "other_collector": ["Cindy Smith", "Scott Rowan"],
+                    "trait": "other_collector",
+                    "start": 0,
+                    "end": 30,
+                },
+            ],
+        )
+
+    def test_collector_31(self):
+        self.assertEqual(
+            test(
+                """Joni Ward 866-a"""
+            ),
+            [
+                {
+                    "collector": "Joni Ward",
+                    "trait": "collector",
+                    "collector_no": "866-a",
+                    "start": 0,
+                    "end": 15,
+                },
+            ],
+        )
+
+    def test_collector_32(self):
+        self.assertEqual(
+            test(
+                """Cole Larsson-Whittaker 866-a"""
+            ),
+            [
+                {
+                    "collector": "Cole Larsson-Whittaker",
+                    "trait": "collector",
+                    "collector_no": "866-a",
+                    "start": 0,
+                    "end": 28,
+                },
+            ],
+        )
+
+    def test_collector_33(self):
+        self.assertEqual(
+            test(
+                """Collectors: Avena Nelson, Elias Nelson."""
+            ),
+            [
+                {
+                    "collector": ["Avena Nelson", "Elias Nelson"],
+                    "trait": "collector",
+                    "start": 0,
+                    "end": 38,
+                },
+            ],
+        )
+
+    def test_collector_34(self):
+        self.assertEqual(
+            test(
+                """of Ua C. Riverside (UCR)y Canis"""
+            ),
+            [],
+        )

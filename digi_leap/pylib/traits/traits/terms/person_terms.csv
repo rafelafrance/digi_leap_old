@@ -45,7 +45,6 @@ not_name,canada
 not_name,center
 not_name,central
 not_name,city
-not_name,collecter
 not_name,collection
 not_name,college
 not_name,common
@@ -65,6 +64,7 @@ not_name,database
 not_name,department
 not_name,depression
 not_name,desc
+not_name,desert
 not_name,district
 not_name,districts
 not_name,diversity
@@ -76,6 +76,7 @@ not_name,ecoregion
 not_name,ecuador
 not_name,elev
 not_name,emergent
+not_name,entered
 not_name,entrance
 not_name,environment
 not_name,environmental
@@ -138,6 +139,7 @@ not_name,longitude
 not_name,mountain
 not_name,mountains
 not_name,national
+not_name,northern
 not_name,occasional
 not_name,occurrence
 not_name,ocean
@@ -178,6 +180,7 @@ not_name,reservoir
 not_name,resort
 not_name,resources
 not_name,riparian
+not_name,riverside
 not_name,road
 not_name,route
 not_name,rt
@@ -189,6 +192,7 @@ not_name,scientific
 not_name,service
 not_name,southeastern
 not_name,sp.
+not_name,sponsored
 not_name,standl.
 not_name,state
 not_name,states

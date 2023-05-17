@@ -17,7 +17,7 @@ from plants.pylib.traits import (
     taxon_like,
 )
 from traiter.pylib.pipes import extensions, sentence, tokenizer
-from traiter.pylib.traits import color, date_, elevation, habitat, lat_long, trs
+from traiter.pylib.traits import color, date_, elevation, geocoordinates, habitat
 
 from .traits import admin_unit, associated_taxon, person
 
@@ -41,8 +41,7 @@ def build(model_path=None):
     part.build(nlp)
 
     elevation.build(nlp)
-    lat_long.build(nlp)
-    trs.build(nlp)
+    geocoordinates.build(nlp)
 
     color.build(nlp)
     habitat.build(nlp)
