@@ -19,7 +19,7 @@ def main():
     if args.out_html:
         reader = LabelReader(args)
         writer = HtmlWriter(args.out_html)
-        writer.write(reader.labels, args.trait_set)
+        writer.write(reader.labels, args)
 
     log.finished()
 
@@ -54,18 +54,28 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--word-threshold",
-        metavar="INT",
-        default=20,
-        help="""A label must have at least this many words for parsing.
-            (default: %(default)s)""",
-    )
-
-    arg_parser.add_argument(
         "--out-html",
         type=Path,
         metavar="PATH",
         help="""Output the results to this HTML file.""",
+    )
+
+    arg_parser.add_argument(
+        "--score-cutoff",
+        type=float,
+        default=0.75,
+        metavar="FRACTION",
+        help="""Only keep labels if their score is this or more.
+            The score is between 0.0 and 1.0. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--length-cutoff",
+        type=int,
+        default=20,
+        metavar="LENGTH",
+        help="""Only keep labels if they have at least this many words.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

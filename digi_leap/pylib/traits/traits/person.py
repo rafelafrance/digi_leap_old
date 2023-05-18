@@ -9,26 +9,15 @@ from traiter.pylib.pattern_compiler import ACCUMULATOR, Compiler
 from traiter.pylib.pipes import add, reject_match, trait
 from traiter.pylib.traits import terms as t_terms
 
-CONFLICT = ["us_county", "color"]
-ALLOW = [*CONFLICT, "PERSON"]
-
 PERSON_CSV = Path(__file__).parent / "terms" / "person_terms.csv"
 NAME_CSV = Path(t_terms.__file__).parent / "name_terms.csv"
 JOB_CSV = Path(p_terms.__file__).parent / "job_terms.csv"
 ALL_CSVS = [PERSON_CSV, NAME_CSV, JOB_CSV]
 
-BAD_ENT = """ month """.split()
 PUNCT = "[.:;,_-]"
-CONJ = ["CCONJ", "ADP"]
-ID1 = r"^(\w*\d+\w*)$"
-ID2 = r"^(\w*\d+\w*|[A-Za-z])$"
-DASH_LIKE = r"^[._-]+$"
 SEP = ["and", "with", "et", *list("&._,;")]
 
-NAME4 = [s for s in t_const.NAME_SHAPES if len(s) > 3 and s[-1].isalpha()]
-
-NICK_OPEN = t_const.OPEN + t_const.QUOTE
-NICK_CLOSE = t_const.CLOSE + t_const.QUOTE
+NAME4 = [s for s in t_const.NAME_SHAPES if len(s) >= 4 and s[-1].isalpha()]
 
 NAME_RE = "".join(t_const.OPEN + t_const.CLOSE + t_const.QUOTE + list(".,'&"))
 NAME_RE = re.compile(rf"^[\sa-z{re.escape(NAME_RE)}-]+$")
@@ -38,7 +27,6 @@ def build(nlp: Language, overwrite: list[str] = None):
     add.term_pipe(nlp, name="person_terms", path=ALL_CSVS)
 
     overwrite = overwrite if overwrite else []
-    name_overwrite = overwrite + "name_prefix name_suffix no_label".split()
 
     add.trait_pipe(nlp, name="not_name_patterns", compiler=not_name_patterns())
 
@@ -46,9 +34,10 @@ def build(nlp: Language, overwrite: list[str] = None):
         nlp,
         name="name_patterns",
         compiler=name_patterns(),
-        overwrite=name_overwrite,
+        overwrite=overwrite + "name_prefix name_suffix no_label".split(),
         keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label", "not_name"],
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     job_overwrite = (
         overwrite + """ name col_label det_label no_label other_label id_no """.split()
@@ -59,15 +48,16 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=job_patterns(),
         overwrite=job_overwrite,
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     add.custom_pipe(nlp, registered="separated_collector")
-
 
     add.trait_pipe(
         nlp,
         name="other_collector_patterns",
         compiler=other_collector_patterns(),
         overwrite=["other_collector"],
+        keep=[*ACCUMULATOR.keep, "not_name"],
     )
     # add.debug_tokens(nlp)  # ##########################################
 
@@ -97,18 +87,18 @@ def not_name_patterns():
 
 def name_patterns():
     decoder = {
-        "(": {"TEXT": {"IN": NICK_OPEN}},
-        ")": {"TEXT": {"IN": NICK_CLOSE}},
-        "-": {"TEXT": {"REGEX": DASH_LIKE}},
+        "(": {"TEXT": {"IN": t_const.OPEN + t_const.QUOTE}},
+        ")": {"TEXT": {"IN": t_const.CLOSE + t_const.QUOTE}},
+        "-": {"TEXT": {"REGEX": r"^[._-]+$"}},
         ",": {"TEXT": {"IN": t_const.COMMA}},
         "..": {"TEXT": {"REGEX": r"^[.]+$"}},
         ":": {"LOWER": {"REGEX": rf"^(by|{PUNCT}+)$"}},
         "A": {"TEXT": {"REGEX": r"^[A-Z][._,]?$"}},
         "_": {"TEXT": {"REGEX": r"^[._,]+$"}},
-        "conflict": {"ENT_TYPE": {"IN": CONFLICT}},
+        "ambig": {"ENT_TYPE": {"IN": ["us_county", "color"]}},
         "dr": {"ENT_TYPE": "name_prefix"},
-        "id1": {"LOWER": {"REGEX": ID1}},
-        "id2": {"LOWER": {"REGEX": ID2}},
+        "id1": {"LOWER": {"REGEX": r"^(\w*\d+\w*)$"}},
+        "id2": {"LOWER": {"REGEX": r"^(\w*\d+\w*|[A-Za-z])$"}},
         "jr": {"ENT_TYPE": "name_suffix"},
         "name": {"SHAPE": {"IN": t_const.NAME_SHAPES}},
         "name4": {"SHAPE": {"IN": NAME4}},
@@ -124,10 +114,10 @@ def name_patterns():
             patterns=[
                 "       name name?     no_space* name4",
                 "       name name?     no_space* name4      _? jr+",
-                "       name name?     conflict",
-                "       name name?     conflict             _? jr+",
-                "       conflict name? no_space* name4 ",
-                "       conflict name? no_space* name4     _? jr+",
+                "       name name?     ambig",
+                "       name name?     ambig                _? jr+",
+                "       ambig name? no_space* name4 ",
+                "       ambig name? no_space* name4        _? jr+",
                 "       A A? A?        no_space* name4",
                 "       A A? A?        no_space* name4     _? jr+",
                 "       name A A? A?   no_space* name4",
@@ -139,10 +129,10 @@ def name_patterns():
                 "       name ( name )  no_space* name4",
                 "dr+ _? name   name?   no_space* name4",
                 "dr+ _? name   name?   no_space* name4     _? jr+",
-                "dr+ _? name   name?   conflict",
-                "dr+ _? name   name?   conflict            _? jr+",
-                "dr+ _? conflict name? no_space* name4",
-                "dr+ _? conflict name? no_space* name4     _? jr+",
+                "dr+ _? name   name?   ambig",
+                "dr+ _? name   name?   ambig               _? jr+",
+                "dr+ _? ambig name? no_space* name4",
+                "dr+ _? ambig name? no_space* name4        _? jr+",
                 "dr+ _? A A? A?        no_space* name4",
                 "dr+ _? A A? A?        no_space* name4     _? jr+",
                 "dr+ _? name A A? A?   no_space* name4",
@@ -152,7 +142,6 @@ def name_patterns():
                 "dr+ _? name ( name )  no_space* name4",
                 "dr+ _? name ( name )  no_space* name4     _? jr+",
                 "dr+ _? name ( name )  no_space* name4",
-                # "       name ,         no_space* name4",
             ],
         ),
         Compiler(
@@ -179,7 +168,7 @@ def name_patterns():
 def job_patterns():
     decoder = {
         ":": {"LOWER": {"REGEX": rf"^(by|{PUNCT}+)$"}},
-        "bad": {"ENT_TYPE": {"IN": BAD_ENT}},
+        "bad": {"ENT_TYPE": {"IN": ["month"]}},
         "by": {"LOWER": {"IN": ["by"]}},
         "col_label": {"ENT_TYPE": "col_label"},
         "det_label": {"ENT_TYPE": "det_label"},
@@ -245,7 +234,7 @@ def job_patterns():
 
 def other_collector_patterns():
     decoder = {
-        "and": {"POS": {"IN": CONJ}},
+        "and": {"POS": {"IN": ["CCONJ", "ADP"]}},
         "maybe": {"POS": "PROPN"},
         "name": {"ENT_TYPE": "name"},
         "other_col": {"ENT_TYPE": "other_collector"},
@@ -326,33 +315,52 @@ def collector_match(ent):
 def separated_collector(doc):
     """Look for collectors separated from their ID numbers."""
     name = None
-    allow = False
+    collector = None
+    dist = 0
 
     for ent in doc.ents:
+        if dist:
+            dist += 1
+            if dist > 5:
+                return doc
 
-        if ent.label_ == "name":
+        if ent.label_ == "collector":
+            dist = 1
+            collector = ent
+
+        elif ent.label_ == "name" and not collector:
+            dist = 1
             name = ent
-            allow = True
 
-        elif allow and ent.label_ == "labeled_id_no":
-            allow = False
-            trait.relabel_entity(ent, "collector_no")
-            ent._.data["trait"] = "collector_no"
-            ent._.data["collector_no"] = ent._.data["id_no"]
-            del ent._.data["id_no"]
-            for token in ent:
-                token.ent_type_ = "collector_no"
+        elif collector and ent.label_ == "labeled_id_no":
+            collector_number(ent)
+
+            collector._.data["collector_no"] = ent._.data["collector_no"]
+            return doc
+
+        elif name and ent.label_ == "labeled_id_no":
+            collector_number(ent)
 
             trait.relabel_entity(name, "collector")
+            ent._.data["collector"] = name._.data["name"]
             name._.data["trait"] = "collector"
             name._.data["collector"] = name._.data["name"]
-            ent._.data["collector"] = name._.data["name"]
             name._.data["collector_no"] = ent._.data["collector_no"]
             del name._.data["name"]
             for token in name:
                 token.ent_type_ = "collector"
+            return doc
 
     return doc
+
+
+def collector_number(ent):
+    trait.relabel_entity(ent, "collector_no")
+    ent._.data["trait"] = "collector_no"
+    ent._.data["collector_no"] = ent._.data["id_no"]
+    del ent._.data["id_no"]
+    for token in ent:
+        token.ent_type_ = "collector_no"
 
 
 @registry.misc("determiner_match")

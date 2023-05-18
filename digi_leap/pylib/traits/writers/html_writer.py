@@ -2,11 +2,16 @@ import base64
 import io
 import warnings
 from dataclasses import dataclass
+from pathlib import Path
 
+import regex as re
 from PIL import Image
+from plants.pylib.traits import terms as p_terms
 from plants.pylib.writers.html_writer import HtmlWriter as BaseWriter
 from plants.pylib.writers.html_writer import HtmlWriterRow as BaseWriterRow
 from tqdm import tqdm
+from traiter.pylib import term_util
+from traiter.pylib.spell_well import SpellWell
 
 from ... import const
 
@@ -17,27 +22,59 @@ MAX_SIZE = 600.0  # pixels
 class HtmlWriterRow(BaseWriterRow):
     label_id: int = 0
     label_image: str = ""
+    word_count: int = 0
+    spell_count: int = 0
+    ratio: float = 0.0
 
 
 class HtmlWriter(BaseWriter):
     def __init__(self, out_html):
+
         super().__init__(
             template_dir=f"{const.ROOT_DIR}/digi_leap/pylib/traits/writers/templates",
             out_html=out_html,
         )
 
-    def write(self, labels, in_file_name=""):
-        for lb in tqdm(sorted(labels, key=lambda label: label.label_id), desc="write"):
-            self.formatted.append(
-                HtmlWriterRow(
-                    label_id=lb.label_id,
-                    formatted_text=self.format_text(lb),
-                    formatted_traits=self.format_traits(lb),
-                    label_image=self.get_label_image(lb),
-                )
-            )
+        self.spell_well = SpellWell()
 
-        self.write_template(in_file_name)
+        self.words = {w.lower() for w in self.spell_well.vocab_to_set()}
+
+        path = Path(p_terms.__file__).parent / "binomial_terms.zip"
+        for term in term_util.read_terms(path):
+            self.words |= set(term["pattern"].lower().split())
+
+        path = Path(p_terms.__file__).parent / "monomial_terms.zip"
+        self.words |= {t["pattern"] for t in term_util.read_terms(path)}
+
+    def write(self, labels, args=None):
+        for lb in tqdm(sorted(labels, key=lambda label: label.label_id), desc="write"):
+
+            word_count, spell_count, ratio = self.get_counts(lb)
+
+            if word_count >= args.length_cutoff and ratio >= args.score_cutoff:
+
+                self.formatted.append(
+                    HtmlWriterRow(
+                        label_id=lb.label_id,
+                        formatted_text=self.format_text(lb, exclude=["trs"]),
+                        formatted_traits=self.format_traits(lb),
+                        label_image=self.get_label_image(lb),
+                        word_count=word_count,
+                        spell_count=spell_count,
+                        ratio=ratio,
+                    )
+                )
+
+        self.write_template(args.trait_set)
+
+    def get_counts(self, label):
+        tokens = [t for t in re.split(r"[^\p{L}]+", label.text.lower()) if t]
+        total = len(tokens)
+
+        count = sum(1 for w in tokens if w in self.words)
+
+        ratio = 0.0 if total == 0 else round(count / total, 2)
+        return total, count, ratio
 
     @staticmethod
     def get_label_image(label) -> str:

@@ -55,7 +55,7 @@ def build(model_path=None):
     surface.build(nlp)
 
     admin_unit.build(nlp, overwrite=["color"])
-    taxon.build(nlp, extend=2, overwrite=["habitat"])
+    taxon.build(nlp, extend=2, overwrite=["habitat", "color"], auth_keep=["not_name"])
 
     part_location.build(nlp)
     taxon_like.build(nlp)

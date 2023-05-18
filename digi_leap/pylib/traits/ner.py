@@ -3,8 +3,8 @@ import json
 from tqdm import tqdm
 from traiter.pylib import util
 
-from . import pipeline
 from ..db import db
+from . import pipeline
 
 
 def ner(args):
@@ -29,9 +29,6 @@ def ner(args):
             text = util.shorten(ocr_text["ocr_text"])
 
             batch = []
-
-            if len(text.split()) < args.word_threshold:
-                continue
 
             doc = nlp(text)
 

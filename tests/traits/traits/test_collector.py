@@ -190,7 +190,7 @@ class TestCollector(unittest.TestCase):
     def test_collector_13(self):
         self.assertEqual(
             test("""TIMON, R16W,"""),
-            [{"end": 12, "start": 7, "trait": "trs", "trs": "R16W"}],
+            [],
         )
 
     def test_collector_14(self):
@@ -451,9 +451,7 @@ class TestCollector(unittest.TestCase):
     def test_collector_28(self):
         """It handles a collector with number and a other collectors."""
         self.assertEqual(
-            test(
-                """Joshua R. Campbell 327 w/ S. Dickman"""
-            ),
+            test("""Joshua R. Campbell 327 w/ S. Dickman"""),
             [
                 {
                     "collector": "Joshua R. Campbell",
@@ -474,9 +472,7 @@ class TestCollector(unittest.TestCase):
     def test_collector_29(self):
         """It handles a collector with number and a other collectors."""
         self.assertEqual(
-            test(
-                """with Bob Simmons, Dana Griffin & Tom Morris"""
-            ),
+            test("""with Bob Simmons, Dana Griffin & Tom Morris"""),
             [
                 {
                     "other_collector": ["Bob Simmons", "Dana Griffin", "Tom Morris"],
@@ -489,9 +485,7 @@ class TestCollector(unittest.TestCase):
 
     def test_collector_30(self):
         self.assertEqual(
-            test(
-                """With: Cindy Smith, Scott Rowan Sponsored by"""
-            ),
+            test("""With: Cindy Smith, Scott Rowan Sponsored by"""),
             [
                 {
                     "other_collector": ["Cindy Smith", "Scott Rowan"],
@@ -504,9 +498,7 @@ class TestCollector(unittest.TestCase):
 
     def test_collector_31(self):
         self.assertEqual(
-            test(
-                """Joni Ward 866-a"""
-            ),
+            test("""Joni Ward 866-a"""),
             [
                 {
                     "collector": "Joni Ward",
@@ -520,9 +512,7 @@ class TestCollector(unittest.TestCase):
 
     def test_collector_32(self):
         self.assertEqual(
-            test(
-                """Cole Larsson-Whittaker 866-a"""
-            ),
+            test("""Cole Larsson-Whittaker 866-a"""),
             [
                 {
                     "collector": "Cole Larsson-Whittaker",
@@ -536,9 +526,7 @@ class TestCollector(unittest.TestCase):
 
     def test_collector_33(self):
         self.assertEqual(
-            test(
-                """Collectors: Avena Nelson, Elias Nelson."""
-            ),
+            test("""Collectors: Avena Nelson, Elias Nelson."""),
             [
                 {
                     "collector": ["Avena Nelson", "Elias Nelson"],
@@ -551,8 +539,36 @@ class TestCollector(unittest.TestCase):
 
     def test_collector_34(self):
         self.assertEqual(
-            test(
-                """of Ua C. Riverside (UCR)y Canis"""
-            ),
+            test("""of Ua C. Riverside (UCR)y Canis"""),
             [],
+        )
+
+    def test_collector_35(self):
+        self.assertEqual(
+            test("""Voucher Project Cactaceae Carnegiea gigantea
+                accession number 0075
+                """),
+            [],
+        )
+
+    def test_collector_36(self):
+        self.assertEqual(
+            test("""Mimosa sensitiva Collected by: E. Mohr"""),
+            [{"taxon": "Mimosa sensitiva",
+              "rank": "species",
+              "trait": "taxon",
+              "start": 0,
+              "end": 16},
+             {"collector": "E. Mohr", "trait": "collector", "start": 17, "end": 38}]
+        )
+
+    def test_collector_37(self):
+        self.assertEqual(
+            test("""
+                with Juan Kaplan, Helena Walker Herbarium of Desert Botanical"""),
+            [{
+                "other_collector": ["Juan Kaplan", "Helena Walker"],
+                "trait": "other_collector",
+                "start": 0,
+                "end": 31}]
         )
