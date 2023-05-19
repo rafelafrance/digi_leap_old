@@ -572,3 +572,28 @@ class TestCollector(unittest.TestCase):
                 "start": 0,
                 "end": 31}]
         )
+
+    def test_collector_38(self):
+        self.assertEqual(
+            test("""4 September 2008 J. Johnson with M. King Herbarium"""),
+            [
+                {
+                    "date": "2008-09-04",
+                    "trait": "date",
+                    "start": 0,
+                    "end": 16,
+                },
+                {
+                    "collector": "J. Johnson",
+                    "trait": "collector",
+                    "start": 17,
+                    "end": 27,
+                },
+                {
+                    "other_collector": ["M. King"],
+                    "trait": "other_collector",
+                    "start": 28,
+                    "end": 40,
+                },
+            ]
+        )

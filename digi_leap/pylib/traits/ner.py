@@ -26,6 +26,7 @@ def ner(args):
 
     with db.connect(args.database) as cxn:
         for ocr_text in tqdm(records, desc="parse"):
+
             text = util.shorten(ocr_text["ocr_text"])
 
             batch = []

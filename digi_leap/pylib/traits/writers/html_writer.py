@@ -1,5 +1,6 @@
 import base64
 import io
+import logging
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,23 +48,39 @@ class HtmlWriter(BaseWriter):
         self.words |= {t["pattern"] for t in term_util.read_terms(path)}
 
     def write(self, labels, args=None):
+        length_cutoff, score_cutoff = 0, 0
+
         for lb in tqdm(sorted(labels, key=lambda label: label.label_id), desc="write"):
 
             word_count, spell_count, ratio = self.get_counts(lb)
 
-            if word_count >= args.length_cutoff and ratio >= args.score_cutoff:
+            if word_count < args.length_cutoff:
+                length_cutoff += 1
+                continue
 
-                self.formatted.append(
-                    HtmlWriterRow(
-                        label_id=lb.label_id,
-                        formatted_text=self.format_text(lb, exclude=["trs"]),
-                        formatted_traits=self.format_traits(lb),
-                        label_image=self.get_label_image(lb),
-                        word_count=word_count,
-                        spell_count=spell_count,
-                        ratio=ratio,
-                    )
+            if ratio < args.score_cutoff:
+                score_cutoff += 1
+                continue
+
+            self.formatted.append(
+                HtmlWriterRow(
+                    label_id=lb.label_id,
+                    formatted_text=self.format_text(lb, exclude=["trs"]),
+                    formatted_traits=self.format_traits(lb),
+                    label_image=self.get_label_image(lb),
+                    word_count=word_count,
+                    spell_count=spell_count,
+                    ratio=ratio,
                 )
+            )
+
+        total = len(labels)
+        logging.info(
+            f"Total labels = {total}; kept = {total - length_cutoff - score_cutoff}; "
+            f"total removed = {length_cutoff + score_cutoff}; "
+            f"too short: threshold {args.length_cutoff} = {length_cutoff}; "
+            f"score too low: threshold {args.score_cutoff} = {score_cutoff}"
+        )
 
         self.write_template(args.trait_set)
 

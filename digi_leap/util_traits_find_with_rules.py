@@ -63,7 +63,7 @@ def parse_args() -> argparse.Namespace:
     arg_parser.add_argument(
         "--score-cutoff",
         type=float,
-        default=0.75,
+        default=0.7,
         metavar="FRACTION",
         help="""Only keep labels if their score is this or more.
             The score is between 0.0 and 1.0. (default: %(default)s)""",
@@ -72,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     arg_parser.add_argument(
         "--length-cutoff",
         type=int,
-        default=20,
+        default=10,
         metavar="LENGTH",
         help="""Only keep labels if they have at least this many words.
             (default: %(default)s)""",

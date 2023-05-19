@@ -48,7 +48,6 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=job_patterns(),
         overwrite=job_overwrite,
     )
-    # add.debug_tokens(nlp)  # ##########################################
 
     add.custom_pipe(nlp, registered="separated_collector")
 
@@ -59,7 +58,9 @@ def build(nlp: Language, overwrite: list[str] = None):
         overwrite=["other_collector"],
         keep=[*ACCUMULATOR.keep, "not_name"],
     )
+
     # add.debug_tokens(nlp)  # ##########################################
+    add.custom_pipe(nlp, registered="name_only")
 
     add.cleanup_pipe(nlp, name="person_cleanup")
 
@@ -361,6 +362,34 @@ def collector_number(ent):
     del ent._.data["id_no"]
     for token in ent:
         token.ent_type_ = "collector_no"
+
+
+@Language.component("name_only")
+def name_only(doc):
+    """Look for names next to a date."""
+    for one, two in zip(doc.ents[:-1], doc.ents[1:]):
+
+        if one.end != two.start:
+            continue
+
+        if one.label_ == "date" and two.label_ == "name":
+            name_to_collector(two)
+
+        elif one.label_ == "name" and two.label_ == "date":
+            name_to_collector(one)
+
+    return doc
+
+
+def name_to_collector(ent):
+    if not ent._.data.get("name"):
+        return
+    trait.relabel_entity(ent, "collector")
+    ent._.data["trait"] = "collector"
+    ent._.data["collector"] = ent._.data["name"]
+    del ent._.data["name"]
+    for token in ent:
+        token.ent_type_ = "collector"
 
 
 @registry.misc("determiner_match")
