@@ -4,7 +4,7 @@
 # $(PIP_INSTALL) -e ../traiter --config-settings editable_mode=strict
 
 VENV=.venv
-PYTHON=./$(VENV)/bin/python3.10
+PYTHON=./$(VENV)/bin/python3.9
 PIP_INSTALL=$(PYTHON) -m pip install
 SPACY_MODEL=$(PYTHON) -m spacy download en_core_web_md
 
@@ -15,7 +15,7 @@ install: venv
 	$(PIP_INSTALL) -U pip setuptools wheel
 	$(PIP_INSTALL) .
 	$(PIP_INSTALL) git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
-	$(PIP_INSTALL) git+https://github.com/rafelafrance/traiter_plants.git@master#egg=traiter_plants
+	$(PIP_INSTALL) git+https://github.com/rafelafrance/traiter_plants.git@main#egg=traiter_plants
 	$(SPACY_MODEL)
 
 dev: venv
@@ -28,7 +28,7 @@ dev: venv
 	pre-commit install
 
 venv:
-	test -d $(VENV) || python3.10 -m venv $(VENV)
+	test -d $(VENV) || python3.9 -m venv $(VENV)
 
 clean:
 	rm -r $(VENV)

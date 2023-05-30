@@ -1,6 +1,7 @@
 """Image transforms performed on labels before OCR."""
 import functools
 import re
+from typing import Union
 
 import numpy as np
 import pytesseract
@@ -21,7 +22,7 @@ def image_to_array(image):
 
 def array_to_image(image: npt.NDArray) -> ImageType:
     if hasattr(image, "dtype") and image.dtype == "float64":
-        mode: str | None = "L" if len(image.shape) < 3 else "RGB"
+        mode: Union[str, None] = "L" if len(image.shape) < 3 else "RGB"
         return Image.fromarray(image * 255.0, mode)
     if hasattr(image, "dtype") and image.dtype == "bool":
         image = (image * 255).astype("uint8")
@@ -69,7 +70,9 @@ def orient(
     return image
 
 
-def deskew(image: npt.NDArray, horiz_angles: npt.NDArray | None = None) -> npt.NDArray:
+def deskew(
+    image: npt.NDArray, horiz_angles: Union[npt.NDArray, None] = None
+) -> npt.NDArray:
     """Find the skew of the label.
 
     This method is looking for sharp breaks between the characters and spaces.
