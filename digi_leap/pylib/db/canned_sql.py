@@ -1,4 +1,8 @@
 CANNED_INSERTS = {
+    "cache": """
+        insert into cache ( hash,  path,  labels,  ocr)
+        values            (:hash, :path, :labels, :ocr);
+        """,
     "char_sub_matrix": """
         insert into char_sub_matrix
                ( char1,  char2,  char_set,  score,  sub)
@@ -49,6 +53,9 @@ CANNED_INSERTS = {
 }
 
 CANNED_SELECTS = {
+    "cache": """
+        select * from cache where path = :path and hash = :hash
+        """,
     "char_sub_matrix": """
         select * from char_sub_matrix where char_set = :char_set
         """,

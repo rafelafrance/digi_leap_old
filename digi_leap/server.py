@@ -2,17 +2,16 @@
 import json
 import tempfile
 from datetime import datetime
+from hashlib import blake2b
+from pathlib import Path
 
 import uvicorn
-from fastapi import Depends
-from fastapi import File
-from fastapi import Form
-from fastapi import Request
-from fastapi import UploadFile
+from fastapi import File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+from pylib.db import db
 from pylib.ocr.ensemble import Ensemble
 from pylib.server import common
 from pylib.server import label_finder as finder
@@ -21,6 +20,8 @@ app = common.setup()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 TEMPLATES = Jinja2Templates(directory="static")
+
+CACHE = Path("data") / "cache.sqlite"
 
 
 class Label(BaseModel):
@@ -45,7 +46,6 @@ async def instructions(request: Request):
 
 @app.post("/find-labels")
 async def find_labels(
-    _: str = Depends(common.auth),
     sheet: UploadFile = File(),
     conf: float = Form(0.1),
 ):
@@ -57,26 +57,47 @@ async def find_labels(
         contents = await sheet.read()
         scale = await finder.save_image(contents, sheet, in_dir)
 
-        await finder.run_yolo(in_dir, out_dir, conf)
+        hasher = blake2b()
+        hasher.update(contents)
+        hash_ = hasher.hexdigest()
 
-        label_dir = out_dir / "exp" / "labels"
-        for path in label_dir.glob("*.txt"):
-            results += await finder.get_all_bboxes(path, scale)
+        with db.connect(CACHE) as cxn:
+            cache = db.canned_select(cxn, "cache", path=sheet.filename, hash=hash_)
 
-    output = {
+        if cache and cache[0]["labels"]:
+            data = json.loads(cache[0]["labels"])
+            conf = data["conf"]
+            results = data["results"]
+        else:
+            await finder.run_yolo(in_dir, out_dir, conf)
+
+            label_dir = out_dir / "exp" / "labels"
+            for path in label_dir.glob("*.txt"):
+                results += await finder.get_all_bboxes(path, scale)
+
+    output = json.dumps({
         "post": "/find-labels",
         "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
         "sheet": sheet.filename,
         "conf": conf,
         "results": results,
-    }
+    })
 
-    return json.dumps(output)
+    if not cache:
+        with db.connect(CACHE) as cxn:
+            batch = [{
+                "hash": hash_,
+                "path": sheet.filename,
+                "labels": output,
+                "ocr": "",
+            }]
+            db.canned_insert(cxn, "cache", batch)
+
+    return output
 
 
 @app.post("/ocr-labels")
 async def ocr_labels(
-    _: str = Depends(common.auth),
     labels: str = Form(""),
     extract: str = Form("typewritten"),
     sheet: UploadFile = File(),
@@ -101,42 +122,56 @@ async def ocr_labels(
     ensemble = Ensemble(**ocr_options)
 
     image = await sheet.read()
+
+    hasher = blake2b()
+    hasher.update(image)
+    hash_ = hasher.hexdigest()
+
     image = await common.get_image(image)
 
-    if not label_list:
-        text = await ensemble.run(image)
-        results.append(
-            {
-                "type": "unknown",
-                "left": 0,
-                "top": 0,
-                "right": image.size[0] - 1,
-                "bottom": image.size[1] - 1,
-                "conf": 1.0,
-                "text": text,
-            }
-        )
+    with db.connect(CACHE) as cxn:
+        cache = db.canned_select(cxn, "cache", path=sheet.filename, hash=hash_)
 
+    if cache and cache[0]["ocr"]:
+        data = json.loads(cache[0]["ocr"])
+        extract = data["extract"]
+        labels = data["labels"]
+        results = data["results"]
     else:
-        for lb in label_list:
-            label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
-            if extract == "all" or lb["type"].lower() == extract.lower():
-                text = await ensemble.run(label)
-            else:
-                text = ""
+        if not label_list:
+            text = await ensemble.run(image)
             results.append(
                 {
-                    "type": lb["type"],
-                    "left": lb["left"],
-                    "top": lb["top"],
-                    "right": lb["right"],
-                    "bottom": lb["bottom"],
-                    "conf": lb["conf"],
+                    "type": "unknown",
+                    "left": 0,
+                    "top": 0,
+                    "right": image.size[0] - 1,
+                    "bottom": image.size[1] - 1,
+                    "conf": 1.0,
                     "text": text,
                 }
             )
 
-    output = {
+        else:
+            for lb in label_list:
+                label = image.crop((lb["left"], lb["top"], lb["right"], lb["bottom"]))
+                if extract == "all" or lb["type"].lower() == extract.lower():
+                    text = await ensemble.run(label)
+                else:
+                    text = ""
+                results.append(
+                    {
+                        "type": lb["type"],
+                        "left": lb["left"],
+                        "top": lb["top"],
+                        "right": lb["right"],
+                        "bottom": lb["bottom"],
+                        "conf": lb["conf"],
+                        "text": text,
+                    }
+                )
+
+    output = json.dumps({
         "post": "/ocr-labels",
         "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
         "labels": labels,
@@ -144,9 +179,17 @@ async def ocr_labels(
         "sheet": sheet.filename,
         "ocr_options": ocr_options,
         "results": results,
-    }
+    })
 
-    return json.dumps(output)
+    if not cache:
+        pass
+
+    elif not cache[0]["ocr"]:
+        with db.connect(CACHE) as cxn:
+            sql = """update cache set ocr = :ocr where hash = :hash and path = :path"""
+            db.update(cxn, sql, ocr=output, hash=hash_, path=sheet.filename)
+
+    return output
 
 
 if __name__ == "__main__":

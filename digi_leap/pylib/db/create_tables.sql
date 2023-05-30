@@ -106,3 +106,12 @@ create table if not exists traits (
 create index if not exists traits_trait_set on traits (trait_set);
 create index if not exists traits_ocr_id on traits (ocr_id);
 create index if not exists traits_trait on traits (trait);
+
+
+create table if not exists cache (
+    hash   text,
+    path   text,
+    labels text,
+    ocr    text
+);
+create index if not exists cache_hash on cache (hash, path);
