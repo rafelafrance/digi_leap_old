@@ -1,5 +1,6 @@
 import csv
 import json
+import logging
 import os
 import warnings
 from argparse import Namespace
@@ -7,8 +8,10 @@ from pathlib import Path
 from textwrap import wrap
 
 import matplotlib.pyplot as plt
+import regex as re
 from PIL import Image
 from tqdm import tqdm
+from traiter.pylib.spell_well import SpellWell
 
 from ...db import db
 
@@ -69,6 +72,11 @@ def build_3_files(args: Namespace) -> None:
 def build_2_files(args: Namespace) -> None:
     os.makedirs(args.expedition_dir, exist_ok=True)
 
+    kept = 0
+
+    spell_well = SpellWell()
+    words = {w.lower() for w in spell_well.vocab_to_set()}
+
     csv_path = args.expedition_dir / "manifest.csv"
     with db.connect(args.database) as cxn, open(csv_path, "w") as csv_file:
         run_id = db.insert_run(cxn, args)
@@ -79,6 +87,17 @@ def build_2_files(args: Namespace) -> None:
         recs = db.canned_select(cxn, "ocr_texts", ocr_set=args.ocr_set)
 
         for rec in tqdm(recs):
+
+            word_count, spell_count, ratio = get_counts(rec, words)
+
+            if word_count < args.length_cutoff:
+                continue
+
+            if ratio < args.score_cutoff:
+                continue
+
+            kept += 1
+
             image = get_label(rec)
 
             image_path = Path(args.expedition_dir) / f"ocr_id_{rec['ocr_id']:04d}.jpg"
@@ -99,6 +118,17 @@ def build_2_files(args: Namespace) -> None:
             )
 
         db.update_run_finished(cxn, run_id)
+        logging.info(f"Kept {kept} of {len(recs)} records")
+
+
+def get_counts(label: dict, words):
+    tokens = [t for t in re.split(r"[^\p{L}]+", label["ocr_text"].lower()) if t]
+    total = len(tokens)
+
+    count = sum(1 for w in tokens if w in words)
+
+    ratio = 0.0 if total == 0 else round(count / total, 2)
+    return total, count, ratio
 
 
 def get_label(rec):

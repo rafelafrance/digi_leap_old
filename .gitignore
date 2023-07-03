@@ -61,6 +61,8 @@ extern/
 model-best/
 model-last/
 
+# ruff
+.ruff_cache/
 
 # Ignore rust code for now
 digi-leap-rs/

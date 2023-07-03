@@ -10,7 +10,7 @@ from traiter.pylib import log
 def main():
     log.started()
     args = parse_args()
-    build_expedition.build_3_files(args)  # This will change
+    build_expedition.build_2_files(args)
     log.finished()
 
 
@@ -38,16 +38,34 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
-        "--trait-set",
+        "--ocr-set",
         required=True,
         metavar="NAME",
-        help="""Output this trait set to the expedition.""",
+        help="""Output the results from this OCR set.""",
     )
 
     arg_parser.add_argument(
         "--limit",
         type=int,
         help="""Sample this many labels.""",
+    )
+
+    arg_parser.add_argument(
+        "--score-cutoff",
+        type=float,
+        default=0.7,
+        metavar="FRACTION",
+        help="""Only keep labels if their score is this or more.
+            The score is between 0.0 and 1.0. (default: %(default)s)""",
+    )
+
+    arg_parser.add_argument(
+        "--length-cutoff",
+        type=int,
+        default=10,
+        metavar="LENGTH",
+        help="""Only keep labels if they have at least this many words.
+            (default: %(default)s)""",
     )
 
     arg_parser.add_argument(

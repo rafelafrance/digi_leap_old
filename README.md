@@ -1,5 +1,14 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
+See the following publication in _Applications in Plant Sciences_:
+
+_Humans in the Loop: Community science and machine learning
+synergies for overcoming herbarium digitization bottlenecks_
+
+Robert Guralnick, Raphael LaFrance, Michael Denslow, Samantha Blickhan, Mark
+Bouslog, Sean Miller, Jenn Yost, Jason Best, Deborah L Paul, Elizabeth Ellwood,
+Edward Gilbert, Julie Allen
+
 Extract information from images of herbarium specimen label sheets. This is the automated portion of a full solution that includes humans-in-the-loop.
 
 Given images like:
@@ -50,9 +59,22 @@ After the image processing & OCR combinations we then:
 
 ## Extract Information
 
-**This step is not complete.**
-
 We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parsers to extract information from the labels. One level of parsers finds anchor words, another level of parsers finds common phrases around the anchor words, etc. until we have a final set of Darwin Core terms from that label.
+
+### Parsing strategy
+
+1. Have experts identify relevant terms and target traits.
+2. We use expert identified terms to label terms using spaCy's phrase matchers. These are sometimes traits themselves but are more often used as anchors for more complex patterns of traits.
+3. We then build up more complex terms from simpler terms using spaCy's rule-based matchers repeatedly until there is a recognizable trait. See the image below.
+4. We may then link traits to each other (entity relationships) using spaCy's dependency matchers.
+   1. Typically, a trait gets linked to a higher level entity like SPECIES <--- FLOWER <--- {COLOR, SIZE, etc.} and not peer to peer like PERSON <---> ORG.
+
+### The trait extraction process depends on 2 other repositories:
+
+1. https://github.com/rafelafrance/traiter.git@master#egg=traiter
+   1. That is used in several other information extraction projects. Plants, insects, vertebrates, etc.
+2. https://github.com/rafelafrance/FloraTraiter.git@main#egg=FloraTraiter
+   1. Contains code for plant specific traits extraction.
 
 # Run Tests
 
