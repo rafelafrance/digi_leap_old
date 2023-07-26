@@ -72,9 +72,9 @@ We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parse
 ### The trait extraction process depends on 2 other repositories:
 
 1. https://github.com/rafelafrance/traiter.git@master#egg=traiter
-   1. That is used in several other information extraction projects. Plants, insects, vertebrates, etc.
+   1. Used in several other information extraction projects, plants, insects, vertebrates, etc.
 2. https://github.com/rafelafrance/FloraTraiter.git@main#egg=FloraTraiter
-   1. Contains code for plant specific traits extraction.
+   1. Contains code for plant specific trait extraction.
 
 # Run Tests
 
