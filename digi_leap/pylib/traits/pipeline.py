@@ -1,5 +1,5 @@
 import spacy
-from plants.pylib.traits import (
+from flora.pylib.traits import (
     delete_missing,
     habit,
     link_location,

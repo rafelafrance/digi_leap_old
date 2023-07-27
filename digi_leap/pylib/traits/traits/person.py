@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import regex as re
-from plants.pylib.traits import terms as p_terms
+from flora.pylib.traits import terms as p_terms
 from spacy.language import Language
 from spacy.util import registry
 from traiter.pylib import const as t_const

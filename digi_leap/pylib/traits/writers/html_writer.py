@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import regex as re
+from flora.pylib.traits import terms as p_terms
+from flora.pylib.writers.html_writer import HtmlWriter as BaseWriter
+from flora.pylib.writers.html_writer import HtmlWriterRow as BaseWriterRow
 from PIL import Image
-from plants.pylib.traits import terms as p_terms
-from plants.pylib.writers.html_writer import HtmlWriter as BaseWriter
-from plants.pylib.writers.html_writer import HtmlWriterRow as BaseWriterRow
 from tqdm import tqdm
 from traiter.pylib import term_util
 from traiter.pylib.spell_well import SpellWell
