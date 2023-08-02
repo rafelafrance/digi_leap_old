@@ -22,7 +22,7 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         pip install .
         pip install git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
-        pip install git+https://github.com/rafelafrance/traiter_plants.git@main#egg=traiter_plants
+        pip install git+https://github.com/rafelafrance/FloraTraiter.git@main#egg=FloraTraiter
         python -m spacy download en_core_web_md
     - name: Test with unittest
       run: |

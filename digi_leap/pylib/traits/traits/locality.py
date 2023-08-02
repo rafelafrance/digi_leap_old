@@ -22,11 +22,6 @@ def get_csv():
     return csv_
 
 
-RT_RE = r"^[a-z]\w+$"
-
-LOC_POS = "CCONJ SCONJ DET ADP NUM PUNCT".split()
-
-
 def build(nlp: Language):
     default_labels = {
         "locality_terms": "locality",
@@ -48,6 +43,9 @@ def build(nlp: Language):
 
 
 def locality_patterns():
+    loc_pos = "CCONJ SCONJ DET ADP NUM PUNCT".split()
+    rt_re = r"^[a-z]\w+$"
+
     return [
         Compiler(
             label="locality",
@@ -55,9 +53,9 @@ def locality_patterns():
             decoder={
                 ",": {"IS_PUNCT": True},
                 "9": {"LIKE_NUM": True},
-                "and": {"POS": {"IN": LOC_POS}},
+                "and": {"POS": {"IN": loc_pos}},
                 "loc": {"ENT_TYPE": "locality"},
-                "rt": {"LOWER": {"REGEX": RT_RE}},
+                "rt": {"LOWER": {"REGEX": rt_re}},
             },
             patterns=[
                 "9? loc+ 9?",
