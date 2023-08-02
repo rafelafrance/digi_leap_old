@@ -19,7 +19,7 @@ from flora.pylib.traits import (
 from traiter.pylib.pipes import extensions, sentence, tokenizer
 from traiter.pylib.traits import color, date_, elevation, geocoordinates, habitat
 
-from .traits import admin_unit, associated_taxon, person
+from .traits import admin_unit, associated_taxon, locality, person
 
 # from traiter.pylib.pipes import debug
 # debug.tokens(nlp)  # ###########################################
@@ -68,6 +68,8 @@ def build(model_path=None):
     delete_missing.build(nlp)
 
     associated_taxon.build(nlp)
+
+    locality.build(nlp)
 
     if model_path:
         nlp.to_disk(model_path)

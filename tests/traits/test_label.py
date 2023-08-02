@@ -30,6 +30,10 @@ class TestLabels(unittest.TestCase):
                     "start": 65,
                     "end": 84,
                 },
+                {"locality": "Mason: 5 miles North of Mason off Hwy 386. Mason",
+                 "trait": "locality",
+                 "start": 86,
+                 "end": 134},
                 {"habitat": "grassland", "trait": "habitat", "start": 171, "end": 180},
                 {
                     "lat_long": "30° 49’ 27’ N, 99\" 15' 22 W",
