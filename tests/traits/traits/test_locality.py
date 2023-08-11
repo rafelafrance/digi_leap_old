@@ -17,3 +17,16 @@ class TestLocality(unittest.TestCase):
                 }
             ],
         )
+
+    def test_locality_02(self):
+        self.assertEqual(
+            test("""5 miles North of Mason off Hwy 386."""),
+            [
+                {
+                    "locality": "5 miles North of Mason off Hwy 386",
+                    "trait": "locality",
+                    "start": 0,
+                    "end": 34,
+                }
+            ],
+        )

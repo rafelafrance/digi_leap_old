@@ -305,7 +305,6 @@ class TestCollector(unittest.TestCase):
         self.assertEqual(
             test("""purple. A A.C. Saunders 39141 14 Apr 2011"""),
             [
-                {"color": "purple", "end": 6, "start": 0, "trait": "color"},
                 {
                     "collector_no": "39141",
                     "collector": "A A.C. Saunders",
@@ -338,15 +337,21 @@ class TestCollector(unittest.TestCase):
             test("""Associated species: Neptunia gracilis G. Rink 7075"""),
             [
                 {
-                    "trait": "associated_taxon",
-                    "associated_taxon": "Neptunia gracilis",
-                    "rank": "species",
-                    "start": 20,
-                    "end": 37,
+                    "assoc_taxon_label": "associated species",
+                    "trait": "assoc_taxon_label",
+                    "start": 0,
+                    "end": 18,
                 },
                 {
-                    "collector_no": "7075",
+                    "rank": "species",
+                    "trait": "associated_taxon",
+                    "start": 20,
+                    "end": 37,
+                    "associated_taxon": "Neptunia gracilis",
+                },
+                {
                     "collector": "G. Rink",
+                    "collector_no": "7075",
                     "trait": "collector",
                     "start": 38,
                     "end": 50,
@@ -374,15 +379,21 @@ class TestCollector(unittest.TestCase):
             test("""Associated Species: Cephalanthus occidentalis Cass Blodgett 829"""),
             [
                 {
-                    "associated_taxon": "Cephalanthus occidentalis",
+                    "assoc_taxon_label": "associated species",
+                    "trait": "assoc_taxon_label",
+                    "start": 0,
+                    "end": 18,
+                },
+                {
                     "rank": "species",
                     "trait": "associated_taxon",
                     "start": 20,
                     "end": 45,
+                    "associated_taxon": "Cephalanthus occidentalis",
                 },
                 {
-                    "collector_no": "829",
                     "collector": "Cass Blodgett",
+                    "collector_no": "829",
                     "trait": "collector",
                     "start": 46,
                     "end": 63,
@@ -545,32 +556,43 @@ class TestCollector(unittest.TestCase):
 
     def test_collector_35(self):
         self.assertEqual(
-            test("""Voucher Project Cactaceae Carnegiea gigantea
+            test(
+                """Voucher Project Cactaceae Carnegiea gigantea
                 accession number 0075
-                """),
+                """
+            ),
             [],
         )
 
     def test_collector_36(self):
         self.assertEqual(
             test("""Mimosa sensitiva Collected by: E. Mohr"""),
-            [{"taxon": "Mimosa sensitiva",
-              "rank": "species",
-              "trait": "taxon",
-              "start": 0,
-              "end": 16},
-             {"collector": "E. Mohr", "trait": "collector", "start": 17, "end": 38}]
+            [
+                {
+                    "taxon": "Mimosa sensitiva",
+                    "rank": "species",
+                    "trait": "taxon",
+                    "start": 0,
+                    "end": 16,
+                },
+                {"collector": "E. Mohr", "trait": "collector", "start": 17, "end": 38},
+            ],
         )
 
     def test_collector_37(self):
         self.assertEqual(
-            test("""
-                with Juan Kaplan, Helena Walker Herbarium of Desert Botanical"""),
-            [{
-                "other_collector": ["Juan Kaplan", "Helena Walker"],
-                "trait": "other_collector",
-                "start": 0,
-                "end": 31}]
+            test(
+                """
+                with Juan Kaplan, Helena Walker Herbarium of Desert Botanical"""
+            ),
+            [
+                {
+                    "other_collector": ["Juan Kaplan", "Helena Walker"],
+                    "trait": "other_collector",
+                    "start": 0,
+                    "end": 31,
+                }
+            ],
         )
 
     def test_collector_38(self):
@@ -595,5 +617,5 @@ class TestCollector(unittest.TestCase):
                     "start": 28,
                     "end": 40,
                 },
-            ]
+            ],
         )

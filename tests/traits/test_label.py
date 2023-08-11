@@ -30,10 +30,12 @@ class TestLabels(unittest.TestCase):
                     "start": 65,
                     "end": 84,
                 },
-                {"locality": "Mason: 5 miles North of Mason off Hwy 386. Mason",
-                 "trait": "locality",
-                 "start": 86,
-                 "end": 134},
+                {
+                    "locality": "Mason: 5 miles North of Mason off Hwy 386. Mason",
+                    "trait": "locality",
+                    "start": 86,
+                    "end": 134,
+                },
                 {"habitat": "grassland", "trait": "habitat", "start": 171, "end": 180},
                 {
                     "lat_long": "30° 49’ 27’ N, 99\" 15' 22 W",
@@ -69,19 +71,19 @@ class TestLabels(unittest.TestCase):
             ),
             [
                 {
-                    "associated_taxon": "Cornaceae",
-                    "trait": "associated_taxon",
                     "rank": "family",
+                    "trait": "associated_taxon",
                     "start": 30,
                     "end": 39,
+                    "associated_taxon": "Cornaceae",
                 },
                 {
                     "taxon": "Cornus obliqua",
-                    "trait": "taxon",
-                    "authority": "Willd",
                     "rank": "species",
+                    "trait": "taxon",
                     "start": 40,
                     "end": 60,
+                    "authority": "Willd",
                 },
                 {
                     "habitat": "tropical cloud forest",
@@ -89,19 +91,15 @@ class TestLabels(unittest.TestCase):
                     "start": 105,
                     "end": 126,
                 },
+                {"habitat": "soil", "trait": "habitat", "start": 152, "end": 156},
                 {
-                    "collector_no": "531",
                     "collector": "William M. Houghton",
+                    "collector_no": "531",
                     "trait": "collector",
                     "start": 170,
                     "end": 193,
                 },
-                {
-                    "date": "1987-01-14",
-                    "trait": "date",
-                    "start": 194,
-                    "end": 206,
-                },
+                {"date": "1987-01-14", "trait": "date", "start": 194, "end": 206},
                 {
                     "collector": "Merle Dortmond",
                     "trait": "collector",

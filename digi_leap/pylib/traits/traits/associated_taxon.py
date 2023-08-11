@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from spacy.language import Language
+from spacy.util import registry
 from traiter.pylib.pattern_compiler import Compiler
 from traiter.pylib.pipes import add
 
@@ -16,7 +17,7 @@ def build(nlp: Language):
         compiler=associated_taxon_patterns(),
     )
     add.custom_pipe(nlp, registered="label_assoc_taxon")
-    add.cleanup_pipe(nlp, name="assoc_taxon_cleanup2")
+    add.cleanup_pipe(nlp, name="assoc_taxon_cleanup")
 
 
 def associated_taxon_patterns():
@@ -26,13 +27,20 @@ def associated_taxon_patterns():
     }
     return [
         Compiler(
-            label="assoc_taxon",
+            label="assoc_taxon_label",
+            on_match="assoc_taxon_label_match",
             decoder=decoder,
+            keep="assoc_taxon_label",
             patterns=[
                 "assoc label",
             ],
         ),
     ]
+
+
+@registry.misc("assoc_taxon_label_match")
+def locality_match(ent):
+    ent._.data = {"assoc_taxon_label": ent.text.lower()}
 
 
 @Language.component("label_assoc_taxon")
@@ -42,7 +50,7 @@ def label_assoc_taxon(doc):
 
     for ent in doc.ents:
 
-        if ent.label_ == "assoc_taxon":
+        if ent.label_ == "assoc_taxon_label":
             primary_ok = False
 
         elif ent.label_ == "taxon":

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import regex as re
 from flora.pylib.traits import terms as p_terms
@@ -23,7 +24,7 @@ NAME_RE = "".join(t_const.OPEN + t_const.CLOSE + t_const.QUOTE + list(".,'&"))
 NAME_RE = re.compile(rf"^[\sa-z{re.escape(NAME_RE)}-]+$")
 
 
-def build(nlp: Language, overwrite: list[str] = None):
+def build(nlp: Language, overwrite: Optional[list[str]] = None):
     add.term_pipe(nlp, name="person_terms", path=ALL_CSVS)
 
     overwrite = overwrite if overwrite else []
@@ -35,12 +36,17 @@ def build(nlp: Language, overwrite: list[str] = None):
         name="name_patterns",
         compiler=name_patterns(),
         overwrite=overwrite + "name_prefix name_suffix no_label".split(),
-        keep=[*ACCUMULATOR.keep, "col_label", "det_label", "no_label", "not_name"],
+        keep=[
+            *ACCUMULATOR.keep, "col_label", "det_label", "job_label", "no_label",
+            "not_name"
+        ],
     )
     # add.debug_tokens(nlp)  # ##########################################
 
     job_overwrite = (
-        overwrite + """ name col_label det_label no_label other_label id_no """.split()
+            overwrite + """
+            name col_label det_label job_label no_label other_label id_no
+            """.split()
     )
     add.trait_pipe(
         nlp,
@@ -173,6 +179,7 @@ def job_patterns():
         "by": {"LOWER": {"IN": ["by"]}},
         "col_label": {"ENT_TYPE": "col_label"},
         "det_label": {"ENT_TYPE": "det_label"},
+        "job_label": {"ENT_TYPE": "job_label"},
         "id_no": {"ENT_TYPE": {"IN": ["id_no", "labeled_id_no"]}},
         "maybe": {"POS": "PROPN"},
         "name": {"ENT_TYPE": "name"},
@@ -228,6 +235,16 @@ def job_patterns():
             patterns=[
                 "det_label+ by? :* maybe? name+",
                 "det_label+ by? :* name+ id_no+",
+            ],
+        ),
+        Compiler(
+            label="other_job",
+            on_match="other_job_match",
+            keep="other_job",
+            decoder=decoder,
+            patterns=[
+                "job_label+ by? :* maybe? name+",
+                "job_label+ by? :* name+ id_no+",
             ],
         ),
     ]
@@ -408,6 +425,26 @@ def determiner_match(ent):
             ent._.data["determiner_no"] = token._.data["id_no"]
 
     ent._.data["determiner"] = " ".join(people)
+
+
+@registry.misc("other_job_match")
+def other_job_match(ent):
+    people = []
+    job = []
+
+    for token in ent:
+
+        if token.ent_type_ == "job_label":
+            job.append(token.lower_)
+
+        if token._.flag == "name_data":
+            people.append(token._.data["name"])
+
+        elif token._.flag == "id_no":
+            ent._.data["id_no"] = token._.data["id_no"]
+
+    ent._.data["job"] = " ".join(job)
+    ent._.data["worker"] = " ".join(people)
 
 
 @registry.misc("other_collector_match")

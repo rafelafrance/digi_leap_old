@@ -19,7 +19,7 @@ from ... import const
 MAX_SIZE = 600.0  # pixels
 
 
-@dataclass(kw_only=True)
+@dataclass  # (kw_only=True)
 class HtmlWriterRow(BaseWriterRow):
     label_id: int = 0
     label_image: str = ""
@@ -33,6 +33,7 @@ class HtmlWriter(BaseWriter):
 
         super().__init__(
             template_dir=f"{const.ROOT_DIR}/digi_leap/pylib/traits/writers/templates",
+            template="html_writer.html",
             out_html=out_html,
         )
 

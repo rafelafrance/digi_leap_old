@@ -17,17 +17,23 @@ class TestAssociatedTaxon(unittest.TestCase):
                 {
                     "taxon": "Cephalanthus occidentalis",
                     "rank": "species",
-                    "authority": "L. Rubiaceas",
                     "trait": "taxon",
                     "start": 0,
                     "end": 38,
+                    "authority": "L. Rubiaceas",
                 },
                 {
-                    "associated_taxon": "Cornus obliqua",
+                    "assoc_taxon_label": "associated species",
+                    "trait": "assoc_taxon_label",
+                    "start": 39,
+                    "end": 57,
+                },
+                {
                     "rank": "species",
                     "trait": "associated_taxon",
                     "start": 59,
                     "end": 73,
+                    "associated_taxon": "Cornus obliqua",
                 },
             ],
         )
@@ -38,12 +44,18 @@ class TestAssociatedTaxon(unittest.TestCase):
             test("""Associated species: Cornus obliqua"""),
             [
                 {
-                    "associated_taxon": "Cornus obliqua",
+                    "assoc_taxon_label": "associated species",
+                    "trait": "assoc_taxon_label",
+                    "start": 0,
+                    "end": 18,
+                },
+                {
                     "rank": "species",
                     "trait": "associated_taxon",
                     "start": 20,
                     "end": 34,
-                }
+                    "associated_taxon": "Cornus obliqua",
+                },
             ],
         )
 
@@ -59,26 +71,32 @@ class TestAssociatedTaxon(unittest.TestCase):
             ),
             [
                 {
-                    "associated_taxon": "Fabaceae",
                     "rank": "family",
                     "trait": "associated_taxon",
                     "start": 0,
                     "end": 8,
+                    "associated_taxon": "Fabaceae",
                 },
                 {
                     "taxon": "Cephalanthus occidentalis",
                     "rank": "species",
-                    "authority": "L. Rubiaceas",
                     "trait": "taxon",
                     "start": 9,
                     "end": 47,
+                    "authority": "L. Rubiaceas",
                 },
                 {
-                    "associated_taxon": "Cornus obliqua",
+                    "assoc_taxon_label": "associated species",
+                    "trait": "assoc_taxon_label",
+                    "start": 48,
+                    "end": 66,
+                },
+                {
                     "rank": "species",
                     "trait": "associated_taxon",
                     "start": 68,
                     "end": 82,
+                    "associated_taxon": "Cornus obliqua",
                 },
             ],
         )

@@ -37,7 +37,6 @@ def build(model_path=None):
 
     date_.build(nlp)
 
-    misc.build(nlp)
     part.build(nlp)
 
     elevation.build(nlp)
@@ -45,6 +44,8 @@ def build(model_path=None):
 
     color.build(nlp)
     habitat.build(nlp)
+
+    misc.build(nlp)
 
     numeric.build(nlp)
     person.build(nlp, overwrite=["subpart", "color", "count", "admin_unit"])

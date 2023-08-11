@@ -85,6 +85,13 @@ def parse_args() -> argparse.Namespace:
     )
 
     arg_parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="""Offset for splitting data.""",
+    )
+
+    arg_parser.add_argument(
         "--label-id",
         type=int,
         metavar="ID",
