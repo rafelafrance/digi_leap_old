@@ -18,7 +18,7 @@ def main():
 
     if args.out_html:
         reader = LabelReader(args)
-        writer = HtmlWriter(args.out_html)
+        writer = HtmlWriter(args.out_html, args.spotlight)
         writer.write(reader.labels, args)
 
     log.finished()
@@ -96,6 +96,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         metavar="ID",
         help="""Select only this label ID. Used for testing.""",
+    )
+
+    arg_parser.add_argument(
+        "--spotlight",
+        metavar="TRAIT",
+        help="""This trait will get its own color for HTML output.""",
     )
 
     arg_parser.add_argument(

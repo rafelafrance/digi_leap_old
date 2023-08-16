@@ -29,12 +29,12 @@ class HtmlWriterRow(BaseWriterRow):
 
 
 class HtmlWriter(BaseWriter):
-    def __init__(self, out_html):
-
+    def __init__(self, out_html, spotlight=""):
         super().__init__(
             template_dir=f"{const.ROOT_DIR}/digi_leap/pylib/traits/writers/templates",
             template="html_writer.html",
             out_html=out_html,
+            spotlight=spotlight,
         )
 
         self.spell_well = SpellWell()
@@ -52,7 +52,6 @@ class HtmlWriter(BaseWriter):
         length_cutoff, score_cutoff = 0, 0
 
         for lb in tqdm(sorted(labels, key=lambda label: label.label_id), desc="write"):
-
             word_count, spell_count, ratio = self.get_counts(lb)
 
             if word_count < args.length_cutoff:
@@ -79,8 +78,8 @@ class HtmlWriter(BaseWriter):
         logging.info(
             f"Total labels = {total}; kept = {total - length_cutoff - score_cutoff}; "
             f"total removed = {length_cutoff + score_cutoff}; "
-            f"too short: threshold {args.length_cutoff} = {length_cutoff}; "
-            f"score too low: threshold {args.score_cutoff} = {score_cutoff}"
+            f"too short: (threshold {args.length_cutoff} = {length_cutoff}; "
+            f"score too low: (threshold {args.score_cutoff}) = {score_cutoff}"
         )
 
         self.write_template(args.trait_set)

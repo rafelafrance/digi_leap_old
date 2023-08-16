@@ -5,6 +5,7 @@ from tests.setup import test
 
 class TestLabels(unittest.TestCase):
     def test_label_01(self):
+        self.maxDiff = None
         self.assertEqual(
             test(
                 """
@@ -18,10 +19,10 @@ class TestLabels(unittest.TestCase):
                 {
                     "taxon": "Cornus obliqua",
                     "rank": "species",
-                    "authority": "Benth",
                     "trait": "taxon",
                     "start": 42,
                     "end": 64,
+                    "authority": "Benth",
                 },
                 {
                     "us_state": "Texas",
@@ -31,10 +32,12 @@ class TestLabels(unittest.TestCase):
                     "end": 84,
                 },
                 {
-                    "locality": "Mason: 5 miles North of Mason off Hwy 386. Mason",
+                    "locality": (
+                        "Mason: 5 miles North of Mason off Hwy 386. Mason Mountains"
+                    ),
                     "trait": "locality",
                     "start": 86,
-                    "end": 134,
+                    "end": 144,
                 },
                 {"habitat": "grassland", "trait": "habitat", "start": 171, "end": 180},
                 {
@@ -45,8 +48,8 @@ class TestLabels(unittest.TestCase):
                 },
                 {"date": "1998-05-19", "trait": "date", "start": 214, "end": 226},
                 {
-                    "collector_no": "HR1998-01",
                     "collector": "H. Richey",
+                    "collector_no": "HR1998-01",
                     "trait": "collector",
                     "start": 227,
                     "end": 246,
@@ -82,7 +85,7 @@ class TestLabels(unittest.TestCase):
                     "rank": "species",
                     "trait": "taxon",
                     "start": 40,
-                    "end": 60,
+                    "end": 61,
                     "authority": "Willd",
                 },
                 {

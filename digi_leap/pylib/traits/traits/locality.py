@@ -8,19 +8,7 @@ from traiter.pylib.pipes import add
 
 USE_MOCK_DATA = 0
 
-LOC_POS = "ADP AUX CCONJ DET NUM PUNCT SCONJ".split()
-RT_RE = r"^[a-z]\w+$"
-
-DECODER = {
-    ",": {"IS_PUNCT": True},
-    ".": {"TEXT": "."},
-    "9": {"LIKE_NUM": True},
-    "and": {"POS": {"IN": LOC_POS}},
-    "habitat": {"ENT_TYPE": "habitat"},
-    "loc": {"ENT_TYPE": "loc"},
-    "locality": {"ENT_TYPE": "locality"},
-    "rt": {"LOWER": {"REGEX": RT_RE}},
-}
+OTHER_TRAITS = " habitat color admin_unit ".split()
 
 
 def get_csvs():
@@ -56,36 +44,25 @@ def build(nlp: Language):
         nlp, name="locality_terms", path=get_csvs(), default_labels=default_labels
     )
 
-    # add.trait_pipe(
-    #     nlp, name="not_locality_patterns", compiler=not_locality_patterns()
-    # )
+    # add.debug_tokens(nlp)  # ##########################################
 
     add.trait_pipe(nlp, name="locality_patterns", compiler=locality_patterns())
 
     add.custom_pipe(nlp, registered="prune_localities")
 
-    add.trait_pipe(
-        nlp,
-        name="extend_locality",
-        compiler=locality_patterns(),
-        overwrite=["habitat"],
-    )
+    # add.debug_tokens(nlp)  # ##########################################
+
+    for i in range(2):
+        add.trait_pipe(
+            nlp,
+            name=f"extend_locality{i}",
+            compiler=extend_locality(),
+            overwrite=["locality", *OTHER_TRAITS],
+        )
 
     # add.debug_tokens(nlp)  # ##########################################
 
     add.cleanup_pipe(nlp, name="locality_cleanup")
-
-
-# def not_locality_patterns():
-#     return [
-#         Compiler(
-#             label="not_locality",
-#             decoder=DECODER,
-#             patterns=[
-#                 "nope+",
-#             ],
-#         ),
-#     ]
 
 
 def locality_patterns():
@@ -94,9 +71,15 @@ def locality_patterns():
             label="locality",
             on_match="locality_match",
             keep="locality",
-            decoder=DECODER,
+            decoder={
+                "'s": {"POS": "PART"},
+                "9": {"LIKE_NUM": True},
+                "and": {"POS": {"IN": "ADP AUX CCONJ DET NUM PUNCT SCONJ".split()}},
+                "loc": {"ENT_TYPE": "loc"},
+                # "rt": {"LOWER": {"REGEX": r"^[a-z]\w+$"}},
+            },
             patterns=[
-                "9? loc loc+ 9?",
+                "9? loc 's?   loc+ 9?",
                 "9? loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ and+ loc+ 9?",
@@ -112,10 +95,20 @@ def extend_locality():
             label="locality",
             on_match="locality_match",
             keep="locality",
-            decoder=DECODER,
+            decoder={
+                ".": {"TEXT": "."},
+                "/": {"TEXT": "/"},
+                "9": {"LIKE_NUM": True},
+                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
+                "locality": {"ENT_TYPE": "locality"},
+                "in_sent": {"IS_SENT_START": False},
+                "sent_start": {"IS_SENT_START": True},
+                "word": {"IS_ALPHA": True},
+            },
             patterns=[
-                "locality habitat* ,+ habitat* locality",
-                "locality habitat+ .",
+                "locality+   in_sent+ locality+",
+                "locality+   word?    trait* .",
+                "sent_start+ 9? /?    locality+",
             ],
         )
     ]
@@ -123,7 +116,7 @@ def extend_locality():
 
 @registry.misc("locality_match")
 def locality_match(ent):
-    ent._.data = {"locality": ent.text}
+    ent._.data = {"locality": ent.text.lstrip("(")}
 
 
 @Language.component("prune_localities")
@@ -137,31 +130,18 @@ def prune_localities(doc):
     for ent in doc.ents:
         trait = ent._.data["trait"]
 
+        # Localities come after taxa
         if trait in ("taxon",):  # "admin_unit"):
             add_locality = True
             ents.append(ent)
+        # Localities are before collector etc.
         elif trait in ("collector", "date", "determiner"):
             add_locality = False
             ents.append(ent)
         elif trait == "locality" and not add_locality:
-            pass
+            continue
         else:
             ents.append(ent)
 
     doc.set_ents(sorted(ents, key=lambda e: e.start))
     return doc
-
-
-# @Language.component("merge_localities")
-# def merge_localities(doc):
-#     """Convert other traits to locality if surrounded by localities."""
-#     ents = []
-#
-#     for ent in doc.ents:
-#         # Merge: locality habitat locality
-#         # Merge: locality habitat .
-#         # Merge: locality habitat , locality
-#         pass
-#
-#     doc.set_ents(sorted(ents, key=lambda e: e.start))
-#     return doc
