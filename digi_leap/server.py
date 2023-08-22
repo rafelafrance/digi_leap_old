@@ -75,22 +75,26 @@ async def find_labels(
             for path in label_dir.glob("*.txt"):
                 results += await finder.get_all_bboxes(path, scale)
 
-    output = json.dumps({
-        "post": "/find-labels",
-        "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
-        "sheet": sheet.filename,
-        "conf": conf,
-        "results": results,
-    })
+    output = json.dumps(
+        {
+            "post": "/find-labels",
+            "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
+            "sheet": sheet.filename,
+            "conf": conf,
+            "results": results,
+        }
+    )
 
     if not cache:
         with db.connect(CACHE) as cxn:
-            batch = [{
-                "hash": hash_,
-                "path": sheet.filename,
-                "labels": output,
-                "ocr": "",
-            }]
+            batch = [
+                {
+                    "hash": hash_,
+                    "path": sheet.filename,
+                    "labels": output,
+                    "ocr": "",
+                }
+            ]
             db.canned_insert(cxn, "cache", batch)
 
     return output
@@ -171,15 +175,17 @@ async def ocr_labels(
                     }
                 )
 
-    output = json.dumps({
-        "post": "/ocr-labels",
-        "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
-        "labels": labels,
-        "extract": extract,
-        "sheet": sheet.filename,
-        "ocr_options": ocr_options,
-        "results": results,
-    })
+    output = json.dumps(
+        {
+            "post": "/ocr-labels",
+            "date": datetime.now().isoformat(sep=" ", timespec="seconds"),
+            "labels": labels,
+            "extract": extract,
+            "sheet": sheet.filename,
+            "ocr_options": ocr_options,
+            "results": results,
+        }
+    )
 
     if not cache:
         pass

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import traiter.pylib.const as t_const
 from spacy.language import Language
 from spacy.util import registry
 from traiter.pylib.pattern_compiler import Compiler
@@ -9,6 +10,7 @@ from traiter.pylib.pipes import add
 USE_MOCK_DATA = 0
 
 OTHER_TRAITS = " habitat color admin_unit ".split()
+PUNCT = t_const.COLON + t_const.COMMA + t_const.DASH + t_const.SLASH
 
 
 def get_csvs():
@@ -48,11 +50,12 @@ def build(nlp: Language):
 
     add.trait_pipe(nlp, name="locality_patterns", compiler=locality_patterns())
 
-    add.custom_pipe(nlp, registered="prune_localities")
-
     # add.debug_tokens(nlp)  # ##########################################
 
-    for i in range(2):
+    add.custom_pipe(nlp, registered="prune_localities")
+
+    for i in range(1, 5):
+        # add.debug_tokens(nlp)  # ##########################################
         add.trait_pipe(
             nlp,
             name=f"extend_locality{i}",
@@ -61,6 +64,13 @@ def build(nlp: Language):
         )
 
     # add.debug_tokens(nlp)  # ##########################################
+
+    add.trait_pipe(
+        nlp,
+        name="end_locality",
+        compiler=end_locality(),
+        overwrite=["locality", *OTHER_TRAITS],
+    )
 
     add.cleanup_pipe(nlp, name="locality_cleanup")
 
@@ -72,18 +82,21 @@ def locality_patterns():
             on_match="locality_match",
             keep="locality",
             decoder={
+                "-": {"TEXT": {"IN": PUNCT}},
                 "'s": {"POS": "PART"},
                 "9": {"LIKE_NUM": True},
-                "and": {"POS": {"IN": "ADP AUX CCONJ DET NUM PUNCT SCONJ".split()}},
+                "and": {"POS": {"IN": "ADP AUX CCONJ DET NUM SCONJ".split()}},
                 "loc": {"ENT_TYPE": "loc"},
-                # "rt": {"LOWER": {"REGEX": r"^[a-z]\w+$"}},
+                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
             },
             patterns=[
-                "9? loc 's?   loc+ 9?",
+                "9? loc+ 's?  loc+ 9?",
+                "9? loc+ -+   loc+ 9?",
                 "9? loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ and+ loc+ and+ loc+ 9?",
+                "9? loc+ trait 9?",
             ],
         )
     ]
@@ -96,19 +109,44 @@ def extend_locality():
             on_match="locality_match",
             keep="locality",
             decoder={
-                ".": {"TEXT": "."},
-                "/": {"TEXT": "/"},
+                ",": {"TEXT": {"IN": PUNCT}},
                 "9": {"LIKE_NUM": True},
-                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
+                "and": {"POS": {"IN": "ADP AUX CCONJ DET NUM SCONJ".split()}},
+                "loc": {"ENT_TYPE": "loc"},
                 "locality": {"ENT_TYPE": "locality"},
-                "in_sent": {"IS_SENT_START": False},
+                "rt": {"LOWER": {"REGEX": r"^[a-z][\w.]+$"}},
                 "sent_start": {"IS_SENT_START": True},
+                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
+            },
+            patterns=[
+                "sent_start+ 9? ,?  locality+",
+                "locality+   rt+",
+                "locality+   and?   trait+ locality+",
+                "locality+   ,?            loc+",
+                "loc+        trait+ and?   locality+",
+                "loc+        ,?            locality+",
+            ],
+        )
+    ]
+
+
+def end_locality():
+    return [
+        Compiler(
+            label="locality",
+            on_match="locality_match",
+            keep="locality",
+            decoder={
+                ".": {"TEXT": {"IN": t_const.DOT}},
+                "9": {"LIKE_NUM": True},
+                "locality": {"ENT_TYPE": "locality"},
+                "sent_start": {"IS_SENT_START": True},
+                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
                 "word": {"IS_ALPHA": True},
             },
             patterns=[
-                "locality+   in_sent+ locality+",
-                "locality+   word?    trait* .",
-                "sent_start+ 9? /?    locality+",
+                "locality+ word? trait+ .",
+                "locality+ word? 9+ .",
             ],
         )
     ]
@@ -121,13 +159,13 @@ def locality_match(ent):
 
 @Language.component("prune_localities")
 def prune_localities(doc):
-    if USE_MOCK_DATA:
+    if USE_MOCK_DATA:  # Don't prune localities when testing
         return doc
 
     ents = []
     add_locality = False
 
-    for ent in doc.ents:
+    for i, ent in enumerate(doc.ents):
         trait = ent._.data["trait"]
 
         # Localities come after taxa
@@ -135,7 +173,7 @@ def prune_localities(doc):
             add_locality = True
             ents.append(ent)
         # Localities are before collector etc.
-        elif trait in ("collector", "date", "determiner"):
+        elif trait in ("collector", "date", "determiner") and i > len(doc.ents) // 2:
             add_locality = False
             ents.append(ent)
         elif trait == "locality" and not add_locality:

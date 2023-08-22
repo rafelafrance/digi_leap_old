@@ -1,12 +1,12 @@
 from pathlib import Path
+from typing import Optional
 
 from spacy.language import Language
 from spacy.util import registry
 from traiter.pylib import const as t_const
 from traiter.pylib import term_util
 from traiter.pylib.pattern_compiler import Compiler
-from traiter.pylib.pipes import add
-from traiter.pylib.pipes import reject_match
+from traiter.pylib.pipes import add, reject_match
 from traiter.pylib.traits import terms as t_terms
 
 ADMIN_UNIT_CSV = Path(__file__).parent / "terms" / "admin_unit_terms.csv"
@@ -22,10 +22,13 @@ COUNTY_ENTS = ["us_county", "us_state-us_county"]
 ADMIN_ENTS = ["us_state", "us_county", "us_state-us_county", "us_territory"]
 
 
-def build(nlp: Language, overwrite: list[str] = None):
+def build(nlp: Language, overwrite: Optional[list[str]] = None):
     add.term_pipe(nlp, name="admin_unit_terms", path=ALL_CSVS)
+    # add.debug_tokens(nlp)  # ##########################################
+
     add.trait_pipe(nlp, name="not_admin_unit", compiler=not_admin_unit())
 
+    # add.debug_tokens(nlp)  # ##########################################
     overwrite = overwrite if overwrite else []
     overwrite += """
         us_county us_state us_state-us_county us_territory
@@ -37,6 +40,7 @@ def build(nlp: Language, overwrite: list[str] = None):
         compiler=admin_unit_patterns(),
         overwrite=overwrite,
     )
+    # add.debug_tokens(nlp)  # ##########################################
 
     add.cleanup_pipe(nlp, name="admin_unit_cleanup")
 

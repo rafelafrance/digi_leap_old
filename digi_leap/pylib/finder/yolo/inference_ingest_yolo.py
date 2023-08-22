@@ -6,7 +6,6 @@ from ...db import db
 
 def ingest(args: Namespace) -> None:
     with db.connect(args.database) as cxn:
-
         sheets = db.canned_select(cxn, "sheets", sheet_set=args.sheet_set)
         sheets = {s["core_id"]: s for s in sheets}
 

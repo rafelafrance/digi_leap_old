@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 import easyocr
 import numpy as np
@@ -16,7 +15,6 @@ class Line:
 
 
 class EngineConfig:
-
     easy_ocr = easyocr.Reader(["en"], gpu=True)
 
     char_blacklist = "¥€£¢$«»®©™§{}|~”"

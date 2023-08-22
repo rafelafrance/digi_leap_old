@@ -21,15 +21,14 @@ def build(nlp: Language):
 
 
 def associated_taxon_patterns():
-    decoder = {
-        "assoc": {"ENT_TYPE": "assoc"},
-        "label": {"ENT_TYPE": "assoc_label"},
-    }
     return [
         Compiler(
             label="assoc_taxon_label",
             on_match="assoc_taxon_label_match",
-            decoder=decoder,
+            decoder={
+                "assoc": {"ENT_TYPE": "assoc"},
+                "label": {"ENT_TYPE": "assoc_label"},
+            },
             keep="assoc_taxon_label",
             patterns=[
                 "assoc label",
@@ -49,12 +48,10 @@ def label_assoc_taxon(doc):
     primary_ok = True
 
     for ent in doc.ents:
-
         if ent.label_ == "assoc_taxon_label":
             primary_ok = False
 
         elif ent.label_ == "taxon":
-
             taxon = ent._.data["taxon"]
             rank = ent._.data["rank"]
 

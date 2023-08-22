@@ -1,8 +1,7 @@
 import json
 import warnings
 from copy import copy
-from itertools import chain
-from itertools import combinations
+from itertools import chain, combinations
 from multiprocessing import Pool
 
 import cppimport.import_hook  # noqa: F401
@@ -11,13 +10,11 @@ from PIL import Image
 from tqdm import tqdm
 from traiter.pylib.spell_well import SpellWell
 
-from . import label_transformer
-from . import ocr_runner
 from .. import const
-from ..builder import label_builder
-from ..builder import line_align_py
+from ..builder import label_builder, line_align_py
 from ..builder.line_align import char_sub_matrix as subs
 from ..db import db
+from . import label_transformer, ocr_runner
 
 IMAGE_TRANSFORMS = ["", "deskew_full", "binarize_full", "denoise_full"]
 
@@ -25,7 +22,6 @@ IMAGE_TRANSFORMS = ["", "deskew_full", "binarize_full", "denoise_full"]
 async def ocr(gold_std):
     golden = []
     for gold in tqdm(gold_std, desc="ocr"):
-
         gold["gold_text"] = " ".join(gold["gold_text"].split())
         gold["pipe_text"] = {}
 

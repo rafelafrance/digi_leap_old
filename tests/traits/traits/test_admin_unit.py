@@ -188,3 +188,22 @@ class TestAdminUnit(unittest.TestCase):
             test("""Tree The New York Botanical Garden Herbarium"""),
             [{"end": 4, "plant_part": "tree", "start": 0, "trait": "plant_part"}],
         )
+
+    def test_admin_unit_15(self):
+        self.assertEqual(
+            test("""St. Lucie Co.: Fort Pierce."""),
+            [
+                {
+                    "us_county": "St. Lucie",
+                    "trait": "admin_unit",
+                    "start": 0,
+                    "end": 13,
+                },
+                {
+                    "locality": "Fort Pierce",
+                    "trait": "locality",
+                    "start": 15,
+                    "end": 26,
+                },
+            ],
+        )

@@ -583,7 +583,7 @@ class TestCollector(unittest.TestCase):
         self.assertEqual(
             test(
                 """
-                with Juan Kaplan, Helena Walker Herbarium of Desert Botanical"""
+                with Juan Kaplan, Helena Walker Herbarium of a Botanical Garden"""
             ),
             [
                 {

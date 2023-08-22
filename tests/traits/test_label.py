@@ -32,12 +32,16 @@ class TestLabels(unittest.TestCase):
                     "end": 84,
                 },
                 {
-                    "locality": (
-                        "Mason: 5 miles North of Mason off Hwy 386. Mason Mountains"
-                    ),
+                    "locality": "Mason: 5 miles North of Mason off Hwy 386.",
                     "trait": "locality",
                     "start": 86,
-                    "end": 144,
+                    "end": 128,
+                },
+                {
+                    "locality": "Mason Mountains Wildlife Management Area",
+                    "trait": "locality",
+                    "start": 129,
+                    "end": 169,
                 },
                 {"habitat": "grassland", "trait": "habitat", "start": 171, "end": 180},
                 {

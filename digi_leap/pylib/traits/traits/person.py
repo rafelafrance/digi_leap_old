@@ -37,14 +37,19 @@ def build(nlp: Language, overwrite: Optional[list[str]] = None):
         compiler=name_patterns(),
         overwrite=overwrite + "name_prefix name_suffix no_label".split(),
         keep=[
-            *ACCUMULATOR.keep, "col_label", "det_label", "job_label", "no_label",
-            "not_name"
+            *ACCUMULATOR.keep,
+            "col_label",
+            "det_label",
+            "job_label",
+            "no_label",
+            "not_name",
         ],
     )
     # add.debug_tokens(nlp)  # ##########################################
 
     job_overwrite = (
-            overwrite + """
+        overwrite
+        + """
             name col_label det_label job_label no_label other_label id_no
             """.split()
     )
@@ -311,7 +316,6 @@ def collector_match(ent):
     col_no = ""
 
     for token in ent:
-
         if token._.flag == "name_data":
             people.append(token._.data["name"])
 
@@ -385,7 +389,6 @@ def collector_number(ent):
 def name_only(doc):
     """Look for names next to a date."""
     for one, two in zip(doc.ents[:-1], doc.ents[1:]):
-
         if one.end != two.start:
             continue
 
@@ -414,7 +417,6 @@ def determiner_match(ent):
     people = []
 
     for token in ent:
-
         if token.ent_type_ == "det_label" or token.ent_type_ == "no_label":
             continue
 
@@ -433,7 +435,6 @@ def other_job_match(ent):
     job = []
 
     for token in ent:
-
         if token.ent_type_ == "job_label":
             job.append(token.lower_)
 
@@ -452,7 +453,6 @@ def other_collector_match(ent):
     people = []
 
     for token in ent:
-
         if token._.flag == "name_data":
             people.append(token._.data["name"])
 
@@ -469,7 +469,6 @@ def other_collector2_match(ent):
     person = []
 
     for token in ent:
-
         if token._.flag == "other_col_data":
             people += token._.data["other_collector"]
 
