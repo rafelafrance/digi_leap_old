@@ -1,5 +1,17 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
+# Note:
+
+I am in the process of simplifying this code and breaking it into separate repositories:
+
+- Label finding code moved to:
+- OCR code moved to:
+- Rule-based trait parsing moved to: https://github.com/rafelafrance/FloraTraiter
+
+# Historical information:
+
+### For code related to the following publication see: https://github.com/rafelafrance/digi_leap/tree/v0.1.2
+
 See the following publication in _Applications in Plant Sciences_:
 
 _Humans in the Loop: Community science and machine learning
