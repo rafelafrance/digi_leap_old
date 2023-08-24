@@ -38,10 +38,10 @@ class TestLabels(unittest.TestCase):
                     "end": 128,
                 },
                 {
-                    "locality": "Mason Mountains Wildlife Management Area",
+                    "locality": "Mason Mountains Wildlife Management Area.",
                     "trait": "locality",
                     "start": 129,
-                    "end": 169,
+                    "end": 170,
                 },
                 {"habitat": "grassland", "trait": "habitat", "start": 171, "end": 180},
                 {

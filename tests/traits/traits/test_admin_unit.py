@@ -200,10 +200,10 @@ class TestAdminUnit(unittest.TestCase):
                     "end": 13,
                 },
                 {
-                    "locality": "Fort Pierce",
+                    "locality": "Fort Pierce.",
                     "trait": "locality",
                     "start": 15,
-                    "end": 26,
+                    "end": 27,
                 },
             ],
         )

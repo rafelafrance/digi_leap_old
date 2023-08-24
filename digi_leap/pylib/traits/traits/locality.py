@@ -9,7 +9,8 @@ from traiter.pylib.pipes import add
 
 USE_MOCK_DATA = 0
 
-OTHER_TRAITS = " habitat color admin_unit ".split()
+OUTER_TRAITS = " habitat admin_unit ".split()
+INNER_TRAITS = [*OUTER_TRAITS, "color"]
 PUNCT = t_const.COLON + t_const.COMMA + t_const.DASH + t_const.SLASH
 
 
@@ -60,7 +61,7 @@ def build(nlp: Language):
             nlp,
             name=f"extend_locality{i}",
             compiler=extend_locality(),
-            overwrite=["locality", *OTHER_TRAITS],
+            overwrite=["locality", *INNER_TRAITS],
         )
 
     # add.debug_tokens(nlp)  # ##########################################
@@ -69,7 +70,7 @@ def build(nlp: Language):
         nlp,
         name="end_locality",
         compiler=end_locality(),
-        overwrite=["locality", *OTHER_TRAITS],
+        overwrite=["locality", *INNER_TRAITS],
     )
 
     add.cleanup_pipe(nlp, name="locality_cleanup")
@@ -82,16 +83,16 @@ def locality_patterns():
             on_match="locality_match",
             keep="locality",
             decoder={
-                "-": {"TEXT": {"IN": PUNCT}},
+                ",": {"TEXT": {"IN": PUNCT}},
                 "'s": {"POS": "PART"},
                 "9": {"LIKE_NUM": True},
                 "and": {"POS": {"IN": "ADP AUX CCONJ DET NUM SCONJ".split()}},
                 "loc": {"ENT_TYPE": "loc"},
-                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
+                "trait": {"ENT_TYPE": {"IN": INNER_TRAITS}},
             },
             patterns=[
                 "9? loc+ 's?  loc+ 9?",
-                "9? loc+ -+   loc+ 9?",
+                "9? loc+ ,+   loc+ 9?",
                 "9? loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ 9?",
                 "9? loc+ and+ loc+ and+ loc+ and+ loc+ 9?",
@@ -114,17 +115,19 @@ def extend_locality():
                 "and": {"POS": {"IN": "ADP AUX CCONJ DET NUM SCONJ".split()}},
                 "loc": {"ENT_TYPE": "loc"},
                 "locality": {"ENT_TYPE": "locality"},
-                "rt": {"LOWER": {"REGEX": r"^[a-z][\w.]+$"}},
+                "rt": {"LOWER": {"REGEX": r"^\w[\w.]{,2}$"}},
                 "sent_start": {"IS_SENT_START": True},
-                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
+                "trait": {"ENT_TYPE": {"IN": INNER_TRAITS}},
+                "word": {"IS_ALPHA": True},
             },
             patterns=[
-                "sent_start+ 9? ,?  locality+",
-                "locality+   rt+",
-                "locality+   and?   trait+ locality+",
-                "locality+   ,?            loc+",
-                "loc+        trait+ and?   locality+",
-                "loc+        ,?            locality+",
+                "sent_start+ 9?  ,? locality+",
+                "locality+   rt* ,? rt* ,? rt+",
+                "            rt* ,? rt* ,? rt+      locality+",
+                "locality+   word ,? 9? ,? trait*   locality+",
+                "locality+   ,? and? trait* and? ,? locality+",
+                "locality+   ,? and? trait* and? ,? loc+",
+                "loc+        ,? and? trait* and? ,? locality+",
             ],
         )
     ]
@@ -137,16 +140,18 @@ def end_locality():
             on_match="locality_match",
             keep="locality",
             decoder={
-                ".": {"TEXT": {"IN": t_const.DOT}},
+                ",": {"TEXT": {"IN": PUNCT}},
+                ".": {"TEXT": {"IN": t_const.DOT + t_const.SEMICOLON}},
                 "9": {"LIKE_NUM": True},
                 "locality": {"ENT_TYPE": "locality"},
                 "sent_start": {"IS_SENT_START": True},
-                "trait": {"ENT_TYPE": {"IN": OTHER_TRAITS}},
+                "trait": {"ENT_TYPE": {"IN": OUTER_TRAITS}},
                 "word": {"IS_ALPHA": True},
             },
             patterns=[
-                "locality+ word? trait+ .",
-                "locality+ word? 9+ .",
+                "locality+ ,? word? trait+ .",
+                "locality+ ,? word? 9+ .",
+                "locality+ ,? word+ .",
             ],
         )
     ]
@@ -165,21 +170,33 @@ def prune_localities(doc):
     ents = []
     add_locality = False
 
+    has_taxon = any(e._.data["trait"] == "taxon" for e in doc.ents)
+
     for i, ent in enumerate(doc.ents):
         trait = ent._.data["trait"]
 
         # Localities come after taxa
         if trait in ("taxon",):  # "admin_unit"):
             add_locality = True
-            ents.append(ent)
+
+        # Start localities when there is no taxon
+        elif trait in ("associated_taxon",) and not has_taxon:
+            add_locality = True
+
         # Localities are before collector etc.
         elif trait in ("collector", "date", "determiner") and i > len(doc.ents) // 2:
             add_locality = False
-            ents.append(ent)
-        elif trait == "locality" and not add_locality:
-            continue
-        else:
-            ents.append(ent)
+
+        elif trait == "locality":
+            # At beginning or end of label
+            if not add_locality:
+                continue
+
+            # Skip a name
+            elif len(ent) <= 2 and len(ent[0]) <= 2 and ent[0].text[-1] == ".":
+                continue
+
+        ents.append(ent)
 
     doc.set_ents(sorted(ents, key=lambda e: e.start))
     return doc
