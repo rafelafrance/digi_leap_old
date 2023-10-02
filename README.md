@@ -4,7 +4,7 @@
 
 I am in the process of simplifying this code and breaking it into separate repositories:
 
-- Label finding code moved to:
+- Label finding code moved to: https://github.com/rafelafrance/label_finder
 - OCR code moved to:
 - Rule-based trait parsing moved to: https://github.com/rafelafrance/FloraTraiter
 

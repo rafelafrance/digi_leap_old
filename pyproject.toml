@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "digi_leap"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 license = {file = "LICENSE"}
 authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
@@ -30,9 +30,6 @@ dependencies = [
     "scikit-image",
     "scipy",
     "seaborn",
-    "spacy",
-    "torch",
-    "torchvision",
     "tqdm",
     "uvicorn[standard]",
 ]
@@ -59,7 +56,6 @@ optional-dependencies.dev = [
     "pylint",
     "python-lsp-server[all]",
     "ruff",
-    "tensorboard",
     "yapf",
 ]
 
@@ -157,7 +153,3 @@ extend-select = [
 ]
 show-fixes = true
 ignore = ["D10", "D203", "D213", "ERA001", "PD901", "RET504", "RUF001", "TID252"]
-
-[tool.pyright]
-reportGeneralTypeIssues = "none"
-extraPaths = ["../../traiter/traiter", "../../traiter/plants"]
