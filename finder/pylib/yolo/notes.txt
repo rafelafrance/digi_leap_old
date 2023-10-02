@@ -1,0 +1,40 @@
+python train.py --weights yolov7.pt --data data/custom.yaml --workers 4 --batch-size 4 --cfg cfg/training/yolov7.yaml --name yolov7 --hyp data/hyp.scratch.p5.yaml --epochs 100 --exist-ok
+
+python detect.py --weights runs/train/yolov7_e100/weights/best.pt --source inference-640/ --save-txt --save-conf --project runs/inference-640/yolov7_e100/ --exist-ok --nosave --name rom2_2022-10-03 --conf-thres 0.1
+
+
+=======================================================================================
+========================================================
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+     99/99     4.73G   0.02113  0.009011  0.003336   0.03348        12       640: 100%|██████| 450/450 [02:36<00:00,  2.87it/s]
+               Class      Images      Labels           P           R      mAP@.5  mAP@.5:.95: 100%|█| 75/75 [00:14<00:00,  5.29
+                 all         600        2508       0.884        0.83         0.9       0.715
+               Other         600        1726       0.839       0.836       0.885        0.65
+         Typewritten         600         782       0.929       0.824       0.915        0.78
+
+========================================================
+   Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+     99/99     6.62G    0.0165  0.008431  0.001963    0.0269        12       800: 100%|██████████████████| 450/450 [05:47<00:00,  1.30it/s]
+               Class      Images      Labels           P           R      mAP@.5  mAP@.5:.95: 100%|████████| 75/75 [00:32<00:00,  2.34it/s]
+                 all         600        2508       0.862       0.841       0.899       0.739
+               Other         600        1726       0.838       0.834        0.89       0.682
+         Typewritten         600         782       0.885       0.848       0.909       0.795
+
+========================================================
+     Epoch   gpu_mem       box       obj       cls     total    labels  img_size
+     99/99     4.78G   0.01693  0.007834  0.002045   0.02681        12       640: 100%|██████████████████████████████████| 450/450 [02:56<00:00,  2.55it/s]
+               Class      Images      Labels           P           R      mAP@.5  mAP@.5:.95: 100%|████████████████████████| 75/75 [00:15<00:00,  4.78it/s]
+                 all         600        2508       0.894       0.813       0.902       0.737
+               Other         600        1726       0.869       0.807       0.891       0.678
+         Typewritten         600         782       0.919       0.818       0.913       0.795
+100 epochs completed in 5.223 hours.
+
+Optimizer stripped from runs/train/yolov7_e100/weights/last.pt, 74.8MB
+Optimizer stripped from runs/train/yolov7_e100/weights/best.pt, 74.8MB
+
+========================================================
+python train.py --weights yolov7x.pt --data data/custom-800.yaml --workers 4 --batch-size 4 --cfg cfg/training/yolov7x.yaml --name yolov7x-800 --hyp data/hyp.scratch.p5.yaml --epochs 100 --exist-ok --img-size 800
+
+python test.py --weights runs/train/yolov7x-800/weights/best.pt --data data/custom-test-800.yaml --name yolov7x-800 --save-conf --save-json --exist-ok --img-size 800
+
+python test.py --weights runs/train/yolov7_e100/weights/best.pt --data data/custom-test-640.yaml --name yolov7_e100 --save-conf --save-json --exist-ok --img-size 640
