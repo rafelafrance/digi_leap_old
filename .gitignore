@@ -33,6 +33,7 @@ __pycache__
 # data
 output/
 data/
+notes/
 
 # Temp files
 temp/
