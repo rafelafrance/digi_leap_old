@@ -17,4 +17,4 @@ def build(args: Namespace) -> None:
 
     for path in tqdm(sheets):
         path = Path(path)
-        sheet.to_yolo_image(path, args.yolo_images, args.image_size)
+        sheet.to_yolo_image(path, args.yolo_images, args.yolo_size)
