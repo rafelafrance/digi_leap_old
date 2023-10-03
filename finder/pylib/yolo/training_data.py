@@ -1,18 +1,13 @@
 import csv
-import logging
 import os
-import warnings
 from argparse import Namespace
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, UnidentifiedImageError
 from tqdm import tqdm
 
-from .. import const
-
-EXCEPTIONS = (UnidentifiedImageError, ValueError, TypeError, FileNotFoundError)
+from .. import const, sheet
 
 
 def build(args: Namespace) -> None:
@@ -22,8 +17,8 @@ def build(args: Namespace) -> None:
     sheets = get_sheets(args.label_csv)
 
     for path, labels in tqdm(sheets.items()):
-        sheet = Path(path)
-        image_size = yolo_image(sheet, args.yolo_images, args.image_size)
+        path = Path(path)
+        image_size = sheet.to_yolo_image(path, args.yolo_images, args.image_size)
         if image_size is not None:
             write_labels(args.yolo_labels, labels, image_size, args.yolo_size)
 
@@ -33,28 +28,12 @@ def get_sheets(label_csv) -> dict[list[dict]]:
         reader = csv.DictReader(csv_file)
         sheets = defaultdict(list)
         for label in reader:
-            path = label["path"]
+            stem = Path(label["path"]).stem
             if label["class"]:
-                sheets[path].append(label)
-            elif path not in sheets:
-                sheets[path] = []
+                sheets[stem].append(label)
+            elif stem not in sheets:
+                sheets[stem] = []
     return sheets
-
-
-def yolo_image(sheet, yolo_images, yolo_size) -> tuple[int, int] | None:
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=UserWarning)  # No EXIF warnings
-        yolo = yolo_images / sheet.name
-
-        try:
-            image = Image.open(sheet).convert("RGB")
-            resized = image.resize((yolo_size, yolo_size))
-            resized.save(yolo)
-            return image.size
-
-        except EXCEPTIONS as err:
-            logging.error(f"Could not prepare {sheet.name}: {err}")
-            return None
 
 
 def write_labels(text_path, labels, image_size, yolo_size):

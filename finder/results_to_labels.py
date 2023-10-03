@@ -4,13 +4,13 @@ import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.yolo import yolo_prepare
+from pylib.yolo import yolo_to_labels
 
 
 def main():
     log.started()
     args = parse_args()
-    yolo_prepare.build(args)
+    yolo_to_labels.to_labels(args)
     log.finished()
 
 
@@ -20,42 +20,36 @@ def parse_args():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
             """
-            Prepare label data into a format for YOLO training data.
+            This script converts YOLO results to label images.
             Required CSV columns:
                 * "path": A path to the herbarium sheet image.
-                * "class": The label class in text format.
-                * "left": The label's left pixel.
-                * "top": The label's top pixel.
-                * "right": The label's right pixel.
-                * "bottom": The label's bottom pixel.
-            If the class is empty then the sheet has no labels.
-            """
+           """
         ),
     )
 
     arg_parser.add_argument(
-        "--label-csv",
+        "--yolo-json",
         type=Path,
         metavar="PATH",
         required=True,
-        help="""A CSV file containing all of the label information for
-            training a YOLO model.""",
+        help="""Path to the YOLO results JSON file containing label predictions.""",
     )
 
     arg_parser.add_argument(
-        "--yolo-images",
+        "--sheet-csv",
         type=Path,
         metavar="PATH",
         required=True,
-        help="""Save YOLO formatted images to this directory.""",
+        help="""A CSV file containing all of the herbarium sheets paths fed to the
+            YOLO model. It's OK to use the CSV from training --label-csv.""",
     )
 
     arg_parser.add_argument(
-        "--yolo-labels",
+        "--label-dir",
         type=Path,
         metavar="PATH",
         required=True,
-        help="""Save YOLO formatted label information to this directory.""",
+        help="""Output the label images to this directory.""",
     )
 
     arg_parser.add_argument(
@@ -63,11 +57,12 @@ def parse_args():
         type=int,
         metavar="INT",
         default=640,
-        help="""Resize images to this height & width in pixels.
+        help="""Images were resized to this height & width in pixels.
             (default: %(default)s)""",
     )
 
     args = arg_parser.parse_args()
+
     return args
 
 

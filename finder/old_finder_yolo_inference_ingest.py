@@ -4,7 +4,8 @@ import textwrap
 from pathlib import Path
 
 from pylib import log
-from pylib.yolo import inference_ingest_yolo
+
+from old import inference_ingest_yolo
 
 
 def main():
