@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from .. import sheet
+from .. import sheet_util
 
 
 def build(args: Namespace) -> None:
@@ -17,4 +17,4 @@ def build(args: Namespace) -> None:
 
     for path in tqdm(sheets):
         path = Path(path)
-        sheet.to_yolo_image(path, args.yolo_images, args.yolo_size)
+        sheet_util.to_yolo_image(path, args.yolo_images, args.yolo_size)

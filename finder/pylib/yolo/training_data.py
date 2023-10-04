@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 
-from .. import const, sheet
+from .. import const, sheet_util
 
 
 def build(args: Namespace) -> None:
@@ -18,7 +18,7 @@ def build(args: Namespace) -> None:
 
     for path, labels in tqdm(sheets.items()):
         path = Path(path)
-        image_size = sheet.to_yolo_image(path, args.yolo_images, args.image_size)
+        image_size = sheet_util.to_yolo_image(path, args.yolo_images, args.image_size)
         if image_size is not None:
             write_labels(args.yolo_labels, labels, image_size, args.yolo_size)
 

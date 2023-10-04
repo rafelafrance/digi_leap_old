@@ -1,57 +1,61 @@
 import csv
-import json
 import os
-from collections import namedtuple
 from pathlib import Path
 
 from tqdm import tqdm
 
-from .. import const, sheet
-
-Scale = namedtuple("Scale", "path scale_x scale_y")
+from .. import const, sheet_util
 
 
 def to_labels(args):
     os.makedirs(args.label_dir, exist_ok=True)
 
-    scales = get_sheet_scales(args.sheet_csv, args.yolo_size)
-
-    with open(args.yolo_json) as in_file:
-        labels = json.load(in_file)
-
-    for label in tqdm(labels, desc="labels"):
-        scale = scales[label["image_id"]]
-        save_label(label, scale, args.label_dir)
-
-
-def get_sheet_scales(sheet_csv, yolo_size):
-    sheets = {}
-
-    with open(sheet_csv) as csv_file:
-        reader = csv.DictReader(csv_file)
-        for row in tqdm(reader, desc="scales"):
+    sheet_paths = {}
+    with open(args.sheet_csv) as f:
+        for row in csv.DictReader(f):
             path = Path(row["path"])
-            image = sheet.sheet_image(path)
-            width, height = image.size
-            scale_x = width / yolo_size
-            scale_y = height / yolo_size
-            sheets[path.stem] = Scale(path, scale_x, scale_y)
-    return sheets
+            sheet_paths[path.stem] = path
+
+    label_paths = sorted(args.yolo_labels.glob("*.txt"))
+    for label_path in tqdm(label_paths):
+        sheet_path = sheet_paths.get(label_path.stem)
+        if not sheet_path:
+            continue
+
+        sheet_image = sheet_util.sheet_image(sheet_path)
+
+        with open(label_path) as lb:
+            lines = lb.readlines()
+
+        stem = label_path.stem
+
+        for ln in lines:
+            cls, left, top, right, bottom = from_yolo_format(ln, sheet_image)
+
+            name = "_".join([stem, cls, str(left), str(top), str(right), str(bottom)])
+            name += sheet_path.suffix
+
+            label_image = sheet_image.crop((left, top, right, bottom))
+            label_image.save(args.label_dir / name)
 
 
-def save_label(label, scale, label_dir):
-    left, top = label["bbox"][0], label["bbox"][1]
-    width, height = label["bbox"][2], label["bbox"][3]
+def from_yolo_format(ln, sheet_image):
+    """Convert YOLO coordinates to image coordinates."""
+    cls, center_x, center_y, width, height, *_ = ln.split()
 
-    iid = label["image_id"]
-    cls = const.CLASS2NAME[label["category_id"]]
-    left = int(left * scale.scale_x)
-    top = int(top * scale.scale_y)
-    right = int((left + width) * scale.scale_x)
-    bottom = int((top + height) * scale.scale_y)
+    cls = const.CLASS2NAME[int(cls)]
 
-    name = "_".join([iid, cls, left, top, right, bottom]) + scale.path.suffix
+    # Scale from fraction to sheet image size
+    sheet_width, sheet_height = sheet_image.size
+    center_x = float(center_x) * sheet_width
+    center_y = float(center_y) * sheet_height
+    radius_x = float(width) * sheet_width / 2
+    radius_y = float(height) * sheet_height / 2
 
-    image = sheet.sheet_image(label.path)
-    image = image.crop((left, top, right, bottom))
-    image.save(label_dir / name)
+    # Calculate label's pixel coordinates
+    left = round(center_x - radius_x)
+    top = round(center_y - radius_y)
+    right = round(center_x + radius_x)
+    bottom = round(center_y + radius_y)
+
+    return cls, left, top, right, bottom

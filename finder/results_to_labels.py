@@ -28,11 +28,11 @@ def parse_args():
     )
 
     arg_parser.add_argument(
-        "--yolo-json",
+        "--yolo-labels",
         type=Path,
         metavar="PATH",
         required=True,
-        help="""Path to the YOLO results JSON file containing label predictions.""",
+        help="""Directory containing the label predictions.""",
     )
 
     arg_parser.add_argument(
@@ -50,15 +50,6 @@ def parse_args():
         metavar="PATH",
         required=True,
         help="""Output the label images to this directory.""",
-    )
-
-    arg_parser.add_argument(
-        "--yolo-size",
-        type=int,
-        metavar="INT",
-        default=640,
-        help="""Images were resized to this height & width in pixels.
-            (default: %(default)s)""",
     )
 
     args = arg_parser.parse_args()

@@ -3,7 +3,13 @@ import warnings
 
 from PIL import Image, UnidentifiedImageError
 
-IMAGE_EXCEPTIONS = (UnidentifiedImageError, ValueError, TypeError, FileNotFoundError)
+IMAGE_EXCEPTIONS = (
+    UnidentifiedImageError,
+    ValueError,
+    TypeError,
+    FileNotFoundError,
+    OSError,
+)
 
 
 def to_yolo_image(path, yolo_images, yolo_size) -> tuple[int, int] | None:
