@@ -2,10 +2,10 @@
 
 # Note:
 
-I am in the process of simplifying this code and breaking it into separate repositories:
+I simplified this code and broke it into separate repositories:
 
 - Label finding code moved to: https://github.com/rafelafrance/label_finder
-- OCR code moved to:
+- OCR code moved to: https://github.com/rafelafrance/ocr_ensemble
 - Rule-based trait parsing moved to: https://github.com/rafelafrance/FloraTraiter
 
 # Historical information:

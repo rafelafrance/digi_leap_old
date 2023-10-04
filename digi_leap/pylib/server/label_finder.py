@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
-from subprocess import check_call
-from subprocess import DEVNULL
+from subprocess import DEVNULL, check_call
+
+from old import const
 
 from . import common
-from .. import const
 
 YOLO_SIZE = 640
 

@@ -3,15 +3,11 @@ import json
 import secrets
 import warnings
 
-from fastapi import Depends
-from fastapi import FastAPI
-from fastapi import HTTPException
-from fastapi import status
-from fastapi.security import HTTPBasic
-from fastapi.security import HTTPBasicCredentials
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from PIL import Image
 
-from .. import const
+from old import const
 
 
 def api_key():

@@ -1,14 +1,12 @@
 """A utility class to calculate average subject bomatrixxes."""
 import json
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Any
-from typing import cast
+from dataclasses import dataclass, field
+from typing import Any, cast
 
 import numpy as np
 import numpy.typing as npt
 
-from . import box_calc as calc
+from old import box_calc as calc
 
 RECONCILE_TYPES = {
     (): "None",
