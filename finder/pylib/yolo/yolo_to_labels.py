@@ -45,7 +45,7 @@ def from_yolo_format(ln, sheet_image):
 
     cls = const.CLASS2NAME[int(cls)]
 
-    # Scale from fraction to sheet image size
+    # Scale from fractional to sheet image size
     sheet_width, sheet_height = sheet_image.size
     center_x = float(center_x) * sheet_width
     center_y = float(center_y) * sheet_height
