@@ -20,7 +20,7 @@ def build(args: Namespace) -> None:
         path = Path(path)
         image_size = sheet_util.to_yolo_image(path, args.yolo_images, args.image_size)
         if image_size is not None:
-            write_labels(args.yolo_labels, labels, image_size, args.yolo_size)
+            write_labels(args.yolo_labels, labels, image_size)
 
 
 def get_sheets(label_csv) -> dict[list[dict]]:
@@ -36,14 +36,14 @@ def get_sheets(label_csv) -> dict[list[dict]]:
     return sheets
 
 
-def write_labels(text_path, labels, image_size, yolo_size):
+def write_labels(text_path, labels, image_size):
     classes = [lb["class"] for lb in labels]
     boxes = np.array(
         [[lb["left"], lb["top"], lb["right"], lb["bottom"]] for lb in labels],
         dtype=np.float64,
     )
     width, height = image_size
-    boxes = to_yolo_format(boxes, width, height, yolo_size)
+    boxes = to_yolo_format(boxes, width, height)
     with open(text_path, "w") as txt_file:
         for label_class, box in zip(classes, boxes):
             label_class = const.CLASS2INT[label_class]
@@ -52,24 +52,17 @@ def write_labels(text_path, labels, image_size, yolo_size):
             txt_file.write(line)
 
 
-def to_yolo_format(bboxes, sheet_width, sheet_height, yolo_size):
+def to_yolo_format(bboxes, sheet_width, sheet_height):
     """Convert bounding boxes to YOLO format.
 
-    resize to the new YOLO image size
     center x, center y, width, height
-    convert to fraction of the YOLO image size
+    convert to fraction of the image size
     """
-    bboxes[:, [0, 2]] *= yolo_size / sheet_width  # Rescaled to new yolo image size
-    bboxes[:, [1, 3]] *= yolo_size / sheet_height  # Resized to new yolo image size
-
     boxes = np.empty_like(bboxes)
 
-    boxes[:, 0] = (bboxes[:, 2] + bboxes[:, 0]) / 2.0  # Center x
-    boxes[:, 1] = (bboxes[:, 3] + bboxes[:, 1]) / 2.0  # Center y
-    boxes[:, 2] = bboxes[:, 2] - bboxes[:, 0] + 1  # Box width
-    boxes[:, 3] = bboxes[:, 3] - bboxes[:, 1] + 1  # Box height
-
-    boxes[:, [0, 2]] /= yolo_size  # As a fraction of sheet width
-    boxes[:, [1, 3]] /= yolo_size  # As a fraction of sheet height
+    boxes[:, 0] = (bboxes[:, 2] + bboxes[:, 0]) / 2.0 / sheet_width  # Center x
+    boxes[:, 1] = (bboxes[:, 3] + bboxes[:, 1]) / 2.0 / sheet_height  # Center y
+    boxes[:, 2] = (bboxes[:, 2] - bboxes[:, 0] + 1) / sheet_width  # Box width
+    boxes[:, 3] = (bboxes[:, 3] - bboxes[:, 1] + 1) / sheet_height  # Box height
 
     return boxes
