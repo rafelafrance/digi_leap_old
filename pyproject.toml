@@ -10,15 +10,6 @@ license = {file = "LICENSE"}
 authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
 requires-python = ">=3.11"
 dependencies = [
-    "Pillow",
-    "fastapi",
-    "jinja2",
-    "pandas",
-    "python-dateutil",
-    "python-multipart",
-    "seaborn",
-    "tqdm",
-    "uvicorn[standard]",
 ]
 optional-dependencies.dev = [
     "autopep8",
