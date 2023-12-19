@@ -2,16 +2,15 @@ import io
 import json
 import secrets
 import warnings
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from PIL import Image
 
-from old import const
-
 
 def api_key():
-    keys = const.DATA_DIR / "secrets" / "api_keys.json"
+    keys = Path("server") / "data" / "secrets" / "api_keys.json"
     with open(keys) as key_file:
         key = json.load(key_file)
     return key["key"]

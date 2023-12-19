@@ -4,31 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "digi_leap"
-version = "0.1.3"
+version = "0.2.0"
 description = ""
 license = {file = "LICENSE"}
 authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "Pillow",
-    "cppimport",
-    "easyocr",
     "fastapi",
     "jinja2",
-    "matplotlib",
-    "nltk",
-    "numpy",
     "pandas",
-    "pillow",
-    "pybind11",
-    "pycocotools",
-    "pydantic",
-    "pytesseract",
     "python-dateutil",
     "python-multipart",
-    "regex",
-    "scikit-image",
-    "scipy",
     "seaborn",
     "tqdm",
     "uvicorn[standard]",
@@ -40,15 +27,6 @@ optional-dependencies.dev = [
     "ipyparallel",
     "ipython",
     "isort",
-    "jupyter",
-    "jupyter_nbextensions_configurator",
-    "jupyterlab",
-    "jupyterlab-code-formatter",
-    "jupyterlab-drawio",
-    "jupyterlab-git",
-    "jupyterlab-lsp",
-    "jupyterlab-spellchecker",
-    "nbdime",
     "neovim",
     "pre-commit",
     "pre-commit-hooks",

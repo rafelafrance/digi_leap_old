@@ -11,10 +11,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from pylib.db import db
-from pylib.server import common
-from pylib.server import label_finder as finder
 
+from digi_leap.pylib import common
+from digi_leap.pylib import label_finder as finder
+from old.db import db  # TODO Convert to static/cache.json
 from old.ocr.ensemble import Ensemble
 
 app = common.setup()

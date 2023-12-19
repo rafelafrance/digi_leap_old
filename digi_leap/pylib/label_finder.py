@@ -2,9 +2,7 @@ import os
 from pathlib import Path
 from subprocess import DEVNULL, check_call
 
-from old import const
-
-from . import common
+from digi_leap.pylib import common, const
 
 YOLO_SIZE = 640
 
