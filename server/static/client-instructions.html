@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Digi-Leap</title>
+    <link rel="stylesheet" type="text/css" href="/static/client.css">
+    <link rel="icon" href="/static/digi-leap-icon.png" type="image/png">
+</head>
+
+<body>
+    <div class="title">
+        <h1>How to use the Digi-Leap client</h1>
+    </div>
+    <div class="instructions">
+        <h2>Introduction</h2>
+        <p>
+            There are 3 basic steps to this client.
+        </p>
+        <ol>
+            <li>Select the herbarium sheet.</li>
+            <li>Find labels on the sheet.</li>
+            <li>OCR the labels.</li>
+        </ol>
+        <p>
+            Each of these steps has a few knobs that you can adjust to get best results out of Digi-Leap.
+        </p>
+        <h2>Selecting a herbarium sheet</h2>
+        <p>
+            There are two ways to upload a herbarium sheet.
+        </p>
+        <ul>
+            <li>
+                The primary way you're going to do this is by using the "Browse..." button to navigate to a
+                herbarium sheet on your computer.
+            </li>
+            <li>
+                However, if you're in a hurry or just want to test basic functionality then you can use the
+                "Random sheet" option, which will choose one of 5 example herbarium sheets as an example.
+            </li>
+        </ul>
+        <p>
+            The "Image type" is...
+        </p>
+        <ol>
+            <li>
+                "Sheet": a full herbarium sheet where you will need to "Find labels" before they can be OCRed.
+            </li>
+            <li>
+                "Label": allows you to OCR an image of a label directly, which, because the image is of
+                a single label, means that you would skip the "Find labels" step.
+            </li>
+        </ol>
+        <h2>Finding and adjusting labels</h2>
+        <p>
+            After you have selected the herbarium sheet you will click the "Find labels" button which will send the
+            image to the server. The server uses a neural network to find and identify labels on the herbarium sheet.
+        </p>
+        <p>
+            The "Confidence" changes the sensitivity of the label finder with lower values yielding more junk labels
+            and higher values excluding more labels. 0.5 seems to be a good compromise but it is sometimes useful adjust
+            this for more problematic sheets.
+        </p>
+        <ul>
+            <li>
+                <span class="typewritten">Orange</span> boxes indicate that the neural network "thinks" that it
+                found a typewritten label that we can easily OCR.
+            </li>
+            <li>
+                <span class="other">Teal or green</span> boxes indicate that the neural network "thinks" that it
+                found a label that we are not going to try to OCR.
+            </li>
+        </ul>
+        <p>
+            You can get a close-up view of each label by clicking on the "+" and "-" buttons of the "Label index".
+        </p>
+        <p>
+            As good as the label finder is, it is far from perfect, so we provide a way to "Fix labels". You select
+            the fix option from the drop-down list and click inside of the colored box.
+        </p>
+        <ul>
+            <li>
+                If you select "Convert to typewritten" then the program changes a <span class="other">teal</span>
+                box to an <span class="typewritten">orange</span> and the label is OCRed.
+            </li>
+            <li>
+                If you select "Convert to other label" then the program changes an <span
+                    class="typewritten">orange</span>
+                box to a <span class="other">teal</span> and the label is not OCRed.
+            </li>
+            <li>
+                If you select "Delete label" then any box you click inside of is removed. This is used to remove
+                anything
+                the neural network misidentified as a label. It is handy for removing color guides, envelopes, etc.
+            </li>
+            <li>
+                Finally, if the neural network completely missed a label you are able to add one by selecting the
+                "Add label" option. You click and drag to create an <span class="typewritten">orange</span> box.
+            </li>
+        </ul>
+        <p>
+            If you click on the "Save labels" button the program will save all labels both typewritten and other as
+            individual files.
+        </p>
+        <h2>OCR and edit labels</h2>
+        <p>
+            Once you are satisfied with the [possibly edited] label finder results you click on the "OCR labels" button.
+            This sends a request to the server that OCRs all typewritten (<span class="typewritten">orange</span>)
+            labels. You get to the label text by clicking the "+" and "-" buttons like above. You can edit label text
+            and when you are satisfied with the OCR results you can click the "Save text" button which will save all
+            of the text for a herbarium sheet, along with with some metadata, in JSON format.
+        </p>
+    </div>
+</body>
+
+</html>
