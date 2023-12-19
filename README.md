@@ -13,7 +13,7 @@ Extract information from images of herbarium specimen label sheets. This is the 
 
 Given images like:
 
-[<img src="static/sheets/86b6d226-5498-40aa-a165-7b2f902090a3.jpg" width="500" />](static/sheets/86b6d226-5498-40aa-a165-7b2f902090a3.jpg)
+[<img src="static/sheets/86b6d226-5498-40aa-a165-7b2f902090a3.jpg" width="500" />](assets/86b6d226-5498-40aa-a165-7b2f902090a3.jpg)
 
 We want to:
 
