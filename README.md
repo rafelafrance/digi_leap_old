@@ -1,17 +1,5 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
-# Note:
-
-I simplified this code and broke it into separate repositories:
-
-- Label finding code moved to: https://github.com/rafelafrance/label_finder
-- OCR code moved to: https://github.com/rafelafrance/ocr_ensemble
-- Rule-based trait parsing moved to: https://github.com/rafelafrance/FloraTraiter
-
-# Historical information:
-
-### For code related to the following publication see: https://github.com/rafelafrance/digi_leap/tree/v0.1.2
-
 See the following publication in _Applications in Plant Sciences_:
 
 _Humans in the Loop: Community science and machine learning
@@ -31,7 +19,9 @@ We want to:
 
 1. [Find all the labels on the images.](#Find-Labels)
 2. [OCR the cleaned up label images.](#OCR-Labels)
-3. [Use NLP to extract information from the clean OCR text.](#Extract-Information)
+3. [Use Traiter to extract information from the clean OCR text.](#Rule-based-trait-extraction)
+4. [Use a large language model (LLM) to get traits from OCR text.](#Large-language-model-trait-extraction)
+5. [Reconcile trait output from the Traiter and the LLM](#Reconcile-traits)
 
 ## Find Labels
 
@@ -69,7 +59,7 @@ After the image processing & OCR combinations we then:
 3. The next step in the workflow is to use a Multiple Sequence Alignment (MSA) algorithm that is directly analogous to the ones used for biological sequences but instead of using a PAM or BLOSUM substitution matrix we use a visual similarity matrix. Exact visual similarity depends on the font so an exact distance is not feasible. Instead we use a rough similarity score that ranges from +2, for characters that are identical, to -2, where the characters are wildly different like a period and a W. We also used a gap penalty of -3 and a gap extension penalty of -0.5.
 4. Finally, we edit the MSA consensus sequence with a spell checker, add or remove spaces within words, and fix common character substitutions.
 
-## Extract Information
+## Rule based trait extraction
 
 We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parsers to extract information from the labels. One level of parsers finds anchor words, another level of parsers finds common phrases around the anchor words, etc. until we have a final set of Darwin Core terms from that label.
 
@@ -81,12 +71,9 @@ We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parse
 4. We may then link traits to each other (entity relationships) using spaCy's dependency matchers.
    1. Typically, a trait gets linked to a higher level entity like SPECIES <--- FLOWER <--- {COLOR, SIZE, etc.} and not peer to peer like PERSON <---> ORG.
 
-### The trait extraction process depends on 2 other repositories:
+## Large language model trait extraction
 
-1. https://github.com/rafelafrance/traiter.git@master#egg=traiter
-   1. Used in several other information extraction projects, plants, insects, vertebrates, etc.
-2. https://github.com/rafelafrance/FloraTraiter.git@main#egg=FloraTraiter
-   1. Contains code for plant specific trait extraction.
+## Reconcile traits
 
 # Run Tests
 
