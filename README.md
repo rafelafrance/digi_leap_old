@@ -21,7 +21,9 @@ We want to:
 2. [OCR the cleaned up label images.](#OCR-Labels)
 3. [Use Traiter to extract information from the clean OCR text.](#Rule-based-trait-extraction)
 4. [Use a large language model (LLM) to get traits from OCR text.](#Large-language-model-trait-extraction)
-5. [Reconcile trait output from the Traiter and the LLM](#Reconcile-traits)
+5. [Reconcile trait output from the Traiter and the LLM.](#Reconcile-traits)
+
+There are many moving parts to this project and I have broken this project into several repositories, use another external repository (for YOLO7) and possibly use an external server (for GPT4).
 
 ## Find Labels
 
@@ -29,7 +31,7 @@ We want to:
 
 We find labels with a custom trained YOLOv7 model (https://github.com/WongKinYiu/yolov7).
 
-- Labels that the model classified as typewritten are outlined in orange
+- Labels that the model classified as typewritten are outlined in orange.
 - All other identified labels are outlined in teal.
 
 ## OCR Labels
