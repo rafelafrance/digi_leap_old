@@ -1,12 +1,12 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
 This repository combines all of the following repositories using `git subtree`:
-- [finder](https://github.com/rafelafrance/digi_leap/tree/main/finder) Use a neural net to find labels on herbarium sheets.
-- [ensemble](https://github.com/rafelafrance/digi_leap/tree/main/ensemble) Use an ensemble of image processing and OCR engines to extract text from herbarium labels.
-- [flora](https://github.com/rafelafrance/digi_leap/tree/main/flora) Use FloraTraiter to extract Darwin Core terms and data from herbarium label text..
-- [llm](https://github.com/rafelafrance/digi_leap/tree/main/llm) Use ChatGPT4 to extract Darwin Core terms and data from herbarium label text.
-- [reconcile](https://github.com/rafelafrance/digi_leap/tree/main/reconcile) Reconcile the extracted Darwin Core data gotten from ChatGPT4 and FloraTraiter.
-- [server](https://github.com/rafelafrance/digi_leap/tree/main/server) A simple web server to demonstrate Digi-Leap functionality.
+- [finder](https://github.com/rafelafrance/digi_leap/tree/main/finder/README.md) Use a neural net to find labels on herbarium sheets.
+- [ensemble](https://github.com/rafelafrance/digi_leap/tree/main/ensemble/README.md) Use an ensemble of image processing and OCR engines to extract text from herbarium labels.
+- [flora](https://github.com/rafelafrance/digi_leap/tree/main/flora/README.md) Use FloraTraiter to extract Darwin Core terms and data from herbarium label text..
+- [llm](https://github.com/rafelafrance/digi_leap/tree/main/llm/README.md) Use ChatGPT4 to extract Darwin Core terms and data from herbarium label text.
+- [reconcile](https://github.com/rafelafrance/digi_leap/tree/main/reconcile/README.md) Reconcile extracted Darwin Core data gotten from ChatGPT4 and FloraTraiter.
+- [server](https://github.com/rafelafrance/digi_leap/tree/main/server/README.md) A simple web server to demonstrate Digi-Leap functionality.
 
 See the following publication in _Applications in Plant Sciences_:
 

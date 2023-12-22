@@ -12,7 +12,7 @@ Hiking Trail north of Descanso.
 13 May 1967 San Diego Co., Calif.
 Coll: R.M. Beauchamp No. 484
 ```
-And convert it into a machine-readable format like:
+And convert it into a machine-readable Darwin Core format like:
 ```json
 {
     "dwc:eventDate": "1967-05-13",
@@ -54,13 +54,9 @@ FloraTraiter uses a multistep approach to parse text into traits. The rules them
 4. Depending on the trait we may then link traits to each other (entity relationships) using also spaCy rules.
    1. Typically, a trait gets linked to a higher level entity like SPECIES <--- FLOWER <--- {COLOR, SIZE, etc.} and not peer to peer like PERSON <---> ORG.
 
-As a simple example, a label has a date given as `Date 30-VII-1977` which is correctly parsed as `1977-07-30`. The process looks like:
+As an example of parsing a locality is shown below:
 
-- First the base terms are recognized a "date label" and a "roman numeral".
-- Then a rule that says to match a "date label" followed by a "number", then a "dash/slash", a "roman numeral", a "dash/slash", followed by another "number" yields a date.
-- If the date does not have another identifier like "date determined" the date defaults to "event date".
-
-[<img src="date_parsing.jpg" width="700" />](date_parsing.jpg)
+[<img src="locality_parsing.jpg" width="700" />](locality_parsing.jpg)
 
 The rules can become complex and the vocabularies for things like taxa, or a gazetteer can be huge, but you should get the idea of what is involved in label parsing.
 
@@ -111,12 +107,10 @@ As an example of a Darwin Core field with a moderately complex reconciler is "dw
 
 Here is the process we use to reconcile "dwc:verbatimLocality":
 1. Look for the locality in the ChatGPT output listed under any of its aliases.
-2. Do the same for location remarks, also using its aliases.
-3. Look for the locality in FloraTraiter output (no aliases needed).
-4. See if we can extend FloraTraiter's version of locality into a seamless single string. I.e. are all the FloraTraiter locality list values only separated by whitespace? If we can then save this extended version for possible use later.
-5. If ChatGPT's version of locality is a nested object then see if we can pull a good locality from one of its sub-terms. If we can't then use FloraTraiter's version.
-6. If ChatGPT's version of locality is a non-empty string then use ChatGPT's version.
-7. If ChatGPT's version of locality is empty and FloraTraiter's version is not empty then use FloraTraiter's version.
-8. If we have any locality look to see if overlaps with the extended FloraTraiter's version. It it does then use the extended locality.
-9. Look to see if we can use the ChatGPT's location remarks to either extend the currently used locality or use it as another item in the locality list.
-10. Return the locality we are using, if any.
+   1. Do the same for location remarks, using its own aliases.
+   2. If ChatGPT's version of locality is a nested object then see if we can pull a good locality from one of its sub-terms. If we can't then use FloraTraiter's version.
+2. Look for the locality in FloraTraiter output (no aliases needed).
+   1. If it is a list of localities, see if we can extend FloraTraiter's version of locality into a seamless single string. I.e. are all the FloraTraiter locality list values only separated by whitespace? If we can then save this extended version for possible use later.
+3. Use ChatGPT's version of locality if it is not empty but FloraTraiter's version it is empty.
+4. If current locality is contained in the extended FloraTraiter version then use the FloraTraiter version.
+5. Look to see if we can use the ChatGPT's location remarks to either extend the currently used locality or use it as another item in a locality list.
