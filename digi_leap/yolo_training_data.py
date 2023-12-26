@@ -1,1 +1,1 @@
-finder/finder/yolo_training_data.py
+../finder/finder/yolo_training_data.py

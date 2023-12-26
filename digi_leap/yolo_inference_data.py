@@ -1,1 +1,1 @@
-finder/finder/yolo_inference_data.py
+../finder/finder/yolo_inference_data.py

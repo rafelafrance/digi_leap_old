@@ -1,1 +1,1 @@
-flora/flora/parse_label_text.py
+../flora/flora/parse_label_text.py

@@ -1,1 +1,1 @@
-server/server/web_server.py
+../server/server/web_server.py

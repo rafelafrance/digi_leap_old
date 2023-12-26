@@ -25,7 +25,8 @@ def make_symlinks(scripts, no_create) -> None:
     if not no_create:
         for script in scripts:
             src = SRC / script.dst.name
-            src.symlink_to(script.dst)
+            dst = Path("..") / script.tree / script.tree / script.dst.name
+            src.symlink_to(dst)
 
 
 def get_subtrees() -> list[str]:

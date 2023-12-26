@@ -1,1 +1,1 @@
-llm/llm/get_gpt_output.py
+../llm/llm/get_gpt_output.py

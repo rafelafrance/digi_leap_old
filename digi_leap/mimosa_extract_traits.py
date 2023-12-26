@@ -1,1 +1,1 @@
-flora/flora/mimosa_extract_traits.py
+../flora/flora/mimosa_extract_traits.py

@@ -1,1 +1,1 @@
-finder/finder/yolo_results_to_labels.py
+../finder/finder/yolo_results_to_labels.py

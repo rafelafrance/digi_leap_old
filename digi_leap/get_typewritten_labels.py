@@ -1,1 +1,1 @@
-finder/finder/get_typewritten_labels.py
+../finder/finder/get_typewritten_labels.py
