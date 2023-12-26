@@ -1,0 +1,1 @@
+finder/finder/get_typewritten_labels.py

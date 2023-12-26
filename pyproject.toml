@@ -4,13 +4,40 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "digi_leap"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 license = {file = "LICENSE"}
 authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
 requires-python = ">=3.11"
 dependencies = [
-]
+    "Jinja2",
+    "Pillow",
+    "cppimport",
+    "easyocr",
+    "fastapi",
+    "ftfy",
+    "jinja2",
+    "matplotlib",
+    "numpy",
+    "openai",
+    "pandas",
+    "pillow",
+    "pybind11",
+    "pycocotools",
+    "pytesseract",
+    "python-dateutil",
+    "python-multipart",
+    "regex",
+    "scikit-image",
+    "scipy",
+    "seaborn",
+    "spacy",
+    "tomlkit",
+    "torch",
+    "torchmetrics",
+    "torchvision",
+    "tqdm",
+    "uvicorn[standard]",]
 optional-dependencies.dev = [
     "autopep8",
     "bandit",
