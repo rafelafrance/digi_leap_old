@@ -1,12 +1,16 @@
 # Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
 This repository combines all of the following repositories using `git subtree`:
-- [finder](https://github.com/rafelafrance/digi_leap/tree/main/finder/README.md) Use a neural net to find labels on herbarium sheets.
-- [ensemble](https://github.com/rafelafrance/digi_leap/tree/main/ensemble/README.md) Use an ensemble of image processing and OCR engines to extract text from herbarium labels.
-- [flora](https://github.com/rafelafrance/digi_leap/tree/main/flora/README.md) Use FloraTraiter to extract Darwin Core terms and data from herbarium label text..
-- [llm](https://github.com/rafelafrance/digi_leap/tree/main/llm/README.md) Use ChatGPT4 to extract Darwin Core terms and data from herbarium label text.
-- [reconcile](https://github.com/rafelafrance/digi_leap/tree/main/reconcile/README.md) Reconcile extracted Darwin Core data gotten from ChatGPT4 and FloraTraiter.
-- [server](https://github.com/rafelafrance/digi_leap/tree/main/server/README.md) A simple web server to demonstrate Digi-Leap functionality.
+- [finder](https://github.com/rafelafrance/digi_leap/tree/main/finder/README.md) Use a neural net to find labels on herbarium sheets. [Repository](https://github.com/rafelafrance/label_finder)
+- [ensemble](https://github.com/rafelafrance/digi_leap/tree/main/ensemble/README.md) Use an ensemble of image processing and OCR engines to extract text from herbarium labels. [Repository](https://github.com/rafelafrance/ocr_ensemble)
+- [flora](https://github.com/rafelafrance/digi_leap/tree/main/flora/README.md) Use FloraTraiter to extract Darwin Core terms and data from herbarium label text. [Repository](https://github.com/rafelafrance/FloraTraiter)
+- [llm](https://github.com/rafelafrance/digi_leap/tree/main/llm/README.md) Use ChatGPT4 to extract Darwin Core terms and data from herbarium label text. [Repository](https://github.com/rafelafrance/traiter_llm)
+- [reconcile](https://github.com/rafelafrance/digi_leap/tree/main/reconcile/README.md) Reconcile extracted Darwin Core data gotten from ChatGPT4 and FloraTraiter. [Repository](https://github.com/rafelafrance/reconcile_traits)
+- [server](https://github.com/rafelafrance/digi_leap/tree/main/server/README.md) A simple web server to demonstrate Digi-Leap functionality. [Repository](https://github.com/rafelafrance/digi_leap_server)
+
+You can download and run each of the above subtrees on their own. This repository is only recommended if you want to run the entire Digi-Leap pipeline. For example, if you only want to parse traits using the FloraTraiter rule-based parser you can download & use https://github.com/rafelafrance/FloraTraiter on its own.
+
+## Reference
 
 See the following publication in _Applications in Plant Sciences_:
 
@@ -16,6 +20,8 @@ synergies for overcoming herbarium digitization bottlenecks_
 Robert Guralnick, Raphael LaFrance, Michael Denslow, Samantha Blickhan, Mark
 Bouslog, Sean Miller, Jenn Yost, Jason Best, Deborah L Paul, Elizabeth Ellwood,
 Edward Gilbert, Julie Allen
+
+## Pipeline outline
 
 Extract information from images of herbarium specimen label sheets. This is the automated portion of a full solution that includes humans-in-the-loop.
 
@@ -33,7 +39,7 @@ We want to:
 
 There are many moving parts to this project and I have broken this project into several repositories, use another external repository (for YOLO7) and possibly use an external server (for GPT4).
 
-## Find Labels
+### Find Labels
 
 [<img src="assets/show_labels.png" width="500" />](assets/show_labels.png)
 
@@ -42,7 +48,7 @@ We find labels with a custom trained YOLOv7 model (https://github.com/WongKinYiu
 - Labels that the model classified as typewritten are outlined in orange.
 - All other identified labels are outlined in teal.
 
-## OCR Labels
+### OCR Labels
 
 [<img src="assets/show_ocr_text.png" width="500" />](assets/show_ocr_text.png)
 
@@ -69,11 +75,11 @@ After the image processing & OCR combinations we then:
 3. The next step in the workflow is to use a Multiple Sequence Alignment (MSA) algorithm that is directly analogous to the ones used for biological sequences but instead of using a PAM or BLOSUM substitution matrix we use a visual similarity matrix. Exact visual similarity depends on the font so an exact distance is not feasible. Instead we use a rough similarity score that ranges from +2, for characters that are identical, to -2, where the characters are wildly different like a period and a W. We also used a gap penalty of -3 and a gap extension penalty of -0.5.
 4. Finally, we edit the MSA consensus sequence with a spell checker, add or remove spaces within words, and fix common character substitutions.
 
-## Rule based trait extraction
+### Rule based trait extraction
 
 We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parsers to extract information from the labels. One level of parsers finds anchor words, another level of parsers finds common phrases around the anchor words, etc. until we have a final set of Darwin Core terms from that label.
 
-### Parsing strategy
+#### Parsing strategy
 
 1. Have experts identify relevant terms and target traits.
 2. We use expert identified terms to label terms using spaCy's phrase matchers. These are sometimes traits themselves but are more often used as anchors for more complex patterns of traits.
@@ -81,11 +87,11 @@ We are currently using a hierarchy of spaCy (https://spacy.io/) rule-based parse
 4. We may then link traits to each other (entity relationships) using spaCy's dependency matchers.
    1. Typically, a trait gets linked to a higher level entity like SPECIES <--- FLOWER <--- {COLOR, SIZE, etc.} and not peer to peer like PERSON <---> ORG.
 
-## Large language model trait extraction
+#### Large language model trait extraction
 
-## Reconcile traits
+### Reconcile traits
 
-# Run Tests
+## Run Tests
 
 ```bash
 cd /to/digi_leap/directory
