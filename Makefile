@@ -28,37 +28,37 @@ clean:
 	find -iname "*.pyc" -delete
 
 setup_subtrees:
-	git remote add -f traiter https://github.com/rafelafrance/label_finder.git
+	git remote add -f label_finder https://github.com/rafelafrance/label_finder.git
 	git checkout -b upstream/finder label_finder/main
 	git subtree split -q --squash --prefix=finder --annotate='[finder] ' --rejoin -b merging/finder
 	git checkout main
 	git subtree add -q --squash --prefix=finder merging/finder
 
-	git remote add -f traiter https://github.com/rafelafrance/ocr_ensemble.git
+	git remote add -f ocr_ensemble https://github.com/rafelafrance/ocr_ensemble.git
 	git checkout -b upstream/ensemble ocr_ensemble/main
 	git subtree split -q --squash --prefix=ensemble --annotate='[ensemble] ' --rejoin -b merging/ensemble
 	git checkout main
 	git subtree add -q --squash --prefix=ensemble merging/ensemble
 
-	git remote add -f traiter https://github.com/rafelafrance/FloraTraiter.git
+	git remote add -f FloraTraiter https://github.com/rafelafrance/FloraTraiter.git
 	git checkout -b upstream/flora FloraTraiter/main
 	git subtree split -q --squash --prefix=flora --annotate='[flora] ' --rejoin -b merging/flora
 	git checkout main
 	git subtree add -q --squash --prefix=flora merging/flora
 
-	git remote add -f traiter https://github.com/rafelafrance/traiter_llm.git
+	git remote add -f traiter_llm https://github.com/rafelafrance/traiter_llm.git
 	git checkout -b upstream/llm traiter_llm/main
 	git subtree split -q --squash --prefix=llm --annotate='[llm] ' --rejoin -b merging/llm
 	git checkout main
 	git subtree add -q --squash --prefix=llm merging/llm
 
-	git remote add -f traiter https://github.com/rafelafrance/reconcile_traits.git
+	git remote add -f reconcile_traits https://github.com/rafelafrance/reconcile_traits.git
 	git checkout -b upstream/reconcile reconcile_traits/main
 	git subtree split -q --squash --prefix=reconcile --annotate='[reconcile] ' --rejoin -b merging/reconcile
 	git checkout main
 	git subtree add -q --squash --prefix=reconcile merging/reconcile
 
-	git remote add -f traiter https://github.com/rafelafrance/digi_leap_server.git
+	git remote add -f digi_leap_server https://github.com/rafelafrance/digi_leap_server.git
 	git checkout -b upstream/server digi_leap_server/main
 	git subtree split -q --squash --prefix=server --annotate='[server] ' --rejoin -b merging/server
 	git checkout main
