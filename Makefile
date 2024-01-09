@@ -1,4 +1,4 @@
-.PHONY: test install dev venv clean pull push
+.PHONY: test install dev venv clean setup_subtrees fetch_subtrees
 .ONESHELL:
 
 VENV=.venv
@@ -27,18 +27,76 @@ clean:
 	rm -r $(VENV)
 	find -iname "*.pyc" -delete
 
-pull:
-	git subtree pull --prefix finder https://github.com/rafelafrance/label_finder.git main --squash
-	git subtree pull --prefix ensemble https://github.com/rafelafrance/ocr_ensemble.git main --squash
-	git subtree pull --prefix flora https://github.com/rafelafrance/FloraTraiter.git main --squash
-	git subtree pull --prefix llm https://github.com/rafelafrance/traiter_llm.git main --squash
-	git subtree pull --prefix reconcile https://github.com/rafelafrance/reconcile_traits.git main --squash
-	git subtree pull --prefix server https://github.com/rafelafrance/digi_leap_server.git main --squash
+setup_subtrees:
+	git remote add -f traiter https://github.com/rafelafrance/label_finder.git
+	git checkout -b upstream/finder label_finder/main
+	git subtree split -q --squash --prefix=finder --annotate='[finder] ' --rejoin -b merging/finder
+	git checkout main
+	git subtree add -q --squash --prefix=finder merging/finder
 
-push:
-	git subtree push --prefix finder https://github.com/rafelafrance/label_finder.git main
-	git subtree push --prefix ensemble https://github.com/rafelafrance/ocr_ensemble.git main
-	git subtree push --prefix flora https://github.com/rafelafrance/FloraTraiter.git main
-	git subtree push --prefix llm https://github.com/rafelafrance/traiter_llm.git main
-	git subtree push --prefix reconcile https://github.com/rafelafrance/reconcile_traits.git main
-	git subtree push --prefix server https://github.com/rafelafrance/digi_leap_server.git main
+	git remote add -f traiter https://github.com/rafelafrance/ocr_ensemble.git
+	git checkout -b upstream/ensemble ocr_ensemble/main
+	git subtree split -q --squash --prefix=ensemble --annotate='[ensemble] ' --rejoin -b merging/ensemble
+	git checkout main
+	git subtree add -q --squash --prefix=ensemble merging/ensemble
+
+	git remote add -f traiter https://github.com/rafelafrance/FloraTraiter.git
+	git checkout -b upstream/flora FloraTraiter/main
+	git subtree split -q --squash --prefix=flora --annotate='[flora] ' --rejoin -b merging/flora
+	git checkout main
+	git subtree add -q --squash --prefix=flora merging/flora
+
+	git remote add -f traiter https://github.com/rafelafrance/traiter_llm.git
+	git checkout -b upstream/llm traiter_llm/main
+	git subtree split -q --squash --prefix=llm --annotate='[llm] ' --rejoin -b merging/llm
+	git checkout main
+	git subtree add -q --squash --prefix=llm merging/llm
+
+	git remote add -f traiter https://github.com/rafelafrance/reconcile_traits.git
+	git checkout -b upstream/reconcile reconcile_traits/main
+	git subtree split -q --squash --prefix=reconcile --annotate='[reconcile] ' --rejoin -b merging/reconcile
+	git checkout main
+	git subtree add -q --squash --prefix=reconcile merging/reconcile
+
+	git remote add -f traiter https://github.com/rafelafrance/digi_leap_server.git
+	git checkout -b upstream/server digi_leap_server/main
+	git subtree split -q --squash --prefix=server --annotate='[server] ' --rejoin -b merging/server
+	git checkout main
+	git subtree add -q --squash --prefix=server merging/server
+
+fetch_subtrees:
+	git checkout upstream/finder
+	git pull label_finder/main
+	git subtree split -q --squash --prefix=finder --annotate='[finder] ' --rejoin -b merging/finder
+	git checkout main
+	git subtree merge -q --squash --prefix=finder merging/finder
+
+	git checkout upstream/ensemble
+	git pull ocr_ensemble/main
+	git subtree split -q --squash --prefix=ensemble --annotate='[ensemble] ' --rejoin -b merging/ensemble
+	git checkout main
+	git subtree merge -q --squash --prefix=ensemble merging/ensemble
+
+	git checkout upstream/flora
+	git pull FloraTraiter/main
+	git subtree split -q --squash --prefix=flora --annotate='[flora] ' --rejoin -b merging/flora
+	git checkout main
+	git subtree merge -q --squash --prefix=flora merging/flora
+
+	git checkout upstream/llm
+	git pull traiter_llm/main
+	git subtree split -q --squash --prefix=llm --annotate='[llm] ' --rejoin -b merging/llm
+	git checkout main
+	git subtree merge -q --squash --prefix=llm merging/llm
+
+	git checkout upstream/reconcile
+	git pull reconcile_traits/main
+	git subtree split -q --squash --prefix=reconcile --annotate='[reconcile] ' --rejoin -b merging/reconcile
+	git checkout main
+	git subtree merge -q --squash --prefix=reconcile merging/reconcile
+
+	git checkout upstream/server
+	git pull digi_leap_server/main
+	git subtree split -q --squash --prefix=server --annotate='[server] ' --rejoin -b merging/server
+	git checkout main
+	git subtree merge -q --squash --prefix=server merging/server
