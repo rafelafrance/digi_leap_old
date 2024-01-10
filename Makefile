@@ -40,6 +40,12 @@ setup_subtrees:
 	git checkout main
 	git subtree add -q --squash --prefix=ensemble merging/ensemble
 
+	git remote add -f traiter https://github.com/rafelafrance/traiter.git
+	git checkout -b upstream/traiter traiter/master
+	git subtree split -q --squash --prefix=traiter --annotate='[traiter] ' --rejoin -b merging/traiter
+	git checkout main
+	git subtree add -q --squash --prefix=traiter merging/traiter
+
 	git remote add -f FloraTraiter https://github.com/rafelafrance/FloraTraiter.git
 	git checkout -b upstream/flora FloraTraiter/main
 	git subtree split -q --squash --prefix=flora --annotate='[flora] ' --rejoin -b merging/flora
@@ -76,6 +82,12 @@ fetch_subtrees:
 	git subtree split -q --squash --prefix=ensemble --annotate='[ensemble] ' --rejoin -b merging/ensemble
 	git checkout main
 	git subtree merge -q --squash --prefix=ensemble merging/ensemble
+
+	git checkout upstream/traiter
+	git pull traiter/master
+	git subtree split -q --squash --prefix=traiter --annotate='[traiter] ' --rejoin -b merging/traiter
+	git checkout main
+	git subtree merge -q --squash --prefix=traiter merging/traiter
 
 	git checkout upstream/flora
 	git pull FloraTraiter/main
