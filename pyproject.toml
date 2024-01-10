@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "digi_leap"
-version = "0.3.0"
+version = "0.3.1"
 description = ""
 license = {file = "LICENSE"}
 authors = [{name="Raphael LaFrance", email="rafelafrance@proton.me"}]
@@ -12,11 +12,13 @@ requires-python = ">=3.11"
 dependencies = [
     "Jinja2",
     "Pillow",
+    "beautifulsoup4",
     "cppimport",
     "easyocr",
     "fastapi",
     "ftfy",
     "jinja2",
+    "lxml",
     "matplotlib",
     "numpy",
     "openai",
