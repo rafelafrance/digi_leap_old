@@ -21,6 +21,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         python -m pip install .
+        python -m pip git+https://github.com/rafelafrance/common_utils.git@main#egg=common_utils
+        python -m pip git+https://github.com/rafelafrance/label_finder.git@main#egg=label_finder
+        python -m pip git+https://github.com/rafelafrance/ocr_ensemble.git@main#egg=ocr_ensemble
+        python -m pip git+https://github.com/rafelafrance/traiter.git@master#egg=traiter
+        python -m pip git+https://github.com/rafelafrance/FloraTraiter.git@main#egg=FloraTraiter
+        python -m pip git+https://github.com/rafelafrance/traiter_llm.git@main#egg=traiter_llm
+        python -m pip git+https://github.com/rafelafrance/reconcile_traits.git@main#egg=reconcile_traits
+        python -m pip git+https://github.com/rafelafrance/digi_leap_server.git@main#egg=digi_leap_server
+        python -m spacy download en_core_web_sm
     - name: Test with unittest
       run: |
         export MOCK_DATA=1; python -m unittest discover
