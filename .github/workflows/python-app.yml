@@ -28,7 +28,6 @@ jobs:
         python -m pip git+https://github.com/rafelafrance/FloraTraiter.git@main#egg=FloraTraiter
         python -m pip git+https://github.com/rafelafrance/traiter_llm.git@main#egg=traiter_llm
         python -m pip git+https://github.com/rafelafrance/reconcile_traits.git@main#egg=reconcile_traits
-        python -m pip git+https://github.com/rafelafrance/digi_leap_server.git@main#egg=digi_leap_server
         python -m spacy download en_core_web_sm
     - name: Test with unittest
       run: |
