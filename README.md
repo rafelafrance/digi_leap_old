@@ -1,4 +1,4 @@
-# digi_leap_old![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
+# digi_leap_old![Python application](https://github.com/rafelafrance/digi_leap_old/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
 This repository was taking upwards of 10 minutes to clone. However, I didn't want to just remove the this repository's history. So, I am archiving this repository and moving the new code to a new repository:
 
