@@ -1,14 +1,12 @@
-# Digi-Leap![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
+# digi_leap_old![Python application](https://github.com/rafelafrance/digi_leap/workflows/CI/badge.svg) [![DOI](https://zenodo.org/badge/334215090.svg)](https://zenodo.org/badge/latestdoi/334215090)
 
-This repository combines all of the following repositories using `git subtree`:
-- [finder](https://github.com/rafelafrance/digi_leap/tree/main/finder/README.md) Use a neural net to find labels on herbarium sheets. [Repository](https://github.com/rafelafrance/label_finder)
-- [ensemble](https://github.com/rafelafrance/digi_leap/tree/main/ensemble/README.md) Use an ensemble of image processing and OCR engines to extract text from herbarium labels. [Repository](https://github.com/rafelafrance/ocr_ensemble)
-- [flora](https://github.com/rafelafrance/digi_leap/tree/main/flora/README.md) Use FloraTraiter to extract Darwin Core terms and data from herbarium label text. [Repository](https://github.com/rafelafrance/FloraTraiter)
-- [llm](https://github.com/rafelafrance/digi_leap/tree/main/llm/README.md) Use ChatGPT4 to extract Darwin Core terms and data from herbarium label text. [Repository](https://github.com/rafelafrance/traiter_llm)
-- [reconcile](https://github.com/rafelafrance/digi_leap/tree/main/reconcile/README.md) Reconcile extracted Darwin Core data gotten from ChatGPT4 and FloraTraiter. [Repository](https://github.com/rafelafrance/reconcile_traits)
-- [server](https://github.com/rafelafrance/digi_leap/tree/main/server/README.md) A simple web server to demonstrate Digi-Leap functionality. [Repository](https://github.com/rafelafrance/digi_leap_server)
+This repository was taking upwards of 10 minutes to clone. However, I didn't want to just remove the this repository's history. So, I am archiving this repository and moving the new streamlined code to a new repository:
 
-You can download and run each of the above subtrees on their own. This repository is only recommended if you want to run the entire Digi-Leap pipeline. For example, if you only want to parse traits using the FloraTraiter rule-based parser you can download & use https://github.com/rafelafrance/FloraTraiter on its own.
+https://github.com/rafelafrance/digi-leap
+
+====================================================
+
+# Historical information
 
 ## Reference
 
